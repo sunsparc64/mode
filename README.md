@@ -271,4 +271,13 @@ utterly useless.
 
 There is initial Parallels support for creating VMs
 
+Future Additions
+----------------
+
+Some of the things I'd like to add support for:
+
+- Packer and Docker
+- Vagrant and Veewee
+- VMware API
+- OpenStack
 
