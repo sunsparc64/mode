@@ -277,21 +277,22 @@ def check_fusion_hostonly_network(if_name)
   config_file     = "/Library/Preferences/VMware Fusion/networking"
   network_address = $default_hostonly_ip.split(/\./)[0..2].join(".")+".0"
   gw_if_name      = get_osx_gw_if_name()
-  test = 0
+  dhcp_test  = 0
+  vmnet_test = 0
   copy = []
   file = IO.readlines(config_file)
   file.each do |line|
     case line
     when /answer VNET_1_DHCP /
       if !line.match(/no/)
-        test = 1
+        dhcp_test = 1
         copy.push("answer VNET_1_DHCP no")
       else
         copy.push(line)
       end
     when /answer VNET_1_HOSTONLY_SUBNET/
       if !line.match(/#{network_address}/)
-        test = 1
+        dhcp_test = 1
         copy.push("answer VNET_1_HOSTONLY_SUBNET #{network_address}")
       else
         copy.push(line)
@@ -300,21 +301,27 @@ def check_fusion_hostonly_network(if_name)
       copy.push(line)
     end
   end
-  if test == 1
+  message = "Information:\t Checking vmnet interfaces are plumbed"
+  command = "ifconfig -a |grep vmnet"
+  output  = execute_command(message,command)
+  if !output.match(/vmnet/)
+    vmnet_test = 1
+  end
+  if dhcp_test == 1 or vmnet_test == 1
     vmnet_cli = "/Applications/VMware Fusion.app/Contents/Library/vmnet-cli"
     temp_file = "/tmp/networking"
     File.open(temp_file,"w") {|file_data| file_data.puts copy}
-    message = "Configuring host only network on #{if_name} for network #{network_address}"
+    message = "Information:\tConfiguring host only network on #{if_name} for network #{network_address}"
     command = "sudo sh -c 'cp #{temp_file} \"#{config_file}\"'"
     execute_command(message,command)
-    message = "Configuring VMware network"
+    message = "Information:\tConfiguring VMware network"
     command = "sudo sh -c '\"#{vmnet_cli}\" --configure'"
     execute_command(message,command)
-    message = "Stopping VMware network"
+    message = "Information:\tStopping VMware network"
     command = "sudo sh -c '\"#{vmnet_cli}\" --stop'"
     execute_command(message,command)
-    message = "starting VMware network"
-    command = "sudo sh -c '\"#{vmnet_cli}\" -- start'"
+    message = "Information:\tStarting VMware network"
+    command = "sudo sh -c '\"#{vmnet_cli}\" --start'"
     execute_command(message,command)
   end
   if $os_rel.split(".")[0].to_i < 14

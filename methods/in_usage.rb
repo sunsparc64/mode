@@ -309,6 +309,14 @@ def print_examples(install_method,install_type,install_vm)
     puts $script+" --action=modify --vm=fusion --client=centos510vm01 --mac=00:50:56:34:4E:7A"
     puts $script+" --action=change --vm=fusion --client=centos510vm01 --mac=00:50:56:34:4E:7A"
     puts
+    puts "Attach CDROM to Fusion VM:"
+    puts
+    puts $script+" --action=attach --vm=fusion --client=sol11u2vm01 --file=/isos/sol-11_2-text-x86.iso"
+    puts
+    puts "Detach CDROM to Fusion VM:"
+    puts
+    puts $script+" --action=detach --vm=fusion --client=sol11u2vm01"
+    puts
   end
   if examples.match(/server|ai|all/)
     puts
@@ -344,12 +352,13 @@ def print_examples(install_method,install_type,install_vm)
     puts
     puts "Configure Kickstart service from ISO (Service name will be automatically created):"
     puts
+    puts $script+" --action=add --method=iso --type=iso --file=/export/isos/Fedora-20-x86_64-DVD.iso"
     puts $script+" --action=add --type=iso --file=/export/isos/Fedora-20-x86_64-DVD.iso"
     puts $script+" --action=add --file=/export/isos/Fedora-20-x86_64-DVD.iso"
     puts
     puts "Unconfigure Kickstart service:"
     puts
-    puts $script+" -K -S -z centos_5_10_i386"
+    puts $script+" --action=delete --method=kickstart --service=centos_5_10_i386"
     puts
     puts "Delete Kickstart service:"
     puts

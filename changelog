@@ -445,3 +445,7 @@
 # Fixed UID check on directories
 # 2.2.3: Sun 15 Feb 2015 14:30:01 AEDT
 # Fixed network NAT/pfctl configuration
+# 2.2.4: Sun 15 Feb 2015 18:05:22 AEDT
+# Improved VMware Fusion network test
+# 2.2.5: Sun 15 Feb 2015 18:38:51 AEDT
+# More improvements to VMware Fusion network test

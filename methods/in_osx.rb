@@ -24,9 +24,32 @@ def get_osx_vm_if_name(install_vm)
   return if_name
 end
 
+# Check IP forwarding is enabled
+
+def check_osx_ip_forwarding(gw_if_name)
+  message = "Checking:\tIP forwarding is enabled"
+  command = "sudo sysctl -a net.inet.ip.forwarding |awk '{print $2}'"
+  output  = execute_command(message,command)
+  output  = output.chomp.to_i
+  if output == 0
+    message = "Enabling:\tIP forwarding"
+    command = "sudo sysctl net.inet.ip.forwarding=1"
+    execute_command(message,command)
+  end
+  message = "Checking:\tRule for IP forwarding has been created"
+  if $os_rel.match(/^14/)
+    command = "sudo pfctl -a '*' -sr 2>&1 |grep 'pass quick on #{gw_if_name}'"
+  else
+    command = "sudo ipfw list |grep 'any to any via #{gw_if_name}'"
+  end
+  output  = execute_command(message,command)
+  return output
+end
+
 # Check PF is configure on OS X 10.10
 
 def check_osx_pfctl(gw_if_name,if_name)
+  check_osx_ip_forwarding(gw_if_name)
   pf_file = $work_dir+"/pfctl_config"
   if File.exist?(pf_file)
     File.delete(pf_file)
@@ -55,22 +78,7 @@ end
 # Useful info on pfctl here http://patrik-en.blogspot.com.au/2009/10/nat-in-virtualbox-with-freebsd-and-pf.html
 
 def check_osx_nat(gw_if_name,if_name)
-  message = "Checking:\tIP forwarding is enabled"
-  command = "sudo sysctl -a net.inet.ip.forwarding |awk '{print $2}'"
-  output  = execute_command(message,command)
-  output  = output.chomp
-  if output =~ /0/
-    message = "Enabling:\tIP forwarding"
-    command = "sudo sysctl net.inet.ip.forwarding=1"
-    execute_command(message,command)
-  end
-  message = "Checking:\tRule for IP forwarding has been created"
-  if $os_rel.match(/^14/)
-    command = "sudo pfctl -a '*' -sr 2>&1 |grep 'pass quick on #{gw_if_name}'"
-  else
-    command = "sudo ipfw list |grep 'any to any via #{gw_if_name}'"
-  end
-  output  = execute_command(message,command)
+  output = check_osx_ip_forwarding(gw_if_name)
   if !output.match(/#{gw_if_name}/)
     message = "Enabling:\tNATd to forward traffic on "+gw_if_name
     if $os_rel.match(/^14/)
