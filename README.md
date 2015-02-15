@@ -22,6 +22,7 @@ BOOTP based install services, eg:
 - SuSE Enterprise Linux AutoYast services
 - ESXi Kickstart services
 - Simplify creation, deletion, import and export of VirtualBox VMs
+- Simplify creation, deletion, import and export of Parallels VMs
 - Simplify creation, deletion, import and export of VMware Fusion VMs
 - Simpllfy creation of Solaris Zones
 - Simplify creation of Solaris VM Server for SPARC Control Domains
