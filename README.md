@@ -1,4 +1,3 @@
-![alt tag](https://raw.githubusercontent.com/lateralblast/modest/master/modest.gif)
 
 MODE
 ====
@@ -45,9 +44,6 @@ installs via serial over IPMI can also be tested for environments that do not
 have remove KVM capability. For example ESXi can be installed into a VM in
 completely headless mode, completely simulating driving the install via serial.
 
-For an example of a completely serial install take a look at the [Video Examples](https://github.com/lateralblast/modest/wiki/7.-Video-Examples)
-section.
-
 This script will also provide the ability to install Solaris 2.6-10, Solaris 11,
 ESXi, and Linux (SuSE, Ubuntu, RedHat and Centos) all from one server and OS,
 consolidating and simplifying installation services. This can be hosted on a
@@ -77,50 +73,6 @@ Mode is designed to be used in a number of scenarios:
   - In a similar fashion to veewee or vagrant
 - An environment for quickly deploying servers in a Datacenter or testlab via cross-over cable
 
-A good place to get started is the [Usage](https://github.com/lateralblast/modest/wiki/3.-Usage)
-Wiki page which includes a section on getting started.
-
-Wiki Index
-----------
-
-[Background](https://github.com/lateralblast/modest/wiki/1.-Background)
-
-[Features](https://github.com/lateralblast/modest/wiki/2.-Features)
-
-[Usage](https://github.com/lateralblast/modest/wiki/3.-Usage)
-
-- [VirtualBox](https://github.com/lateralblast/modest/wiki/3.1.-VirtualBox-Examples)
-- [VMware Fusion](https://github.com/lateralblast/modest/wiki/3.2.-VMware-Fusion-Examples)
-
-[Server](https://github.com/lateralblast/modest/wiki/4.-Server)
-
-- [AI](https://github.com/lateralblast/modest/wiki/4.1.-AI-Server-Examples)
-- [Jumpstart](https://github.com/lateralblast/modest/wiki/4.2.-Jumpstart-Server-Examples)
-- [Kickstart](https://github.com/lateralblast/modest/wiki/4.3.-Kickstart-Server-Examples)
-- [LDom](https://github.com/lateralblast/modest/wiki/4.4.-LDom-Server-Examples)
-- [LXC](https://github.com/lateralblast/modest/wiki/4.5.-Linux-Container-Server-Examples)
-- [Preseed](https://github.com/lateralblast/modest/wiki/4.6.-Preseed-Server-Examples)
-- [vShpere](https://github.com/lateralblast/modest/wiki/4.7.-Sphere-Server-Examples)
-- [Zones](https://github.com/lateralblast/modest/wiki/4.8.-Zone-Server-Examples)
-
-[Client](https://github.com/lateralblast/modest/wiki/5.-Client)
-
-- [AI](https://github.com/lateralblast/modest/wiki/5.1.-AI-Client-Example)
-- [Jumpstart](https://github.com/lateralblast/modest/wiki/5.2.-Jumpstart-Client-Examples)
-- [Kickstart](https://github.com/lateralblast/modest/wiki/5.3.-Kickstart-Client-Examples)
-- [LDom](https://github.com/lateralblast/modest/wiki/5.4.-LDom-Client-Examples)
-- [LXC](https://github.com/lateralblast/modest/wiki/5.5.-Linux-Container-Client-Examples)
-- [Preseed](https://github.com/lateralblast/modest/wiki/5.6.-Preseed-Client-Examples)
-- [vSphere](https://github.com/lateralblast/modest/wiki/5.7.-vSphere-Client_Examples)
-- [Zones](https://github.com/lateralblast/modest/wiki/5.8.-Zone-Client-Examples)
-
-[Video Examples](https://github.com/lateralblast/modest/wiki/7.-Video-Examples)
-
-- [ESXi](https://github.com/lateralblast/modest/wiki/7.1.-ESXi-Video-Examples)
-
-[Other Examples](https://github.com/lateralblast/modest/wiki/8.-Other-Examples)
-
-- [Deploying VCSA](https://github.com/lateralblast/modest/wiki/8.1.-Deploying-VCSA)
 
 Features
 --------
