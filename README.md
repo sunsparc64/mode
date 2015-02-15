@@ -94,6 +94,11 @@ VirtualBox and VMware Fusion VM creation
 - Can create VMs to speed up the automation of testing new images
 - Can run VMs headless and connect via serial allowing remote installation
 
+Parallels VM creation
+
+- Can create and delete VMs
+- Can boot/stop VMs
+
 Solaris Zone Creation
 
 - Asks a set of questions to generate a template and then install a zone
@@ -120,7 +125,7 @@ Solaris 11 AI
   - Adds packages to base installation manifest
 - Post installation script capability (work in progress)
 
-CentOS and RedHat Linux Kickstart
+CentOS, Scientific Linux, Fedora, and RedHat Linux Kickstart
 
 - Creates an Apache directory and alias for a HTTP based installation
 - Creates PXE configuration that jumps straight into an installation and pulls
@@ -135,7 +140,7 @@ Ubuntu Linux Preseed
   automated
 - Currently only basic client support (auto partitions disk)
 
-SuSE Linux AutoYast
+OpenSuSE Linux and SLES (SuSE Enterprise Linux) AutoYast
 
 - Creates AutoYast XML file based on answers to questions
 
@@ -189,6 +194,29 @@ started section, but basically the process of deploying a VM is as follows:
 - Configure the VM installation template/configuration on the Deployment Server
 - Boot the VM on the host machine and let it PXE boot and install
 
+An example host-only network layout is as follows:
+
+```
+__ External network __ External Interface (e.g. en0)
+   e.g. 192.168.1.0    e.g. 192.168.1.100 
+                               |
+                               |
+                            VM Host
+                               |
+                               |
+                        Host-only Interface (e.g. vmnet1) __ Host-only network
+                        e.g. 192.168.2.1                     e.g. 192.168.2.0
+                                                                     |
+                                                                     |
+                                _____________________________________|
+                                |
+            ____________________|____________________
+            |                   |                   |
+            |                   |                   |
+  Deployment Server        Test Server 1
+  e.g. 192.168.2.100     e.g 192.168.2.101                                     
+```
+
 Requirements
 ------------
 
@@ -238,4 +266,9 @@ some time, therefore it is recommended to use VMware Fusion if available.
 If using OS X and a installation platform for Jumpstart it is recommended to
 use flar based installs as the performance of the OS X NFS server being so
 utterly useless.
+
+- Parallels
+
+There is initial Parallels support for creating VMs
+
 
