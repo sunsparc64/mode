@@ -700,7 +700,11 @@ def check_vbox_hostonly_network(if_name)
     execute_command(message,command)
   end
   gw_if_name = get_osx_gw_if_name()
-  check_osx_nat(gw_if_name,if_name)
+  if $os_rel.split(".")[0].to_i < 14
+    check_osx_nat(gw_if_name,if_name)
+  else
+    check_osx_pfctl(gw_if_name,if_name)
+  end
   return if_name
 end
 

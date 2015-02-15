@@ -222,8 +222,8 @@ end
 
 def check_dir_owner(dir_name,uid)
   test_uid = File.stat(dir_name).uid
-  if test_uid != "#{uid}"
-    message = "Changing ownership of "+dir_name+" to "+uid.to_s
+  if test_uid != uid.to_i
+    message = "Information:\tChanging ownership of "+dir_name+" to "+uid.to_s
     command = "chown -R #{uid.to_s} #{dir_name}"
     execute_command(message,command)
   end

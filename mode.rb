@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.2.1
+# Version:      2.2.3
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1204,7 +1204,6 @@ if option["action"]
       check_local_config(install_mode)
       gw_if_name = get_osx_gw_if_name()
       if_name    = get_osx_vm_if_name(install_vm)
-      eval"[check_#{install_vm}_hostonly_network(if_name)]"
       eval"[check_#{install_vm}_natd(if_name,install_network)]"
       check_osx_nat(gw_if_name,if_name)
     end

@@ -439,5 +439,9 @@
 # Numerous code cleanups, including NAT configuration
 # 2.2.0: Sun 15 Feb 2015 10:39:16 AEDT
 # Fixed CDROM attach/detach for Fusion VMs
-# 2.2.1 Sun 15 Feb 2015 12:40:55 AEDT
+# 2.2.1: Sun 15 Feb 2015 12:40:55 AEDT
 # Added shared folder support for Fusion VMs
+# 2.2.2: Sun 15 Feb 2015 14:16:45 AEDT
+# Fixed UID check on directories
+# 2.2.3: Sun 15 Feb 2015 14:30:01 AEDT
+# Fixed network NAT/pfctl configuration
