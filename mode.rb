@@ -29,8 +29,14 @@ require 'pathname'
 require 'netaddr'
 require 'net/http'
 require 'uri'
-require 'nokogiri'
-require 'mechanize'
+
+begin
+  require 'nokogiri'
+  require 'mechanize'
+rescue LoadError
+end
+
+
 
 # Set up some global variables/defaults
 
