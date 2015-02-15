@@ -238,15 +238,3 @@ If using OS X and a installation platform for Jumpstart it is recommended to
 use flar based installs as the performance of the OS X NFS server being so
 utterly useless.
 
-More Information
-----------------
-
-For more information, including examples of usage refer to the wiki:
-
-https://github.com/lateralblast/modest/wiki
-
-
-
-
-
-
