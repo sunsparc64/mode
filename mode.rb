@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.2.5
+# Version:      2.2.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -586,20 +586,6 @@ else
   install_client = ""
 end
 
-# Handle clone name switch
-
-if option["clone"]
-  install_clone = option["clone"]
-  check_hostname(install_clone)
-else
-  if install_client.match(/[A-z]/)
-    install_clone = install_client+"-clone"
-  end
-end
-if $verbose_mode == 1 and option["clone"]
-  puts "Information:\tSetting clone name to: "+install_clone
-end
-
 # Get IP address if given
 
 if option["ip"]
@@ -948,6 +934,25 @@ else
   install_method = ""
 end
 
+# Handle clone swith
+
+if option["clone"]
+  install_clone = option["clone"]
+  if $verbose_mode == 1 and option["clone"]
+    puts "Information:\tSetting clone name to: "+install_clone
+  end
+else
+  if option["action"] = "snapshot"
+    clone_date    = %x[date].chomp.downcase.gsub(/ |:/,"_")
+    install_clone = install_client+"-"+clone_date
+  end
+  if $verbose_mode == 1 and option["clone"]
+    puts "Information:\tSetting clone name to: "+install_clone
+  end
+else
+  install_clone = ""
+end
+
 # Handle install service switch
 
 if option["service"]
@@ -1075,7 +1080,11 @@ if option["action"]
       list_ovas()
     end
     if install_vm.match(/[A-z]/)
-      list_vm(install_vm,install_os,install_method)
+      if install_type.match(/snapshot/)
+        list_snapshots(install_vm,install_os,install_method,install_client)
+      else
+        list_vm(install_vm,install_os,install_method)
+      end
     end
   when /delete|remove/
     if install_client.match(/[A-z]|[0-9]/)
@@ -1086,7 +1095,11 @@ if option["action"]
           exit
         end
         if install_vm.match(/fusion|vbox|parallels/)
-          delete_vm(install_vm,install_client)
+          if install_type.match(/snapshot/)
+            delete_vm_snapshot(install_vm,install_client)
+          else
+            delete_vm(install_vm,install_client)
+          end
         end
         if install_mode.match(/server/)
           remove_hosts_entry(install_client,install_ip)
@@ -1196,9 +1209,13 @@ if option["action"]
     if install_vm.match(/[a-z]/)
       eval"[add_shared_folder_to_#{install_vm}_vm(install_client,install_share,install_mount)]"
     end
+  when /^snapshot/
+    if install_vm.match(/[a-z]/)
+      eval"[snapshot_#{install_vm}_vm(install_client,install_clone)]"
+    end
   when /check/
     if install_mode.match(/server/)
-      check_local_config(install_mode)
+      check_local_config(install_mode,install_clone)
     end
     if install_mode.match(/osx/)
       check_osx_dnsmasq()

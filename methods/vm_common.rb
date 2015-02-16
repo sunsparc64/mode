@@ -15,6 +15,13 @@ def delete_vm(install_vm,install_client)
   return
 end
 
+# Delete VM snapshot
+
+def delete_vm_snapshot(install_vm,install_client,install_clone)
+  eval"[delete_#{install_vm}_vm_snapshot(install_client,install_clone)]"
+  return
+end
+
 #def create_vm(install_client,client_ip,install_mac,client_arch,install_os,client_rel,publisher_host,image_file,service_name)
 #  eval"[configure_#{vfunct}(install_client,client_ip,install_mac,client_arch,install_os,client_rel,publisher_host,image_file,service_name)]"
 #  return

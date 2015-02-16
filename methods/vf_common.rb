@@ -1,5 +1,28 @@
 # VMware Fusion support code
 
+# Get Fusion VM vmx file location
+
+def get_fusion_vm_vmx_file(install_client)
+  fusion_vm_dir    = $fusion_dir+"/"+install_client+".vmwarevm"
+  fusion_vmx_file  = fusion_vm_dir+"/"+install_client+".vmx"
+  return fusion_vmx_file
+end
+
+# Snapshot VM
+
+def snapshot_fusion_vm(install_client,install_clone)
+  exists = check_fusion_vm_exists(install_client)
+  if exists == "no"
+    puts "Warning:\tClient Fusion VM "+client_name+" does not exist"
+    exit
+  end
+  fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
+  message = "Information:\tCloning Fusion VM "+install_client+" to "+install_clone
+  command = "'#{$vmrun_bin}' -T fusion snapshot '#{fusion_vmx_file}' '#{install_clone}'"
+  execute_command(message,command)
+  return
+end
+
 # Get VMware version
 
 def get_fusion_version()
