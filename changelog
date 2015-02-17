@@ -457,5 +457,7 @@
 # Cleaned up snapshot code for Fusion VMs
 # 2.2.9: Tue 17 Feb 2015 18:14:33 AEDT
 # Added code to delete Fusion VM snapshots
+# 2.3.0: Wed 18 Feb 2015 10:20:34 AEDT
+# Cleaned up VirtualBox list code
 
 

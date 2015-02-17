@@ -1,16 +1,97 @@
 # VirtualBox VM support code
 
+# Delete VirtualBox VM snapshot
+
+def delete_vbox_vm_snapshot(install_client,install_clone)
+  clone_list = []
+  if install_clone == "*" or install_clone == "all"
+    clone_list = get_vbox_vm_snapshots(install_client)
+    clone_list = clone_list.split("\n")[1..-1]
+  else
+    clone_list[0] = install_client
+  end
+  clone_list.each do |install_clone|
+    fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
+    message = "Information:\tDeleting snapshot "+install_clone+" for Fusion VM "+install_client
+    command = "'#{$vmrun_bin}' -T fusion deleteSnapshot '#{fusion_vmx_file}' '#{install_clone}'"
+    execute_command(message,command)
+  end
+  return
+end
+
+# Get a list of VirtualBox VM snapshots for a client
+
+def get_vbox_vm_snapshots(install_client)
+  message = "Information:\tGetting a list of snapshots for VirtualBox VM "+install_client
+  command = "VBoxManage snapshot '#{install_client}' list"
+  output  = execute_command(message,command)
+  return output
+end
+
+# List all VirtualBox VM snapshots
+
+def list_all_vbox_vm_snapshots()
+  vm_list = get_available_vbox_vms()
+  vm_list.each do |line|
+    install_client = line.split(/"/)[1]
+    list_vbox_vm_snapshots(install_client)
+  end
+  return
+end
+
+# List VirtualBox VM snapshots
+
+def list_vbox_vm_snapshots(install_client)
+  snapshot_list = get_vbox_vm_snapshots(install_client)
+  puts snapshot_list 
+  return
+end
+
+# Get a List of VirtualBox VMs
+
+def get_available_vbox_vms()
+  vm_list = []
+  message = "Information:\tGetting list of VirtualBox VMs"
+  command = "VBoxManage list vms |grep -v 'inaccessible'"
+  output  = execute_command(message,command)
+  vm_list = output.split("\n")
+  return vm_list
+end
+
+# Get VirtualBox VM info
+
+def get_vbox_vm_info(install_client,install_search)
+  message = "Information:\tGetting value for "+install_search+" from VirtualBox VM "+install_client
+  if install_search.match(/MAC/)
+    command = "VBoxManage showvminfo \"#{install_client}\" |grep MAC |awk '{print $4}' |head -1"
+  else
+    command = "VBoxManage showvminfo \"#{install_client}\" |grep \"#{install_search}\" |cut -f2 -d:"
+  end
+  output  = execute_command(message,command)
+  vm_info = output.chomp.gsub(/^\s+/,"")
+  return vm_info
+end
+
+# Get VirtualBox VM OS
+
+def get_vbox_vm_os(install_client)
+  install_search = "^Guest OS"
+  install_os     = get_vbox_vm_info(install_client,install_search)
+  return install_os
+end
+
 # List all VMs
 
 def list_all_vbox_vms()
-  vm_list = %x[VBoxManage list vms].split("\n")
+  vm_list = get_available_vbox_vms()
   puts
   puts "VirtualBox VMs"
   puts
-  vm_list.each do |vm_name|
-    vm_name = vm_name.split(/"/)[1]
-    os_info = %x[VBoxManage showvminfo "#{vm_name}" |grep '^Guest OS' |cut -f2 -d:].chomp.gsub(/^\s+/,"")
-    puts vm_name+"\t"+os_info
+  vm_list.each do |line|
+    install_client = line.split(/"/)[1]
+    install_os     = get_vbox_vm_os(install_client)
+    install_mac    = get_vbox_vm_mac(install_client)
+    puts install_client+" os="+install_os+" mac="+install_mac
   end
   puts
   return
@@ -56,8 +137,9 @@ end
 # Get VirtualBox UUID
 
 def get_vbox_vm_uuid(install_client)
-  vm_uuid = %x[VBoxManage showvminfo "#{install_client}" |grep ^UUID |awk '{print $2}'].chomp
-  return vm_uuid
+  install_search = "^UUID"
+  install_uuid   = get_vbox_vm_info(install_client,install_search)
+  return install_uuid
 end
 
 # Set VirtualBox ESXi options
@@ -300,6 +382,7 @@ def get_vbox_vm_os(install_client)
   command   = "VBoxManage showvminfo #{install_client} |grep Guest |grep OS |head -1 |cut -f2 -d:"
   install_os = execute_command(message,command)
   install_os = install_os.gsub(/^\s+/,"")
+  install_os = install_os.chomp
   return install_os
 end
 
@@ -307,16 +390,14 @@ end
 
 def list_vbox_vms(search_string)
   output_list = []
-  message = "Available VirtualBox VMs:"
-  command = "VBoxManage list vms |grep -v 'inaccessible' |awk '{print $1}'"
-  vm_list = execute_command(message,command)
-  vm_list = vm_list.split(/\n/)
-  vm_list.each do |vm_name|
-    vm_mac = get_vbox_vm_mac(vm_name)
-    output = vm_name+" "+vm_mac
-    if search_string.match(/[A-z]/)
-      install_os = get_vbox_vm_os(vm_name)
-      if install_os.match(/#{search_string}/)
+  vm_list     = get_available_vbox_vms()
+  vm_list.each do |line|
+    install_client = line.split(/"/)[1]
+    install_mac    = get_vbox_vm_mac(install_client)
+    install_os     = get_vbox_vm_os(install_client)
+    output         = install_client+" os="+install_os+" mac="+install_mac
+    if search_string
+      if output.match(/#{search_string}/)
         output_list.push(output)
       end
     else
@@ -662,12 +743,10 @@ end
 # Get VirtualBox VM MAC address
 
 def get_vbox_vm_mac(install_client)
-  message  = "Getting:\tMAC address for "+install_client
-  command  = "VBoxManage showvminfo #{install_client} |grep MAC |awk '{print $4}'"
-  vbox_vm_mac = execute_command(message,command)
-  vbox_vm_mac = vbox_vm_mac.chomp
-  vbox_vm_mac = vbox_vm_mac.gsub(/\,/,"")
-  return vbox_vm_mac
+  install_search = "MAC"
+  install_mac    = get_vbox_vm_info(install_client,install_search)
+  install_mac    = install_mac.chomp.gsub(/\,/,"")
+  return install_mac
 end
 
 # Check VirtualBox hostonly network
