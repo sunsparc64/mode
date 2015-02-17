@@ -1,5 +1,35 @@
 # VMware Fusion support code
 
+def get_vm_fusion_vm_snapshots(install_client)
+  fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
+  message = "Information:\tGetting a list of snapshots for Fusion VM "+install_client
+  command = "'#{$vmrun_bin}' -T fusion listSnapshots '#{fusion_vmx_file}'"
+  output  = execute_command(message,command)
+  return output
+end
+
+# List all Fusion VM snapshots
+
+def list_all_fusion_vm_snapshots()
+  vm_list = get_available_fusion_vms()
+  vm_list.each do |vmx_file|
+    install_client = File.basename(vmx_file,".vmx")
+    list_fusion_vm_snapshots(install_client)
+  end
+  return
+end
+
+# List Fusion VM snapshots
+
+def list_fusion_vm_snapshots(install_client)
+  snapshot_list = get_vm_fusion_vm_snapshots(install_client)
+  puts snapshot_list 
+  return
+end
+
+
+# Get a value from a Fusion VM vmx file
+
 def get_fusion_vm_vmx_file_value(install_client,install_search)
   vm_value  = ""
   vmx_file  = get_fusion_vm_vmx_file(install_client)
@@ -7,6 +37,8 @@ def get_fusion_vm_vmx_file_value(install_client,install_search)
   vm_value  = vm_config[install_search]
   return vm_value
 end
+
+# Get Fusion VM OS
 
 def get_fusion_vm_os(install_client)
   install_search = "guestOS"
@@ -48,7 +80,7 @@ end
 def snapshot_fusion_vm(install_client,install_clone)
   exists = check_fusion_vm_exists(install_client)
   if exists == "no"
-    puts "Warning:\tClient Fusion VM "+client_name+" does not exist"
+    puts "Warning:\tClient Fusion VM "+install_client+" does not exist"
     exit
   end
   fusion_vmx_file = get_fusion_vm_vmx_file(install_client)

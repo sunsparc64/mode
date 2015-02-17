@@ -53,3 +53,12 @@ def list_vm(install_vm,install_os,install_method)
   end
   return
 end
+
+# List VM snaphots
+
+def list_vm_snapshots(install_vm,install_os,install_method,install_client)
+  if !install_os.match(/[a-z]/) and !install_method.match(/[a-z]/)
+    eval"[list_all_#{install_vm}_vm_snapshots()]"
+  end
+  return
+end

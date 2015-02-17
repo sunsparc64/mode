@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.2.7
+# Version:      2.2.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -159,7 +159,7 @@ $valid_os_list          = [ 'sol', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'S
 $valid_arch_list        = [ 'x86_64', 'i386', 'sparc' ]
 $valid_console_list     = [ 'text', 'console', 'x11', 'headless' ]
 $valid_method_list      = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay' ]
-$valid_type_list        = [ 'iso', 'flar', 'ova' ]
+$valid_type_list        = [ 'iso', 'flar', 'ova', 'snapshot' ]
 $valid_mode_list        = [ 'client', 'server', 'osx' ]
 $valid_vm_list          = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdrom', 'gdom', 'parallels' ]
 
@@ -602,7 +602,7 @@ end
 
 if option["type"]
   install_type = option["type"].downcase
-  if !$valid_method_list.to_s.downcase.match(/#{install_type}/)
+  if !$valid_type_list.to_s.downcase.match(/#{install_type}/)
     print_valid_list("Warning:\tInvalid install type",$valid_type_list)
   end
 else
@@ -1083,7 +1083,7 @@ if option["action"]
     end
     if install_vm.match(/[A-z]/)
       if install_type.match(/snapshot/)
-        list_snapshots(install_vm,install_os,install_method,install_client)
+        list_vm_snapshots(install_vm,install_os,install_method,install_client)
       else
         list_vm(install_vm,install_os,install_method)
       end
@@ -1213,7 +1213,12 @@ if option["action"]
     end
   when /^snapshot/
     if install_vm.match(/[a-z]/)
-      eval"[snapshot_#{install_vm}_vm(install_client,install_clone)]"
+      if install_client.match(/[A-z]/)
+        eval"[snapshot_#{install_vm}_vm(install_client,install_clone)]"
+      else
+        puts "Warning:\tClient name not specified"
+        exit
+      end
     end
   when /check/
     if install_mode.match(/server/)
