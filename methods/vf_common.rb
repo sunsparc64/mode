@@ -1,5 +1,40 @@
 # VMware Fusion support code
 
+def get_fusion_vm_vmx_file_value(install_client,install_search)
+  vm_value  = ""
+  vmx_file  = get_fusion_vm_vmx_file(install_client)
+  vm_config = ParseConfig.new(vmx_file)
+  vm_value  = vm_config[install_search]
+  return vm_value
+end
+
+def get_fusion_vm_os(install_client)
+  install_search = "guestOS"
+  install_os = get_fusion_vm_vmx_file_value(install_client,install_search)
+  return install_os
+end
+
+# List all Fusion VMs
+
+def list_all_fusion_vms()
+  puts
+  puts "VMware Fusion VMs:"
+  puts
+  install_os  = ""
+  install_mac = ""
+  file_list   = Dir.entries($fusion_dir)
+  file_list.each do |entry|
+    if entry.match(/vmwarevm/)
+      install_client = entry.gsub(/\.vmwarevm/,"")
+      install_os     = get_fusion_vm_os(install_client)
+      install_mac    = get_fusion_vm_mac(install_client)
+      puts install_client+" os="+install_os+" mac="+install_mac
+    end
+  end
+  puts
+  return
+end
+
 # Get Fusion VM vmx file location
 
 def get_fusion_vm_vmx_file(install_client)
@@ -147,7 +182,7 @@ def import_fusion_ova(install_client,install_mac,client_ip,ova_file)
   if install_mac.match(/[0-9]|[A-F,a-f]/)
     change_fusion_vm_mac(install_client,install_mac)
   else
-    install_mac = get_fusion_vm_mac(fusion_vmx_file)
+    install_mac = get_fusion_vm_mac(install_client)
   end
   change_fusion_vm_network(install_client,$default_vm_network)
   puts "Information:\tVirtual Appliance "+ova_file+" imported with VM name "+install_client+" and MAC address "+install_mac
@@ -189,7 +224,7 @@ end
 # List Solaris Kickstart VMware Fusion VMs
 
 def list_js_fusion_vms()
-  search_string = "sol.10"
+  search_string = "solaris10"
   list_fusion_vms(search_string)
   return
 end
@@ -197,20 +232,22 @@ end
 # List Solaris AI VMware Fusion VMs
 
 def list_ai_fusion_vms()
-  search_string = "sol.11"
+  search_string = "solaris11"
   list_fusion_vms(search_string)
   return
 end
 
 # Get Fusion VM MAC address
 
-def get_fusion_vm_mac(vmx_file)
-  vm_config = ParseConfig.new(vmx_file)
-  vm_mac    = vm_config["ethernet0.address"]
-  if !vm_mac
-    vm_mac  = vm_config["ethernet0.generatedAddress"]
+def get_fusion_vm_mac(install_client)
+  install_mac    = ""
+  install_search = "ethernet0.address"
+  install_mac    = get_fusion_vm_vmx_file_value(install_client,install_search)
+  if !install_mac
+    install_search = "ethernet0.generatedAddress"
+    install_mac    = get_fusion_vm_vmx_file_value(install_client,install_search)
   end
-  return vm_mac
+  return install_mac
 end
 
 # Change VMware Fusion VM MAC address
@@ -549,10 +586,13 @@ def list_fusion_vms(search_string)
     puts
     puts "Available VMware Fusion VMs:"
     puts
+    install_os  = ""
+    install_mac = ""
     vm_list.each do |vmx_file|
-      vm_name = File.basename(vmx_file,".vmx")
-      vm_mac  = get_fusion_vm_mac(vmx_file)
-      output  = vm_name+"\t"+vm_mac
+      install_client = File.basename(vmx_file,".vmx")
+      install_mac    = get_fusion_vm_mac(install_client)
+      install_os     = get_fusion_vm_os(install_client)
+      output = install_client+" os="+install_os+" mac="+install_mac
       if search_string.match(/[A-z]/)
         if output.match(/#{search_string}/)
           puts output

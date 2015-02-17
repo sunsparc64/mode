@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.2.6
+# Version:      2.2.7
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -864,6 +864,8 @@ if option["vm"] or option["method"]
   else
     if install_arch.match(/i386|x86|x86_64|x64|amd64/)
       install_model = "vmware"
+    else
+      install_model = ""
     end
   end
   if $verbose_mode == 1 and option["method"]
@@ -942,15 +944,15 @@ if option["clone"]
     puts "Information:\tSetting clone name to: "+install_clone
   end
 else
-  if option["action"] = "snapshot"
+  if option["action"] == "snapshot"
     clone_date    = %x[date].chomp.downcase.gsub(/ |:/,"_")
     install_clone = install_client+"-"+clone_date
+  else
+    install_clone = ""
   end
   if $verbose_mode == 1 and option["clone"]
     puts "Information:\tSetting clone name to: "+install_clone
   end
-else
-  install_clone = ""
 end
 
 # Handle install service switch
@@ -1070,8 +1072,8 @@ if option["action"]
     if install_mode.match(/client/)
       list_clients(install_service)
     end
-    if install_method.match(/[A-z]/)
-       eval"[list_#{install_method}_services()]"
+    if install_method.match(/[A-z]/) and !install_vm.match(/[A-z]/)
+      eval"[list_#{install_method}_services()]"
     end
     if install_type.match(/iso/) 
       list_isos(install_os,install_method,install_release,install_arch)
