@@ -209,6 +209,10 @@ def print_examples(install_method,install_type,install_vm)
     puts
     puts $script+" --action=running --vm=vbox"
     puts
+    puts "Snapshot VirtualBox VMs:"
+    puts
+    puts $script+" --action=snapshot --vm=vbox --client=centos510vm01"
+    puts
   end
   if examples.match(/fusion|all/)
     puts

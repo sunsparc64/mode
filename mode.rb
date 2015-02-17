@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.2.8
+# Version:      2.2.9
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1098,7 +1098,12 @@ if option["action"]
         end
         if install_vm.match(/fusion|vbox|parallels/)
           if install_type.match(/snapshot/)
-            delete_vm_snapshot(install_vm,install_client)
+            if install_client.match(/[A-z]/) and install_clone.match(/[A-z]|\*/)
+              delete_vm_snapshot(install_vm,install_client,install_clone)
+            else
+              puts "Warning:\tClient name or clone not specified"
+              exit
+            end
           else
             delete_vm(install_vm,install_client)
           end
@@ -1110,6 +1115,7 @@ if option["action"]
       end
     else
       puts "Warning:\tClient name not specified"
+      exit
     end
   when /add|create/
     if install_client.match(/[A-z]|[0-9]/)

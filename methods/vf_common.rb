@@ -1,6 +1,27 @@
 # VMware Fusion support code
 
-def get_vm_fusion_vm_snapshots(install_client)
+# Delete Fusion VM snapshot
+
+def delete_fusion_vm_snapshot(install_client,install_clone)
+  clone_list = []
+  if install_clone == "*" or install_clone == "all"
+    clone_list = get_fusion_vm_snapshots(install_client)
+    clone_list = clone_list.split("\n")[1..-1]
+  else
+    clone_list[0] = install_client
+  end
+  clone_list.each do |install_clone|
+    fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
+    message = "Information:\tDeleting snapshot "+install_clone+" for Fusion VM "+install_client
+    command = "'#{$vmrun_bin}' -T fusion deleteSnapshot '#{fusion_vmx_file}' '#{install_clone}'"
+    execute_command(message,command)
+  end
+  return
+end
+
+# Get a list of Fusion VM snapshots for a client
+
+def get_fusion_vm_snapshots(install_client)
   fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
   message = "Information:\tGetting a list of snapshots for Fusion VM "+install_client
   command = "'#{$vmrun_bin}' -T fusion listSnapshots '#{fusion_vmx_file}'"
@@ -22,7 +43,7 @@ end
 # List Fusion VM snapshots
 
 def list_fusion_vm_snapshots(install_client)
-  snapshot_list = get_vm_fusion_vm_snapshots(install_client)
+  snapshot_list = get_fusion_vm_snapshots(install_client)
   puts snapshot_list 
   return
 end
