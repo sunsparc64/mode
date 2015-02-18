@@ -66,8 +66,3 @@ def list_vm_snapshots(install_vm,install_os,install_method,install_client)
   end
   return
 end
-
-def delete_vm_snapshot(install_vm,install_client,install_clone)
-  eval"[delete_#{install_vm}_vm_snapshot(install_client,install_clone)]"
-  return
-end

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.3.0
+# Version:      2.3.1
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1217,10 +1217,19 @@ if option["action"]
     if install_vm.match(/[a-z]/)
       eval"[add_shared_folder_to_#{install_vm}_vm(install_client,install_share,install_mount)]"
     end
-  when /^snapshot/
+  when /^snapshot|clone/
     if install_vm.match(/[a-z]/)
       if install_client.match(/[A-z]/)
         eval"[snapshot_#{install_vm}_vm(install_client,install_clone)]"
+      else
+        puts "Warning:\tClient name not specified"
+        exit
+      end
+    end
+  when /restore|revert/
+    if install_vm.match(/[A-z]/)
+      if install_client.match(/[A-z]/)
+        eval"[restore_#{install_vm}_vm_snapshot(install_client,install_clone)]"
       else
         puts "Warning:\tClient name not specified"
         exit

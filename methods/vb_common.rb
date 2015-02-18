@@ -1,19 +1,33 @@
 # VirtualBox VM support code
 
+# Restore VirtualBox VM snapshot
+
+def restore_vbox_vm_snapshot(install_client,install_clone)
+  if install_clone.match(/[A-z]/)
+    message = "Information:\tRestoring snapshot "+install_clone+" for "+install_client 
+    command = "VBoxManage snapshot '#{install_client}' restore '#{install_clone}'"
+  else
+    message = "Information:\tRestoring latest snapshot for "+install_client
+    command = "VBoxManage snapshot '#{install_client}'' restorecurrent"
+  end
+  execute_command(message,command)
+  return
+end
+
 # Delete VirtualBox VM snapshot
 
 def delete_vbox_vm_snapshot(install_client,install_clone)
   clone_list = []
   if install_clone == "*" or install_clone == "all"
     clone_list = get_vbox_vm_snapshots(install_client)
-    clone_list = clone_list.split("\n")[1..-1]
+    clone_list = clone_list.split("\n")
   else
-    clone_list[0] = install_client
+    clone_list[0] = install_clone
   end
   clone_list.each do |install_clone|
     fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
     message = "Information:\tDeleting snapshot "+install_clone+" for Fusion VM "+install_client
-    command = "'#{$vmrun_bin}' -T fusion deleteSnapshot '#{fusion_vmx_file}' '#{install_clone}'"
+    command = "VBoxManage snapshot '#{install_client}' delete '#{install_clone}'"
     execute_command(message,command)
   end
   return
@@ -23,7 +37,7 @@ end
 
 def get_vbox_vm_snapshots(install_client)
   message = "Information:\tGetting a list of snapshots for VirtualBox VM "+install_client
-  command = "VBoxManage snapshot '#{install_client}' list"
+  command = "VBoxManage snapshot '#{install_client}' list |cut -f2 -d: |cut -f1 -d'(' |sed 's/^ //g' |sed 's/ $//g'"
   output  = execute_command(message,command)
   return output
 end
@@ -43,7 +57,22 @@ end
 
 def list_vbox_vm_snapshots(install_client)
   snapshot_list = get_vbox_vm_snapshots(install_client)
+  puts "Snapshots for "+install_client+":"
   puts snapshot_list 
+  return
+end
+
+# Snapshot VirtualBox VM
+
+def snapshot_vbox_vm(install_client,install_clone)
+  exists = check_vbox_vm_exists(install_client)
+  if exists == "no"
+    puts "Warning:\tVirtualBox VM "+install_client+" does not exist"
+    exit
+  end
+  message = "Information:\tCloning VirtualBox VM "+install_client+" to "+install_clone
+  command = "VBoxManage snapshot '#{install_client}' take '#{install_clone}'"
+  execute_command(message,command)
   return
 end
 

@@ -8,7 +8,7 @@ def delete_fusion_vm_snapshot(install_client,install_clone)
     clone_list = get_fusion_vm_snapshots(install_client)
     clone_list = clone_list.split("\n")[1..-1]
   else
-    clone_list[0] = install_client
+    clone_list[0] = install_clone
   end
   clone_list.each do |install_clone|
     fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
@@ -96,12 +96,12 @@ def get_fusion_vm_vmx_file(install_client)
   return fusion_vmx_file
 end
 
-# Snapshot VM
+# Snapshot Fusion VM
 
 def snapshot_fusion_vm(install_client,install_clone)
   exists = check_fusion_vm_exists(install_client)
   if exists == "no"
-    puts "Warning:\tClient Fusion VM "+install_client+" does not exist"
+    puts "Warning:\tFusion VM "+install_client+" does not exist"
     exit
   end
   fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
