@@ -1,6 +1,42 @@
 
 # Code common to all services
 
+# Get Install method from ISO file name
+
+def get_install_method_from_iso(install_file)
+  iso_file = File.basename(install_file)
+  case iso_file
+  when /VMware-VMvisor/
+    install_method = "vs"
+  when /CentOS|OracleLinux|^SL|Fedora/
+    install_method = "ks"
+  when /ubuntu|debian/
+    install_method = "ps"
+  when /SUSE|SLES/
+    install_method = "ay"
+  when /sol-10/
+    install_method = "js"
+  when /sol-11/
+    install_method = "ai"
+  end
+  return install_method
+end
+
+# Configure a service
+
+def configure_server(install_method,install_arch,publisher_host,publisher_port,install_service,install_file)
+  if !install_method.match(/[A-z]/)
+    if !install_file.match(/[A-z]/)
+      puts "Warning:\tCould not determine service name"
+      exit
+    else
+      install_method = get_install_method_from_iso(install_file)
+    end
+  end    
+  eval"[configure_#{install_method}_server(install_arch,publisher_host,publisher_port,install_service,install_file)]"
+  return
+end
+
 # Generate MAC address
 
 def generate_mac_address()
@@ -128,23 +164,23 @@ end
 
 # Connect to virtual serial port
 
-def connect_to_virtual_serial(client_name)
+def connect_to_virtual_serial(install_client,install_vm)
   puts
-  puts "Connecting to serial port of "+client_name
+  puts "Connecting to serial port of "+install_client
   puts
   puts "To disconnect from this session use CTRL-Q"
   puts
   puts "If you wish to re-connect to the serial console of this machine,"
   puts "run the following command:"
   puts
-  puts "modest -O -p "+client_name
+  puts $script+" --action=console --vm="+install_vm+" --client="+install_client
   puts
   puts "or:"
   puts
-  puts "socat UNIX-CONNECT:/tmp/"+client_name+" STDIO,raw,echo=0,escape=0x11,icanon=0"
+  puts "socat UNIX-CONNECT:/tmp/"+install_client+" STDIO,raw,echo=0,escape=0x11,icanon=0"
   puts
   puts
-  system("socat UNIX-CONNECT:/tmp/#{client_name} STDIO,raw,echo=0,escape=0x11,icanon=0")
+  system("socat UNIX-CONNECT:/tmp/#{install_client} STDIO,raw,echo=0,escape=0x11,icanon=0")
   return
 end
 
@@ -1196,7 +1232,11 @@ def check_iso_base_dir(search_string)
   end
   check_zfs_fs_exists($iso_base_dir)
   message  = "Getting:\t"+$iso_base_dir+" contents"
-  command  = "ls #{$iso_base_dir}/*.iso |egrep '#{search_string}' |grep -v '2.iso' |grep -v 'supp-server'"
+  if search_string.match(/[A-z]/)
+    command  = "ls #{$iso_base_dir}/*.iso |egrep '#{search_string}' |grep -v '2.iso' |grep -v 'supp-server'"
+  else
+    command  = "ls #{$iso_base_dir}/*.iso |grep -v '2.iso' |grep -v 'supp-server'"
+  end
   iso_list = execute_command(message,command)
   if search_string.match(/sol_11/)
     if !iso_list.grep(/full/)

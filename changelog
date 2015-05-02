@@ -461,3 +461,5 @@
 # Cleaned up VirtualBox list code
 # 2.3.1: Wed 18 Feb 2015 11:06:31 AEDT
 # Added snapshot creation and deletion code for VirtualBox
+# 2.3.2: Sat  2 May 2015 12:10:21 AEST
+# Improved command line handling and added handling for unreadable VMware Fusion config file

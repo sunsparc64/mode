@@ -93,6 +93,22 @@ def print_os_types()
   return
 end
 
+# Print a .md file
+
+def print_md(md_file)
+  md_file = $wiki_dir+"/"+md_file+".md"
+  puts md_file
+  if File.exist?(md_file)
+    md_info = File.readlines(md_file)
+  end
+  md_info.each do |line|
+    if !line.match(/\`\`\`/)
+      puts line
+    end
+  end
+  return
+end
+
 # Detailed usage
 
 def print_examples(install_method,install_type,install_vm)
@@ -102,224 +118,15 @@ def print_examples(install_method,install_type,install_vm)
     examples = "all"
   end
   if examples.match(/iso|all/)
-    puts
-    puts "ISO/Image related examples"
-    puts
-    puts "List Linux ISOs:"
-    puts
-    puts $script+" --os=linux --action=list --type=iso"
-    puts
-    puts "List Solaris 10 (Jumpstart) ISOs:"
-    puts
-    puts $script+" --os=solaris --method=jumstart --type=iso"
-    puts $script+" --os=solaris --release=10 --type=iso"
-    puts
-    puts "List Solaris 11 (AI) ISOs:"
-    puts
-    puts $script+" --os=solaris --method=ai --type=iso"
-    puts $script+" --os=solaris --release=11 --type=iso"
+    print_md("ISOs")
     puts
   end
-  if examples.match(/vbox|all/)
-    puts
-    puts "VirtualBox related examples"
-    puts
-    puts "Creating Kickstart (CentOS, Scientific, RedHat Enterprise, Fedora, Oracle Enterprise) Linux VirtualBox VM examples:"
-    puts
-    puts $script+" --action=create --method=kickstart --vm=vbox --client=centos510vm01 --arch=x86_64 --mac=00:50:56:34:4E:7A"
-    puts $script+" --action=create --os=rhel --vm=vbox --client=centos510vm01 --arch=x86_64 --mac=00:50:56:34:4E:7A"
-    puts
-    puts "Create Preseed (Ubuntu, Debian) Linux VirtualBox VM:"
-    puts    
-    puts $script+" --action=create --method=preseed --vm=vbox --client=ubuntu1310vm01 --arch=x86_64 --mac=08:00:27:BA:34:7C"
-    puts $script+" --action=create --os=ubuntu --vm=vbox --client=ubuntu1310vm01 --arch=x86_64 --mac=08:00:27:BA:34:7C"
-    puts
-    puts "Create AutoYast (SuSE Enterprise, OpenSuSE) Linux VirtualBox VM:"
-    puts
-    puts $script+" --action=create --method=autoyast --vm=vbox -client=sles11sp2vm01 --arch=x86_64 --mac=08:00:27:BA:34:7D"
-    puts $script+" --action=create --os=sles --vm=vbox -client=sles11sp2vm01 --arch=x86_64 --mac=08:00:27:BA:34:7D"
-    puts
-    puts "Create Jumpstart (Solaris 2.6 - 10) VirtualBox VM:"
-    puts
-    puts $script+" --action=create --method=jumstart --vm=vbox --client=sol10u11vm01 --arch=i386 --mac=00:0C:29:FA:0C:7F"
-    puts $script+" --action=create --os=solaris --release=10 --vm=vbox --client=sol10u11vm01 --arch=i386 --mac=00:0C:29:FA:0C:7F"
-    puts
-    puts "Create AI (Solaris 11) VirtualBox VM:"
-    puts
-    puts $script+" --action=create --method=ai --vm=vbox --client=sol11u01vm03 --arch=i386 --mac=00:50:56:26:92:D8"
-    puts $script+" --action=create --os=solaris --release=11 --vm=vbox --client=sol11u01vm03 --arch=i386 --mac=00:50:56:26:92:D8"
-    puts
-    puts "Create vSphere (ESXi) VirtualBox VM:"
-    puts
-    puts $script+" --action=create --os=vmware --vm=vbox --client=vmware55vm01 --arch=x86_64 --mac=08:00:27:61:B7:AD"
-    puts
-    puts "Create OpenBSD VirtualBox VirtualBox VM:"
-    puts
-    puts $script+" --action=create --os=openbsd --vm=vbox --client=openbsd55vm01 --arch=x86_64 --mac=08:00:27:61:B7:AA"
-    puts
-    puts "Create NetBSD VirtualBox VirtualBox VM:"
-    puts
-    puts $script+" --action=create --os=netbsd --vm=vbox --client=netbsd10vm01 --arch=x86_64 --mac=08:00:27:61:B7:AB"
-    puts
-    puts "Delete Kickstart (Linux) VirtualBox VM:"
-    puts
-    puts $script+" --action=delete --vm=vbox --client=centos510vm01"
-    puts
-    puts "Delete Jumpstart (Solaris 10) VirtualBox VM:"
-    puts
-    puts $script+" -action=delete --vm=vbox --client=sol10u11vm01"
-    puts
-    puts "Delete AI (Solaris 11) VirtualBox VM:"
-    puts
-    puts $script+" --action=delete --vm=vbox --client=sol11u01vm03"
-    puts
-    puts "Delete vSphere (ESXi) VirtualBox VM:"
-    puts
-    puts $script+" --action=delete --vm=vbox --client=vmware55vm01"
-    puts
-    puts "Boot headless Linux VirtualBox VM:"
-    puts
-    puts $script+" --action=boot --vm=vbox --client=centos510vm01"
-    puts
-    puts "Boot headless serial enabled Linux VirtualBox VM:"
-    puts
-    puts $script+" --action=boot --vm=vbox --console=serial --client=centos510vm01"
-    puts
-    puts "Boot non headless Linux VirtualBox VM:"
-    puts
-    puts $script+" --action=boot --vm=vbox --console=headless --client=centos510vm01"
-    puts
-    puts "Connect to serial port of running VirtualBox VM:"
-    puts
-    puts $script+" --action=serial --client=centos510vm01"
-    puts
-    puts "Halt Linux VirtualBox VM:"
-    puts
-    puts $script+" --action=stop --vm=vbox --client=centos510vm01"
-    puts
-    puts "Modify VirtualBox VM MAC Address:"
-    puts
-    puts $script+" --action=change --client=centos510vm01 --mac=00:50:56:34:4E:7A"
-    puts
-    puts "Check VirtualBox Configuration:"
-    puts
-    puts $script+" --action=check --vm=vbox"
-    puts
-    puts "List running VirtualBox VMs:"
-    puts
-    puts $script+" --action=running --vm=vbox"
-    puts
-    puts "Snapshot VirtualBox VMs:"
-    puts
-    puts $script+" --action=snapshot --vm=vbox --client=centos510vm01"
+  if examples.match(/vbox|all|virtualbox/)
+    print_md("VirtualBox")
     puts
   end
   if examples.match(/fusion|all/)
-    puts
-    puts "VMware Fusion related examples"
-    puts
-    puts "Creating Kickstart (CentOS, Scientific, RedHat Enterprise, Fedora, Oracle Enterprise) VMware Fusion VM examples:"
-    puts
-    puts $script+" --action=create --method=kickstart --vm=fusion ==client=centos510vm01 --arch=x86_64 --mac=00:50:56:34:4E:7A"
-    puts $script+" --action=create --os=centos --vm=fusion ==client=centos510vm01 --arch=x86_64 --mac=00:50:56:34:4E:7A"
-    puts
-    puts "Create Preseed (Ubuntu, Debian) Linux VMware Fusion VM:"
-    puts
-    puts $script+" --action=create --method=preseed --vm=fusion --client=ubuntu1310vm01 --arch x86_64 -mac=08:00:27:BA:34:7C"
-    puts $script+" --action=create --os=ubuntu --vm=fusion --client=ubuntu1310vm01 --arch x86_64 -mac=08:00:27:BA:34:7C"
-    puts
-    puts "Create AutoYast (SuSE, OpenSuSE) Linux VMware Fusion VM:"
-    puts
-    puts $script+" --action=create --method=autoyast --vm=fusion --client=sles11sp2vm01 --arch=x86_64 --mac=08:00:27:BA:34:7D"
-    puts $script+" --action=create --os=sles --vm=fusion --client=sles11sp2vm01 --arach=x86_64 --mac=08:00:27:BA:34:7D"
-    puts
-    puts "Create Jumpstart (Solaris 2.6 - 10) VMware Fusion VM:"
-    puts
-    puts $script+" --action=create --method=jumpstart --vm=fusion --client=sol10u11vm01 --arch=i386 --mac=00:0C:29:FA:0C:7F"
-    puts $script+" --action=create --os=solaris --release--vm=fusion --client=sol10u11vm01 --arch=i386 --mac=00:0C:29:FA:0C:7F"
-    puts
-    puts "Create AI (Solaris 11) VMware Fusion VM:"
-    puts
-    puts $script+" --action=create --method=ai --vm=fusion --client=sol11u01vm03 --mac=00:50:56:26:92:D8"
-    puts $script+" --action=create --os=solaris --release=11 --vm=fusion --client=sol11u01vm03 --mac=00:50:56:26:92:D8"
-    puts
-    puts "Create vSphere (ESXi) VMware Fusion VM:"
-    puts
-    puts $script+" --action=create --method=vsphere --vm=fusion --client=vmware55vm01 --mac=00:50:56:26:92:D8"
-    puts $script+" --action=create --os=vsphere --vm=fusion --client=vmware55vm01 --mac=00:50:56:26:92:D8"
-    puts
-    puts "Create Windows VMware Fusion VM:"
-    puts
-    puts $script+" --action=create --method=windows --vm=fusion --client=win2008r2vm01 --mac=08:00:27:61:B7:AF"
-    puts
-    puts "Create OpenBSD VMware Fusion VM:"
-    puts
-    puts $script+" --action=create --os=openbsd --client=openbsd55vm01 --mac=08:00:27:61:B7:AA"
-    puts $script+" --action=create --method=bsd --client=openbsd55vm01 --mac=08:00:27:61:B7:AA"
-    puts
-    puts "Create NetBSD VMware Fusion VM:"
-    puts
-    puts $script+" --action=create --os=netbsd --client=netbsd10vm01 --mac=08:00:27:61:B7:AA"
-    puts $script+" --action=create --method=bsd --client=netbsd10vm01 --mac=08:00:27:61:B7:AA"
-    puts
-    puts "Delete Kickstart (CentOS, Scientific, RedHat Enterprise, Fedora, Oracle Enterprise) Linux VMware Fusion VM:"
-    puts
-    puts $script+" --action=delete --vm=fusion --client=centos510vm01"
-    puts
-    puts "Delete Jumpstart (Solaris 2.6 - 10) VMware Fusion VM:"
-    puts
-    puts $script+" --action=delete --vm=fusion --client=sol10u11vm01"
-    puts
-    puts "Delete AI (Solaris 11) VMware Fusion VM:"
-    puts
-    puts $script+" --action=delete --vm=fusion --client=sol11u01vm03"
-    puts
-    puts "Delete vSphere (ESXi) VMware Fusion VM:"
-    puts
-    puts $script+" --action=delete --vm=fusion --client=vmware55vm01"
-    puts
-    puts "Boot headless Linux VMware Fusion VM:"
-    puts
-    puts $script+" --action=boot --vm=fusion --client=centos510vm01 --console=headless"
-    puts
-    puts "Boot headless serial enabled Linux VMware Fusion VM:"
-    puts
-    puts $script+" --action=boot --vm=fusion --client=centos510vm01 --console=serial"
-    puts
-    puts "Boot non headless (default boot mode) Linux VMware Fusion VM:"
-    puts
-    puts $script+" --action=boot --vm=fusion --client=centos510vm01"
-    puts $script+" --action=boot --vm=fusion --client=centos510vm01 --console=text"
-    puts
-    puts "Halt/Pause Linux VMware Fusion VM:"
-    puts
-    puts $script+" --action=halt --vm=fusion --client=centos510vm01"
-    puts $script+" --action=pause --vm=fusion --client=centos510vm01"
-    puts
-    puts "Boot Windows VMware Fusion VM:"
-    puts
-    puts $script+" --action=boot --vm=fusion --client=win2008r2vm01"
-    puts
-    puts "Stop Windows VMware Fusion VM:"
-    puts
-    puts $script+" --action=stop --vm=fusion --client=win2008r2vm01"
-    puts
-    puts "Resume Windows VMware Fusion VM:"
-    puts
-    puts $script+" --action=resume --vm=fusion --client=win2008r2vm01"
-    puts
-    puts "Modify VMware Fusion VM MAC Address:"
-    puts
-    puts $script+" --action=modify --vm=fusion --client=centos510vm01 --mac=00:50:56:34:4E:7A"
-    puts $script+" --action=change --vm=fusion --client=centos510vm01 --mac=00:50:56:34:4E:7A"
-    puts
-    puts "Attach CDROM to Fusion VM:"
-    puts
-    puts $script+" --action=attach --vm=fusion --client=sol11u2vm01 --file=/isos/sol-11_2-text-x86.iso"
-    puts
-    puts "Detach CDROM to Fusion VM:"
-    puts
-    puts $script+" --action=detach --vm=fusion --client=sol11u2vm01"
+    printmd("VMwareFusion")
     puts
   end
   if examples.match(/server|ai|all/)

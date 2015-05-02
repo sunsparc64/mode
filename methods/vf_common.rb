@@ -54,8 +54,12 @@ end
 def get_fusion_vm_vmx_file_value(install_client,install_search)
   vm_value  = ""
   vmx_file  = get_fusion_vm_vmx_file(install_client)
-  vm_config = ParseConfig.new(vmx_file)
-  vm_value  = vm_config[install_search]
+  if File.readable?(vmx_file)
+    vm_config = ParseConfig.new(vmx_file)
+    vm_value  = vm_config[install_search]
+  else
+    vm_value = "File Not Readable"
+  end
   return vm_value
 end
 

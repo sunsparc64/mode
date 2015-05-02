@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.3.1
+# Version:      2.3.2
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -41,6 +41,9 @@ end
 # Set up some global variables/defaults
 
 $script                 = $0
+$script_file            = Pathname.new($script).realpath
+$script_dir             = File.dirname($script_file)
+$wiki_dir               = $script_dir+"/"+File.basename($script,".rb")+".wiki"
 $verbose_mode           = 0
 $test_mode              = 0
 $download_mode          = 1
@@ -444,6 +447,15 @@ if !ARGV[0]
   print_usage()
 end
 
+# Try to make sure we have valid long switches
+
+ARGV[0..-1].each do |switch|
+  if switch.match(/^-[A-z][A-z]/)
+    puts "Invalid command line option: "+switch
+    exit
+  end
+end
+
 # Process options
 
 begin
@@ -501,6 +513,15 @@ end
 if option["help"]
   print_usage()
   exit
+end
+
+# Handle list switch
+
+if option["action"] == "list"
+  if !option["vm"] and !option["service"] and !option["method"] and !option["type"]
+    puts "No type or service given"
+    exit
+  end
 end
 
 # Handle verbose switch
@@ -624,6 +645,13 @@ else
   install_service = ""
 end
 
+# Handle vm switch
+
+if option["vm"]
+  option["vm"] = option["vm"].downcase
+  option["vm"] = option["vm"].gsub(/virtualbox/,"vbox")
+end
+
 # Handle release switch
 
 if option["release"]
@@ -712,7 +740,7 @@ end
 if option["publisher"] and option["mode"] == "server" and $os_name == "SunOS"
   publisher_host = option["publisher"]
   if publisher_host.match(/:/)
-    (publisher_host,publisher_port) = publisher_host 
+    (publisher_host,publisher_port) = publisher_host.split(/:/) 
   else
     publisher_port = $default_ai_port
   end
@@ -1118,33 +1146,37 @@ if option["action"]
       exit
     end
   when /add|create/
-    if install_client.match(/[A-z]|[0-9]/)
-      if install_service.match(/[A-z]|[0-9]/)
-        check_dhcpd_config(publisher_host)
-        eval"[configure_#{funct}_client(install_client,install_arch,client_mac,install_ip,client_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network)]"
-      else
-        if install_vm.match(/fusion|vbox|parallels/)
-          create_vm(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-        end
-        if install_vm.match(/zone|lxc|gdom/)
-          eval"[configure_#{install_vm}(install_client,install_ip,client_mac,install_arch,client_os,client_rel,publisher_host,install_file,install_service)]"
-        end
-        if install_vm.match(/cdom/)
-          configure_cdom(publisher_host)
-        end
-        if !install_vm.match(/[A-z]/)
-          if install_ip.match(/[0-9]/)
-            check_local_config("client")
-            add_hosts_entry(install_client,install_ip)
-          end
-          if install_mac.match(/[0-9]|[a-f]|[A-F]/)
-            install_service = ""
-            add_dhcp_client(install_client,client_mac,install_ip,install_arch,install_service)
-          end
-        end
-      end
+    if install_mode.match(/server/)
+      eval"[configure_server(install_method,install_arch,publisher_host,publisher_port,install_service,install_file)]"
     else
-      puts "Warning:\tClient or service name not specified"
+      if install_client.match(/[A-z]|[0-9]/)
+        if install_service.match(/[A-z]|[0-9]/)
+          check_dhcpd_config(publisher_host)
+          eval"[configure_#{funct}_client(install_client,install_arch,client_mac,install_ip,client_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network)]"
+        else
+          if install_vm.match(/fusion|vbox|parallels/)
+            create_vm(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+          end
+          if install_vm.match(/zone|lxc|gdom/)
+            eval"[configure_#{install_vm}(install_client,install_ip,client_mac,install_arch,client_os,client_rel,publisher_host,install_file,install_service)]"
+          end
+          if install_vm.match(/cdom/)
+            configure_cdom(publisher_host)
+          end
+          if !install_vm.match(/[A-z]/)
+            if install_ip.match(/[0-9]/)
+              check_local_config("client")
+              add_hosts_entry(install_client,install_ip)
+            end
+            if install_mac.match(/[0-9]|[a-f]|[A-F]/)
+              install_service = ""
+              add_dhcp_client(install_client,client_mac,install_ip,install_arch,install_service)
+            end
+          end
+        end
+      else
+        puts "Warning:\tClient or service name not specified"
+      end
     end
   when /^boot$|^stop$|^halt$|^suspend$|^resume$|^start$/
     if install_vm.match(/parallels/)
@@ -1230,6 +1262,15 @@ if option["action"]
     if install_vm.match(/[A-z]/)
       if install_client.match(/[A-z]/)
         eval"[restore_#{install_vm}_vm_snapshot(install_client,install_clone)]"
+      else
+        puts "Warning:\tClient name not specified"
+        exit
+      end
+    end
+  when /console|serial/
+    if install_vm.match(/[A-z]/)
+      if install_client.match(/[A-z]/)
+        connect_to_virtual_serial(install_client,install_vm)
       else
         puts "Warning:\tClient name not specified"
         exit
