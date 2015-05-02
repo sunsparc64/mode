@@ -43,3 +43,43 @@ def build_ks_alt_rpm_list(service_name,client_arch)
   rpm_list.push("#{prod_url}/puppet-#{$puppet_version}-1.#{noarch_suffix}")
   return rpm_list
 end
+
+# Get VSphere info from ISO file name
+
+def get_vsphere_version_info(iso_file_name)
+  iso_info     = File.basename(iso_file_name)
+  iso_info     = iso_info.split(/-/)
+  linux_distro = iso_info[0]
+  iso_version  = iso_info[3]
+  iso_arch     = iso_info[4].split(/\./)[1]
+  return linux_distro,iso_version,iso_arch
+end
+
+# List ISOs
+
+def list_ks_isos()
+  search_string = "CentOS|rhel|SL|OracleLinux|Fedora|VMvisor"
+  iso_list      = check_iso_base_dir(search_string)
+  iso_list.each do |iso_file_name|
+    iso_file_name = iso_file_name.chomp
+    if iso_file_name.match(/VMvisor/)
+      (linux_distro,iso_version,iso_arch) = get_vsphere_version_info(iso_file_name)
+    else
+      (linux_distro,iso_version,iso_arch) = get_linux_version_info(iso_file_name)
+    end
+    puts "ISO file:\t"+iso_file_name
+    puts "Distribution:\t"+linux_distro
+    puts "Version:\t"+iso_version
+    puts "Architecture:\t"+iso_arch
+    iso_version      = iso_version.gsub(/\./,"_")
+    service_name     = linux_distro+"_"+iso_version+"_"+iso_arch
+    repo_version_dir = $repo_base_dir+"/"+service_name
+    if File.directory?(repo_version_dir)
+      puts "Service Name:\t"+service_name+" (exists)"
+    else
+      puts "Service Name:\t"+service_name
+    end
+    puts
+  end
+  return
+end

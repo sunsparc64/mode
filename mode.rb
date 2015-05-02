@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.3.2
+# Version:      2.3.3
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -761,7 +761,7 @@ if option["os"]
   install_os = option["os"].downcase
   install_os = install_os.gsub(/scientificlinux|scientific/,"sl")
   install_os = install_os.gsub(/oel/,"oraclelinux")
-  install_os = install_os.gsub(/esx|esxi/,"wmware")
+  install_os = install_os.gsub(/esx|esxi|vsphere/,"vmware")
   install_os = install_os.gsub(/^suse$/,"opensuse")
   install_os = install_os.gsub(/solaris/,"sol")
   install_os = install_os.gsub(/redhat/,"rhel")
@@ -1024,12 +1024,14 @@ end
 if !option["method"] and !option["action"].match(/delete|running|boot|stop/)
   case install_os
   when /sol|sunos/
-    if install_release == "11"
-      example_type   = "ai"
-      install_method = "ai"
-    else
-      example_type   = "js"
-      install_method = "js"
+    if install_release.match(/[0-9]/)
+      if install_release == "11"
+        example_type   = "ai"
+        install_method = "ai"
+      else
+        example_type   = "js"
+        install_method = "js"
+      end
     end
   when /ubuntu|debian/
     example_type   = "ps"
@@ -1043,7 +1045,7 @@ if !option["method"] and !option["action"].match(/delete|running|boot|stop/)
   when /bsd/
     example_type   = "xb"
     install_method = "xb"
-  when /vmware|esx/
+  when /vmware|esx|vsphere/
     example_type   = "vs"
     install_method = "vs"
     configure_vmware_esxi_defaults()
@@ -1097,23 +1099,28 @@ if option["action"]
   when /info/
     print_examples(install_method,install_type,install_vm)
   when /list/
-    if install_mode.match(/client/)
-      list_clients(install_service)
-    end
-    if install_method.match(/[A-z]/) and !install_vm.match(/[A-z]/)
-      eval"[list_#{install_method}_services()]"
-    end
-    if install_type.match(/iso/) 
-      list_isos(install_os,install_method,install_release,install_arch)
-    end
-    if install_type.match(/ova/)
-      list_ovas()
-    end
-    if install_vm.match(/[A-z]/)
-      if install_type.match(/snapshot/)
-        list_vm_snapshots(install_vm,install_os,install_method,install_client)
+    if install_type.match(/iso/)
+      if install_method.match(/[A-z]/)
+        eval"[list_#{install_method}_isos]"
       else
-        list_vm(install_vm,install_os,install_method)
+        eval"[list_os_isos(install_os)]"
+      end
+    else
+      if install_mode.match(/client/)
+        list_clients(install_service)
+      end
+      if install_method.match(/[A-z]/) and !install_vm.match(/[A-z]/)
+        eval"[list_#{install_method}_services()]"
+      end
+      if install_type.match(/ova/)
+        list_ovas()
+      end
+      if install_vm.match(/[A-z]/)
+        if install_type.match(/snapshot/)
+          list_vm_snapshots(install_vm,install_os,install_method,install_client)
+        else
+          list_vm(install_vm,install_os,install_method)
+        end
       end
     end
   when /delete|remove/

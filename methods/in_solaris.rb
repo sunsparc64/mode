@@ -1,5 +1,14 @@
 # Solaris common code
 
+# List all solaris ISOs
+
+def list_sol_isos(search_string)
+  puts
+  list_js_isos()
+  list_ai_isos()
+  return
+end
+
 # Install required packages
 
 def check_solaris_install()

@@ -1,6 +1,20 @@
 
 # Code common to all services
 
+# list OS install ISOs
+
+def list_os_isos(install_os)
+  case install_os
+  when /linux/
+    search_string = "CentOS|OracleLinux|SUSE|SLES|SL|Fedora|ubuntu|debian"
+  when /sol/
+    search_string = "sol"
+  when /esx|vmware|vsphere/
+    search_string = "VMvisor"
+  end
+  eval"[list_#{install_os}_isos(search_string)]"
+end
+
 # Get Install method from ISO file name
 
 def get_install_method_from_iso(install_file)
@@ -1233,7 +1247,7 @@ def check_iso_base_dir(search_string)
   check_zfs_fs_exists($iso_base_dir)
   message  = "Getting:\t"+$iso_base_dir+" contents"
   if search_string.match(/[A-z]/)
-    command  = "ls #{$iso_base_dir}/*.iso |egrep '#{search_string}' |grep -v '2.iso' |grep -v 'supp-server'"
+    command  = "ls #{$iso_base_dir}/*.iso |egrep \"#{search_string}\" |grep -v '2.iso' |grep -v 'supp-server'"
   else
     command  = "ls #{$iso_base_dir}/*.iso |grep -v '2.iso' |grep -v 'supp-server'"
   end

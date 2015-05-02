@@ -196,7 +196,7 @@ end
 # List kickstart services
 
 def list_vs_services()
-  puts "VSphere services:"
+  puts "vSphere services:"
   puts
   service_list = Dir.entries($repo_base_dir)
   service_list.each do |service_name|

@@ -1,14 +1,6 @@
 
 # Server code for Kickstart
 
-# List available Kiskstart ISOs
-
-def list_ks_isos()
-  search_string = "CentOS|rhel|SL|OracleLinux|Fedora"
-  list_linux_isos(search_string)
-  return
-end
-
 # Unconfigure alternate packages
 
 def unconfigure_ks_alt_repo(service_name)
