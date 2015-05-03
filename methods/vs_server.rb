@@ -62,11 +62,12 @@ end
 def unconfigure_vs_repo(service_name)
   remove_apache_alias(service_name)
   repo_version_dir = $repo_base_dir+"/"+service_name
-  destroy_zfs_fs(repo_version_dir)
   if File.symlink?(repo_version_dir)
     message = "Removing:\tSymlink "+repo_version_dir
     command = "rm #{repo_version_dir}"
     execute_command(message,command)
+  else
+    destroy_zfs_fs(repo_version_dir)
   end
   netboot_repo_dir = $tftp_dir+"/"+service_name
   if File.directory?(netboot_repo_dir)

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.3.6
+# Version:      2.3.7
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -568,6 +568,8 @@ if option["share"]
     puts "Information:\tSharing "+install_share
     puts "Information:\tSetting mount point to "+install_mount
   end
+else
+  install_share = ""
 end
 
 
@@ -1158,8 +1160,16 @@ if option["action"]
         end
       end
     else
-      puts "Warning:\tClient name not specified"
-      exit
+      if install_service.match(/[A-z]|[0-9]/)
+        if !install_method.match(/[a-z]/)
+          unconfigure_server(install_service)
+        else
+          eval"[unconfigure_#{install_method}_server(install_service)]"
+        end
+      else
+        puts "Warning:\tClient name not specified"
+        exit
+      end
     end
   when /add|create/
     if install_mode.match(/server/) or install_file.match(/[A-z]/) or install_type.match(/service/) and !install_vm.match(/[A-z]/)

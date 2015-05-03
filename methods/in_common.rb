@@ -1,6 +1,34 @@
 
 # Code common to all services
 
+# Unconfigure a server
+
+def unconfigure_server(install_service)
+  service_dir = $repo_base_dir+"/"+install_service
+  if File.directory?(service_dir) or File.symlink?(service_dir)
+    if $verbose_mode == 1
+      puts "Information:\tFound directory "+service_dir
+      puts "Information:\tDetermining service type"
+    end
+    test_file = service_dir+"/vmware-esx-base-osl.txt"
+    if File.exist?(test_file)
+      install_method = "vs"
+    end
+    test_file = service_dir+"/repodata"
+    if File.exist?(test_file)
+      install_method = "ks"
+    end
+    if install_method
+      eval"[unconfigure_#{install_method}_server(install_service)]"
+    else
+      puts "Warning:\tCould not determine service type for "+install_service
+    end
+  else
+    puts "Warning:\tService "+install_service+" does not exist"
+  end
+  return
+end
+
 # list OS install ISOs
 
 def list_os_isos(install_os)

@@ -31,10 +31,10 @@ Example Server Commands
 
 These commands are run on the deployment server.
 
-Configure ESXi services (this will process all vSphere ISOs in /export/isos):
+Configure ESXi service:
 
 ```
-# ./mode.rb --action=add --method=
+# ./mode.rb --action=add --file=/export/isos/VMware/6.0/VMware-VMvisor-Installer-6.0.0-2494585.x86_64.iso
 ```
 
 Unconfigure an ESXi services:
@@ -51,7 +51,7 @@ These commands are run on the deployment server.
 List available ISOs:
 
 ```
-# ./mode.rb --action=list --type=iso --method=kickstart
+# ./mode.rb --action=list --type=iso --os=vsphere
 Available ESX/vSphere ISOs:
 
 Checking:     /export/isos
@@ -73,7 +73,7 @@ Service Name: vmware_5_5_0_x86_64 (exists)
 List available ESX/vSphere services:
 
 ```
-# modest.rb -E -S -L
+# ./mode.rb --action=list --type=service --os=vsphere
 VSphere services:
 
 vmware_5_1_0_x86_64
@@ -83,7 +83,7 @@ vmware_5_5_0_x86_64
 Configure ESX service from ISO:
 
 ```
-# modest.rb -E -S -f /export/isos/VMware-VMvisor-Installer-5.1.0-799733.x86_64.iso -v
+# ./mode.rb --action=add --file=/export/isos/VMware-VMvisor-Installer-5.1.0-799733.x86_64.iso --verbose
 Information:  Running in verbose mode
 Information:  Home directory /root
 Information:  Setting work directory to /opt/modest
@@ -148,7 +148,7 @@ Executing:    cd /etc/netboot/vmware_5_1_0_x86_64 ; /opt/modest/bin/rpm2cpio /op
 Delete ESX/vSphere service:
 
 ```
-# modest.rb -E -S -z vmware_5_1_0_x86_64 -v -y
+# ./mode.rb --action=delete --service=vmware_5_1_0_x86_64 --verbose --yes
 Information:  Running in verbose mode
 Information:  Home directory /root
 Information:  Setting work directory to /opt/modest

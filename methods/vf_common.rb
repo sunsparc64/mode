@@ -604,6 +604,7 @@ end
 def check_fusion_vm_exists(install_client)
   fusion_vm_dir   = $fusion_dir+"/"+install_client+".vmwarevm"
   fusion_vmx_file = fusion_vm_dir+"/"+install_client+".vmx"
+  puts fusion_vmx_file
   if !File.exist?(fusion_vmx_file)
     exists = "no"
   else
@@ -757,7 +758,7 @@ end
 
 # Configure a ESX VMware Fusion VM
 
-def configure_vs_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+def configure_vs_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   install_os = "vmkernel5"
   configure_fusion_vm(install_client,install_mac,install_os,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
