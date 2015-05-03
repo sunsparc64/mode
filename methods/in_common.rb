@@ -11,8 +11,24 @@ def list_os_isos(install_os)
     search_string = "sol"
   when /esx|vmware|vsphere/
     search_string = "VMvisor"
+  else
+    list_all_isos()
+    return
   end
   eval"[list_#{install_os}_isos(search_string)]"
+  return
+end
+
+# List all isos
+
+def list_all_isos()
+  list_js_isos()
+  list_ks_isos()
+  list_ps_isos()
+  list_zone_isos()
+  list_vs_isos()
+  list_xb_isos()
+  return
 end
 
 # Get Install method from ISO file name

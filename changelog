@@ -467,3 +467,5 @@
 # Cleaned up ISO list code and commandline handling
 # 2.3.4: Sun  3 May 2015 10:25:09 AEST
 # Updated puppet install for Solaris 11.2
+# 2.3.5: Sun  3 May 2015 10:37:53 AEST
+# Improved ISO list code

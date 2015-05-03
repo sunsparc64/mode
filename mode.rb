@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.3.4
+# Version:      2.3.5
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -162,7 +162,7 @@ $valid_os_list          = [ 'sol', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'S
 $valid_arch_list        = [ 'x86_64', 'i386', 'sparc' ]
 $valid_console_list     = [ 'text', 'console', 'x11', 'headless' ]
 $valid_method_list      = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay' ]
-$valid_type_list        = [ 'iso', 'flar', 'ova', 'snapshot' ]
+$valid_type_list        = [ 'iso', 'flar', 'ova', 'snapshot', 'service' ]
 $valid_mode_list        = [ 'client', 'server', 'osx' ]
 $valid_vm_list          = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdrom', 'gdom', 'parallels' ]
 
@@ -1100,6 +1100,12 @@ if option["action"]
   when /info/
     print_examples(install_method,install_type,install_vm)
   when /list/
+    if install_type.match(/service/)
+      if install_method.match(/[A-z]/)
+        eval"[list_#{install_method}_isos]"
+        return
+      end
+    end
     if install_type.match(/iso/)
       if install_method.match(/[A-z]/)
         eval"[list_#{install_method}_isos]"
@@ -1154,7 +1160,7 @@ if option["action"]
       exit
     end
   when /add|create/
-    if install_mode.match(/server/) or install_file.match(/[A-z]/) and !install_vm.match(/[A-z]/)
+    if install_mode.match(/server/) or install_file.match(/[A-z]/) or install_type.match(/service/) and !install_vm.match(/[A-z]/)
       check_local_config("server")
       eval"[configure_server(install_method,install_arch,publisher_host,publisher_port,install_service,install_file)]"
     else
