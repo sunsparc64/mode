@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.3.5
+# Version:      2.3.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1102,15 +1102,17 @@ if option["action"]
   when /list/
     if install_type.match(/service/)
       if install_method.match(/[A-z]/)
-        eval"[list_#{install_method}_isos]"
-        return
+        eval"[list_#{install_method}_services]"
+        exit
+      else
+        list_all_services()
       end
     end
     if install_type.match(/iso/)
       if install_method.match(/[A-z]/)
         eval"[list_#{install_method}_isos]"
       else
-        eval"[list_os_isos(install_os)]"
+        list_os_isos(install_os)
       end
     else
       if install_mode.match(/client/)

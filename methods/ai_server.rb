@@ -384,7 +384,7 @@ end
 
 def list_ai_services()
   message = "Listing:\nAvoilable AI services"
-  command = "installadm list |grep 'auto_install' |grep -v default |awk '{print $1}'"
+  command = "installadm list |grep \"auto_install\" |grep -v default |awk \"{print $1}\""
   output  = execute_command(message,command)
   puts
   puts "Available AI services:"
