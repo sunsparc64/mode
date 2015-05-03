@@ -465,3 +465,5 @@
 # Improved command line handling and added handling for unreadable VMware Fusion config file
 # 2.3.3: Sun  3 May 2015 08:53:28 AEST
 # Cleaned up ISO list code and commandline handling
+# 2.3.4: Sun  3 May 2015 10:25:09 AEST
+# Updated puppet install for Solaris 11.2

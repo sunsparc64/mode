@@ -393,9 +393,13 @@ def check_sol_puppet()
     end
   end
   if !File.exist?(puppet_bin)
-    %x[mkdir -p #{puppet_dir}]
     message = "Installing:\tPuppet"
-    command = "gem install puppet"
+    if $os_info.match(/11\.2/)
+      command = "pkg install puppet"
+    else
+      %x[mkdir -p #{puppet_dir}]
+      command = "gem install puppet"
+    end
     execute_command(message,command)
   end
   message = "Checking:\tPuppet user exists"

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.3.3
+# Version:      2.3.4
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -176,6 +176,7 @@ $puppet_version = "3.4.2"
 
 $os_name = %x[uname]
 $os_arch = %x[uname -p]
+$os_info = %x[uname -a]
 
 # Calculate CIDR
 
@@ -1153,7 +1154,8 @@ if option["action"]
       exit
     end
   when /add|create/
-    if install_mode.match(/server/)
+    if install_mode.match(/server/) or install_file.match(/[A-z]/) and !install_vm.match(/[A-z]/)
+      check_local_config("server")
       eval"[configure_server(install_method,install_arch,publisher_host,publisher_port,install_service,install_file)]"
     else
       if install_client.match(/[A-z]|[0-9]/)
