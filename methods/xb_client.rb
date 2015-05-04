@@ -150,21 +150,21 @@ end
 
 # Configure BSD client
 
-def configure_xb_client(client_name,client_arch,client_mac,client_ip,client_model,publisher_host,service_name,image_file)
-  repo_version_dir = $repo_base_dir+"/"+service_name
+def configure_xb_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license)
+  repo_version_dir = $repo_base_dir+"/"+install_service
   if !File.directory?(repo_version_dir)
-    puts "Warning:\tService "+service_name+" does not exist"
+    puts "Warning:\tService "+install_service+" does not exist"
     puts
     list_xb_services()
     exit
   end
-  if service_name.match(/coreos/)
-    populate_coreos_questions(service_name,client_name,client_ip)
-    process_questions(service_name)
-    output_coreos_client_profile(client_name,service_name)
+  if install_service.match(/coreos/)
+    populate_coreos_questions(install_service,install_client,install_ip)
+    process_questions(install_service)
+    output_coreos_client_profile(install_client,install_service)
   end
-  configure_xb_pxe_client(client_name,client_ip,client_mac,client_arch,service_name,publisher_host)
-  configure_xb_dhcp_client(client_name,client_mac,client_ip,client_arch,service_name)
-  add_hosts_entry(client_name,client_ip)
+  configure_xb_pxe_client(install_client,install_ip,install_mac,install_arch,install_service,publisher_host)
+  configure_xb_dhcp_client(install_client,install_mac,install_ip,install_arch,install_service)
+  add_hosts_entry(install_client,install_ip)
   return
 end

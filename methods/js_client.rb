@@ -231,74 +231,74 @@ end
 
 # Configure client
 
-def configure_js_client(client_name,client_arch,client_mac,client_ip,client_model,publisher_host,service_name,image_file)
-  if image_file.match(/flar/)
+def configure_js_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license)
+  if install_file.match(/flar/)
     if !File.exist?(image_file)
-      puts "Warning:\tFlar file "+image_file+" does not exist"
+      puts "Warning:\tFlar file "+install_file+" does not exist"
       exit
     else
       message = "Information:\tMaking sure file is world readable"
-      command = "chmod 755 #{image_file}"
+      command = "chmod 755 #{install_file}"
       execute_command(message,command)
     end
-    export_dir  = Pathname.new(image_file)
+    export_dir  = Pathname.new(install_file)
     export_dir  = export_dir.dirname.to_s
     add_apache_alias(export_dir)
     if !service_name.match(/[A-z]/)
-      service_name = Pathname.new(image_file)
-      service_name = service_name.basename.to_s.gsub(/\.flar/,"")
+      install_service = Pathname.new(install_file)
+      install_service = install_service.basename.to_s.gsub(/\.flar/,"")
     end
   else
-    if !service_name.match(/i386|sparc/)
-      service_name = service_name+"_"+client_arch
+    if !install_service.match(/i386|sparc/)
+      install_service = install_service+"_"+install_arch
     end
-    if !service_name.match(/#{client_arch}/)
-      puts "Service "+service_name+" and Client architecture "+client_arch+" do not match"
+    if !install_service.match(/#{client_arch}/)
+      puts "Service "+install_service+" and Client architecture "+install_arch+" do not match"
      exit
     end
-    repo_version_dir=$repo_base_dir+"/"+service_name
+    repo_version_dir=$repo_base_dir+"/"+install_service
     if !File.directory?(repo_version_dir)
-      puts "Warning:\tService "+service_name+" does not exist"
+      puts "Warning:\tService "+install_service+" does not exist"
       puts
       list_js_services()
       exit
     end
   end
-  if client_arch.match(/i386/)
-    client_karch = client_arch
+  if install_arch.match(/i386/)
+    install_karch = install_arch
   else
-    client_karch = $q_struct["client_karch"].value
+    install_karch = $q_struct["client_karch"].value
   end
   # Create clients directory
-  clients_dir = $client_base_dir+"/"+service_name
+  clients_dir = $client_base_dir+"/"+install_service
   check_dir_exists(clients_dir)
   # Create client directory
-  client_dir = clients_dir+"/"+client_name
+  client_dir = clients_dir+"/"+install_client
   check_dir_exists(client_dir)
   # Get release information
-  repo_version_dir = $repo_base_dir+"/"+service_name
+  repo_version_dir = $repo_base_dir+"/"+install_service
   if $os_name.match(/Darwin/)
     check_osx_iso_mount(mount_dir,iso_file)
   end
-  os_version       = get_js_iso_version(repo_version_dir)
-  os_update        = get_js_iso_update(repo_version_dir,os_version)
+  os_version = get_js_iso_version(repo_version_dir)
+  os_update  = get_js_iso_update(repo_version_dir,os_version)
   # Populate sysid questions and process them
-  populate_js_sysid_questions(client_name,client_ip,client_arch,client_model,os_version,os_update)
-  process_questions(service_name)
+  populate_js_sysid_questions(install_client,install_ip,install_arch,install_model,os_version,os_update)
+  process_questions(install_service)
   # Create sysid file
   sysid_file = client_dir+"/sysidcfg"
-  create_js_sysid_file(client_name,sysid_file)
+  create_js_sysid_file(install_client,sysid_file)
   # Populate machine questions
-  populate_js_machine_questions(client_model,client_karch,publisher_host,service_name,os_version,os_update,image_file)
-  process_questions(service_name)
-  machine_file = client_dir+"/machine."+client_name
-  create_js_machine_file(client_name,machine_file)
+  populate_js_machine_questions(install__model,install_karch,publisher_host,install_service,os_version,os_update,install_file)
+  process_questions(install_service)
+  machine_file = client_dir+"/machine."+install_client
+  create_js_machine_file(install_client,machine_file)
   # Create rules file
   rules_file = client_dir+"/rules"
-  create_js_rules_file(client_name,client_karch,rules_file)
-  configure_js_pxe_client(client_name,client_mac,client_arch,service_name,repo_version_dir,publisher_host)
-  configure_js_dhcp_client(client_name,client_mac,client_ip,client_arch,service_name)
-  check_js_config(client_name,client_dir,repo_version_dir,os_version)
-  add_hosts_entry(client_name,client_ip)
+  create_js_rules_file(install_client,install_karch,rules_file)
+  configure_js_pxe_client(install_client,install_mac,install_arch,install_service,repo_version_dir,publisher_host)
+  configure_js_dhcp_client(install_client,install_mac,install_ip,install_arch,install_service)
+  check_js_config(install_client,client_dir,repo_version_dir,os_version)
+  add_hosts_entry(install_client,install_ip)
   return
 end

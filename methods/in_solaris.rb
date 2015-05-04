@@ -207,6 +207,9 @@ def create_named_conf()
   named_conf   = "/etc/named.conf"
   tmp_file     = "/tmp/named_conf"
   forward_file = "/etc/namedb/master/local.db"
+  if !$default_host.match(/[0-9]/)
+    check_local_config("server")
+  end
   net_info     = $default_host.split(".")
   net_address  = net_info[2]+"."+net_info[1]+"."+net_info[0]
   host_segment = $default_host.split(".")[3]

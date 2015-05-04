@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.3.8
+# Version:      2.3.9
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -321,7 +321,7 @@ def check_local_config(install_mode)
   if !$default_host.match(/[0-9]/)
     message = "Determining:\tDefault host IP"
     if $os_name.match(/SunOS/)
-      command = "ipadm show-addr #{$default_net} |grep net |head -1 |awk \"{print $4}\" |cut -f1 -d\"/\""
+      command = "ipadm show-addr #{$default_net} |grep net |head -1 |awk '{print $4}' |cut -f1 -d'/'"
     end
     if $os_name.match(/Darwin/)
       $default_net="en0"
@@ -479,6 +479,7 @@ begin
     [ "--size",       "-j", Getopt::REQUIRED ], # VM disk size
     [ "--network",    "-k", Getopt::REQUIRED ], # Set network type (e.g. hostonly, bridget, nat)
     [ "--publisher",  "-l", Getopt::REQUIRED ], # Publisher host
+    [ "--license",    "-L", Getopt::REQUIRED ], # License key (e.g. ESX)
     [ "--model",      "-T", Getopt::REQUIRED ], # Model
     [ "--service",    "-n", Getopt::REQUIRED ], # Service name
     [ "--os",         "-o", Getopt::REQUIRED ], # OS type
@@ -551,6 +552,14 @@ if option["mount"]
   install_mount = option["mount"]
 else
   install_mount = ""
+end
+
+# Handle license
+
+if option["license"]
+  install_license = option["license"]
+else
+  install_license = ""
 end
 
 # Handle share switch
@@ -703,12 +712,27 @@ else
   install_size = $default_vm_size
 end
 
+# Handle empty OS option
+
+if !option["os"]
+  option["os"] = ""
+end
+
+# Handle empty method option
+
+if !option["method"]
+  option["method"] = ""
+end
+
 # Handle memory switch
 
 if option["memory"]
   install_memory = option["memory"]
 else
   if option["vm"]
+    if option["os"].match(/vs|esx|vmware/) or option["method"].match(/vs|esx|vmware/)
+      install_memory = "4096"
+    end
     if option["os"]
       if option["os"].match(/sol/) and option["release"] == "11"
         install_memory = "2048"
@@ -720,7 +744,9 @@ else
         end
       end
     end
-    install_memory = $default_vm_mem
+    if !install_memory
+      install_memory = $default_vm_mem
+    end
   else
     install_memory = ""
   end
@@ -1192,7 +1218,8 @@ if option["action"]
           end
           check_install_ip(install_ip)
           check_install_mac(install_mac)
-          eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network)]"
+          check_local_config("server")
+          eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license)]"
         else
           if install_vm.match(/fusion|vbox|parallels/)
             create_vm(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)

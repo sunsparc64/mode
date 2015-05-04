@@ -246,23 +246,23 @@ end
 
 # Main code to actually add a client
 
-def configure_ai_client(client_name,client_arch,client_mac,client_ip,client_model,publisher_host,service_name,image_name)
+def configure_ai_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license)
   # Populate questions for AI profile
-  if !service_name.match(/i386|sparc/)
-    service_name = service_name+"_"+client_arch
+  if !install_service.match(/i386|sparc/)
+    install_service = install_service+"_"+install_arch
   end
-  check_ai_client_doesnt_exist(client_name,client_mac,service_name)
-  populate_ai_client_profile_questions(client_ip,client_name)
-  process_questions(service_name)
+  check_ai_client_doesnt_exist(install_client,install_mac,install_service)
+  populate_ai_client_profile_questions(install_ip,install_client)
+  process_questions(install_service)
   if $os_name.match(/Darwin/)
-    tftp_version_dir = $tftp_dir+"/"+service_name
+    tftp_version_dir = $tftp_dir+"/"+install_service
     check_osx_iso_mount(tftp_version_dir,iso_file)
   end
-  output_file = $work_dir+"/"+client_name+"_ai_profile.xml"
+  output_file = $work_dir+"/"+install_client+"_ai_profile.xml"
   create_ai_client_profile(output_file)
-  puts "Configuring:\tClient "+client_name+" with MAC address "+client_mac
-  import_ai_client_profile(output_file,client_name,client_mac,service_name)
-  create_ai_client(client_name,client_arch,client_mac,service_name,client_ip)
+  puts "Configuring:\tClient "+install_client+" with MAC address "+install_mac
+  import_ai_client_profile(output_file,install_client,install__mac,install_service)
+  create_ai_client(install_client,install_arch,install_mac,install_service,install_ip)
   if $os_name.match(/SunOS/) and $os_rel.match(/11/)
     clear_solaris_dhcpd()
   end

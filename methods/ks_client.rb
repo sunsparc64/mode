@@ -167,54 +167,54 @@ end
 
 # Configure Kickstart client
 
-def configure_ks_client(client_name,client_arch,client_mac,client_ip,client_model,publisher_host,service_name,image_file)
-  repo_version_dir = $repo_base_dir+"/"+service_name
+def configure_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license)
+  repo_version_dir = $repo_base_dir+"/"+install_service
   add_apache_alias($client_base_dir)
-  client_dir = $client_base_dir+"/"+service_name+"/"+client_name
+  client_dir = $client_base_dir+"/"+install_service+"/"+install_client
   check_zfs_fs_exists(client_dir)
   if !File.directory?(repo_version_dir)
-    puts "Warning:\tService "+service_name+" does not exist"
+    puts "Warning:\tService "+install_service+" does not exist"
     puts
     list_ks_services()
     exit
   end
   check_dir_exists(client_dir)
   if service_name.match(/sles/)
-    output_file = client_dir+"/"+client_name+".xml"
+    output_file = client_dir+"/"+install_client+".xml"
   else
-    output_file = client_dir+"/"+client_name+".cfg"
+    output_file = client_dir+"/"+install_client+".cfg"
   end
   delete_file(output_file)
-  if service_name.match(/fedora|rhel|centos|sl_|oel/)
-    populate_ks_questions(service_name,client_name,client_ip)
-    process_questions(service_name)
-    output_ks_header(client_name,output_file)
-    pkg_list  = populate_ks_pkg_list(service_name)
-    output_ks_pkg_list(client_name,pkg_list,output_file,service_name)
-    post_list = populate_ks_post_list(client_arch,service_name,publisher_host)
-    output_ks_post_list(client_name,post_list,output_file,service_name)
+  if install_service.match(/fedora|rhel|centos|sl_|oel/)
+    populate_ks_questions(install_service,install_client,install_ip)
+    process_questions(install_service)
+    output_ks_header(install_client,output_file)
+    pkg_list = populate_ks_pkg_list(install_service)
+    output_ks_pkg_list(install_client,pkg_list,output_file,install_service)
+    post_list = populate_ks_post_list(install_client,install_service,publisher_host)
+    output_ks_post_list(install_client,post_list,output_file,install_service)
   else
-    if service_name.match(/sles/)
-      populate_ks_questions(service_name,client_name,client_ip)
-      process_questions(service_name)
-      output_ay_client_profile(client_name,client_ip,client_mac,output_file,service_name)
+    if install_service.match(/sles/)
+      populate_ks_questions(install_service,install_client,install_ip)
+      process_questions(install_service)
+      output_ay_client_profile(install_client,install_ip,install_mac,output_file,install_service)
     else
-      if service_name.match(/ubuntu/)
-        populate_ps_questions(service_name,client_name,client_ip)
-        process_questions(service_name)
-        output_ps_header(client_name,output_file)
-        output_file = client_dir+"/"+client_name+"_post.sh"
-        post_list   = populate_ps_post_list(client_name,service_name)
-        output_ks_post_list(client_name,post_list,output_file,service_name)
-        output_file = client_dir+"/"+client_name+"_first_boot.sh"
+      if install_service.match(/ubuntu/)
+        populate_ps_questions(install_service,install_client,install_ip)
+        process_questions(install_service)
+        output_ps_header(install_client,output_file)
+        output_file = client_dir+"/"+install_client+"_post.sh"
+        post_list   = populate_ps_post_list(install_client,install_service)
+        output_ks_post_list(install_client,post_list,output_file,install_service)
+        output_file = client_dir+"/"+install_client+"_first_boot.sh"
         post_list   = populate_ps_first_boot_list()
-        output_ks_post_list(client_name,post_list,output_file,service_name)
+        output_ks_post_list(install_client,post_list,output_file,install_service)
       end
     end
   end
-  configure_ks_pxe_client(client_name,client_ip,client_mac,client_arch,service_name)
-  configure_ks_dhcp_client(client_name,client_mac,client_ip,client_arch,service_name)
-  add_hosts_entry(client_name,client_ip)
+  configure_ks_pxe_client(install_client,install_ip,install_mac,install_arch,install_service)
+  configure_ks_dhcp_client(install_client,install_mac,install_ip,install_arch,install_service)
+  add_hosts_entry(install_client,install_ip)
   return
 end
 

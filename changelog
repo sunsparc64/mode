@@ -475,3 +475,5 @@
 # Improved service deletion code
 # 2.3.8: Mon  4 May 2015 12:50:30 AEST
 # Added code to restart VM and code cleanups
+# 2.3.9: Tue  5 May 2015 05:24:54 AEST
+# Added support for vSphere 6 and cleaned up some of client code
