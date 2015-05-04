@@ -1,5 +1,18 @@
 # VMware Fusion support code
 
+# Show VM config
+
+def show_fusion_vm_config(install_client)
+  fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
+  if File.exist?(fusion_vmx_file)
+    file_data = %x[cat "#{fusion_vmx_file}"]
+    puts file_data
+  else
+    puts "Warning:\tFusion VM config file "+fusion_vmx_file+" does not exit"
+  end
+  return
+end
+
 # Delete Fusion VM snapshot
 
 def delete_fusion_vm_snapshot(install_client,install_clone)
@@ -604,7 +617,6 @@ end
 def check_fusion_vm_exists(install_client)
   fusion_vm_dir   = $fusion_dir+"/"+install_client+".vmwarevm"
   fusion_vmx_file = fusion_vm_dir+"/"+install_client+".vmx"
-  puts fusion_vmx_file
   if !File.exist?(fusion_vmx_file)
     exists = "no"
   else
@@ -871,14 +883,14 @@ def populate_fusion_vm_vmx_info(install_client,install_mac,install_os,install_me
   vmx_info.push("mem.hotadd,TRUE")
   vmx_info.push("scsi0:0.present,TRUE")
   vmx_info.push("scsi0:0.fileName,#{install_client}.vmdk")
-  vmx_info.push("ide0.present,TRUE")
-  vmx_info.push("ide0:0.present,TRUE")
   if install_file.match(/[a-z]/)
+    vmx_info.push("ide0.present,TRUE")
+    vmx_info.push("ide0:0.present,TRUE")
     vmx_info.push("ide0:0.deviceType,cdrom-image")
     vmx_info.push("ide0:0.filename,#{install_file}")
   else
-    vmx_info.push("ide0:0.deviceType,cdrom-raw")
-    vmx_info.push("ide0:0.filename,")
+    #vmx_info.push("ide0:0.deviceType,none")
+    #vmx_info.push("ide0:0.filename,")
   end
   vmx_info.push("ide0:0.startConnected,TRUE")
   vmx_info.push("ide0:0.autodetect,TRUE")

@@ -173,33 +173,33 @@ end
 
 # Configure VSphere client
 
-def configure_vs_client(client_name,client_arch,client_mac,client_ip,client_model,publisher_host,service_name,image_file)
-  repo_version_dir=$repo_base_dir+"/"+service_name
+def configure_vs_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network)
+  repo_version_dir=$repo_base_dir+"/"+install_service
   if !File.directory?(repo_version_dir)
     puts "Warning:\tService "+service_name+" does not exist"
     puts
     list_vs_services()
     exit
   end
-  populate_vs_questions(service_name,client_name,client_ip)
-  process_questions(service_name)
-  output_file=repo_version_dir+"/"+client_name+".cfg"
+  populate_vs_questions(install_service,install_client,install_ip)
+  process_questions(install_service)
+  output_file=repo_version_dir+"/"+install_client+".cfg"
   if File.exists?(output_file)
     File.delete(output_file)
   end
-  output_file=repo_version_dir+"/"+client_name+".cfg"
+  output_file=repo_version_dir+"/"+install_client+".cfg"
   output_vs_header(output_file)
   # Output firstboot list
-  post_list = populate_vs_firstboot_list(service_name)
+  post_list = populate_vs_firstboot_list(install_service)
   output_vs_post_list(post_list,output_file)
   # Output post list
-  post_list = populate_vs_post_list(service_name)
+  post_list = populate_vs_post_list(install_service)
   output_vs_post_list(post_list,output_file)
   if output_file
     FileUtils.chmod(0755,output_file)
   end
-  configure_vs_pxe_client(client_name,client_mac,service_name)
-  configure_vs_dhcp_client(client_name,client_mac,client_ip,client_arch,service_name)
+  configure_vs_pxe_client(install_client,install_mac,install_service)
+  configure_vs_dhcp_client(install_client,install_mac,install_ip,install_arch,install_service)
   return
 end
 

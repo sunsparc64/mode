@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.3.7
+# Version:      2.3.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -321,7 +321,7 @@ def check_local_config(install_mode)
   if !$default_host.match(/[0-9]/)
     message = "Determining:\tDefault host IP"
     if $os_name.match(/SunOS/)
-      command = "ipadm show-addr #{$default_net} |grep net |head -1 |awk '{print $4}' |cut -f1 -d'/'"
+      command = "ipadm show-addr #{$default_net} |grep net |head -1 |awk \"{print $4}\" |cut -f1 -d\"/\""
     end
     if $os_name.match(/Darwin/)
       $default_net="en0"
@@ -614,7 +614,7 @@ end
 
 if option["ip"]
   install_ip = option["ip"]
-  check_client_ip(install_ip)
+  check_install_ip(install_ip)
   if $verbose_mode == 1
      puts "Information:\tSetting client IP address is "+install_ip
   end
@@ -684,7 +684,7 @@ end
 
 if option["mac"]
   install_mac = option["mac"]
-  check_mac(install_mac)
+  check_install_mac(install_mac)
   if $verbose_mode == 1
      puts "Information:\tSetting client MAC address to: "+install_mac
   end
@@ -1057,7 +1057,7 @@ if !option["method"] and !option["action"].match(/delete|running|boot|stop/)
     install_method = "pe"
   else
     if !option["action"].match(/list|info|check/)
-      if !option["action"].match(/add/) and !option["vm"].match(/[A-z]/)
+      if !option["action"].match(/add|create/) and !option["vm"]
         print_valid_list("Warning:\tInvalid OS specified",$valid_os_list)
       end
     end
@@ -1095,6 +1095,14 @@ end
 if option["action"]
   install_action = option["action"].downcase
   case install_action
+  when /display|view|show/
+    if install_client.match(/[a-z]/)
+      if install_vm.match(/[a-z]/)
+        eval"[show_#{install_vm}_vm_config(install_client)]"
+      end
+    else
+      puts "Warning:\tClient name not specified"
+    end
   when /help/
     print_usage()
   when /version/
@@ -1179,13 +1187,18 @@ if option["action"]
       if install_client.match(/[A-z]|[0-9]/)
         if install_service.match(/[A-z]|[0-9]/)
           check_dhcpd_config(publisher_host)
-          eval"[configure_#{funct}_client(install_client,install_arch,client_mac,install_ip,client_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network)]"
+          if !install_method.match(/[a-z]/)
+            install_method = get_install_method(install_service)
+          end
+          check_install_ip(install_ip)
+          check_install_mac(install_mac)
+          eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network)]"
         else
           if install_vm.match(/fusion|vbox|parallels/)
             create_vm(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
           end
           if install_vm.match(/zone|lxc|gdom/)
-            eval"[configure_#{install_vm}(install_client,install_ip,client_mac,install_arch,client_os,client_rel,publisher_host,install_file,install_service)]"
+            eval"[configure_#{install_vm}(install_client,install_ip,install_mac,install_arch,install_os,install_rel,publisher_host,install_file,install_service)]"
           end
           if install_vm.match(/cdom/)
             configure_cdom(publisher_host)
@@ -1206,6 +1219,7 @@ if option["action"]
       end
     end
   when /^boot$|^stop$|^halt$|^suspend$|^resume$|^start$/
+    install_action = install_action.gsub(/start/,"boot")
     if install_vm.match(/parallels/)
       install_action = install_action.gsub(/start/,"boot")
       install_action = install_action.gsub(/halt/,"stop")
@@ -1219,8 +1233,17 @@ if option["action"]
     if install_service.match(/[A-z]/)
       eval"[restart_#{install_service}()]"
     else
-      puts "Warning:\tService not specified"
-      exit
+      if install_vm.match(/[a-z]/)
+        if install_client.match(/[A-z]/)
+          eval"[stop_#{install_vm}_vm(install_client)]"
+          eval"[boot_#{install_vm}_vm(install_client)]"
+        else
+          puts "Warning:\tClient name not specified"
+        end
+      else
+        puts "Warning:\tService not specified"
+        exit
+      end
     end
   when /import/
     if install_vm.match(/fusion|vbox/)

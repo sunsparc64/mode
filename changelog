@@ -473,3 +473,5 @@
 # Improved service list code
 # 2.3.7: Sun  3 May 2015 13:10:07 AEST
 # Improved service deletion code
+# 2.3.8: Mon  4 May 2015 12:50:30 AEST
+# Added code to restart VM and code cleanups

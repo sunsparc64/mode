@@ -1,30 +1,38 @@
 
 # Code common to all services
 
-# Unconfigure a server
+# Get install method from service
 
-def unconfigure_server(install_service)
+def get_install_method(install_service)
   service_dir = $repo_base_dir+"/"+install_service
   if File.directory?(service_dir) or File.symlink?(service_dir)
     if $verbose_mode == 1
       puts "Information:\tFound directory "+service_dir
       puts "Information:\tDetermining service type"
     end
-    test_file = service_dir+"/vmware-esx-base-osl.txt"
-    if File.exist?(test_file)
-      install_method = "vs"
-    end
-    test_file = service_dir+"/repodata"
-    if File.exist?(test_file)
-      install_method = "ks"
-    end
-    if install_method
-      eval"[unconfigure_#{install_method}_server(install_service)]"
-    else
-      puts "Warning:\tCould not determine service type for "+install_service
-    end
   else
     puts "Warning:\tService "+install_service+" does not exist"
+  end
+  install_method = ""
+  test_file = service_dir+"/vmware-esx-base-osl.txt"
+  if File.exist?(test_file)
+    install_method = "vs"
+  end
+  test_file = service_dir+"/repodata"
+  if File.exist?(test_file)
+    install_method = "ks"
+  end
+  return install_method
+end
+
+# Unconfigure a server
+
+def unconfigure_server(install_service)
+  install_method = get_install_method(install_service)
+  if install_method.match(/[a-z]/)
+    eval"[unconfigure_#{install_method}_server(install_service)]"
+  else
+    puts "Warning:\tCould not determine service type for "+install_service
   end
   return
 end
@@ -1336,41 +1344,41 @@ end
 
 # Check client MAC
 
-def check_mac(install_mac)
+def check_install_mac(install_mac)
   if !install_mac.match(/:/)
     if install_mac.length != 12
-      puts "Invalid MAC address"
+      puts "Warning:\tInvalid MAC address"
       exit
     else
-      chars      = install_mac.split(//)
+      chars       = install_mac.split(//)
       install_mac = chars[0..1].join+":"+chars[2..3].join+":"+chars[4..5].join+":"+chars[6..7].join+":"+chars[8..9].join+":"+chars[10..11].join
     end
   end
   macs = install_mac.split(":")
   if macs.length != 6
-    puts "Invalid MAC address"
+    puts "Warning:\tInvalid MAC address"
     exit
   end
   macs.each do |mac|
     if mac =~ /[G-Z]|[g-z]/ or mac.length != 2
-      puts "Invalid MAC address"
+      puts "Warning:\tInvalid MAC address"
       exit
     end
   end
   return install_mac
 end
 
-# Check client IP
+# Check install IP
 
-def check_client_ip(client_ip)
-  ips = client_ip.split(".")
+def check_install_ip(install_ip)
+  ips = install_ip.split(".")
   if ips.length != 4
-    puts "Invalid IP address"
+    puts "Warning:\tInvalid IP address"
     exit
   end
   ips.each do |ip|
     if ip =~ /[A-z]/ or ip.length > 3 or ip.to_i > 254
-      puts "Invalid IP address"
+      puts "Warning:\tInvalid IP address"
       exit
     end
   end
