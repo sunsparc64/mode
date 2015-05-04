@@ -477,3 +477,5 @@
 # Added code to restart VM and code cleanups
 # 2.3.9: Tue  5 May 2015 05:24:54 AEST
 # Added support for vSphere 6 and cleaned up some of the client code
+# 2.4.0: Tue  5 May 2015 06:15:09 AEST
+# Added support for license key in post install for vSphere

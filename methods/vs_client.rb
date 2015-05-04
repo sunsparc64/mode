@@ -193,7 +193,7 @@ def configure_vs_client(install_client,install_arch,install_mac,install_ip,insta
   post_list = populate_vs_firstboot_list(install_service)
   output_vs_post_list(post_list,output_file)
   # Output post list
-  post_list = populate_vs_post_list(install_service)
+  post_list = populate_vs_post_list(install_service,install_license)
   output_vs_post_list(post_list,output_file)
   if output_file
     FileUtils.chmod(0755,output_file)
@@ -213,7 +213,7 @@ end
 
 # Populate firstboot commands
 
-def populate_vs_firstboot_list(service_name)
+def populate_vs_firstboot_list(service_name,install_license)
   post_list   = []
   post_list.push("%firstboot --interpreter=busybox")
   post_list.push("")
@@ -234,6 +234,11 @@ def populate_vs_firstboot_list(service_name)
   post_list.push("# rename local datastore to something more meaningful")
   post_list.push("vim-cmd hostsvc/datastore/rename datastore1 \"$(hostname -s)-local-storage-1\"")
   post_list.push("")
+  if install_license.match(/[A-z]/)
+    post_list.push("# assign license")
+    post_list.push("vim-cmd vimsvc/license --set #{install_license}")
+    post_list.push("")
+  end
   post_list.push("# enable management interface")
   post_list.push("cat > /tmp/enableVmkInterface.py << __ENABLE_MGMT_INT__")
   post_list.push("import sys,re,os,urllib,urllib2")
