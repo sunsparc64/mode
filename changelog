@@ -481,3 +481,5 @@
 # Added support for license key in post install for vSphere
 # 2.4.1: Tue  5 May 2015 13:36:51 AEST
 # Cleaned up client creation code
+# 2.4.1: Tue  5 May 2015 22:46:17 AEST
+# Added check to make sure syslinux/pxelinux files are copied to tftpboot directory if not present when creating client

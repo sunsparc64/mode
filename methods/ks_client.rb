@@ -168,6 +168,14 @@ end
 # Configure Kickstart client
 
 def configure_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license)
+  if !install_arch.match(/[a-z]/)
+    if install_service.match(/i386/)
+      install_arch = "i386"
+    else
+      install_arch = "x86_64"
+    end
+  end
+  configure_ks_pxe_boot(install_service,install_arch)
   repo_version_dir = $repo_base_dir+"/"+install_service
   add_apache_alias($client_base_dir)
   client_dir = $client_base_dir+"/"+install_service+"/"+install_client
