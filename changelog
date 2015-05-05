@@ -479,3 +479,5 @@
 # Added support for vSphere 6 and cleaned up some of the client code
 # 2.4.0: Tue  5 May 2015 06:15:09 AEST
 # Added support for license key in post install for vSphere
+# 2.4.1: Tue  5 May 2015 13:36:51 AEST
+# Cleaned up client creation code

@@ -843,7 +843,7 @@ end
 
 # Configure a VMware Fusion VM
 
-def configure_fusion_vm(install_client,install_mac,install_os,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+def configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   check_fusion_is_installed()
   (fusion_vm_dir,fusion_vmx_file,fusion_disk_file) = check_fusion_vm_doesnt_exist(install_client)
   check_dir_exists(fusion_vm_dir)

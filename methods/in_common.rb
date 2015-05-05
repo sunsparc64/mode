@@ -1018,6 +1018,12 @@ def check_zfs_fs_exists(dir_name)
   output = ""
   if !File.directory?(dir_name)
     if $os_name.match(/SunOS/)
+      if dir_name.match(/clients/)
+        root_dir = dir_name.split(/\//)[0..-2].join("/")
+        if !File.directory?(root_dir)
+          check_zfs_fs_exists(root_dir)
+        end
+      end
       if dir_name.match(/ldoms|zones/)
         zfs_name = $default_dpool+dir_name
       else

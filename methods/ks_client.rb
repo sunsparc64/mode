@@ -179,7 +179,7 @@ def configure_ks_client(install_client,install_arch,install_mac,install_ip,insta
     exit
   end
   check_dir_exists(client_dir)
-  if service_name.match(/sles/)
+  if install_service.match(/sles/)
     output_file = client_dir+"/"+install_client+".xml"
   else
     output_file = client_dir+"/"+install_client+".cfg"
@@ -314,13 +314,17 @@ def populate_ks_post_list(client_arch,service_name,publisher_host)
   end
   rpm_list  = populate_puppet_rpm_list(service_name,client_arch)
   rpm_file  = rpm_list.grep(/facter/)[0]
-  rpm_file  = rpm_file.split(/\//)[1..-1].join("/")
-  local_url = "http://"+publisher_host+"/puppet/"+rpm_file
-  post_list.push("rpm -i #{local_url}")
+  if rpm_file
+    rpm_file  = rpm_file.split(/\//)[1..-1].join("/")
+    local_url = "http://"+publisher_host+"/puppet/"+rpm_file
+    post_list.push("rpm -i #{local_url}")
+  end
   rpm_file  = rpm_list.grep(/hiera/)[0]
-  rpm_file  = rpm_file.split(/\//)[1..-1].join("/")
-  local_url = "http://"+publisher_host+"/puppet/"+rpm_file
-  post_list.push("rpm -i #{local_url}")
+  if rpm_file
+    rpm_file  = rpm_file.split(/\//)[1..-1].join("/")
+    local_url = "http://"+publisher_host+"/puppet/"+rpm_file
+    post_list.push("rpm -i #{local_url}")
+  end
   rpm_list.each do |rpm_file|
     if !rpm_file.match(/facter|hiera/)
       rpm_file  = rpm_file.split(/\//)[1..-1].join("/")

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.4.0
+# Version:      2.4.1
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -159,6 +159,7 @@ $puppet_rpm_base_url    = "http://yum.puppetlabs.com"
 $centos_rpm_base_url    = "http://"+$local_centos_mirror+"/centos"
 $default_vm_utc         = "off"
 $valid_os_list          = [ 'sol', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL' ]
+$valid_linux_os_list    = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL' ]
 $valid_arch_list        = [ 'x86_64', 'i386', 'sparc' ]
 $valid_console_list     = [ 'text', 'console', 'x11', 'headless' ]
 $valid_method_list      = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay' ]
@@ -962,6 +963,18 @@ else
   $use_alt_repo  = 0
 end
 
+if option["os"]
+  if option["os"].match(/^Linux|^linux/)
+    print_valid_list("Warning:\tInvalid OS specified",$valid_linux_os_list)
+    exit
+  else
+    case install_os
+    when /kickstart|redhat|rhel|fedora|sl|scientific|ks|centos/
+      option["method"] = "ks"
+    end
+  end
+end
+
 # Handle install method switch
 
 if option["method"]
@@ -970,7 +983,7 @@ if option["method"]
     when /autoinstall|ai/
     info_examples  = "ai"
     install_method = "ai"
-  when /kickstart|redhat|rhel|fedora|sl|scientific|ks/
+  when /kickstart|redhat|rhel|fedora|sl|scientific|ks|centos/
     info_examples  = "ks"
     install_method = "ks"
   when /jumpstart|js/
