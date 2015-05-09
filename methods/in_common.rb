@@ -1,9 +1,51 @@
 
 # Code common to all services
 
+def get_client_config(install_client,install_service,install_method,install_config)
+  if !install_service.match(/[a-z]/)
+    install_service = get_install_service(install_client)
+  end
+  if !install_method.match(/[a-z]/)
+    install_method  = get_install_method(install_client,install_service)
+  end
+  client_dir      = get_client_dir(install_client)
+  config_file     = ""
+  config_prefix   = client_dir+"/"+install_client
+  case install_config
+  when /config|cfg|ks|Kickstart/
+    config_file = config_prefix+".cfg"
+  when /post/
+    case method
+    when /ps/
+      config_file = config_prefix+"_post.sh"
+    end
+  when /first/
+    case method
+    when /ps/
+      config_file = config_prefix+"_first_boot.sh"
+    end
+  end
+  if File.exist?(config_file)
+    file_data = %x[cat #{config_file}]
+    puts file_data
+  end
+  return
+end
+
+# Get client install service for a client
+
+def get_install_service(install_client)
+  client_dir      = get_client_dir(install_client)
+  install_service = client_dir.split(/\//)[-2]
+  return install_service
+end
+
 # Get install method from service
 
-def get_install_method(install_service)
+def get_install_method(install_client,install_service)
+  if !install_service.match(/[a-z]/)
+    get_install_service(install_client)
+  end
   service_dir = $repo_base_dir+"/"+install_service
   if File.directory?(service_dir) or File.symlink?(service_dir)
     if $verbose_mode == 1
@@ -17,10 +59,16 @@ def get_install_method(install_service)
   test_file = service_dir+"/vmware-esx-base-osl.txt"
   if File.exist?(test_file)
     install_method = "vs"
-  end
-  test_file = service_dir+"/repodata"
-  if File.exist?(test_file)
-    install_method = "ks"
+  else
+    test_file = service_dir+"/repodata"
+    if File.exist?(test_file)
+      install_method = "ks"
+    else
+      test_dir = service_dir+"/preseed"
+      if File.directory?(test_dir)
+        install_method = "ps"
+      end
+    end
   end
   return install_method
 end
@@ -267,6 +315,43 @@ def configure_vmware_vcenter_defaults()
   $default_vm_vcpu     = "2"
   $client_os           = "ESXi"
   $vbox_disk_type      = "ide"
+  return
+end
+
+# Get client directory
+
+def get_client_dir(install_client)
+  message    = "Information:\tFinding client configuration directory for #{install_client}"
+  command    = "find #{$client_base_dir} -name #{install_client} |grep '#{install_client}$'"
+  client_dir = execute_command(message,command).chomp
+  if $verbose_mode == 1
+    if File.directory?(client_dir)
+      puts "Information:\tNo client directory found for "+install_client
+    else
+      puts "Information:\tClient directory found "+client_dir
+    end
+  end
+  return client_dir
+end
+
+# Delete client directory
+
+def delete_client_dir(install_client)
+  client_dir = get_client_dir(install_client)
+  if File.directory?(client_dir)
+    if client_dir.match(/[a-z]/)
+      if $os_name.match(/SunOS/)
+        destroy_zfs_fs(client_dir)
+      else
+        message = "Information:\tRemoving client configuration files for #{install_client}"
+        command = "rm #{client_dir}/*"
+        execute_command(message,command)
+        message = "Information:\tRemoving client configuration directory #{client_dir}"
+        command = "rmdir #{client_dir}"
+        execute_command(message,command)
+      end
+    end
+  end
   return
 end
 

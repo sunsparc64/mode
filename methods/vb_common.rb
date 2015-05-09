@@ -355,14 +355,13 @@ def get_bridged_vbox_nic()
   message  = "Checking:\tBridged interfaces"
   command  = "VBoxManage list bridgedifs"
   nic_list = execute_command(message,command)
-  nic_name = ""
   if !nic_list.match(/[A-z]/)
     nic_name = $default_net
   else
     nic_list=nic_list.split(/\n/)
     nic_list.each do |line|
       line=line.chomp
-      if line.match(/#{$default_host}/)
+      if line.match(/#{$default_host_only_ip}/)
         return nic_name
       end
       if line.match(/^Name/)
@@ -626,9 +625,10 @@ end
 # Configure a Preseed Ubuntu VirtualBox VM
 
 def configure_ps_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = "Ubuntu"
-  if install_arch.match(/x86_64/)
-    install_os = install_os+"_64"
+  if install_arch.match(/i386/)
+    install_os = "Ubuntu"
+  else
+    install_os = "Ubuntu_64"
   end
   configure_vbox_vm(install_client,install_mac,install_os,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
@@ -637,9 +637,10 @@ end
 # Configure a AutoYast SuSE VirtualBox VM
 
 def configure_ay_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = "OpenSUSE"
-  if install_arch.match(/x86_64/)
-    install_os = install_os+"_64"
+  if install_arch.match(/i386/)
+    install_os = "OpenSUSE"
+  else
+    install_os = "OpenSUSE_64"
   end
   configure_vbox_vm(install_client,install_mac,install_os,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
@@ -656,9 +657,10 @@ end
 # Configure a NetBSD VM
 
 def configure_nb_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = "NetBSD"
-  if install_arch.match(/x86_64/)
-    install_os = install_os+"_64"
+  if install_arch.match(/i386/)
+    install_os = "NetBSD"
+  else
+    install_os = "NetBSD_64"
   end
   configure_vbox_vm(install_client,install_mac,install_os,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
@@ -721,7 +723,6 @@ end
 # Boot VirtualBox VM
 
 def boot_vbox_vm(install_client)
-  check_vbox_hostonly_network()
   exists = check_vbox_vm_exists(install_client)
   if exists == "no"
     puts "VirtualBox VM "+install_client+" does not exist"
@@ -831,7 +832,8 @@ end
 def configure_vbox_vm(install_client,install_mac,install_os,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   check_vbox_is_installed()
   if $default_vm_network.match(/hostonly/)
-    vbox_nic_name = check_vbox_hostonly_network()
+    if_name       = get_bridged_vbox_nic()
+    vbox_nic_name = check_vbox_hostonly_network(if_name)
   end
   vbox_vm_dir      = get_vbox_vm_dir(install_client)
   vbox_disk_name   = vbox_vm_dir+"/"+install_client+".vdi"

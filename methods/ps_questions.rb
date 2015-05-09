@@ -1,7 +1,7 @@
 
 # Preseed configuration questions for Ubuntu
 
-def populate_ps_questions(service_name,client_name,client_ip)
+def populate_ps_questions(install_service,install_client,install_ip,install_mirror)
   $q_struct = {}
   $q_order  = []
 
@@ -128,7 +128,7 @@ def populate_ps_questions(service_name,client_name,client_ip)
     question  = "IP address",
     ask       = "yes",
     parameter = "netcfg/get_ipaddress",
-    value     = client_ip,
+    value     = install_ip,
     valid     = "",
     eval      = "no"
     )
@@ -148,7 +148,7 @@ def populate_ps_questions(service_name,client_name,client_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  gateway = client_ip.split(/\./)[0..2].join(".")+".254"
+  gateway = install_ip.split(/\./)[0..2].join(".")+".254"
 
   name = "gateway"
   config = Ks.new(
@@ -163,7 +163,7 @@ def populate_ps_questions(service_name,client_name,client_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  broadcast = client_ip.split(/\./)[0..2].join(".")+".255"
+  broadcast = install_ip.split(/\./)[0..2].join(".")+".255"
 
   name = "broadcast"
   config = Ks.new(
@@ -178,7 +178,7 @@ def populate_ps_questions(service_name,client_name,client_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  network_address = client_ip.split(/\./)[0..2].join(".")+".0"
+  network_address = install_ip.split(/\./)[0..2].join(".")+".0"
 
   name = "network_address"
   config = Ks.new(
@@ -212,7 +212,7 @@ def populate_ps_questions(service_name,client_name,client_ip)
     question  = "Hostname",
     ask       = "yes",
     parameter = "netcfg/get_hostname",
-    value     = client_name,
+    value     = install_client,
     valid     = "",
     eval      = "no"
     )
@@ -303,57 +303,116 @@ def populate_ps_questions(service_name,client_name,client_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  name = "mirror_country"
-  config = Ks.new(
-    type      = "string",
-    question  = "Mirror country",
-    ask       = "yes",
-    parameter = "mirror/country",
-    value     = "manual",
-    valid     = "",
-    eval      = "no"
-    )
-  $q_struct[name] = config
-  $q_order.push(name)
+  if !install_mirror.match(/[a-z]/) or !install_mirror.match(/none/)
 
-  name = "mirror_hostname"
-  config = Ks.new(
-    type      = "string",
-    question  = "Mirror hostname",
-    ask       = "yes",
-    parameter = "mirror/http/hostname",
-    value     = $local_ubuntu_mirror,
-    valid     = "",
-    eval      = "no"
-    )
-  $q_struct[name] = config
-  $q_order.push(name)
+    name = "mirror_country"
+    config = Ks.new(
+      type      = "string",
+      question  = "Mirror country",
+      ask       = "no",
+      parameter = "mirror/country",
+      value     = "manual",
+      valid     = "",
+      eval      = "no"
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
 
-  name = "mirror_directory"
-  config = Ks.new(
-    type      = "string",
-    question  = "Mirror directory",
-    ask       = "yes",
-    parameter = "mirror/http/directory",
-    value     = "/ubuntu",
-    valid     = "",
-    eval      = "no"
-    )
-  $q_struct[name] = config
-  $q_order.push(name)
+    name = "mirror_hostname"
+    config = Ks.new(
+      type      = "string",
+      question  = "Mirror hostname",
+      ask       = "no",
+      parameter = "mirror/http/hostname",
+      value     = $default_host,
+      valid     = "",
+      eval      = "no"
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
+  
+    name = "mirror_directory"
+    config = Ks.new(
+      type      = "string",
+      question  = "Mirror directory",
+      ask       = "no",
+      parameter = "mirror/http/directory",
+      value     = "/"+install_service,
+      valid     = "",
+      eval      = "no"
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
+  
+    name = "mirror_proxy"
+    config = Ks.new(
+      type      = "string",
+      question  = "Mirror country",
+      ask       = "no",
+      parameter = "mirror/http/proxy",
+      value     = "",
+      valid     = "",
+      eval      = "no"
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
 
-  name = "mirror_proxy"
-  config = Ks.new(
-    type      = "string",
-    question  = "Mirror country",
-    ask       = "yes",
-    parameter = "mirror/http/proxy",
-    value     = "",
-    valid     = "",
-    eval      = "no"
-    )
-  $q_struct[name] = config
-  $q_order.push(name)
+
+  else
+
+    name = "mirror_country"
+    config = Ks.new(
+      type      = "string",
+      question  = "Mirror country",
+      ask       = "yes",
+      parameter = "mirror/country",
+      value     = "manual",
+      valid     = "",
+      eval      = "no"
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
+
+    name = "mirror_hostname"
+    config = Ks.new(
+      type      = "string",
+      question  = "Mirror hostname",
+      ask       = "yes",
+      parameter = "mirror/http/hostname",
+      value     = $local_ubuntu_mirror,
+      valid     = "",
+      eval      = "no"
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
+  
+    name = "mirror_directory"
+    config = Ks.new(
+      type      = "string",
+      question  = "Mirror directory",
+      ask       = "yes",
+      parameter = "mirror/http/directory",
+      value     = "/ubuntu",
+      valid     = "",
+      eval      = "no"
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
+  
+    name = "mirror_proxy"
+    config = Ks.new(
+      type      = "string",
+      question  = "Mirror country",
+      ask       = "yes",
+      parameter = "mirror/http/proxy",
+      value     = "",
+      valid     = "",
+      eval      = "no"
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
+
+  end
 
   name = "partition_method"
   config = Ks.new(
@@ -647,7 +706,7 @@ def populate_ps_questions(service_name,client_name,client_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  script_url = "http://"+$default_host+"/clients/"+service_name+"/"+client_name+"/"+client_name+"_post.sh"
+  script_url = "http://"+$default_host+"/clients/"+install_service+"/"+install_client+"/"+install_client+"_post.sh"
 
   name = "late_command"
   config = Ks.new(

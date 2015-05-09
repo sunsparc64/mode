@@ -46,11 +46,13 @@ def configure_ks_pxe_client(client_name,client_ip,client_mac,client_arch,service
     else
       initrd_file  = "/"+service_name+"/images/pxeboot/netboot/ubuntu-installer/i386/initrd.gz"
     end
-    if service_name.match(/14_10/)
+    if service_name.match(/14_10|15/)
       ldlinux_link = $tftp_dir+"/ldlinux.c32"
-      if !File.exist(ldlinux_link) and !File.symlink(ldlinux_link)
+      if !File.exist?(ldlinux_link) and !File.symlink?(ldlinux_link)
         ldlinux_file = "/"+service_name+"/images/pxeboot/netboot/ldlinux.c32"
-        File.symlink(ldlinux_file,ldlinux_link)
+        message = "Creating:\tSymlink for ldlinux.c32"
+        command = "ln -s #{ldlinux_file} #{ldlinux_link}"
+        execute_command(message,command)
       end
     end
   else
@@ -167,7 +169,7 @@ end
 
 # Configure Kickstart client
 
-def configure_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license)
+def configure_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror)
   if !install_arch.match(/[a-z]/)
     if install_service.match(/i386/)
       install_arch = "i386"
@@ -207,8 +209,8 @@ def configure_ks_client(install_client,install_arch,install_mac,install_ip,insta
       process_questions(install_service)
       output_ay_client_profile(install_client,install_ip,install_mac,output_file,install_service)
     else
-      if install_service.match(/ubuntu/)
-        populate_ps_questions(install_service,install_client,install_ip)
+      if install_service.match(/ubuntu|debian/)
+        populate_ps_questions(install_service,install_client,install_ip,install_mirror)
         process_questions(install_service)
         output_ps_header(install_client,output_file)
         output_file = client_dir+"/"+install_client+"_post.sh"

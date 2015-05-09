@@ -492,7 +492,7 @@ end
 
 def boot_fusion_vm(install_client)
   vm_list = get_available_fusion_vms()
-  if vm_list.to_s.match(/#{install_client}/)
+  if vm_list.to_s.match(/#{install_client}\.vmx/)
     fusion_vm_dir    = $fusion_dir+"/"+install_client+".vmwarevm"
     fusion_vmx_file  = fusion_vm_dir+"/"+install_client+".vmx"
     message          = "Starting:\tVM "+install_client
@@ -517,9 +517,7 @@ def boot_fusion_vm(install_client)
       end
     end
   else
-    if $verbose_mode == 1
-      puts "Warning:\tVMware Fusion VM "+install_client+" does not exist"
-    end
+    puts "Warning:\tVMware Fusion VM "+install_client+" does not exist"
   end
   return
 end
@@ -680,7 +678,7 @@ end
 
 def configure_ai_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   install_os="solaris11-64"
-  configure_fusion_vm(install_client,install_mac,install_os,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
 
@@ -688,7 +686,7 @@ end
 
 def configure_js_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   install_os = "solaris10-64"
-  configure_fusion_vm(install_client,install_mac,install_os,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
 
@@ -699,7 +697,7 @@ def configure_ay_fusion_vm(install_client,install_mac,install_arch,install_os,in
   if !install_arch.match(/i386/) and !install_arch.match(/64/)
     install_os = install_os+"-64"
   end
-  configure_fusion_vm(install_client,install_mac,install_os,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
 
@@ -710,7 +708,7 @@ def configure_nb_fusion_vm(install_client,install_mac,install_arch,install_os,in
   if !install_arch.match(/i386/) and !install_arch.match(/64/)
     install_os = install_os+"-64"
   end
-  configure_fusion_vm(install_client,install_mac,install_os,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
 
@@ -718,7 +716,7 @@ end
 
 def configure_ob_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   install_os = "otherlinux-64"
-  configure_fusion_vm(install_client,install_mac,install_os,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
 
@@ -729,7 +727,7 @@ def configure_ps_fusion_vm(install_client,install_mac,install_arch,install_os,in
   if !install_arch.match(/i386/) and !install_arch.match(/64/)
     install_os = install_os+"-64"
   end
-  configure_fusion_vm(install_client,install_mac,install_os,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
 
@@ -737,7 +735,7 @@ end
 
 def configure_pe_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   install_os = "windows7srv-64"
-  configure_fusion_vm(install_client,install_mac,install_os,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
 
@@ -772,7 +770,7 @@ end
 
 def configure_vs_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   install_os = "vmkernel5"
-  configure_fusion_vm(install_client,install_mac,install_os,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
 

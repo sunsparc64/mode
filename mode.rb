@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.4.2
+# Version:      2.4.4
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -127,7 +127,7 @@ $backup_dir             = ""
 $rpm2cpio_url           = "http://svnweb.freebsd.org/ports/head/archivers/rpm2cpio/files/rpm2cpio?revision=259745&view=co"
 $rpm2cpio_bin           = ""
 $vbox_disk_type         = "sas"
-$default_vm_size        = "12G"
+$default_vm_size        = "20G"
 $default_vm_mem         = "1024"
 $default_vm_vcpu        = "1"
 $serial_mode            = 0
@@ -165,7 +165,7 @@ $valid_console_list     = [ 'text', 'console', 'x11', 'headless' ]
 $valid_method_list      = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay' ]
 $valid_type_list        = [ 'iso', 'flar', 'ova', 'snapshot', 'service' ]
 $valid_mode_list        = [ 'client', 'server', 'osx' ]
-$valid_vm_list          = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdrom', 'gdom', 'parallels' ]
+$valid_vm_list          = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'gdom', 'parallels' ]
 
 # Declare some package versions
 
@@ -178,6 +178,30 @@ $puppet_version = "3.4.2"
 $os_name = %x[uname]
 $os_arch = %x[uname -p]
 $os_info = %x[uname -a]
+
+if $os_arch.match(/sparc/)
+  if $os_test = %x[uname -r].split(/\./)[1].to_i > 9
+    $valid_vm_list = [ 'zone', 'cdom', 'gdom' ]
+  end
+else
+  case $os_info
+  when /SunOS/
+    $valid_vm_list = [ 'vbox', 'zone' ]
+    platform = %[prtdiag |grep VMware]
+    case platform
+    when /VMware/
+      $default_gateway_ip  = "130.194.2.254"
+      $default_hostonly_ip = "130.194.2.254"
+    when /VirtualBox/
+      $default_gateway_ip  = "130.194.3.254"
+      $default_hostonly_ip = "130.194.3.254"
+    end
+  when /Linux/
+    $valid_vm_list = [ 'vbox', 'lxc' ]
+  when /Darwin/
+    $valid_vm_list = [ 'vbox', 'fusion', 'parallels' ]
+  end
+end
 
 # Calculate CIDR
 
@@ -326,7 +350,7 @@ def check_local_config(install_mode)
     end
     if $os_name.match(/Darwin/)
       $default_net="en0"
-      command = "ifconfig #{$default_net} |grep 'inet ' |awk '{print $2}'"
+      command = "ifconfig #{$default_net} |grep 'inet ' |grep -v inet6 |awk '{print $2}'"
     end
     if $os_name.match(/Linux/)
       $default_net="eth0"
@@ -465,7 +489,7 @@ begin
     [ "--arch",       "-A", Getopt::REQUIRED ], # Architecture of client or VM (e.g. x86_64)
     [ "--action",     "-a", Getopt::REQUIRED ], # Action (e.g. boot, stop, create, delete, list, etc)
     [ "--client",     "-c", Getopt::REQUIRED ], # Client name
-    [ "--clone",      "-c", Getopt::REQUIRED ], # Clone name
+    [ "--clone",      "-f", Getopt::REQUIRED ], # Clone name
     [ "--console",    "-X", Getopt::REQUIRED ], # Select console type (e.g. text, serial, x11) (default is text)
     [ "--delete",     "-d", Getopt::BOOLEAN ],  # Delete client or VM
     [ "--copykeys",   "-s", Getopt::BOOLEAN ],  # Copy SSH Keys
@@ -495,7 +519,9 @@ begin
     [ "--vm",         "-E", Getopt::REQUIRED ], # VM type
     [ "--share",      "-S", Getopt::REQUIRED ], # Shared folder
     [ "--mount",      "-M", Getopt::REQUIRED ], # Mount point
+    [ "--mirror",     "-R", Getopt::REQUIRED ], # Mirror / Repo
     [ "--publisher",  "-P", Getopt::REQUIRED ], # Set publisher information (Solaris AI)
+    [ "--config",     "-i", Getopt::REQUIRED ], # Install config (e.g. kickstart, or preseed file) - Used with show, etc
     [ "--verbose",    "-v", Getopt::BOOLEAN ],  # Verbose mode
     [ "--test",       "-w", Getopt::BOOLEAN ]   # Test mode
   )
@@ -525,6 +551,14 @@ if option["action"] == "list"
     puts "No type or service given"
     exit
   end
+end
+
+# Handle mirror switch
+
+if option["mirror"]
+  install_mirror = option["mirror"]
+else
+  install_mirror = ""
 end
 
 # Handle verbose switch
@@ -601,9 +635,9 @@ if option["yes"]
   $use_defaults = 1
   $destroy_fs   = "y"
   if $verbose_mode == 1
-    puts "Answering yes to all questions (accepting defaults)"
+    puts "Information:\tAnswering yes to all questions (accepting defaults)"
     if $os_name =~ /SunOS/
-      puts "ZFS filesystem for a service will be destroyed when a service is removed"
+      puts "Information:\tZFS filesystem for a service will be destroyed when a service is removed"
     end
   end
 end
@@ -848,13 +882,15 @@ if option["vm"]
     install_vm   = "vbox"
     $use_sudo    = 0
     install_size = install_size.gsub(/G/,"000")
-    $default_hostonly_ip = "192.168.2.254"
+    $default_hostonly_ip = "192.168.3.254"
+    $default_gateway_ip  = "192.168.3.254"
   when /vmware|fusion/
     check_local_config("client")
     check_promisc_mode()
     $use_sudo  = 0
     install_vm = "fusion"
-    $default_hostonly_ip = "192.168.2.1"
+    $default_hostonly_ip = "192.168.2.254"
+    $default_gateway_ip  = "192.168.2.254"
     # Set vmrun bin
     set_vmrun_bin()
   when /zone|container|lxc/
@@ -971,6 +1007,16 @@ if option["os"]
     case install_os
     when /kickstart|redhat|rhel|fedora|sl|scientific|ks|centos/
       option["method"] = "ks"
+    when /ubuntu|debian/
+      option["method"] = "ps"
+    when /suse|sles/
+      option["method"] = "ay"
+    when /sol/
+      if option["release"].to_i < 11 
+        option["method"] = "js"
+      else
+        option["method"] = "ai"
+      end
     end
   end
 end
@@ -1129,6 +1175,14 @@ else
   $do_ssh_keys = 0
 end
 
+# If given --config
+
+if option["config"]
+  install_config = option["config"]
+else
+  install_config = ""
+end
+
 # Handle action switch
 
 if option["action"]
@@ -1136,8 +1190,12 @@ if option["action"]
   case install_action
   when /display|view|show/
     if install_client.match(/[a-z]/)
-      if install_vm.match(/[a-z]/)
-        eval"[show_#{install_vm}_vm_config(install_client)]"
+      if install_config.match(/[a-z]/)
+        get_client_config(install_client,install_service,install_method,install_config)
+      else
+        if install_vm.match(/[a-z]/)
+          eval"[show_#{install_vm}_vm_config(install_client)]"
+        end
       end
     else
       puts "Warning:\tClient name not specified"
@@ -1183,27 +1241,29 @@ if option["action"]
     end
   when /delete|remove/
     if install_client.match(/[A-z]|[0-9]/)
-      if install_service.match(/[A-z]|[0-9]/)
-      else
-        if !install_vm.match(/[A-z]/) and !install_type.match(/[A-z]/) and !install_service.match(/[A-z]/)
-          puts "Warning:\tNo VM, client or service specified"
-          exit
-        end
-        if install_vm.match(/fusion|vbox|parallels/)
-          if install_type.match(/snapshot/)
-            if install_client.match(/[A-z]/) and install_clone.match(/[A-z]|\*/)
-              delete_vm_snapshot(install_vm,install_client,install_clone)
-            else
-              puts "Warning:\tClient name or clone not specified"
-              exit
-            end
+      if !install_vm.match(/[A-z]/) and !install_type.match(/[A-z]/) and !install_service.match(/[A-z]/)
+        puts "Warning:\tNo VM, client or service specified"
+        puts
+        puts "Available services"
+        list_all_services()
+        exit
+      end
+      if install_vm.match(/fusion|vbox|parallels/)
+        if install_type.match(/snapshot/)
+          if install_client.match(/[A-z]/) and install_clone.match(/[A-z]|\*/)
+            delete_vm_snapshot(install_vm,install_client,install_clone)
           else
-            delete_vm(install_vm,install_client)
+            puts "Warning:\tClient name or clone not specified"
+            exit
           end
+        else
+          delete_vm(install_vm,install_client)
         end
-        if install_mode.match(/server/)
-          remove_hosts_entry(install_client,install_ip)
-          remove_dhcp_client(install_client)
+      else
+        remove_hosts_entry(install_client,install_ip)
+        remove_dhcp_client(install_client)
+        if option["yes"]
+          delete_client_dir(install_client)
         end
       end
     else
@@ -1227,12 +1287,12 @@ if option["action"]
         if install_service.match(/[A-z]|[0-9]/)
           check_dhcpd_config(publisher_host)
           if !install_method.match(/[a-z]/)
-            install_method = get_install_method(install_service)
+            install_method = get_install_method(install_client,install_service)
           end
           check_install_ip(install_ip)
           check_install_mac(install_mac)
           check_local_config("server")
-          eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license)]"
+          eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror)]"
         else
           if install_vm.match(/fusion|vbox|parallels/)
             create_vm(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
@@ -1267,7 +1327,13 @@ if option["action"]
     if install_client.match(/[A-z]/) and install_vm.match(/[A-z]/)
       eval"[#{install_action}_#{install_vm}_vm(install_client)]"
     else
-      puts "Warning:\tClient name not specified"
+      if !install_vm.match(/[a-z]/)
+        print_valid_list("Warning:\tInvalid VM type",$valid_vm_list)
+      else
+        if !install_client.match(/[a-z]/)
+          puts "Warning:\tClient name not specified"
+        end
+      end
     end
   when /restart/
     if install_service.match(/[A-z]/)
