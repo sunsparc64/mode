@@ -489,3 +489,5 @@
 # Added code to display client config and mirror switch
 # 2.4.4: Sun 10 May 2015 09:08:37 AEST
 # Updates and bug fixes
+# 2.4.5: Thu 14 May 2015 13:04:18 AEST
+# Fixed import of OVA files for VMware Fusion

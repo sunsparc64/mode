@@ -27,7 +27,7 @@ end
 #  return
 #end
 
-def create_vm(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+def create_vm(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount,install_ip)
   if !install_method.match(/[a-z]/) and !install_os.match(/[a-z]/)
     if $verbose_mode == 1
       puts "Warning:\tInstall method or OS not specified"
@@ -35,7 +35,14 @@ def create_vm(install_method,install_vm,install_client,install_mac,install_os,in
     end
     install_method = "other"
   end
-  eval"[configure_#{install_method}_#{install_vm}_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)]"
+  if install_file.match(/ova$/)
+    if install_vm.match(/vbox/)
+      eval"[configure_#{install_method}_#{install_vm}_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)]"
+    end
+    eval"[import_#{install_vm}_ova(install_client,install_mac,install_ip,install_file)]"
+  else
+    eval"[configure_#{install_method}_#{install_vm}_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)]"
+  end
   return
 end
 

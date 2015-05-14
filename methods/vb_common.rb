@@ -235,32 +235,33 @@ def import_vbox_ova(install_client,install_mac,client_ip,ova_file)
   exists = check_vbox_vm_exists(install_client)
   if exists == "no"
     exists = check_vbox_vm_config_exists(install_client)
-    if exists == "yes"
-      delete_vbox_vm_config(install_client)
-    end
-    if !ova_file.match(/\//)
-      ova_file = $iso_base_dir+"/"+ova_file
-    end
-    if File.exist?(ova_file)
-      if install_client.match(/[A-z]|[0-9]/)
-        message = "Information:\tImporting VirtualBox VM "+install_client+" from "+ova_file
-        command = "VBoxManage import \"#{ova_file}\" --vsys 0 --vmname \"#{install_client}\""
-        execute_command(message,command)
-      else
-        install_client = %x[VBoxManage import -n #{ova_file} |grep "Suggested VM name"].split(/\n/)[-1]
-        if !install_client.match(/[A-z]|[0-9]/)
-          puts "Warning:\tCould not determine VM name for Virtual Appliance "+ova_file
-          exit
-        else
-          install_client = install_client.split(/Suggested VM name /)[1].chomp
-          message = "Information:\tImporting VirtualBox VM "+install_client+" from "+ova_file
-          command = "VBoxManage import \"#{ova_file}\""
-          execute_command(message,command)
-        end
-      end
+  end
+  if exists == "yes"
+    delete_vbox_vm_config(install_client)
+  end
+  if !ova_file.match(/\//)
+    ova_file = $iso_base_dir+"/"+ova_file
+  end
+  if File.exist?(ova_file)
+    if install_client.match(/[A-z]|[0-9]/)
+      install_dir  = get_vbox_vm_dir(install_client)
+      message = "Information:\tImporting VirtualBox VM "+install_client+" from "+ova_file
+      command = "VBoxManage import \"#{ova_file}\" --vsys 0 --vmname \"#{install_client}\" --unit 20 --disk \"#{install_dir}\""
+      execute_command(message,command)
     else
-      puts "Warning:\tVirtual Appliance "+ova_file+"does not exist"
+      install_client = %x[VBoxManage import -n #{ova_file} |grep "Suggested VM name"].split(/\n/)[-1]
+      if !install_client.match(/[A-z]|[0-9]/)
+        puts "Warning:\tCould not determine VM name for Virtual Appliance "+ova_file
+        exit
+      else
+        install_client = install_client.split(/Suggested VM name /)[1].chomp
+        message = "Information:\tImporting VirtualBox VM "+install_client+" from "+ova_file
+        command = "VBoxManage import \"#{ova_file}\""
+        execute_command(message,command)
+      end
     end
+  else
+    puts "Warning:\tVirtual Appliance "+ova_file+"does not exist"
   end
   if client_ip.match(/[0-9]/)
     add_hosts_entry(install_client,client_ip)
@@ -271,7 +272,8 @@ def import_vbox_ova(install_client,install_mac,client_ip,ova_file)
     vbox_nic_name = get_bridged_vbox_nic()
     add_bridged_network_to_vbox_vm(install_client,vbox_nic_name)
   else
-    vbox_nic_name = check_vbox_hostonly_network()
+    if_name       = get_bridged_vbox_nic()
+    vbox_nic_name = check_vbox_hostonly_network(if_name)
     add_nonbridged_network_to_vbox_vm(install_client,vbox_nic_name)
   end
   if !install_mac.match(/[0-9]|[A-z]/)
@@ -674,6 +676,14 @@ def configure_vs_vbox_vm(install_client,install_mac,install_arch,install_os,inst
   return
 end
 
+# Configure a other VirtualBox VM
+
+def configure_other_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  install_os = "Other"
+  configure_vbox_vm(install_client,install_mac,install_os,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  return
+end
+
 # Modify a VirtualBox VM parameter
 
 def modify_vbox_vm(install_client,param_name,param_value)
@@ -842,8 +852,10 @@ def configure_vbox_vm(install_client,install_mac,install_os,install_size,install
   check_vbox_vm_doesnt_exist(install_client)
   register_vbox_vm(install_client,install_os)
   add_controller_to_vbox_vm(install_client,vbox_controller)
-  create_vbox_hdd(install_client,vbox_disk_name,install_size)
-  add_hdd_to_vbox_vm(install_client,vbox_disk_name)
+  if !install_file.match(/ova$/)
+    create_vbox_hdd(install_client,vbox_disk_name,install_size)
+    add_hdd_to_vbox_vm(install_client,vbox_disk_name)
+  end
   add_memory_to_vbox_vm(install_client)
   vbox_socket_name = add_socket_to_vbox_vm(install_client)
   add_serial_to_vbox_vm(install_client)

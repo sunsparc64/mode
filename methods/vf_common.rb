@@ -67,11 +67,15 @@ end
 def get_fusion_vm_vmx_file_value(install_client,install_search)
   vm_value  = ""
   vmx_file  = get_fusion_vm_vmx_file(install_client)
-  if File.readable?(vmx_file)
-    vm_config = ParseConfig.new(vmx_file)
-    vm_value  = vm_config[install_search]
+  if File.exist?(vmx_file)
+    if File.readable?(vmx_file)
+      vm_config = ParseConfig.new(vmx_file)
+      vm_value  = vm_config[install_search]
+    else
+      vm_value = "File Not Readable"
+    end
   else
-    vm_value = "File Not Readable"
+    puts "Warning:\tWMware configuration file not found for client"
   end
   return vm_value
 end
@@ -184,24 +188,24 @@ end
 
 # Export OVA
 
-def export_fusion_ova(install_client,ova_file)
+def export_fusion_ova(install_client,install_file)
   exists = check_fusion_vm_exists(install_client)
   if exists == "yes"
     stop_vbox_vm(install_client)
-    if !ova_file.match(/[A-z]|[0-9]/)
-      ova_file = "/tmp/"+install_client+".ova"
+    if !install_file.match(/[A-z]|[0-9]/)
+      install_file = "/tmp/"+install_client+".ova"
       puts "Warning:\tNo ouput file given"
-      puts "Information:\tExporting VM "+install_client+" to "+ova_file
+      puts "Information:\tExporting VM "+install_client+" to "+install_file
     end
-    if !ova_file.match(/\.ova$/)
-      ova_file = ova_file+".ova"
+    if !install_file.match(/\.ova$/)
+      install_file = install_file+".ova"
     end
     message = "Information:\tExporting VMware Fusion VM "+install_client+" to "+fusion_vmx_file
-    command = "\"#{$ovftool_bin}\" --acceptAllEulas --name=\"#{install_client}\" \"#{fusion_vmx_file}\" \"#{ova_file}\""
+    command = "\"#{$ovftool_bin}\" --acceptAllEulas --name=\"#{install_client}\" \"#{fusion_vmx_file}\" \"#{install_file}\""
     execute_command(message,command)
   else
     message = "Information:\tExporting VMware Fusion VM "+install_client+" to "+fusion_vmx_file
-    command = "\"#{$ovftool_bin}\" --acceptAllEulas --name=\"#{install_client}\" \"#{fusion_vmx_file}\" \"#{ova_file}\""
+    command = "\"#{$ovftool_bin}\" --acceptAllEulas --name=\"#{install_client}\" \"#{fusion_vmx_file}\" \"#{install_file}\""
     execute_command(message,command)
   end
   return
@@ -209,28 +213,32 @@ end
 
 # Import OVA
 
-def import_fusion_ova(install_client,install_mac,client_ip,ova_file)
-  fusion_vm_dir    = $fusion_dir+"/"+install_client+".vmwarevm"
-  fusion_vmx_file  = fusion_vm_dir+"/"+install_client+".vmx"
+def import_fusion_ova(install_client,install_mac,install_ip,install_file)
+  set_ovftool_bin()
+  fusion_vm_dir   = $fusion_dir+"/"+install_client+".vmwarevm"
+  fusion_vmx_file = fusion_vm_dir+"/"+install_client+".vmx"
+  if !File.exist?(fusion_vmx_file)
+    puts "Warning:\tWMware configuration file for client does not exist"
+  end
   exists = check_fusion_vm_exists(install_client)
   if exists == "no"
-    if !ova_file.match(/\//)
-      ova_file = $iso_base_dir+"/"+ova_file
+    if !install_file.match(/\//)
+      install_file = $iso_base_dir+"/"+install_file
     end
-    if File.exist?(ova_file)
+    if File.exist?(install_file)
       if install_client.match(/[A-z]|[0-9]/)
         if !File.directory?(fusion_vm_dir)
           Dir.mkdir(fusion_vm_dir)
         end
         message = "Information:\tImporting VMware Fusion VM "+install_client+" from "+fusion_vmx_file
-        command = "\"#{$ovftool_bin}\" --acceptAllEulas --name=\"#{install_client}\" \"#{ova_file}\" \"#{fusion_vmx_file}\""
+        command = "\"#{$ovftool_bin}\" --acceptAllEulas --name=\"#{install_client}\" \"#{install_file}\" \"#{fusion_vmx_file}\""
         execute_command(message,command)
       else
-        install_client     = %x["#{$ovftool_bin}" "#{ova_file}" |grep Name |tail -1 |cut -f2 -d:].chomp
-        install_client     = install_client.gsub(/\s+/,"")
+        install_client = %x["#{$ovftool_bin}" "#{install_file}" |grep Name |tail -1 |cut -f2 -d:].chomp
+        install_client = install_client.gsub(/\s+/,"")
         fusion_vmx_file = fusion_vm_dir+"/"+install_client+".vmx"
         if !install_client.match(/[A-z]|[0-9]/)
-          puts "Warning:\tCould not determine VM name for Virtual Appliance "+ova_file
+          puts "Warning:\tCould not determine VM name for Virtual Appliance "+install_file
           exit
         else
           install_client = install_client.split(/Suggested VM name /)[1].chomp
@@ -238,24 +246,29 @@ def import_fusion_ova(install_client,install_mac,client_ip,ova_file)
             Dir.mkdir(fusion_vm_dir)
           end
           message = "Information:\tImporting VMware Fusion VM "+install_client+" from "+fusion_vmx_file
-          command = "\"#{$ovftool_bin}\" --acceptAllEulas --name=\"#{install_client}\" \"#{ova_file}\" \"#{fusion_vmx_file}\""
+          command = "\"#{$ovftool_bin}\" --acceptAllEulas --name=\"#{install_client}\" \"#{install_file}\" \"#{fusion_vmx_file}\""
           execute_command(message,command)
         end
       end
     else
-      puts "Warning:\tVirtual Appliance "+ova_file+"does not exist"
+      puts "Warning:\tVirtual Appliance "+install_file+"does not exist"
     end
+  else
+    puts "Warning:\tVMware Fusion VM "+install_client+" does not exist"
   end
-  if client_ip.match(/[0-9]/)
-    add_hosts_entry(install_client,client_ip)
+  if install_ip.match(/[0-9]/)
+    add_hosts_entry(install_client,install_ip)
   end
-  if install_mac.match(/[0-9]|[A-F,a-f]/)
+  if install_mac.match(/[0-9]|[A-F]|[a-f]/)
     change_fusion_vm_mac(install_client,install_mac)
   else
     install_mac = get_fusion_vm_mac(install_client)
+    if !install_mac
+      install_mac = generate_mac_address()
+    end
   end
   change_fusion_vm_network(install_client,$default_vm_network)
-  puts "Information:\tVirtual Appliance "+ova_file+" imported with VM name "+install_client+" and MAC address "+install_mac
+  puts "Information:\tVirtual Appliance "+install_file+" imported with VM name "+install_client+" and MAC address "+install_mac
   return
 end
 
@@ -739,6 +752,14 @@ def configure_pe_fusion_vm(install_client,install_mac,install_arch,install_os,in
   return
 end
 
+# Configure another VMware Fusion VM
+
+def configure_other_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  install_os = "otherguest"
+  configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  return
+end
+
 # Configure a Kickstart VMware Fusion VM
 
 def configure_ks_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
@@ -849,7 +870,9 @@ def configure_fusion_vm(install_client,install_mac,install_os,install_arch,insta
     install_mac = generate_mac_address()
   end
   create_fusion_vm_vmx_file(install_client,install_mac,install_os,fusion_vmx_file,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  create_fusion_vm_disk(install_client,fusion_vm_dir,fusion_disk_file)
+  if !install_file.match(/ova$/)
+    create_fusion_vm_disk(install_client,fusion_vm_dir,fusion_disk_file)
+  end
   puts
   puts "Client:     "+install_client+" created with MAC address "+install_mac
   puts
