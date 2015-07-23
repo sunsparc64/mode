@@ -563,10 +563,19 @@ def create_vbox_hdd(install_client,vbox_disk_name,vbox_disk_size)
   return
 end
 
+def detach_file_from_vbox_vm(install_client,install_file,install_type)
+  if install_file.match(/iso$/) or install_type.match(/iso/)
+    message = "Information:\tDetaching CDROM from "+install_client
+    command = "VBoxManage storageattach \"#{install_client}\" --storagectl \"cdrom\" --port 0 --device 0 --type dvddrive --medium none"
+    execute_command(message,command)
+  end
+  return
+end
+
 # Add hard disk to VirtualBox VM
 
 def add_hdd_to_vbox_vm(install_client,vbox_disk_name)
-  message = "Attaching:\tStorage to VM "+install_client
+  message = "Attaching:\tStorage \"#{vbox_disk_name}\" of type \"#{vbox_disk_type}\" to VM "+install_client
   command = "VBoxManage storageattach \"#{install_client}\" --storagectl \"#{$vbox_disk_type}\" --port 0 --device 0 --type hdd --medium \"#{vbox_disk_name}\""
   execute_command(message,command)
   return

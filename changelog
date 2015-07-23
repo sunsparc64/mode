@@ -493,3 +493,5 @@
 # Fixed import of OVA files for VMware Fusion
 # 2.4.6: Thu 23 Jul 2015 22:56:35 AEST
 # Bug fixes and added option to set boot device when attaching CDROM
+# 2.4.7: Fri 24 Jul 2015 09:21:02 AEST
+# Added code to dettach VirtualBox CDROM
