@@ -14,6 +14,24 @@ def restore_vbox_vm_snapshot(install_client,install_clone)
   return
 end
 
+# Attach file to VirtualBox VM
+
+def attach_file_to_vbox_vm(install_client,install_file,install_type)
+  message = "Attaching:\tCDROM to VM "+install_client
+  command = "VBoxManage storagectl \"#{install_client}\" --name \"cdrom\" --add \"sata\" --controller \"IntelAHCI\""
+  execute_command(message,command)
+  if File.exist?($vbox_additions_iso)
+    message = "Attaching:\tISO "+install_file+" to VM "+install_client
+    command = "VBoxManage storageattach \"#{install_client}\" --storagectl \"cdrom\" --port 0 --device 0 --type dvddrive --medium \"#{install_file}\""
+    execute_command(message,command)
+    if install_type == "boot"
+      command = "VBoxManage modifyvm \"#{install_client}\" --boot1 dvd"
+      execute_command(message,command)
+    end
+  end
+  return
+end
+
 # Delete VirtualBox VM snapshot
 
 def delete_vbox_vm_snapshot(install_client,install_clone)

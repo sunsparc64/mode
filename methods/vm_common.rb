@@ -1,6 +1,16 @@
 
 # Code for creating client VMs for testing (e.g. VirtualBox)
 
+# Check VM network
+
+def check_vm_network(install_vm,install_mode,install_network)
+  check_local_config(install_mode)
+  gw_if_name = get_osx_gw_if_name()
+  if_name    = get_osx_vm_if_name(install_vm)
+  eval"[check_#{install_vm}_natd(if_name,install_network)]"
+  check_osx_nat(gw_if_name,if_name)
+end
+
 # Control VM
 
 def control_vm(install_vm,install_action,install_client,install_console)

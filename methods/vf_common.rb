@@ -360,7 +360,7 @@ end
 
 # Change VMware Fusion VM CDROM
 
-def attach_file_to_fusion_vm(install_client,install_file)
+def attach_file_to_fusion_vm(install_client,install_file,install_type)
   fusion_vm_dir    = $fusion_dir+"/"+install_client+".vmwarevm"
   fusion_vmx_file  = fusion_vm_dir+"/"+install_client+".vmx"
   if !File.exist?(fusion_vmx_file)
@@ -369,6 +369,7 @@ def attach_file_to_fusion_vm(install_client,install_file)
   end
   if $verbose_mode == 1
     puts "Information:\tAttaching file "+install_file+" to "+install_client
+    puts "Information:\tModifying file \""+fusion_vmx_file+"\""
   end
   copy=[]
   file=IO.readlines(fusion_vmx_file)
@@ -376,9 +377,9 @@ def attach_file_to_fusion_vm(install_client,install_file)
     (item,value) = line.split(/\=/)
     item = item.gsub(/\s+/,"")
     case item
-    when "ide0:0.deviceType"
+    when /ide0:0.deviceType|ide0:0.startConnected/
       copy.push("ide0:0.deviceType = cdrom-image\n")
-    when "ide0:0.filename"
+    when /ide0:0.filename|ide0:0.autodetect/
       copy.push("ide0:0.filename = #{install_file}\n")
     else
       copy.push(line)
@@ -403,9 +404,9 @@ def detach_file_from_fusion_vm(install_client)
     item = item.gsub(/\s+/,"")
     case item
     when "ide0:0.deviceType"
-      copy.push("ide0:0.deviceType = cdrom-raw\n")
+      copy.push("ide0:0.startConnected = TRUE\n")
     when "ide0:0.filename"
-      copy.push("ide0:0.filename = \n")
+      copy.push("\n")
     else
       copy.push(line)
     end

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.4.5
+# Version:      2.4.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -163,7 +163,7 @@ $valid_linux_os_list    = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu
 $valid_arch_list        = [ 'x86_64', 'i386', 'sparc' ]
 $valid_console_list     = [ 'text', 'console', 'x11', 'headless' ]
 $valid_method_list      = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay' ]
-$valid_type_list        = [ 'iso', 'flar', 'ova', 'snapshot', 'service' ]
+$valid_type_list        = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot' ]
 $valid_mode_list        = [ 'client', 'server', 'osx' ]
 $valid_vm_list          = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'gdom', 'parallels' ]
 
@@ -443,7 +443,7 @@ def check_local_config(install_mode)
   if !File.exist?($rpm2cpio_bin)
     if $download_mode == 1
       message = "Fetching:\tTool rpm2cpio"
-      command = "wget '#{$rpm2cpio_url}' -O #{$rpm2cpio_bin} ; chown #{$id} #{$rpm2cpio_bin} ; chmod +x #{$rpm2cpio_bin}"
+      command = "wget \"#{$rpm2cpio_url}\" -O #{$rpm2cpio_bin} ; chown #{$id} #{$rpm2cpio_bin} ; chmod +x #{$rpm2cpio_bin}"
       execute_command(message,command)
       system("chmod +x #{$rpm2cpio_bin}")
     end
@@ -1283,6 +1283,9 @@ if option["action"]
       check_local_config("server")
       eval"[configure_server(install_method,install_arch,publisher_host,publisher_port,install_service,install_file)]"
     else
+      if install_vm.match(/fusion|vbox/)
+        check_vm_network(install_vm,install_mode,install_network)
+      end
       if install_client.match(/[A-z]|[0-9]/)
         if install_service.match(/[A-z]|[0-9]/)
           check_dhcpd_config(publisher_host)
@@ -1320,7 +1323,7 @@ if option["action"]
     end
   when /^boot$|^stop$|^halt$|^suspend$|^resume$|^start$/
     install_action = install_action.gsub(/start/,"boot")
-    if install_vm.match(/parallels/)
+    if install_vm.match(/parallels|vbox/)
       install_action = install_action.gsub(/start/,"boot")
       install_action = install_action.gsub(/halt/,"stop")
     end
@@ -1393,7 +1396,7 @@ if option["action"]
     end
   when /attach/
     if install_vm.match(/[A-z]/)
-      eval"[attach_file_to_#{install_vm}_vm(install_client,install_file)]"
+      eval"[attach_file_to_#{install_vm}_vm(install_client,install_file,install_type)]"
     end
   when /detach/
     if install_vm.match(/[A-z]/) and install_client.match(/[A-z]/)
@@ -1443,11 +1446,7 @@ if option["action"]
       check_osx_puppet()
     end
     if install_vm.match(/fusion|vbox/)
-      check_local_config(install_mode)
-      gw_if_name = get_osx_gw_if_name()
-      if_name    = get_osx_vm_if_name(install_vm)
-      eval"[check_#{install_vm}_natd(if_name,install_network)]"
-      check_osx_nat(gw_if_name,if_name)
+      check_vm_network(install_vm,install_mode,install_network)
     end
   end
   exit

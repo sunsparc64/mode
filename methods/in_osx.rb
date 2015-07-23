@@ -37,7 +37,7 @@ def check_osx_ip_forwarding(gw_if_name)
     execute_command(message,command)
   end
   message = "Checking:\tRule for IP forwarding has been created"
-  if $os_rel.match(/^14/)
+  if $os_rel.split(/\./)[0].to_i > 13
     command = "sudo pfctl -a '*' -sr 2>&1 |grep 'pass quick on #{gw_if_name}'"
   else
     command = "sudo ipfw list |grep 'any to any via #{gw_if_name}'"
@@ -84,11 +84,11 @@ def check_osx_nat(gw_if_name,if_name)
     if $os_rel.match(/^14/)
       check_osx_pfctl(gw_if_name,if_name)
     else
-      command "sudo ipfw add 100 divert natd ip from any to any via #{gw_if_name}"
+      command = "sudo ipfw add 100 divert natd ip from any to any via #{gw_if_name}"
       execute_command(message,command)
     end
   end
-  if !$os_rel.match(/^14/)
+  if $os_rel.split(/\./)[0].to_i < 13
     message = "Checking:\tNATd is running"
     command = "ps -ef |grep '#{gw_if_name}' |grep natd |grep 'same_ports'"
     output  = execute_command(message,command)

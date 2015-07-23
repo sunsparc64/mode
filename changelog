@@ -491,3 +491,5 @@
 # Updates and bug fixes
 # 2.4.5: Thu 14 May 2015 13:04:18 AEST
 # Fixed import of OVA files for VMware Fusion
+# 2.4.6: Thu 23 Jul 2015 22:56:35 AEST
+# Bug fixes and added option to set boot device when attaching CDROM
