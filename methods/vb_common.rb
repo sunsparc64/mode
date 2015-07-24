@@ -423,6 +423,15 @@ def set_vbox_vm_boot_priority(install_client)
   return
 end
 
+# Set boot device
+
+def set_vbox_boot_device(install_client,install_type)
+  message = "Setting:\tBoot priority for "+install_client+" to disk then network"
+  command = "VBoxManage modifyvm #{install_client} --boot1 #{install_type}"
+  execute_command(message,command)
+  return
+end
+
 # Get VirtualBox VM OS
 
 def get_vbox_vm_os(install_client)
@@ -564,7 +573,7 @@ def create_vbox_hdd(install_client,vbox_disk_name,vbox_disk_size)
 end
 
 def detach_file_from_vbox_vm(install_client,install_file,install_type)
-  if install_file.match(/iso$/) or install_type.match(/iso/)
+  if install_file.match(/iso$/) or install_type.match(/iso|cdrom/)
     message = "Information:\tDetaching CDROM from "+install_client
     command = "VBoxManage storageattach \"#{install_client}\" --storagectl \"cdrom\" --port 0 --device 0 --type dvddrive --medium none"
     execute_command(message,command)
@@ -578,6 +587,20 @@ def add_hdd_to_vbox_vm(install_client,vbox_disk_name)
   message = "Attaching:\tStorage \"#{vbox_disk_name}\" of type \"#{vbox_disk_type}\" to VM "+install_client
   command = "VBoxManage storageattach \"#{install_client}\" --storagectl \"#{$vbox_disk_type}\" --port 0 --device 0 --type hdd --medium \"#{vbox_disk_name}\""
   execute_command(message,command)
+  return
+end
+
+# Add guest additions ISO
+
+def add_tools_to_vbox_vm(install_client)
+  message = "Attaching:\tCDROM to VM "+install_client
+  command = "VBoxManage storagectl \"#{install_client}\" --name \"cdrom\" --add \"sata\" --controller \"IntelAHCI\""
+  execute_command(message,command)
+  if File.exist?($vbox_additions_iso)
+    message = "Attaching:\tISO "+$vbox_additions_iso+" to VM "+install_client
+    command = "VBoxManage storageattach \"#{install_client}\" --storagectl \"cdrom\" --port 0 --device 0 --type dvddrive --medium \"#{$vbox_additions_iso}\""
+    execute_command(message,command)
+  end
   return
 end
 
@@ -759,11 +782,14 @@ end
 
 # Boot VirtualBox VM
 
-def boot_vbox_vm(install_client)
+def boot_vbox_vm(install_client,install_type)
   exists = check_vbox_vm_exists(install_client)
   if exists == "no"
     puts "VirtualBox VM "+install_client+" does not exist"
     exit
+  end
+  if install_type.match(/cdrom|net/)
+    set_vbox_boot_device(install_client,install_type)
   end
   message = "Starting:\tVM "+install_client
   if $text_mode == 1 or $serial_mode == 1

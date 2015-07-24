@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.4.7
+# Version:      2.4.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -163,7 +163,7 @@ $valid_linux_os_list    = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu
 $valid_arch_list        = [ 'x86_64', 'i386', 'sparc' ]
 $valid_console_list     = [ 'text', 'console', 'x11', 'headless' ]
 $valid_method_list      = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay' ]
-$valid_type_list        = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom' ]
+$valid_type_list        = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk' ]
 $valid_mode_list        = [ 'client', 'server', 'osx' ]
 $valid_vm_list          = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'gdom', 'parallels' ]
 
@@ -512,7 +512,7 @@ begin
     [ "--memory",     "-q", Getopt::REQUIRED ], # VM memory size
     [ "--password",   "-Q", Getopt::REQUIRED ], # Set password
     [ "--release",    "-r", Getopt::REQUIRED ], # OS Release
-    [ "--type",       "-t", Getopt::REQUIRED ], # Install type (e.g. ISO, client, OVA)
+    [ "--type",       "-t", Getopt::REQUIRED ], # Install type (e.g. ISO, client, OVA, Network)
     [ "--method",     "-m", Getopt::REQUIRED ], # Install method (e.g. Kickstart)
     [ "--admin",      "-u", Getopt::REQUIRED ], # Admin username
     [ "--mode",       "-C", Getopt::REQUIRED ], # Set mode to client or server
@@ -971,6 +971,9 @@ end
 
 if option["file"]
   install_file = option["file"]
+  if install_vm == "vbox" and install_file == "tools"
+    install_file = $vbox_additions_iso
+  end
   if !File.exist?(install_file)
     puts "Warning:\tFile doesn't exist: "+install_file
     exit
@@ -1345,7 +1348,7 @@ if option["action"]
       if install_vm.match(/[a-z]/)
         if install_client.match(/[A-z]/)
           eval"[stop_#{install_vm}_vm(install_client)]"
-          eval"[boot_#{install_vm}_vm(install_client)]"
+          eval"[boot_#{install_vm}_vm(install_client,install_type)]"
         else
           puts "Warning:\tClient name not specified"
         end

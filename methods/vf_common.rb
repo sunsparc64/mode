@@ -504,7 +504,7 @@ end
 
 # Boot VMware Fusion VM
 
-def boot_fusion_vm(install_client)
+def boot_fusion_vm(install_client,install_type)
   vm_list = get_available_fusion_vms()
   if vm_list.to_s.match(/#{install_client}\.vmx/)
     fusion_vm_dir    = $fusion_dir+"/"+install_client+".vmwarevm"

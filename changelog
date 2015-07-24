@@ -495,3 +495,5 @@
 # Bug fixes and added option to set boot device when attaching CDROM
 # 2.4.7: Fri 24 Jul 2015 09:21:02 AEST
 # Added code to dettach VirtualBox CDROM
+# 2.4.8: Fri 24 Jul 2015 11:34:01 AEST
+# Minor updates
