@@ -1,35 +1,6 @@
 
 # Jupstart server code
 
-# List available ISOs
-
-def list_js_isos()
-  puts "Available Jumpstart ISOs:"
-  puts
-  search_string = "\\-ga\\-"
-  iso_list      = check_iso_base_dir(search_string)
-  iso_list.each do |iso_file|
-    iso_file    = iso_file.chomp
-    iso_info    = File.basename(iso_file)
-    iso_info    = iso_info.split(/-/)
-    iso_version = iso_info[1..2].join("_")
-    iso_arch    = iso_info[4]
-    puts "ISO file:\t"+iso_file
-    puts "Distribution:\tSolaris"
-    puts "Version:\t"+iso_version
-    puts "Architecture:\t"+iso_arch
-    service_name     = "sol_"+iso_version+"_"+iso_arch
-    repo_version_dir = $repo_base_dir+"/"+service_name
-    if File.directory?(repo_version_dir)
-      puts "Service Name:\t"+service_name+" (exists)"
-    else
-      puts "Service Name:\t"+service_name
-    end
-    puts
-  end
-  return
-end
-
 # Configure NFS service
 
 def configure_js_nfs_service(service_name,publisher_host)

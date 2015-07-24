@@ -3,8 +3,11 @@
 # List ISOs
 
 def list_other_isos(search_string)
-  puts
   iso_list      = check_iso_base_dir(search_string)
+  if iso_list.length > 0
+    puts "Other available ISOs:"
+    puts
+  end
   iso_list.each do |iso_file_name|
     iso_file_name = iso_file_name.chomp
     (iso_distro,iso_version,iso_arch) = get_other_version_info(iso_file_name)
@@ -21,6 +24,14 @@ def list_other_isos(search_string)
     end
     puts
   end
+  return
+end
+
+# List available *BSD ISOs
+
+def list_xb_isos()
+  search_string = "install|FreeBSD|coreos"
+  list_other_isos(search_string)
   return
 end
 

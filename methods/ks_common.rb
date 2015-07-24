@@ -58,8 +58,12 @@ end
 # List ISOs
 
 def list_ks_isos()
-  search_string = "CentOS|rhel|SL|OracleLinux|Fedora|VMvisor"
+  search_string = "CentOS|rhel|SL|OracleLinux|Fedora"
   iso_list      = check_iso_base_dir(search_string)
+  if iso_list.length > 0
+    puts "Available Kickstart ISOs:"
+    puts
+  end
   iso_list.each do |iso_file_name|
     iso_file_name = iso_file_name.chomp
     if iso_file_name.match(/VMvisor/)

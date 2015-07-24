@@ -29,9 +29,11 @@ end
 # List zone ISOs/Images
 
 def list_zone_isos()
-  puts "Available branded zone images:"
-  puts
-  iso_list = Dir.entries($iso_base_dir)
+  iso_list = Dir.entries($iso_base_dir).grep(/solaris/)
+  if iso_list.length > 0
+    puts "Available branded zone images:"
+    puts
+  end
   if $os_arch.match(/sparc/)
     search_arch = $os_arch
   else
