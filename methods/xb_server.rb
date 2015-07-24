@@ -1,13 +1,5 @@
 # Server code for *BSD and other (e.g. CoreOS) PXE boot
 
-# List available *BSD ISOs
-
-def list_xb_isos()
-  search_string = "install|FreeBSD|coreos"
-  list_other_isos(search_string)
-  return
-end
-
 # Configure BSD server
 
 def configure_xb_server(client_arch,publisher_host,publisher_port,service_name,iso_file)

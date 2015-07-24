@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.5.0
+# Version:      2.5.2
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -27,6 +27,7 @@ require 'unix_crypt'
 require 'pathname'
 require 'netaddr'
 require 'net/ssh'
+require 'fileutils'
 
 begin
   require 'socket'
@@ -182,6 +183,9 @@ $os_name = %x[uname]
 $os_arch = %x[uname -p]
 $os_info = %x[uname -a]
 
+$id = %x[/usr/bin/id -u]
+$id = Integer($id)
+
 if $os_arch.match(/sparc/)
   if $os_test = %x[uname -r].split(/\./)[1].to_i > 9
     $valid_vm_list = [ 'zone', 'cdom', 'gdom' ]
@@ -292,6 +296,34 @@ def create_client_mac(client_mac)
   return client_mac
 end
 
+# Get default host
+
+def get_default_host()
+  if !$default_host.match(/[0-9]/)
+    message = "Determining:\tDefault host IP"
+    if $os_name.match(/SunOS/)
+      command = "ipadm show-addr #{$default_net} |grep net |head -1 |awk '{print $4}' |cut -f1 -d'/'"
+    end
+    if $os_name.match(/Darwin/)
+      $default_net="en0"
+      command = "ifconfig #{$default_net} |grep 'inet ' |grep -v inet6 |awk '{print $2}'"
+    end
+    if $os_name.match(/Linux/)
+      $default_net="eth0"
+      command = "ifconfig #{$default_net} |grep 'inet ' |awk '{print $2}'"
+      test_ip = %x[#{command}].chomp
+      if !test_ip.match(/inet/)
+        command = "ifconfig lxcbr0 |grep 'inet ' |awk '{print $2}'"
+      end
+    end
+    $default_host = execute_command(message,command)
+    $default_host = $default_host.chomp
+    if $default_host.match(/inet/)
+      $default_host = $default_host.gsub(/^\s+/,"").split(/\s+/)[1]
+    end
+  end
+end
+
 # Check local configuration
 # Create work directory if it doesn't exist
 # If not running on Solaris, run in test mode
@@ -304,8 +336,6 @@ def check_local_config(install_mode)
   if $verbose_mode == 1
     puts "Information:\tHome directory "+$home_dir
   end
-  $id = %x[/usr/bin/id -u]
-  $id = Integer($id)
   if !$work_dir.match(/[A-z]/)
     dir_name = File.basename($script,".*")
     if $id == 0
@@ -346,29 +376,7 @@ def check_local_config(install_mode)
   if $os_info.match(/Ubuntu/)
     $lxc_base_dir = "/var/lib/lxc"
   end
-  if !$default_host.match(/[0-9]/)
-    message = "Determining:\tDefault host IP"
-    if $os_name.match(/SunOS/)
-      command = "ipadm show-addr #{$default_net} |grep net |head -1 |awk '{print $4}' |cut -f1 -d'/'"
-    end
-    if $os_name.match(/Darwin/)
-      $default_net="en0"
-      command = "ifconfig #{$default_net} |grep 'inet ' |grep -v inet6 |awk '{print $2}'"
-    end
-    if $os_name.match(/Linux/)
-      $default_net="eth0"
-      command = "ifconfig #{$default_net} |grep 'inet ' |awk '{print $2}'"
-      test_ip = %x[#{command}].chomp
-      if !test_ip.match(/inet/)
-        command = "ifconfig lxcbr0 |grep 'inet ' |awk '{print $2}'"
-      end
-    end
-    $default_host = execute_command(message,command)
-    $default_host = $default_host.chomp
-    if $default_host.match(/inet/)
-      $default_host = $default_host.gsub(/^\s+/,"").split(/\s+/)[1]
-    end
-  end
+  get_default_host()
   if !$default_apache_allow.match(/[0-9]/)
     if $default_ext_network.match(/[0-9]/)
       $default_apache_allow = $default_host.split(/\./)[0..2].join(".")+" "+$default_ext_network
@@ -387,6 +395,10 @@ def check_local_config(install_mode)
       install_sol11_pkg("pkg:/system/boot/network")
       install_sol11_pkg("installadm")
       install_sol11_pkg("lftp")
+      check_dir_exists("/etc/netboot")
+    end
+    if $os_name.match(/SunOS/) and !$os_rel.match(/11/)
+      check_dir_exists("/tftpboot")
     end
     if $verbose_mode == 1
       puts "Information:\tSetting apache allow range to "+$default_apache_allow
@@ -1341,7 +1353,11 @@ if option["action"]
       install_action = install_action.gsub(/halt/,"stop")
     end
     if install_client.match(/[A-z]/) and install_vm.match(/[A-z]/)
-      eval"[#{install_action}_#{install_vm}_vm(install_client)]"
+      if install_action == "boot"
+        eval"[#{install_action}_#{install_vm}_vm(install_client,install_type)]"
+      else
+        eval"[#{install_action}_#{install_vm}_vm(install_client)]"
+      end
     else
       if !install_vm.match(/[a-z]/)
         print_valid_list("Warning:\tInvalid VM type",$valid_vm_list)

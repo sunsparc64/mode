@@ -499,3 +499,9 @@
 # Minor updates
 # 2.4.9: Fri 24 Jul 2015 14:02:00 AEST
 # Added initial support for remote command execution
+# 2.5.0: Fri 24 Jul 2015 14:59:43 AEST
+# Cleaned up ISO list functions 
+# 2.5.1: Fri 24 Jul 2015 17:33:36 AEST
+# Added check for /etc/netboot and /tftpboot on Solaris
+# 2.5.2: Sat 25 Jul 2015 07:05:34 AEST
+# Fixed creation of dhcpd config and various bugs

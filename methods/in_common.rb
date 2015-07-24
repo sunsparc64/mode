@@ -664,6 +664,7 @@ end
 # Check DHCPd config
 
 def check_dhcpd_config(publisher_host)
+  get_default_host()
   network_address   = $default_host.split(/\./)[0..2].join(".")+".0"
   broadcast_address = $default_host.split(/\./)[0..2].join(".")+".255"
   gateway_address   = $default_host.split(/\./)[0..2].join(".")+".254"
@@ -673,7 +674,7 @@ def check_dhcpd_config(publisher_host)
     command = "cat #{$dhcpd_file} | grep 'subnet #{network_address}'"
     output  = execute_command(message, command)
   end
-  if !output.match(/subnet/)
+  if !output.match(/subnet/) and !output.match(/#{network_address}/)
     tmp_file    = "/tmp/dhcpd"
     backup_file = $dhcpd_file+".premodest"
     file = File.open(tmp_file,"w")
@@ -712,9 +713,11 @@ def check_dhcpd_config(publisher_host)
     file.write("}\n")
     file.write("\n")
     file.close
-    message = "Archiving:\tDHCPd configuration file "+$dhcpd_file+" to "+backup_file
-    command = "cp #{$dhcpd_file} #{backup_file}"
-    execute_command(message,command)
+    if File.exist?($dhcpd_file)
+      message = "Archiving:\tDHCPd configuration file "+$dhcpd_file+" to "+backup_file
+      command = "cp #{$dhcpd_file} #{backup_file}"
+      execute_command(message,command)
+    end
     message = "Creating:\tDHCPd configuration file "+$dhcpd_file
     command = "cp #{tmp_file} #{$dhcpd_file}"
     execute_command(message,command)

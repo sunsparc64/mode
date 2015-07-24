@@ -1,14 +1,6 @@
 
 # AutoYast routines
 
-# List available Ubuntu ISOs
-
-def list_ps_isos()
-  search_string = "ubuntu"
-  list_linux_isos(search_string)
-  return
-end
-
 # Configure Preseed server
 
 def configure_ps_server(client_arch,publisher_host,publisher_port,service_name,iso_file)

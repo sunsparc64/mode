@@ -4,13 +4,13 @@
 def get_vs_clients()
   client_list  = []
   service_list = Dir.entries($repo_base_dir)
-  service_list.each do |service_name|
-    if service_name.match(/vmware/)
-      repo_version_dir = $repo_base_dir+"/"+service_name
+  service_list.each do |install_service|
+    if install_service.match(/vmware/)
+      repo_version_dir = $repo_base_dir+"/"+install_service
       file_list        = Dir.entries(repo_version_dir)
       file_list.each do |file_name|
         if file_name.match(/\.cfg$/) and !file_name.match(/boot\.cfg|isolinux\.cfg/)
-          client_info = file_name+" service = "+service_name
+          client_info = file_name+" service = "+install_service
           client_list.push(client_info)
         end
       end
@@ -35,14 +35,14 @@ end
 
 # Configure client PXE boot
 
-def configure_vs_pxe_client(client_name,client_mac,service_name)
+def configure_vs_pxe_client(client_name,client_mac,install_service)
   tftp_pxe_file  = client_mac.gsub(/:/,"")
   tftp_pxe_file  = tftp_pxe_file.upcase
   tftp_boot_file = "boot.cfg.01"+tftp_pxe_file
   tftp_pxe_file  = "01"+tftp_pxe_file+".pxelinux"
   test_file      = $tftp_dir+"/"+tftp_pxe_file
   if !File.exists?(test_file)
-    pxelinux_file = service_name+"/usr/share/syslinux/pxelinux.0"
+    pxelinux_file = install_service+"/usr/share/syslinux/pxelinux.0"
     message       = "Creating:\tPXE boot file for "+client_name+" with MAC address "+client_mac
     command       = "cd #{$tftp_dir} ; ln -s #{pxelinux_file} #{tftp_pxe_file}"
     execute_command(message,command)
@@ -52,8 +52,8 @@ def configure_vs_pxe_client(client_name,client_mac,service_name)
   pxe_cfg_file = "01-"+pxe_cfg_file
   pxe_cfg_file = pxe_cfg_file.downcase
   pxe_cfg_file = pxe_cfg_dir+"/"+pxe_cfg_file
-  ks_url       = "http://"+$default_host+"/"+service_name+"/"+client_name+".cfg"
-  mboot_file   = "/"+service_name+"/mboot.c32"
+  ks_url       = "http://"+$default_host+"/"+install_service+"/"+client_name+".cfg"
+  mboot_file   = "/"+install_service+"/mboot.c32"
   if $verbose_mode == 1
     puts "Creating:\tMenu config file "+pxe_cfg_file
   end
@@ -80,7 +80,7 @@ def configure_vs_pxe_client(client_name,client_mac,service_name)
     system("cat #{pxe_cfg_file}")
   end
   tftp_boot_file=$tftp_dir+"/"+tftp_boot_file
-  esx_boot_file=$tftp_dir+"/"+service_name+"/boot.cfg"
+  esx_boot_file=$tftp_dir+"/"+install_service+"/boot.cfg"
   if $verbose_mode == 1
     puts "Creating:\tBoot config file "+tftp_boot_file
   end
@@ -104,7 +104,7 @@ def configure_vs_pxe_client(client_name,client_mac,service_name)
     end
     if line.match(/^title/)
       copy.push(line)
-      copy.push("prefix=#{service_name}\n")
+      copy.push("prefix=#{install_service}\n")
     else
       copy.push(line)
     end
@@ -145,8 +145,8 @@ def unconfigure_vs_pxe_client(client_name)
     execute_command(message,command)
   end
   client_info  = get_vs_clients()
-  service_name = client_info.grep(/#{client_name}/)[0].split(/ = /)[1].chomp
-  ks_dir       = $tftp_dir+"/"+service_name
+  install_service = client_info.grep(/#{client_name}/)[0].split(/ = /)[1].chomp
+  ks_dir       = $tftp_dir+"/"+install_service
   ks_cfg_file  = ks_dir+"/"+client_name+".cfg"
   if File.exist?(ks_cfg_file)
     message = "Removing:\tKickstart boot config file "+ks_cfg_file+" for "+client_name
@@ -159,8 +159,8 @@ end
 
 # Configure DHCP entry
 
-def configure_vs_dhcp_client(client_name,client_mac,client_ip,client_arch,service_name)
-  add_dhcp_client(client_name,client_mac,client_ip,client_arch,service_name)
+def configure_vs_dhcp_client(client_name,client_mac,client_ip,client_arch,install_service)
+  add_dhcp_client(client_name,client_mac,client_ip,client_arch,install_service)
   return
 end
 
@@ -173,10 +173,10 @@ end
 
 # Configure VSphere client
 
-def configure_vs_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network)
+def configure_vs_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror)
   repo_version_dir=$repo_base_dir+"/"+install_service
   if !File.directory?(repo_version_dir)
-    puts "Warning:\tService "+service_name+" does not exist"
+    puts "Warning:\tService "+install_service+" does not exist"
     puts
     list_vs_services()
     exit
@@ -190,10 +190,10 @@ def configure_vs_client(install_client,install_arch,install_mac,install_ip,insta
   output_file=repo_version_dir+"/"+install_client+".cfg"
   output_vs_header(output_file)
   # Output firstboot list
-  post_list = populate_vs_firstboot_list(install_service)
+  post_list = populate_vs_firstboot_list(install_service,install_license)
   output_vs_post_list(post_list,output_file)
   # Output post list
-  post_list = populate_vs_post_list(install_service,install_license)
+  post_list = populate_vs_post_list(install_service)
   output_vs_post_list(post_list,output_file)
   if output_file
     FileUtils.chmod(0755,output_file)
@@ -205,7 +205,7 @@ end
 
 # Unconfigure VSphere client
 
-def unconfigure_vs_client(client_name,client_mac,service_name)
+def unconfigure_vs_client(client_name,client_mac,install_service)
   unconfigure_vs_pxe_client(client_name)
   unconfigure_vs_dhcp_client(client_name)
   return
@@ -213,7 +213,7 @@ end
 
 # Populate firstboot commands
 
-def populate_vs_firstboot_list(service_name,install_license)
+def populate_vs_firstboot_list(install_service,install_license)
   post_list   = []
   post_list.push("%firstboot --interpreter=busybox")
   post_list.push("")
@@ -302,7 +302,7 @@ end
 
 # Populate post commands
 
-def populate_vs_post_list(service_name)
+def populate_vs_post_list(install_service)
   post_list   = []
   post_list.push("")
   return post_list
@@ -321,7 +321,9 @@ def output_vs_header(output_file)
         output=$q_struct[key].value+"\n"
       else
         output=$q_struct[key].parameter+" "+$q_struct[key].value+"\n"
-        puts output
+        if $verbose_mode == 1
+          puts output
+        end
       end
       file.write(output)
     end
@@ -342,16 +344,16 @@ def output_vs_post_list(post_list,output_file)
   return
 end
 
-# Check service service_name
+# Check service install_service
 
-def check_vs_service_name(service_name)
-  if !service_name.match(/[A-z]/)
+def check_vs_install_service(install_service)
+  if !install_service.match(/[A-z]/)
     puts "Warning:\tService name not given"
     exit
   end
   client_list=Dir.entries($repo_base_dir)
-  if !client_list.grep(service_name)
-    puts "Warning:\tService name "+service_name+" does not exist"
+  if !client_list.grep(install_service)
+    puts "Warning:\tService name "+install_service+" does not exist"
     exit
   end
   return
