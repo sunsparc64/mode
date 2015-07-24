@@ -106,12 +106,9 @@ end
 # List all isos
 
 def list_all_isos()
-  list_js_isos()
-  list_ks_isos()
-  list_ps_isos()
-  list_zone_isos()
-  list_vs_isos()
-  list_xb_isos()
+  $valid_method_list.each do |install_method|
+    eval"[list_#{install_method}_isos()]"
+  end
   return
 end
 

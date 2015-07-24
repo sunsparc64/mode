@@ -26,14 +26,15 @@ end
 # List AutoYast services
 
 def list_ay_services()
-  puts
-  puts "AutoYast services:"
-  puts
   service_list = Dir.entries($repo_base_dir)
+  service_list = service_list.grep(/sles/)
+  if service_list.length > 0
+    puts
+    puts "AutoYast services:"
+    puts
+  end
   service_list.each do |service_name|
-    if service_name.match(/sles/)
-      puts service_name
-    end
+    puts service_name
   end
   return
 end

@@ -1,43 +1,6 @@
 
 # AI server code
 
-# List available ISOs
-
-def list_ai_isos()
-  puts "Available AI ISOs:"
-  puts
-  search_string = "sol-11"
-  iso_list      = check_iso_base_dir(search_string)
-  iso_list.each do |iso_file|
-    iso_file = iso_file.chomp
-    iso_info = File.basename(iso_file,".iso")
-    iso_info = iso_info.split(/-/)
-    iso_arch = iso_info[3]
-    if iso_file.match(/beta/)
-      iso_version = iso_info[1]+"_beta"
-    else
-      iso_version = iso_info[1]
-    end
-    puts "ISO file:\t"+iso_file
-    puts "Distribution:\tSolaris 11"
-    puts "Version:\t"+iso_version.gsub(/_/,".")
-    if iso_file.match(/repo/)
-      puts "Architecture:\tsparc and x86"
-    else
-      puts "Architecture:\t"+iso_arch
-    end
-    service_name     = "sol_"+iso_version
-    repo_version_dir = $repo_base_dir+"/"+service_name
-    if File.directory?(repo_version_dir)
-      puts "Service Name:\t"+service_name+" (exists)"
-    else
-      puts "Service Name:\t"+service_name
-    end
-    puts
-  end
-  return
-end
-
 # Delecte a service
 # This will also delete all the clients under it
 
@@ -384,11 +347,13 @@ end
 
 def list_ai_services()
   message = "Listing:\nAvoilable AI services"
-  command = "installadm list |grep \"auto_install\" |grep -v default |awk \"{print $1}\""
+  command = "installadm list |grep 'auto_install' |grep -v default |awk '{print $1}'"
   output  = execute_command(message,command)
-  puts
-  puts "Available AI services:"
-  puts
-  puts output
+  if output.length > 0
+    puts
+    puts "Available AI services:"
+    puts
+    puts output
+  end
   return
 end

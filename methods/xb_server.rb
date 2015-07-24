@@ -119,15 +119,15 @@ end
 # List kickstart services
 
 def list_xb_services()
-  puts
-  puts "BSD services:"
-  puts
   service_list = Dir.entries($repo_base_dir)
-  service_list.each do |service_name|
-    if service_name.match(/bsd|coreos/)
-      puts service_name
-    end
+  service_list = service_list.grep(/bsd|coreos/)
+  if service_list.length > 0
+    puts
+    puts "BSD services:"
+    puts
   end
-  puts
+  service_list.each do |service_name|
+    puts service_name
+  end
   return
 end

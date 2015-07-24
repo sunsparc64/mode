@@ -163,9 +163,12 @@ end
 # List kickstart services
 
 def list_vs_services()
-  puts "vSphere services:"
-  puts
   service_list = Dir.entries($repo_base_dir)
+  if service_list.length > 0
+    puts
+    puts "vSphere services:"
+    puts
+  end
   service_list.each do |service_name|
     if service_name.match(/vmware/)
       puts service_name

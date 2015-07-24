@@ -12,16 +12,16 @@ end
 # List Preseed services
 
 def list_ps_services()
-  puts
-  puts "Preseed services:"
-  puts
   service_list = Dir.entries($repo_base_dir)
-  service_list.each do |service_name|
-    if service_name.match(/ubuntu/)
-      puts service_name
-    end
+  service_list = service_list.grep(/ubuntu/)
+  if service_list.length > 0
+    puts
+    puts "Preseed services:"
+    puts
   end
-  puts
+  service_list.each do |service_name|
+    puts service_name
+  end
   return
 end
 

@@ -4,8 +4,12 @@
 
 def list_lxc_services()
   if $os_name.match(/Linux/)
-    puts "Available LXC Images:"
     image_list = Dir.entries($lxc_image_dir)
+    if image_list.length > 0
+      puts
+      puts "Available LXC Images:"
+      puts
+    end
     image_list.each do |image_name|
       if image_name.match(/tar/)
         image_file   = $lxc_image_dir+"/"+image_name

@@ -196,9 +196,13 @@ end
 # List Jumpstart services
 
 def list_js_services()
-  puts "Available Jumpstart services:"
-  puts
-  service_list=Dir.entries($repo_base_dir)
+  service_list = Dir.entries($repo_base_dir)
+  service_list = service_list.grep(/^sol_6|^sol_7|^sol_8|^sol_9|^sol_10/)
+  if service_list.length > 0
+    puts
+    puts "Available Jumpstart services:"
+    puts
+  end
   service_list.each do |service_name|
     if service_name.match(/^sol/) and !service_name.match(/sol_11/)
       puts service_name

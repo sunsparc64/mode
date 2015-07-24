@@ -505,3 +505,5 @@
 # Added check for /etc/netboot and /tftpboot on Solaris
 # 2.5.2: Sat 25 Jul 2015 07:05:34 AEST
 # Fixed creation of dhcpd config and various bugs
+# 2.5.3: Sat 25 Jul 2015 08:39:52 AEST
+# Cleaned up services list output
