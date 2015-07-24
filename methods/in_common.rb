@@ -1199,7 +1199,13 @@ def execute_command(message,command)
     if $verbose_mode == 1
       puts "Executing:\t"+command
     end
-    output = %x[#{command}]
+    if $execute_host == "localhost"
+      output = %x[#{command}]
+    else
+      Net::SSH.start(hostname, username, :password => password, :paranoid => false) do |ssh_session|
+        output = ssh_session.exec!(command)
+      end
+    end
   end
   if $verbose_mode == 1
     if output.length > 1

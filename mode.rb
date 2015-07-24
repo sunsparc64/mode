@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.4.8
+# Version:      2.4.9
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -22,15 +22,17 @@
 require 'rubygems'
 require 'getopt/long'
 require 'builder'
-require 'socket'
 require 'parseconfig'
 require 'unix_crypt'
 require 'pathname'
 require 'netaddr'
-require 'net/http'
-require 'uri'
+require 'net/ssh'
 
 begin
+  require 'socket'
+  require 'net/http'
+  require 'uri'
+  require 'net/scp'
   require 'nokogiri'
   require 'mechanize'
 rescue LoadError
@@ -166,6 +168,7 @@ $valid_method_list      = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay' ]
 $valid_type_list        = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk' ]
 $valid_mode_list        = [ 'client', 'server', 'osx' ]
 $valid_vm_list          = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'gdom', 'parallels' ]
+$execute_host           = "localhost"
 
 # Declare some package versions
 
@@ -489,6 +492,7 @@ begin
     [ "--arch",       "-A", Getopt::REQUIRED ], # Architecture of client or VM (e.g. x86_64)
     [ "--action",     "-a", Getopt::REQUIRED ], # Action (e.g. boot, stop, create, delete, list, etc)
     [ "--client",     "-c", Getopt::REQUIRED ], # Client name
+    [ "--server",     "-D", Getopt::REQUIRED ], # Server name (allow execution of commands on a remote host)
     [ "--clone",      "-f", Getopt::REQUIRED ], # Clone name
     [ "--console",    "-X", Getopt::REQUIRED ], # Select console type (e.g. text, serial, x11) (default is text)
     [ "--delete",     "-d", Getopt::BOOLEAN ],  # Delete client or VM
@@ -551,6 +555,12 @@ if option["action"] == "list"
     puts "No type or service given"
     exit
   end
+end
+
+# Handle server switch
+
+if option["server"]
+  $execute_host = option["server"]
 end
 
 # Handle mirror switch
