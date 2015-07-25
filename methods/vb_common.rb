@@ -788,7 +788,7 @@ def boot_vbox_vm(install_client,install_type)
     puts "VirtualBox VM "+install_client+" does not exist"
     exit
   end
-  if install_type.match(/cdrom|net|dvd/)
+  if install_type.match(/cdrom|net|dvd|disk/)
     install_type = install_type.gsub(/cdrom/,"dvd")
     set_vbox_boot_device(install_client,install_type)
   end

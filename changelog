@@ -521,4 +521,6 @@
 # Fixed bugs and improved install method detection
 # 2.6.0: Sun 26 Jul 2015 08:24:33 AEST
 # Fixed bug with turning off VirtualBox warning messages
+# 2.6.1: Sun 26 Jul 2015 09:17:06 AEST
+# Added disk to boot method for VirtualBox
 
