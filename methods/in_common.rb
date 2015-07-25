@@ -119,13 +119,13 @@ def get_install_method_from_iso(install_file)
   case iso_file
   when /VMware-VMvisor/
     install_method = "vs"
-  when /CentOS|OracleLinux|^SL|Fedora/
+  when /CentOS|OracleLinux|^SL|Fedora|rhel/
     install_method = "ks"
   when /ubuntu|debian/
     install_method = "ps"
   when /SUSE|SLES/
     install_method = "ay"
-  when /sol-10/
+  when /sol-6|sol-7|sol-8|sol-9|sol-10/
     install_method = "js"
   when /sol-11/
     install_method = "ai"

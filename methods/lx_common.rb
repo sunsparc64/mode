@@ -29,3 +29,8 @@ def check_lxc_install()
   return
 end
 
+# List LXC images - Needs code
+
+def list_lxc_isos()
+  return
+end

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.5.6
+# Version:      2.5.7
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1180,6 +1180,14 @@ if !option["method"] and !option["action"].match(/delete|running|boot|stop/)
         print_valid_list("Warning:\tInvalid OS specified",$valid_os_list)
       end
     end
+  end
+end
+
+# Try to determine OS when give just an ISO
+
+if option["file"].match(/[A-z]/) and option["action"].match(/create|add/)
+  if !option["method"].match(/[A-z]/)
+    install_method = get_install_method_from_iso(install_file)
   end
 end
 

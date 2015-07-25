@@ -513,4 +513,6 @@
 # Fixed creation of ESX VirtualBox VMs
 # 2.5.6: Sat 25 Jul 2015 14:57:08 AEST
 # Fixed client list code
+# 2.5.7: Sat 25 Jul 2015 16:27:54 AEST
+# Fixed method determination for RHEL for install service creation from ISO
 
