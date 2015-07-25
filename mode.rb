@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.5.9
+# Version:      2.6.0
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -166,7 +166,7 @@ $valid_linux_os_list    = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu
 $valid_arch_list        = [ 'x86_64', 'i386', 'sparc' ]
 $valid_console_list     = [ 'text', 'console', 'x11', 'headless' ]
 $valid_method_list      = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay' ]
-$valid_type_list        = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client' ]
+$valid_type_list        = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd' ]
 $valid_mode_list        = [ 'client', 'server', 'osx' ]
 $valid_vm_list          = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'gdom', 'parallels' ]
 $execute_host           = "localhost"
@@ -907,6 +907,7 @@ if option["vm"]
     $default_hostonly_ip = "192.168.2.254"
   when /virtualbox|vbox/
     check_local_config("client")
+    check_vbox_is_installed()
     install_vm   = "vbox"
     $use_sudo    = 0
     install_size = install_size.gsub(/G/,"000")

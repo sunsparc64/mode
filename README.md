@@ -235,6 +235,14 @@ All:
   - unix_crypt
   - pathname
   - netaddr
+  - net/ssh
+  - fileutils
+  - nokogiri
+  - mechanize
+  - uri
+  - socket
+  - net/http
+  - net/scp
 
 Kickstart, AutoYast, and Preseed Services:
 

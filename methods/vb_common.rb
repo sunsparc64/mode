@@ -593,12 +593,12 @@ end
 # Add guest additions ISO
 
 def add_tools_to_vbox_vm(install_client)
-  message = "Attaching:\tCDROM to VM "+install_client
+  message = "Attaching:\tCDROM \""+$vbox_additions_iso+"\" to VM "+install_client
   command = "VBoxManage storagectl \"#{install_client}\" --name \"cdrom\" --add \"sata\" --controller \"IntelAHCI\""
   execute_command(message,command)
   if File.exist?($vbox_additions_iso)
     message = "Attaching:\tISO "+$vbox_additions_iso+" to VM "+install_client
-    command = "VBoxManage storageattach \"#{install_client}\" --storagectl \"cdrom\" --port 0 --device 0 --type dvddrive --medium \"#{$vbox_additions_iso}\""
+    command = "VBoxManage storageattach \"#{install_client}\" --storagectl \"cdrom\" --port 1 --device 0 --type dvddrive --medium \"#{$vbox_additions_iso}\""
     execute_command(message,command)
   end
   return
@@ -606,13 +606,13 @@ end
 
 # Add hard disk to VirtualBox VM
 
-def add_cdrom_to_vbox_vm(install_client)
-  message = "Attaching:\tCDROM to VM "+install_client
+def add_cdrom_to_vbox_vm(install_client,install_file)
+  message = "Attaching:\tCDROM \""+install_file+"\" to VM "+install_client
   command = "VBoxManage storagectl \"#{install_client}\" --name \"cdrom\" --add \"sata\" --controller \"IntelAHCI\""
   execute_command(message,command)
   if File.exist?($vbox_additions_iso)
     message = "Attaching:\tISO "+$vbox_additions_iso+" to VM "+install_client
-    command = "VBoxManage storageattach \"#{install_client}\" --storagectl \"cdrom\" --port 0 --device 0 --type dvddrive --medium \"#{$vbox_additions_iso}\""
+    command = "VBoxManage storageattach \"#{install_client}\" --storagectl \"cdrom\" --port 0 --device 0 --type dvddrive --medium \"#{install_file}\""
     execute_command(message,command)
   end
   return
@@ -788,7 +788,8 @@ def boot_vbox_vm(install_client,install_type)
     puts "VirtualBox VM "+install_client+" does not exist"
     exit
   end
-  if install_type.match(/cdrom|net/)
+  if install_type.match(/cdrom|net|dvd/)
+    install_type = install_type.gsub(/cdrom/,"dvd")
     set_vbox_boot_device(install_client,install_type)
   end
   message = "Starting:\tVM "+install_client
@@ -889,7 +890,7 @@ def check_vbox_is_installed()
     exit
   else
     suppress_messages = %x[VBoxManage getextradata global GUI/SuppressMessages |awk '{print $2}'].chomp
-    if !suppress_messages == "all"
+    if !suppress_messages.match(/all/)
       %x[VBoxManage setextradata global GUI/SuppressMessages "all"]
     end
   end
@@ -935,7 +936,10 @@ def configure_vbox_vm(install_client,install_mac,install_os,install_size,install
     add_nonbridged_network_to_vbox_vm(install_client,vbox_nic_name)
   end
   set_vbox_vm_boot_priority(install_client)
-  add_cdrom_to_vbox_vm(install_client)
+  if install_file.match(/iso$/)
+    add_cdrom_to_vbox_vm(install_client,install_file)
+  end
+  add_tools_to_vbox_vm(install_client)
   if install_mac.match(/[0-9]/)
     change_vbox_vm_mac(install_client,install_mac)
   else
