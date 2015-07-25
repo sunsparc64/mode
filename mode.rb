@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.5.8
+# Version:      2.5.9
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -858,6 +858,12 @@ else
   install_os = ""
 end
 
+# If service is set, but method ind os isn't sn't try to set method from service name
+
+if option["service"] and !option["method"] and !option["os"]
+  install_method = get_install_method_from_service(install_service)
+end
+
 # Handle architecture switch
 
 if option["arch"]
@@ -1185,9 +1191,11 @@ end
 
 # Try to determine OS when give just an ISO
 
-if option["file"].match(/[A-z]/) and option["action"].match(/create|add/)
-  if !option["method"].match(/[A-z]/)
-    install_method = get_install_method_from_iso(install_file)
+if option["file"]
+  if option["file"].match(/[A-z]/) and option["action"].match(/create|add/)
+    if !option["method"].match(/[A-z]/)
+      install_method = get_install_method_from_iso(install_file)
+    end
   end
 end
 

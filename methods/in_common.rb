@@ -112,10 +112,32 @@ def list_all_isos()
   return
 end
 
+# Get install method from service name
+
+def get_install_method_from_service(install_service)
+  case install_service
+  when /vmware/
+    install_method = "vs"
+  when /centos|oel|rhel|fedora|sl/
+    install_method = "ks"
+  when /ubuntu|debian/
+    install_method = "ps"
+  when /suse|sles/
+    install_method = "ay"
+  when /sol_6|sol_7|sol_8|sol_9|sol_10/
+    install_method = "js"
+  when /sol_11/
+    install_method = "ai"
+  end
+  return install_method
+end
+
 # Get Install method from ISO file name
 
 def get_install_method_from_iso(install_file)
-  iso_file = File.basename(install_file)
+  if iso_file.match(/\//)
+    iso_file = File.basename(install_file)
+  end
   case iso_file
   when /VMware-VMvisor/
     install_method = "vs"
