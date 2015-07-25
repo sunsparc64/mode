@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.5.3
+# Version:      2.5.5
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -787,7 +787,7 @@ if option["memory"]
   install_memory = option["memory"]
 else
   if option["vm"]
-    if option["os"].match(/vs|esx|vmware/) or option["method"].match(/vs|esx|vmware/)
+    if option["os"].match(/vs|esx|vmware|vsphere/) or option["method"].match(/vs|esx|vmware|vsphere/)
       install_memory = "4096"
     end
     if option["os"]
@@ -1030,6 +1030,8 @@ if option["os"]
     exit
   else
     case install_os
+    when /vsphere|esx|vmware/
+      option["method"] = "vs"
     when /kickstart|redhat|rhel|fedora|sl|scientific|ks|centos/
       option["method"] = "ks"
     when /ubuntu|debian/
@@ -1063,9 +1065,16 @@ if option["method"]
   when /preseed|debian|ubuntu/
     info_examples  = "ps"
     install_method = "ps"
-  when /vsphere|esx|vmware/
+  when /vsphere|esx|vmware|vs/
     info_examples  = "vs"
     install_method = "vs"
+    if install_memory == $default_vm_mem
+      install_memory = "4096"
+    end
+    if install_cpu == $default_vm_vcpu
+      install_cpu = "2"
+    end
+    $vbox_disk_type = "ide"
   when /bsd|xb/
     info_examples  = "xb"
     install_method = "xb"

@@ -584,7 +584,7 @@ end
 # Add hard disk to VirtualBox VM
 
 def add_hdd_to_vbox_vm(install_client,vbox_disk_name)
-  message = "Attaching:\tStorage \"#{vbox_disk_name}\" of type \"#{vbox_disk_type}\" to VM "+install_client
+  message = "Attaching:\tStorage \"#{vbox_disk_name}\" of type \"#{$vbox_disk_type}\" to VM "+install_client
   command = "VBoxManage storageattach \"#{install_client}\" --storagectl \"#{$vbox_disk_type}\" --port 0 --device 0 --type hdd --medium \"#{vbox_disk_name}\""
   execute_command(message,command)
   return
@@ -620,9 +620,9 @@ end
 
 # Add memory to Virtualbox VM
 
-def add_memory_to_vbox_vm(install_client)
+def add_memory_to_vbox_vm(install_client,install_memory)
   message = "Adding:\t\tMemory to VM "+install_client
-  command = "VBoxManage modifyvm \"#{install_client}\" --memory \"#{$default_vm_mem}\""
+  command = "VBoxManage modifyvm \"#{install_client}\" --memory \"#{install_memory}\""
   execute_command(message,command)
   return
 end
@@ -887,7 +887,23 @@ def check_vbox_is_installed()
   if !File.directory?(app_dir)
     puts "Virtualbox not installed"
     exit
+  else
+    suppress_messages = %x[VBoxManage getextradata global GUI/SuppressMessages |awk '{print $2}'].chomp
+    if !suppress_messages == "all"
+      %x[VBoxManage setextradata global GUI/SuppressMessages "all"]
+    end
   end
+end
+
+# Add CPU to Virtualbox VM
+
+def add_cpu_to_vbox_vm(install_client,install_cpu)
+  if install_cpu.to_i > 1
+    message = "Information:\tSetting number of CPUs to "+install_cpu
+    command = "VBoxManage modifyvm \"#{install_client}\" --cpus #{install_cpu}"
+    execute_command(message,command)
+  end
+  return
 end
 
 # Configure a VirtualBox VM
@@ -909,7 +925,7 @@ def configure_vbox_vm(install_client,install_mac,install_os,install_size,install
     create_vbox_hdd(install_client,vbox_disk_name,install_size)
     add_hdd_to_vbox_vm(install_client,vbox_disk_name)
   end
-  add_memory_to_vbox_vm(install_client)
+  add_memory_to_vbox_vm(install_client,install_memory)
   vbox_socket_name = add_socket_to_vbox_vm(install_client)
   add_serial_to_vbox_vm(install_client)
   if $default_vm_network.match(/bridged/)
@@ -928,6 +944,7 @@ def configure_vbox_vm(install_client,install_mac,install_os,install_size,install
   if install_os == "ESXi"
     configure_vmware_esxi_vbox_vm(install_client)
   end
+  add_cpu_to_vbox_vm(install_client,install_cpu)
   puts "Created:\tVirtualBox VM "+install_client+" with MAC address "+install_mac
   return
 end

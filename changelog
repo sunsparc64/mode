@@ -507,3 +507,8 @@
 # Fixed creation of dhcpd config and various bugs
 # 2.5.3: Sat 25 Jul 2015 08:39:52 AEST
 # Cleaned up services list output
+# 2.5.4: Sat 25 Jul 2015 10:42:10 AEST
+# Fixed creation of non default VirtualBox VMs
+# 2.5.5: Sat 25 Jul 2015 13:56:46 AEST
+# Fixed creation of ESX VirtualBox VMs
+
