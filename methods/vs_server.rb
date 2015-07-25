@@ -164,6 +164,7 @@ end
 
 def list_vs_services()
   service_list = Dir.entries($repo_base_dir)
+  service_list = service_list
   if service_list.length > 0
     puts
     puts "vSphere services:"

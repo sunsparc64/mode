@@ -517,4 +517,6 @@
 # Fixed method determination for RHEL for install service creation from ISO
 # 2.5.8: Sat 25 Jul 2015 18:35:43 AEST
 # Fixed bug with puppet package directory creation
+# 2.5.9: Sun 26 Jul 2015 05:57:24 AEST
+# Fixed bugs and improved install method detection
 
