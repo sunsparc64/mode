@@ -242,7 +242,7 @@ def configure_ks_puppet_repo(service_name,iso_arch)
     check_dir_exists(puppet_base_dir)
   end
   release    = service_name.split(/_/)[1]
-  [ "products", "dependency" ].each do |remote_dir|
+  [ "products", "dependencies" ].each do |remote_dir|
     puppet_rpm_list[remote_dir].each do |pkg_name|
       if pkg_name.match(/libselinux-ruby/)
         remote_url = $puppet_rpm_base_url+"/el/"+release+"/"+remote_dir+"/"+iso_arch+"/"

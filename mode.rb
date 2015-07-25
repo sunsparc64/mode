@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.5.7
+# Version:      2.5.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -28,14 +28,14 @@ require 'pathname'
 require 'netaddr'
 require 'net/ssh'
 require 'fileutils'
+require 'nokogiri'
+require 'mechanize'
+require 'uri'
 
 begin
   require 'socket'
   require 'net/http'
-  require 'uri'
   require 'net/scp'
-  require 'nokogiri'
-  require 'mechanize'
 rescue LoadError
 end
 

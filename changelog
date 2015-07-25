@@ -515,4 +515,6 @@
 # Fixed client list code
 # 2.5.7: Sat 25 Jul 2015 16:27:54 AEST
 # Fixed method determination for RHEL for install service creation from ISO
+# 2.5.8: Sat 25 Jul 2015 18:35:43 AEST
+# Fixed bug with puppet package directory creation
 
