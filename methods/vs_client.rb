@@ -10,7 +10,8 @@ def get_vs_clients()
       file_list        = Dir.entries(repo_version_dir)
       file_list.each do |file_name|
         if file_name.match(/\.cfg$/) and !file_name.match(/boot\.cfg|isolinux\.cfg/)
-          client_info = file_name+" service = "+install_service
+          client_name = file_name.split(/\./)[0]
+          client_info = client_name+" service = "+install_service
           client_list.push(client_info)
         end
       end
