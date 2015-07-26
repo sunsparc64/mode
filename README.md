@@ -236,7 +236,6 @@ All:
   - pathname
   - netaddr
   - net/ssh
-  - fileutils
   - nokogiri
   - mechanize
   - uri

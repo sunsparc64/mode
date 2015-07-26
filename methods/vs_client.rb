@@ -197,7 +197,7 @@ def configure_vs_client(install_client,install_arch,install_mac,install_ip,insta
   post_list = populate_vs_post_list(install_service)
   output_vs_post_list(post_list,output_file)
   if output_file
-    FileUtils.chmod(0755,output_file)
+    %x[chmod 755 #{output_file}]
   end
   configure_vs_pxe_client(install_client,install_mac,install_service)
   configure_vs_dhcp_client(install_client,install_mac,install_ip,install_arch,install_service)
