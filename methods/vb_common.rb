@@ -1,5 +1,14 @@
 # VirtualBox VM support code
 
+# Add shared folder to VM
+
+def add_shared_folder_to_vbox_vm(install_client,install_share,install_mount)
+  message = "Information:\tSharing \""+install_share+"\" to VM "+install_client+" as "+install_mount
+  command = "VBoxManage sharedfolder add '#{install_client}' --name '#{install_mount}' --hostpath '#{install_share}'"
+  execute_command(message,command)
+  return
+end
+
 # Restore VirtualBox VM snapshot
 
 def restore_vbox_vm_snapshot(install_client,install_clone)
