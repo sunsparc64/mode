@@ -523,4 +523,8 @@
 # Fixed bug with turning off VirtualBox warning messages
 # 2.6.1: Sun 26 Jul 2015 09:17:06 AEST
 # Added disk to boot method for VirtualBox
+# 2.6.2: Mon 27 Jul 2015 09:46:08 AEST
+# Removed need for fileutils gem
+# 2.6.3: Mon 27 Jul 2015 10:07:34 AEST
+# Added several packages to default kickstart package list
 
