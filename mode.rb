@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.6.3
+# Version:      2.6.4
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -410,8 +410,8 @@ def check_local_config(install_mode)
       if $os_info.match(/RedHat|CentOS/)
         check_yum_tftpd()
         check_yum_dhcpd()
-        $tftp_dir   = "/tftpboot"
-        $dhcpd_file = "/etc/dhcpd.conf"
+        $tftp_dir   = "/var/lib/tftpboot"
+        $dhcpd_file = "/etc/dhcp/dhcpd.conf"
       else
         check_apt_tftpd()
         check_apt_dhcpd()
@@ -422,8 +422,8 @@ def check_local_config(install_mode)
   else
     if $os_name.match(/Linux/)
       if $os_info.match(/RedHat|CentOS/)
-        $tftp_dir   = "/tftpboot"
-        $dhcpd_file = "/etc/dhcpd.conf"
+        $tftp_dir   = "/var/lib/tftpboot"
+        $dhcpd_file = "/etc/dhcp/dhcpd.conf"
       else
         $tftp_dir   = "/tftpboot"
         $dhcpd_file = "/etc/dhcp/dhcpd.conf"

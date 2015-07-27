@@ -28,18 +28,26 @@ end
 def unconfigure_vs_repo(service_name)
   remove_apache_alias(service_name)
   repo_version_dir = $repo_base_dir+"/"+service_name
-  if File.symlink?(repo_version_dir)
-    message = "Removing:\tSymlink "+repo_version_dir
-    command = "rm #{repo_version_dir}"
-    execute_command(message,command)
+  if $os_name.match(/SunOS/)
+    if File.symlink?(repo_version_dir)
+      message = "Removing:\tSymlink "+repo_version_dir
+      command = "rm #{repo_version_dir}"
+      execute_command(message,command)
+    else
+      destroy_zfs_fs(repo_version_dir)
+    end
+    netboot_repo_dir = $tftp_dir+"/"+service_name
+    if File.directory?(netboot_repo_dir)
+      message = "Removing:\tDirectory "+netboot_repo_dir
+      command = "rmdir #{netboot_repo_dir}"
+      execute_command(message,command)
+    end
   else
-    destroy_zfs_fs(repo_version_dir)
-  end
-  netboot_repo_dir = $tftp_dir+"/"+service_name
-  if File.directory?(netboot_repo_dir)
-    message = "Removing:\tDirectory "+netboot_repo_dir
-    command = "rmdir #{netboot_repo_dir}"
-    execute_command(message,command)
+    if File.directory?(repo_version_dir)
+      message = "Removing:\tDirectory "+repo_version_dir
+      command = "rm #{repo_version_dir}"
+      execute_command(message,command)
+    end
   end
   return
 end
@@ -47,7 +55,7 @@ end
 # Copy Linux ISO contents to
 
 def configure_vs_repo(iso_file,repo_version_dir,service_name)
-  check_zfs_fs_exists(repo_version_dir)
+  check_fs_exists(repo_version_dir)
   check_dir = repo_version_dir+"/upgrade"
   if $verbose_mode == 1
     puts "Checking:\tDirectory "+check_dir+" exists"

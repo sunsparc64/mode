@@ -242,6 +242,29 @@ All:
   - socket
   - net/http
   - net/scp
+- Packages (Linux)
+  - ruby-devel
+  - xz-devel
+  - zlib-devel
+  - libxml2-devel
+  - libgpg-error-devel
+  - libgcrypt-devel
+  - libxslt-devel
+  - libstdc++-devel
+  - gcc-c++
+  - libgnome-keyring
+  - perl-Error
+  - perl-TermReadKey
+  - git
+  - Perl-git
+  - libapr
+  - libapr-util
+  - mail-cap
+  - httpd-tools
+  - httpd
+  - xinetd
+  - tftp-server
+  - dhcp
 
 Kickstart, AutoYast, and Preseed Services:
 

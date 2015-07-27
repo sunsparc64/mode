@@ -35,7 +35,7 @@ end
 # Copy Linux ISO contents to repo
 
 def configure_ks_repo(iso_file,repo_version_dir)
-  check_zfs_fs_exists(repo_version_dir)
+  check_fs_exists(repo_version_dir)
   if repo_version_dir.match(/sles/)
     check_dir = repo_version_dir+"/boot"
   else
@@ -235,7 +235,7 @@ def configure_ks_puppet_repo(service_name,iso_arch)
   puppet_rpm_list["dependencies"].push("ruby-shadow")
   puppet_rpm_list["dependencies"].push("ruby-rgen")
   puppet_rpm_list["dependencies"].push("libselinux-ruby")
-  check_zfs_fs_exists(puppet_base_dir)
+  check_fs_exists(puppet_base_dir)
   add_apache_alias(puppet_base_dir)
   rpm_list   = populate_puppet_rpm_list(service_name,iso_arch)
   if !File.directory?(puppet_base_dir)
@@ -274,7 +274,7 @@ end
 
 def configure_linux_server(client_arch,publisher_host,publisher_port,service_name,iso_file,search_string)
   iso_list = []
-  check_zfs_fs_exists($client_base_dir)
+  check_fs_exists($client_base_dir)
   check_dhcpd_config(publisher_host)
   if iso_file.match(/[A-z]/)
     if File.exist?(iso_file)

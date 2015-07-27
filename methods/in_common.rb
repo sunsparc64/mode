@@ -135,10 +135,10 @@ end
 # Get Install method from ISO file name
 
 def get_install_method_from_iso(install_file)
-  if iso_file.match(/\//)
-    iso_file = File.basename(install_file)
+  if install_file.match(/\//)
+    install_file = File.basename(install_file)
   end
-  case iso_file
+  case install_file
   when /VMware-VMvisor/
     install_method = "vs"
   when /CentOS|OracleLinux|^SL|Fedora|rhel/
@@ -1415,7 +1415,7 @@ def check_iso_base_dir(search_string)
   if $verbose_mode == 1
     puts "Checking:\t"+$iso_base_dir
   end
-  check_zfs_fs_exists($iso_base_dir)
+  check_fs_exists($iso_base_dir)
   message  = "Getting:\t"+$iso_base_dir+" contents"
   if search_string.match(/[A-z]/)
     command  = "ls #{$iso_base_dir}/*.iso |egrep \"#{search_string}\" |grep -v '2.iso' |grep -v 'supp-server'"
@@ -1568,6 +1568,9 @@ def add_apache_alias(service_base_name)
   if $os_name.match(/Darwin/)
     apache_config_file = "/etc/apache2/httpd.conf"
   end
+  if $os_name.match(/Linux/)
+    apache_config_file = "/etc/httpd/conf/httpd.conf"
+  end
   tmp_file     = "/tmp/httpd.conf"
   message      = "Checking:\tApache confing file "+apache_config_file+" for "+service_base_name
   command      = "cat #{apache_config_file} |grep '/#{service_base_name}'"
@@ -1641,7 +1644,7 @@ def mount_iso(iso_file)
     disk_id = disk_id.chomp
     command = "mount -t cd9660 "+disk_id+" "+$iso_mount_dir
   end
-  if $os_name.match(/CentOS|RedHat|Ubuntu/)
+  if $os_name.match(/Linux/)
     command = "mount -t iso9660 "+iso_file+" "+$iso_mount_dir
   end
   output = execute_command(message,command)

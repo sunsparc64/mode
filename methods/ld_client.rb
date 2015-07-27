@@ -180,14 +180,14 @@ def configure_gdom(client_name,client_ip,client_mac,client_arch,client_os,client
   service_name = ""
   check_gdom_doesnt_exist(client_name)
   if !File.directory?($ldom_base_dir)
-    check_zfs_fs_exists($ldom_base_dir)
+    check_fs_exists($ldom_base_dir)
     message = "Setting:\tMount point for "+$ldom_base_dir
     command = "zfs set #{$default_zpool}#{$ldom_base_dir} mountpoint=#{$ldom_base_dir}"
     execute_command(message,command)
   end
   gdom_dir = $ldom_base_dir+"/"+client_name
   if !File.directory?(gdom_dir)
-    check_zfs_fs_exists(gdom_dir)
+    check_fs_exists(gdom_dir)
     message = "Setting:\tMount point for "+gdom_dir
     command = "zfs set #{$default_zpool}#{gdom_dir} mountpoint=#{gdom_dir}"
     execute_command(message,command)

@@ -103,7 +103,7 @@ def build_ai_pkg(p_struct,pkg_name,build_type,pkg_repo_dir)
   repo_pkg_version=check_pkg_repo(p_struct,pkg_name,pkg_repo_dir)
   if !repo_pkg_version.match(/#{pkg_version}/)
     source_dir=$repo_base_dir+"/source"
-    check_zfs_fs_exists(source_dir)
+    check_fs_exists(source_dir)
     pkg_version=p_struct[pkg_name].version
     source_name=pkg_name+"-"+pkg_version+".tar.gz"
     source_file=source_dir+"/"+source_name
@@ -161,7 +161,7 @@ end
 
 def create_ai_alt_repo(pkg_repo_dir)
   if !File.exists?("#{pkg_repo_dir}/pkg5.repository")
-    check_zfs_fs_exists(pkg_repo_dir)
+    check_fs_exists(pkg_repo_dir)
     message="Creating:\tAlternate package repository in "+pkg_repo_dir
     command="pkgrepo create #{pkg_repo_dir}"
     execute_command(message,command)

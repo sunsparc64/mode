@@ -96,7 +96,7 @@ def check_ai_base_dir()
   if $verbose_mode == 1
     puts "Checking:\t"+$ai_base_dir
   end
-  output = check_zfs_fs_exists($ai_base_dir)
+  output = check_fs_exists($ai_base_dir)
   return output
 end
 
@@ -106,7 +106,7 @@ end
 def check_version_dir(dir_name,repo_version)
   full_version_dir=dir_name+repo_version
   puts "Checking:\t"+full_version_dir
-  check_zfs_fs_exists(full_version_dir)
+  check_fs_exists(full_version_dir)
   return full_version_dir
 end
 
@@ -189,7 +189,7 @@ def check_repo_version_dir(repo_version_dir)
     check_dir = check_dir+"/"+dir_name
     check_dir = check_dir.gsub(/\/\//,"/")
     if dir_name.match(/[A-z|0-9]/)
-      check_zfs_fs_exists(check_dir)
+      check_fs_exists(check_dir)
     end
   end
   return

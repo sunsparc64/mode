@@ -7,7 +7,7 @@ def configure_js_nfs_service(service_name,publisher_host)
   repo_version_dir = $repo_base_dir+"/"+service_name
   if $os_name.match(/SunOS/)
     if $os_rel.match(/11/)
-      check_zfs_fs_exists($client_base_dir)
+      check_fs_exists($client_base_dir)
       add_nfs_export(service_name,repo_version_dir,publisher_host)
       export_name = "client_configs"
       add_nfs_export(export_name,$client_base_dir,publisher_host)
@@ -123,7 +123,7 @@ end
 
 def configure_js_repo(iso_file,repo_version_dir,os_version,os_update)
   if $os_name.match(/SunOS|Linux/)
-    check_zfs_fs_exists(repo_version_dir)
+    check_fs_exists(repo_version_dir)
   else
     check_dir_exists(repo_version_dir)
   end

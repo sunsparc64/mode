@@ -347,7 +347,7 @@ def create_zone(client_name,client_ip,zone_dir,client_rel,image_file,service_nam
     else
       branded_file = branded_dir+"solaris-10u11-sparc.bin"
     end
-    check_zfs_fs_exists(branded_dir)
+    check_fs_exists(branded_dir)
     if !File.exists(branded_file)
       print_branded_zone_info()
     end
@@ -464,7 +464,7 @@ def configure_zone(client_name,client_ip,client_mac,client_arch,client_os,client
   end
 
   if !File.directory?($zone_base_dir)
-    check_zfs_fs_exists($zone_base_dir)
+    check_fs_exists($zone_base_dir)
     message = "Setting:\tMount point for "+$zone_base_dir
     command = "zfs set #{$default_zpool}#{$zone_base_dir} mountpoint=#{$zone_base_dir}"
     execute_command(message,command)

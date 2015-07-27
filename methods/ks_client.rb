@@ -181,7 +181,7 @@ def configure_ks_client(install_client,install_arch,install_mac,install_ip,insta
   repo_version_dir = $repo_base_dir+"/"+install_service
   add_apache_alias($client_base_dir)
   client_dir = $client_base_dir+"/"+install_service+"/"+install_client
-  check_zfs_fs_exists(client_dir)
+  check_fs_exists(client_dir)
   if !File.directory?(repo_version_dir)
     puts "Warning:\tService "+install_service+" does not exist"
     puts
@@ -516,6 +516,11 @@ def populate_ks_pkg_list(service_name)
     pkg_list.push("libxslt-devel")
     pkg_list.push("libstdc++-devel")
     pkg_list.push("gcc-c++")
+    pkg_list.push("libgnome-keyring")
+    pkg_list.push("perl-Error")
+    pkg_list.push("perl-TermReadKey")
+    pkg_list.push("git")
+    pkg_list.push("perl-Git")
     if service_name.match(/fedora_[19,20]/)
       pkg_list.push("net-tools")
       pkg_list.push("bind-utils")

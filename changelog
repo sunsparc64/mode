@@ -527,4 +527,6 @@
 # Removed need for fileutils gem
 # 2.6.3: Mon 27 Jul 2015 10:07:34 AEST
 # Added several packages to default kickstart package list
+# 2.6.4: Mon 27 Jul 2015 12:09:50 AEST
+# Documentation and code fixes
 

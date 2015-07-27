@@ -22,7 +22,7 @@ end
 # Copy Linux ISO contents to repo
 
 def configure_xb_repo(iso_file,repo_version_dir,service_name)
-  check_zfs_fs_exists(repo_version_dir)
+  check_fs_exists(repo_version_dir)
   case service_name
   when /openbsd|freebsd/
     check_dir = repo_version_dir+"/etc"
