@@ -55,7 +55,19 @@ end
 # Copy Linux ISO contents to
 
 def configure_vs_repo(iso_file,repo_version_dir,service_name)
-  check_fs_exists(repo_version_dir)
+  if $os_name.match(/SunOS/)
+    check_fs_exists(repo_version_dir)
+    if !File.symlink?(netboot_repo_dir)
+      File.symlink(repo_version_dir,netboot_repo_dir)
+    end
+  end
+  if $os_name.match(/Linux/)
+    netboot_repo_dir = $tftp_dir+"/"+service_name
+    check_fs_exists(netboot_repo_dir)
+    if !File.symlink?(repo_version_dir)
+      File.symlink(netboot_repo_dir,repo_version_dir)
+    end
+  end
   check_dir = repo_version_dir+"/upgrade"
   if $verbose_mode == 1
     puts "Checking:\tDirectory "+check_dir+" exists"

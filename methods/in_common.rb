@@ -695,41 +695,65 @@ def check_dhcpd_config(publisher_host)
   end
   if !output.match(/subnet/) and !output.match(/#{network_address}/)
     tmp_file    = "/tmp/dhcpd"
-    backup_file = $dhcpd_file+".premodest"
+    backup_file = $dhcpd_file+".premode"
     file = File.open(tmp_file,"w")
     file.write("\n")
-    file.write("default-lease-time 900;\n")
-    file.write("max-lease-time 86400;\n")
+    if $os_name.match(/SunOS|Linux/)
+      file.write("default-lease-time 900;\n")
+      file.write("max-lease-time 86400;\n")
+    end
+    if $os_name.match(/Linux/)
+      file.write("option space pxelinux;\n")
+      file.write("option pxelinux.magic code 208 = string;\n")
+      file.write("option pxelinux.configfile code 209 = text;\n")
+      file.write("option pxelinux.pathprefix code 210 = text;\n")
+      file.write("option pxelinux.reboottime code 211 = unsigned integer 32;\n")
+      file.write("option architecture-type code 93 = unsigned integer 16;\n")
+    end
     file.write("\n")
-    file.write("authoritative;\n")
+    if $os_name.match(/SunOS/)
+      file.write("authoritative;\n")
+      file.write("\n")
+      file.write("option arch code 93 = unsigned integer 16;\n")
+      file.write("option grubmenu code 150 = text;\n")
+      file.write("\n")
+      file.write("log-facility local7;\n")
+      file.write("\n")
+      file.write("class \"PXEBoot\" {\n")
+      file.write("  match if (substring(option vendor-class-identifier, 0, 9) = \"PXEClient\");\n")
+      file.write("  if option arch = 00:00 {\n")
+      file.write("    filename \"default-i386/boot/grub/pxegrub2\";\n")
+      file.write("  } else if option arch = 00:07 {\n")
+      file.write("    filename \"default-i386/boot/grub/grub2netx64.efi\";\n")
+      file.write("  }\n")
+      file.write("}\n")
+      file.write("\n")
+      file.write("class \"SPARC\" {\n")
+      file.write("  match if not (substring(option vendor-class-identifier, 0, 9) = \"PXEClient\");\n")
+      file.write("  filename \"http://#{publisher_host}:5555/cgi-bin/wanboot-cgi\";\n")
+      file.write("}\n")
+      file.write("\n")
+      file.write("allow booting;\n")
+      file.write("allow bootp;\n")
+    end
+    if $os_name.match(/Linux/)
+      file.write("class \"pxeclients\" {\n")
+      file.write("  match if substring (option vendor-class-identifier, 0, 9) = \"PXEClient\";\n")
+      file.write("  if option architecture-type = 00:07 {\n")
+      file.write("    filename \"uefi/shim.efi\";\n")
+      file.write("  } else {\n")
+      file.write("    filename \"pxelinux/pxelinux.0\";\n")
+      file.write("  }\n")
+      file.write("}\n")
+    end
     file.write("\n")
-    file.write("option arch code 93 = unsigned integer 16;\n")
-    file.write("option grubmenu code 150 = text;\n")
-    file.write("\n")
-    file.write("log-facility local7;\n")
-    file.write("\n")
-    file.write("class \"PXEBoot\" {\n")
-    file.write("  match if (substring(option vendor-class-identifier, 0, 9) = \"PXEClient\");\n")
-    file.write("  if option arch = 00:00 {\n")
-    file.write("    filename \"default-i386/boot/grub/pxegrub2\";\n")
-    file.write("  } else if option arch = 00:07 {\n")
-    file.write("    filename \"default-i386/boot/grub/grub2netx64.efi\";\n")
-    file.write("  }\n")
-    file.write("}\n")
-    file.write("\n")
-    file.write("class \"SPARC\" {\n")
-    file.write("  match if not (substring(option vendor-class-identifier, 0, 9) = \"PXEClient\");\n")
-    file.write("  filename \"http://#{publisher_host}:5555/cgi-bin/wanboot-cgi\";\n")
-    file.write("}\n")
-    file.write("\n")
-    file.write("allow booting;\n")
-    file.write("allow bootp;\n")
-    file.write("\n")
-    file.write("subnet #{network_address} netmask #{$default_netmask} {\n")
-    file.write("  option broadcast-address #{broadcast_address};\n")
-    file.write("  option routers #{gateway_address};\n")
-    file.write("  next-server #{$default_host};\n")
-    file.write("}\n")
+    if $os_name.match(/SunOS|Linux/)
+      file.write("subnet #{network_address} netmask #{$default_netmask} {\n")
+      file.write("  option broadcast-address #{broadcast_address};\n")
+      file.write("  option routers #{gateway_address};\n")
+      file.write("  next-server #{$default_host};\n")
+      file.write("}\n")
+    end
     file.write("\n")
     file.close
     if File.exist?($dhcpd_file)
@@ -753,46 +777,105 @@ def check_dhcpd_config(publisher_host)
   return
 end
 
+# Check package is installed
+
+def check_rhel_package(package)
+  message = "Checking:\t"+package+" is installed"
+  command = "rpm -q #{package}"
+  output  = execute_command(message,command)
+  if !output.match(/#{package}/)
+    message = "installing:\t"+package
+    command = "yum -y install #{package}"
+    execute_command(message,command)
+  end
+  return
+end
+
+# Check firewall is enabled
+
+def check_rhel_service(service)
+  message = "Checking:\t"+service+" is installed"
+  command = "service #{service} status |grep dead"
+  output  = execute_command(message,command)
+  if output.match(/dead/)
+    message = "Enabling:\t"+service
+    if $os_rel.match(/^7/)
+      command = "systemctl enable #{service}.service"
+      command = "systemctl start #{service}.service"
+    else
+      command = "chkconfig --level 345 #{service} on"
+    end
+    execute_command(message,command)
+  end
+  return
+end  
+
+# Check service is enabled
+
+def check_rhel_firewall(service,port_info)
+  if $os_rel.match(/^7/)
+    message = "Checking:\tFirewall for "+service
+    command = "firewall-cmd --list-services |grep #{service}"
+    output  = execute_command(message,command)
+    if !output.match(/#{service}/)
+      message = "Information:\tAdding firewall rule for "+service
+      command = "firewall-cmd --add-service=#{service} --permanent"
+      execute_command(message,command)
+    end
+    if port_info.match(/[0-9]/)
+      message = "Checking:\tFirewall for "+port_info
+      command = "firewall-cmd --list-all |grep #{port_info}"
+      output  = execute_command(message,command)
+      if !output.match(/#{port_info}/)
+        message = "Information:\tAdding firewall rule for "+port_info
+        command = "firewall-cmd --zone=public --add-port=#{port_info} --permanent"
+        execute_command(message,command)
+      end
+    end
+  end
+  return
+end
+
+# Check httpd enabled on Centos / Redhat
+
+def check_yum_xinetd()
+  check_rhel_package("xinetd")
+  check_rhel_firewall("xinetd","")
+  check_rhel_service("xinetd")
+  return
+end
+
 # Check TFTPd enabled on CentOS / RedHat
 
 def check_yum_tftpd()
-  message = "Checking:\tTFTPd is installed"
-  command = "rpm -q tftp-server"
-  output  = execute_command(message,command)
-  if !output.match(/tftp/)
-    message = "installing:\tTFTPd"
-    command = "yum -y install tftp-server"
-    execute_command(message,command)
-    check_dir_exists($tftp_dir)
-    message = "Enabling:\tTFTPd"
-    command = "chkconfig tftp on"
-    execute_command(message,command)
-  end
+  check_dir_exists($tftp_dir)
+  check_rhel_package("tftp-server")
+  check_rhel_firewall("tftp","80/tcp")
+  check_rhel_service("tftp")
   return
 end
 
 # Check DHCPd enabled on CentOS / RedHat
 
 def check_yum_dhcpd()
-  message = "Checking:\tDHCPd is installed"
-  command = "rpm -q dhcp"
-  output  = execute_command(message,command)
-  if !output.match(/dhcp/)
-    message = "installing:\tDHCPd"
-    command = "yum -y install dhcp"
-    execute_command(message,command)
-    message = "Enabling:\tDHCPd"
-    command = "chkconfig dhcpd on"
-    execute_command(message,command)
-  end
+  check_rhel_package("dhcp")
+  check_rhel_firewall("dhcp","")
+  check_rhel_service("dhcpd")
   return
 end
 
-# Check TFTPd enabled on CentOS / RedHat
+# Check httpd enabled on Centos / Redhat
+
+def check_yum_httpd()
+  check_rhel_package("httpd")
+  check_rhel_firewall("http")
+  check_rhel_service("httpd")
+  return
+end
+
+# Check TFTPd enabled on Debian / Ubuntu
 
 def check_apt_tftpd()
-  tftpd_file = "/etc/xinetd.d/tftp"
-  tmp_file   = "/tmp/tftp"
   message    = "Checking:\tTFTPd is installed"
   command    = "dpkg -l tftpd |grep '^ii'"
   output     = execute_command(message,command)
@@ -800,32 +883,11 @@ def check_apt_tftpd()
     message = "installing:\tTFTPd"
     command = "apt-get -y install tftpd"
     execute_command(message,command)
-    check_dir_exists($tftp_dir)
-    if !File.exist?(tftpd_file)
-      file=File.open(tmp_file,"w")
-      file.write("service tftp\n")
-      file.write("{\n")
-      file.write("protocol        = udp\n")
-      file.write("port            = 69\n")
-      file.write("socket_type     = dgram\n")
-      file.write("wait            = yes\n")
-      file.write("user            = nobody\n")
-      file.write("server          = /usr/sbin/in.tftpd\n")
-      file.write("server_args     = /tftpboot\n")
-      file.write("disable         = no\n")
-      file.write("}\n")
-    end
-    message = "Creating:\tTFTPd configuration file "+tftpd_file
-    command = "cp #{tmp_file} #{tftpd_file} ; rm #{tmp_file}"
-    execute_command(message,command)
-    message = "Enabling:\tTFTPd"
-    command = "/etc/init.d/xinetd restart"
-    execute_command(message,command)
   end
   return
 end
 
-# Check DHCPd enabled on CentOS / RedHat
+# Check DHCPd enabled on Debian / Ubuntu
 
 def check_apt_dhcpd()
   message = "Checking:\tDHCPd is installed"
@@ -855,6 +917,51 @@ def restart_tftpd()
   service = "tftp"
   service = get_service_name(service)
   refresh_service(service)
+  return
+end
+
+# Check tftpd config for Linux(turn on in xinetd config file /etc/xinetd.d/tftp)
+
+def check_tftpd_config()
+  if $os_name.match(/Linux/)
+    tftpd_file = "/etc/xinetd.d/tftp"
+    tmp_file   = "/tmp/tftp"
+    if $os_info.match(/Ubuntu|Debian/)
+      check_apt_tftpd
+    else
+      check_yum_tftpd
+    end
+    check_dir_exists($tftp_dir)
+    if File.exist?(tftpd_file)
+      disable_test =%x[cat #{tftpd_file} |grep disable |awk '{print $2}']
+    else
+      disable_test = "yes"
+    end
+    if disable_test.match(/yes/)
+      if File.exist?(tftpd_file)
+        message = "Information:\tBacking up "+tftpd_file+" to "+tftpd_file+".premode"
+        command = "cp #{tftpd_file} #{tftpd_file}.premode"
+        execute_command(message,command)
+      end
+      file=File.open(tmp_file,"w")
+      file.write("service tftp\n")
+      file.write("{\n")
+      file.write("protocol        = udp\n")
+      file.write("port            = 69\n")
+      file.write("socket_type     = dgram\n")
+      file.write("wait            = yes\n")
+      file.write("user            = nobody\n")
+      file.write("server          = /usr/sbin/in.tftpd\n")
+      file.write("server_args     = /tftpboot\n")
+      file.write("disable         = no\n")
+      file.write("}\n")
+      message = "Creating:\tTFTPd configuration file "+tftpd_file
+      command = "cp #{tmp_file} #{tftpd_file} ; rm #{tmp_file}"
+      execute_command(message,command)
+      restart_tftpd()
+    end
+  end
+  return
 end
 
 # Check tftpd directory
@@ -1274,7 +1381,7 @@ def restart_dhcpd()
     smf_service_name = "svc:/network/dhcp/server:ipv4"
     output           = handle_smf_service(function,smf_service_name)
   else
-    service_name = "dhcp"
+    service_name = "dhcpd"
     refresh_service(service_name)
   end
   return output
@@ -1389,7 +1496,7 @@ def refresh_service(service_name)
     output = refresh_osx_service(service_name)
   end
   if $os_name.match(/Linux/)
-    restart_linux_service(service)
+    restart_linux_service(service_name)
   end
   return output
 end
@@ -1570,38 +1677,49 @@ def add_apache_alias(service_base_name)
   end
   if $os_name.match(/Linux/)
     apache_config_file = "/etc/httpd/conf/httpd.conf"
+    if $os_info.match(/CentOS|RedHat/)
+      apache_doc_root = "/var/www/html"
+      apache_doc_dir  = apache_doc_root+"/"+service_base_name
+    end
   end
-  tmp_file     = "/tmp/httpd.conf"
-  message      = "Checking:\tApache confing file "+apache_config_file+" for "+service_base_name
-  command      = "cat #{apache_config_file} |grep '/#{service_base_name}'"
-  apache_check = execute_command(message,command)
-  if !apache_check.match(/#{service_base_name}/)
-    message = "Archiving:\tApache config file "+apache_config_file+" to "+apache_config_file+".no_"+service_base_name
-    command = "cp #{apache_config_file} #{apache_config_file}.no_#{service_base_name}"
-    execute_command(message,command)
-    if $verbose_mode == 1
-      puts "Adding:\t\tDirectory and Alias entry to "+apache_config_file
+  if $os_name.match(/SunOS/)
+    tmp_file     = "/tmp/httpd.conf"
+    message      = "Checking:\tApache confing file "+apache_config_file+" for "+service_base_name
+    command      = "cat #{apache_config_file} |grep '/#{service_base_name}'"
+    apache_check = execute_command(message,command)
+    if !apache_check.match(/#{service_base_name}/)
+      message = "Archiving:\tApache config file "+apache_config_file+" to "+apache_config_file+".no_"+service_base_name
+      command = "cp #{apache_config_file} #{apache_config_file}.no_#{service_base_name}"
+      execute_command(message,command)
+      if $verbose_mode == 1
+        puts "Adding:\t\tDirectory and Alias entry to "+apache_config_file
+      end
+      message = "Copying:\tApache config file so it can be edited"
+      command = "cp #{apache_config_file} #{tmp_file} ; chown #{$id} #{tmp_file}"
+      execute_command(message,command)
+      output = File.open(tmp_file,"a")
+      output.write("<Directory #{apache_alias_dir}>\n")
+      if service_base_name.match(/oel/)
+        output.write("Options Indexes FollowSymLinks\n")
+      else
+        output.write("Options Indexes\n")
+      end
+      output.write("Allow from #{$default_apache_allow}\n")
+      output.write("</Directory>\n")
+      output.write("Alias /#{service_base_name} #{apache_alias_dir}\n")
+      output.close
+      message = "Updating:\tApache config file"
+      command = "cp #{tmp_file} #{apache_config_file} ; rm #{tmp_file}"
+      execute_command(message,command)
+      service_name = "apache"
+      enable_service(service_name)
+      refresh_service(service_name)
     end
-    message = "Copying:\tApache config file so it can be edited"
-    command = "cp #{apache_config_file} #{tmp_file} ; chown #{$id} #{tmp_file}"
-    execute_command(message,command)
-    output = File.open(tmp_file,"a")
-    output.write("<Directory #{apache_alias_dir}>\n")
-    if service_base_name.match(/oel/)
-      output.write("Options Indexes FollowSymLinks\n")
-    else
-      output.write("Options Indexes\n")
+  end
+  if $os_name.match(/Linux/)
+    if !File.symlink?(apache_doc_dir)
+      File.symlink(apache_alias_dir,apache_doc_dir)
     end
-    output.write("Allow from #{$default_apache_allow}\n")
-    output.write("</Directory>\n")
-    output.write("Alias /#{service_base_name} #{apache_alias_dir}\n")
-    output.close
-    message = "Updating:\tApache config file"
-    command = "cp #{tmp_file} #{apache_config_file} ; rm #{tmp_file}"
-    execute_command(message,command)
-    service_name = "apache"
-    enable_service(service_name)
-    refresh_service(service_name)
   end
   return
 end

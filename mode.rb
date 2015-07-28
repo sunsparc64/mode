@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.6.4
+# Version:      2.6.5
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -165,7 +165,7 @@ $valid_linux_os_list    = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu
 $valid_arch_list        = [ 'x86_64', 'i386', 'sparc' ]
 $valid_console_list     = [ 'text', 'console', 'x11', 'headless' ]
 $valid_method_list      = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay' ]
-$valid_type_list        = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd' ]
+$valid_type_list        = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server' ]
 $valid_mode_list        = [ 'client', 'server', 'osx' ]
 $valid_vm_list          = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'gdom', 'parallels' ]
 $execute_host           = "localhost"
@@ -193,19 +193,32 @@ else
   case $os_info
   when /SunOS/
     $valid_vm_list = [ 'vbox', 'zone' ]
-    platform = %[prtdiag |grep VMware]
-    case platform
-    when /VMware/
-      $default_gateway_ip  = "130.194.2.254"
-      $default_hostonly_ip = "130.194.2.254"
-    when /VirtualBox/
-      $default_gateway_ip  = "130.194.3.254"
-      $default_hostonly_ip = "130.194.3.254"
-    end
+    platform = %x[prtdiag |grep 'System Configuration']
   when /Linux/
     $valid_vm_list = [ 'vbox', 'lxc' ]
+    platform = %x[dmidecode |grep 'Product Name']
   when /Darwin/
     $valid_vm_list = [ 'vbox', 'fusion', 'parallels' ]
+  end
+  case platform
+  when /VMware/
+    $default_gateway_ip  = "130.194.2.254"
+    $default_hostonly_ip = "130.194.2.254"
+    if $os_name.match(/Linux/)
+      $default_net = "eth0"
+    end
+  when /VirtualBox/
+    $default_gateway_ip  = "130.194.3.254"
+    $default_hostonly_ip = "130.194.3.254"
+    if $os_name.match(/Linux/)
+      $default_net = "enp0s3"
+    end
+  else
+    $default_gateway_ip  = "130.194.3.254"
+    $default_hostonly_ip = "130.194.3.254"
+    if $os_name.match(/Linux/)
+      $default_net = "eth0"
+    end
   end
 end
 
@@ -308,10 +321,9 @@ def get_default_host()
       command = "ifconfig #{$default_net} |grep 'inet ' |grep -v inet6 |awk '{print $2}'"
     end
     if $os_name.match(/Linux/)
-      $default_net="eth0"
-      command = "ifconfig #{$default_net} |grep 'inet ' |awk '{print $2}'"
+      command = "ifconfig #{$default_net} |grep 'inet ' |head -1 |awk '{print $2}'"
       test_ip = %x[#{command}].chomp
-      if !test_ip.match(/inet/)
+      if !test_ip.match(/inet|[0-9]/)
         command = "ifconfig lxcbr0 |grep 'inet ' |awk '{print $2}'"
       end
     end
@@ -408,10 +420,14 @@ def check_local_config(install_mode)
     end
     if $os_name.match(/Linux/)
       if $os_info.match(/RedHat|CentOS/)
+        check_yum_xinetd()
         check_yum_tftpd()
         check_yum_dhcpd()
+        check_yum_httpd()
         $tftp_dir   = "/var/lib/tftpboot"
         $dhcpd_file = "/etc/dhcp/dhcpd.conf"
+        check_dhcpd_config("")
+        check_tftpd_config()
       else
         check_apt_tftpd()
         check_apt_dhcpd()
@@ -1491,7 +1507,7 @@ if option["action"]
     end
   when /check/
     if install_mode.match(/server/)
-      check_local_config(install_mode,install_clone)
+      check_local_config(install_mode)
     end
     if install_mode.match(/osx/)
       check_osx_dnsmasq()

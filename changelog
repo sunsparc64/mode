@@ -529,4 +529,6 @@
 # Added several packages to default kickstart package list
 # 2.6.4: Mon 27 Jul 2015 12:09:50 AEST
 # Documentation and code fixes
+# 2.6.5: Tue Jul 28 10:28:25 AEST 2015
+# Added support for distribution server on RHEL 7 
 
