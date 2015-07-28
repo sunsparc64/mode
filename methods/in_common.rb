@@ -814,7 +814,7 @@ end
 
 def check_rhel_firewall(service,port_info)
   if $os_rel.match(/^7/)
-    message = "Checking:\tFirewall for "+service
+    message = "Information:\tChecking firewall configuration for "+service
     command = "firewall-cmd --list-services |grep #{service}"
     output  = execute_command(message,command)
     if !output.match(/#{service}/)
@@ -823,12 +823,24 @@ def check_rhel_firewall(service,port_info)
       execute_command(message,command)
     end
     if port_info.match(/[0-9]/)
-      message = "Checking:\tFirewall for "+port_info
+      message = "Information:\tChecking firewall configuration for "+port_info
       command = "firewall-cmd --list-all |grep #{port_info}"
       output  = execute_command(message,command)
       if !output.match(/#{port_info}/)
         message = "Information:\tAdding firewall rule for "+port_info
         command = "firewall-cmd --zone=public --add-port=#{port_info} --permanent"
+        execute_command(message,command)
+      end
+    end
+  else
+    if port_info.match(/[0-9]/)
+      (port_no,protocol) = port_info.split(/\//)
+      message = "Information:\tChecking firewall configuration for "+service+" on "+port_info
+      command = "iptables --list-rules |grep #{protocol} |grep #{port_no}"
+      output  = execute_command(message,command)
+      if !output.match(/#{protocol}/)
+        message = "Information:\tAdding firewall rule for "+service
+        command = "iptables -I INPUT -p #{protocol} --dport #{port_no} -j ACCEPT ; service iptables save"
         execute_command(message,command)
       end
     end
@@ -859,7 +871,7 @@ end
 
 def check_yum_dhcpd()
   check_rhel_package("dhcp")
-  check_rhel_firewall("dhcp","")
+  check_rhel_firewall("dhcp","69/udp")
   check_rhel_service("dhcpd")
   return
 end
@@ -911,6 +923,15 @@ def restart_service(service)
   return
 end
 
+# Restart xinetd
+
+def restart_xinetd()
+  service = "xinetd"
+  service = get_service_name(service)
+  refresh_service(service)
+  return
+end
+
 # Restart tftpd
 
 def restart_tftpd()
@@ -933,7 +954,7 @@ def check_tftpd_config()
     end
     check_dir_exists($tftp_dir)
     if File.exist?(tftpd_file)
-      disable_test =%x[cat #{tftpd_file} |grep disable |awk '{print $2}']
+      disable_test =%x[cat #{tftpd_file} |grep disable |awk -F= '{print $2}']
     else
       disable_test = "yes"
     end
@@ -946,18 +967,25 @@ def check_tftpd_config()
       file=File.open(tmp_file,"w")
       file.write("service tftp\n")
       file.write("{\n")
-      file.write("protocol        = udp\n")
-      file.write("port            = 69\n")
-      file.write("socket_type     = dgram\n")
-      file.write("wait            = yes\n")
-      file.write("user            = nobody\n")
-      file.write("server          = /usr/sbin/in.tftpd\n")
-      file.write("server_args     = /tftpboot\n")
-      file.write("disable         = no\n")
+      file.write("\tprotocol        = udp\n")
+      file.write("\tport            = 69\n")
+      file.write("\tsocket_type     = dgram\n")
+      file.write("\twait            = yes\n")
+      file.write("\tuser            = root\n")
+      if $os_name.match(/Ubuntu|Debian/)
+        file.write("\tserver          = /usr/sbin/in.tftpd\n")
+        file.write("\tserver_args     = /tftpboot\n")
+      else
+        file.write("\tserver          = /usr/sbin/in.tftpd\n")
+        file.write("\tserver_args     = /var/lib/tftpboot -s\n")
+      end
+      file.write("\tdisable         = no\n")
       file.write("}\n")
+      file.close
       message = "Creating:\tTFTPd configuration file "+tftpd_file
       command = "cp #{tmp_file} #{tftpd_file} ; rm #{tmp_file}"
       execute_command(message,command)
+      restart_xinetd()
       restart_tftpd()
     end
   end
@@ -1763,7 +1791,7 @@ def mount_iso(iso_file)
     command = "mount -t cd9660 "+disk_id+" "+$iso_mount_dir
   end
   if $os_name.match(/Linux/)
-    command = "mount -t iso9660 "+iso_file+" "+$iso_mount_dir
+    command = "mount -t iso9660 -o loop "+iso_file+" "+$iso_mount_dir
   end
   output = execute_command(message,command)
   if iso_file.match(/sol/)
