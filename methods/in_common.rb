@@ -850,7 +850,7 @@ end
 def check_yum_tftpd()
   check_dir_exists($tftp_dir)
   check_rhel_package("tftp-server")
-  check_rhel_firewall("tftp","80/tcp")
+  check_rhel_firewall("tftp","")
   check_rhel_service("tftp")
   return
 end
@@ -868,7 +868,7 @@ end
 
 def check_yum_httpd()
   check_rhel_package("httpd")
-  check_rhel_firewall("http")
+  check_rhel_firewall("http","80/tcp")
   check_rhel_service("httpd")
   return
 end
