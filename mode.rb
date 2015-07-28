@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.6.7
+# Version:      2.6.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -354,6 +354,9 @@ def get_default_host()
     $default_host = $default_host.chomp
     if $default_host.match(/inet/)
       $default_host = $default_host.gsub(/^\s+/,"").split(/\s+/)[1]
+    end
+    if $default_host.match(/addr:/)
+      $default_host = $default_host.split(/:/)[1].split(/ /)[0]
     end
   end
 end

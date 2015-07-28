@@ -535,4 +535,6 @@
 # Fixed issues with RHEL 7 as a distribution server
 # 2.6.7: Tue Jul 28 17:45:03 AEST 2015
 # Linux OS version detection improvements
+# 2.6.8: Tue Jul 28 18:36:21 AEST 2015
+# Improved host IP detection on Linux
 
