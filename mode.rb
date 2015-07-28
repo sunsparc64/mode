@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.6.6
+# Version:      2.6.7
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -27,11 +27,11 @@ require 'unix_crypt'
 require 'pathname'
 require 'netaddr'
 require 'net/ssh'
-require 'nokogiri'
-require 'mechanize'
-require 'uri'
 
 begin
+  require 'nokogiri'
+  require 'mechanize'
+  require 'uri'
   require 'socket'
   require 'net/http'
   require 'net/scp'
@@ -189,8 +189,6 @@ if $os_name.match(/SunOS|Darwin/)
     $os_update   = %x[uname -v].chomp
     $default_net = "net0"
   end
-else
-  $os_info = %x[lsb_release -i].chomp
 end
 
 $id = %x[/usr/bin/id -u]
@@ -207,10 +205,19 @@ else
     platform = %x[prtdiag |grep 'System Configuration'].chomp
   when /Linux/
     $valid_vm_list = [ 'vbox', 'lxc' ]
-    platform = %x[/sbin/dmidecode |grep 'Product Name'].chomp
-    if File.exist?("/bin/lsb_release")
-      $os_info = %x[lsb_release -i].chomp
+    if File.exist?("/sbin/dmidecode")
+      dmidecode_bin = "/sbin/dmidecode"
+    else
+      dmidecode_bin = "/usr/sbin/dmidecode"
     end
+    platform = %x[#{dmidecode_bin} |grep 'Product Name'].chomp
+    if File.exist?("/bin/lsb_release")
+      lsb_bin = "/bin/lsb_release"
+    else
+      lsb_bin = "/usr/bin/lsb_release"
+    end
+    $os_info = %x[#{lsb_bin} -i -s].chomp
+    $os_rel  = %x[#{lsb_bin} -r -s].chomp
   when /Darwin/
     $valid_vm_list = [ 'vbox', 'fusion', 'parallels' ]
   end
@@ -224,8 +231,10 @@ else
   when /VirtualBox/
     $default_gateway_ip  = "130.194.3.254"
     $default_hostonly_ip = "130.194.3.254"
-    if $os_name.match(/Linux/)
+    if $os_info.match(/RedHat|CentOS/) and $os_rel.match(/^7/)
       $default_net = "enp0s3"
+    else
+      $default_net = "eth0"
     end
   else
     $default_gateway_ip  = "130.194.3.254"

@@ -533,4 +533,6 @@
 # Added support for distribution server on RHEL 7 
 # 2.6.6: Tue Jul 28 16:12:55 AEST 2015
 # Fixed issues with RHEL 7 as a distribution server
+# 2.6.7: Tue Jul 28 17:45:03 AEST 2015
+# Linux OS version detection improvements
 

@@ -243,6 +243,8 @@ All:
   - net/http
   - net/scp
 - Packages (Linux)
+  - git
+  - gcc
   - ruby-devel
   - xz-devel
   - zlib-devel
