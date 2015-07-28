@@ -34,7 +34,20 @@ end
 
 # Copy Linux ISO contents to repo
 
-def configure_ks_repo(iso_file,repo_version_dir)
+def configure_ks_repo(service_name,iso_file,repo_version_dir)
+  if $os_name.match(/SunOS/)
+    check_fs_exists(repo_version_dir)
+    if !File.symlink?(netboot_repo_dir)
+      File.symlink(repo_version_dir,netboot_repo_dir)
+    end
+  end
+  if $os_name.match(/Linux/)
+    netboot_repo_dir = $tftp_dir+"/"+service_name
+    check_fs_exists(netboot_repo_dir)
+    if !File.symlink?(repo_version_dir)
+      File.symlink(netboot_repo_dir,repo_version_dir)
+    end
+  end
   check_fs_exists(repo_version_dir)
   if repo_version_dir.match(/sles/)
     check_dir = repo_version_dir+"/boot"
@@ -95,7 +108,7 @@ def configure_ks_pxe_boot(service_name,iso_arch)
         rpm_dir = $repo_base_dir+"/"+service_name+"/Packages"
       end
       if File.directory?(rpm_dir)
-        if !service_name.match(/sl_|fedora_19/)
+        if !service_name.match(/sl_|fedora_19|rhel_6/)
           message  = "Locating:\tSyslinux package"
           command  = "cd #{rpm_dir} ; find . -name 'syslinux-[0-9]*' |grep '#{iso_arch}'"
           output   = execute_command(message,command)
@@ -118,6 +131,16 @@ def configure_ks_pxe_boot(service_name,iso_arch)
         message = "Copying:\tPXE boot files from "+rpm_file+" to "+pxe_boot_dir
         command = "cd #{pxe_boot_dir} ; #{$rpm2cpio_bin} #{rpm_file} | cpio -iud"
         output  = execute_command(message,command)
+        if $os_info.match(/RedHat/) and $os_rel.match(/^7/) and pxe_boot_dir.match(/[a-z]/)
+          httpd_p = "httpd_sys_rw_content_t"
+          tftpd_p = "unconfined_u:object_r:system_conf_t:s0"
+          message = "Information:\tFixing permissions on "+pxe_boot_dir
+          command = "chcon -R -t #{httpd_p} #{pxe_boot_dir} ; chcon #{tftpd_p} #{pxe_boot_dir}"
+          execute_command(message,command)
+          message = "Information:\tFixing permissions on "+pxe_boot_dir+"/usr and "+pxe_boot_dir+"/images"
+          command = "chcon -R #{pxe_boot_dir}/usr ; chcon -R #{pxe_boot_dir}/images"
+          execute_command(message,command)
+        end
       else
         puts "Warning:\tSource directory "+rpm_dir+" does not exist"
         exit
@@ -299,13 +322,15 @@ def configure_linux_server(client_arch,publisher_host,publisher_port,service_nam
       repo_version_dir  = $repo_base_dir+"/"+service_name
       if !iso_file_name.match(/DVD2\.iso|2of2\.iso/)
         add_apache_alias(service_name)
-        configure_ks_repo(iso_file_name,repo_version_dir)
+        configure_ks_repo(service_name,iso_file_name,repo_version_dir)
         configure_ks_pxe_boot(service_name,iso_arch)
         if service_name.match(/centos|fedora|rhel|sl_|oel/)
           configure_ks_vmware_repo(service_name,iso_arch)
         end
         if !service_name.match(/ubuntu|sles/)
-          configure_ks_puppet_repo(service_name,iso_arch)
+          if $default_options.match(/puppet/)
+            configure_ks_puppet_repo(service_name,iso_arch)
+          end
         end
       else
         mount_iso(iso_file)
@@ -325,7 +350,9 @@ def configure_linux_server(client_arch,publisher_host,publisher_port,service_nam
         configure_ks_vmware_repo(service_name,client_arch)
       end
       if !service_name.match(/ubuntu|sles/)
-        configure_ks_puppet_repo(service_name,client_arch)
+        if $default_options.match(/puppet/)
+          configure_ks_puppet_repo(service_name,client_arch)
+        end
       end
     else
       puts "Warning:\tISO file and/or Service name not found"

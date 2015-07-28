@@ -328,24 +328,26 @@ def populate_ks_post_list(client_arch,service_name,publisher_host)
     post_list.push("yum -y update")
     post_list.push("")
   end
-  rpm_list  = populate_puppet_rpm_list(service_name,client_arch)
-  rpm_file  = rpm_list.grep(/facter/)[0]
-  if rpm_file
-    rpm_file  = rpm_file.split(/\//)[1..-1].join("/")
-    local_url = "http://"+publisher_host+"/puppet/"+rpm_file
-    post_list.push("rpm -i #{local_url}")
-  end
-  rpm_file  = rpm_list.grep(/hiera/)[0]
-  if rpm_file
-    rpm_file  = rpm_file.split(/\//)[1..-1].join("/")
-    local_url = "http://"+publisher_host+"/puppet/"+rpm_file
-    post_list.push("rpm -i #{local_url}")
-  end
-  rpm_list.each do |rpm_file|
-    if !rpm_file.match(/facter|hiera/)
+  if $default_options.match(/puppet/)
+    rpm_list  = populate_puppet_rpm_list(service_name,client_arch)
+    rpm_file  = rpm_list.grep(/facter/)[0]
+    if rpm_file
       rpm_file  = rpm_file.split(/\//)[1..-1].join("/")
       local_url = "http://"+publisher_host+"/puppet/"+rpm_file
       post_list.push("rpm -i #{local_url}")
+    end
+    rpm_file  = rpm_list.grep(/hiera/)[0]
+    if rpm_file
+      rpm_file  = rpm_file.split(/\//)[1..-1].join("/")
+      local_url = "http://"+publisher_host+"/puppet/"+rpm_file
+      post_list.push("rpm -i #{local_url}")
+    end
+    rpm_list.each do |rpm_file|
+      if !rpm_file.match(/facter|hiera/)
+        rpm_file  = rpm_file.split(/\//)[1..-1].join("/")
+        local_url = "http://"+publisher_host+"/puppet/"+rpm_file
+        post_list.push("rpm -i #{local_url}")
+      end
     end
   end
   post_list.push("")
@@ -413,18 +415,20 @@ def populate_ks_post_list(client_arch,service_name,publisher_host)
     post_list.push("chmod 644 #{auth_file}")
     post_list.push("")
   end
-  puppet_config = "/etc/puppet/puppet.conf"
-  post_list.push("# Puppet configuration")
-  post_list.push("")
-  post_list.push("echo '[main]' > #{puppet_config}")
-  post_list.push("echo 'logdir=/var/log/puppet' >> #{puppet_config}")
-  post_list.push("echo 'vardir=/var/lib/puppet' >> #{puppet_config}")
-  post_list.push("echo 'ssldir=/var/lib/puppet/ssl' >> #{puppet_config}")
-  post_list.push("echo 'rundir=/var/run/puppet' >> #{puppet_config}")
-  post_list.push("echo 'factpath=$vardir/lib/facter' >> #{puppet_config}")
-  post_list.push("")
-  post_list.push("puppet agent --test")
-  post_list.push("")
+  if $default_options.match(/puppet/)
+    puppet_config = "/etc/puppet/puppet.conf"
+    post_list.push("# Puppet configuration")
+    post_list.push("")
+    post_list.push("echo '[main]' > #{puppet_config}")
+    post_list.push("echo 'logdir=/var/log/puppet' >> #{puppet_config}")
+    post_list.push("echo 'vardir=/var/lib/puppet' >> #{puppet_config}")
+    post_list.push("echo 'ssldir=/var/lib/puppet/ssl' >> #{puppet_config}")
+    post_list.push("echo 'rundir=/var/run/puppet' >> #{puppet_config}")
+    post_list.push("echo 'factpath=$vardir/lib/facter' >> #{puppet_config}")
+    post_list.push("")
+    post_list.push("puppet agent --test")
+    post_list.push("")
+  end
   post_list.push("")
   post_list.push("# Install VirtualBox Tools")
   post_list.push("")

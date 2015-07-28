@@ -6,35 +6,37 @@
 def populate_ai_pkg_info()
   p_struct={}
 
-  name="puppet"
-  config=Pkg.new(
-    info      = "Puppet is IT automation software that helps system administrators manage infrastructure throughout its lifecycle, from provisioning and configuration to orchestration and reporting.",
-    type      = "ruby",
-    version   = "3.4.0",
-    depend    = "depend fmri=pkg://#{$alt_prefix_name}/application/facter type=require,depend fmri=pkg://#{$alt_prefix_name}/application/hiera type=require",
-    base_url  = "http://downloads.puppetlabs.com/#{name}"
-    )
-  p_struct[name]=config
+  if $default_options.match(/puppet/)
+    name="puppet"
+    config=Pkg.new(
+      info      = "Puppet is IT automation software that helps system administrators manage infrastructure throughout its lifecycle, from provisioning and configuration to orchestration and reporting.",
+      type      = "ruby",
+      version   = "3.4.0",
+      depend    = "depend fmri=pkg://#{$alt_prefix_name}/application/facter type=require,depend fmri=pkg://#{$alt_prefix_name}/application/hiera type=require",
+      base_url  = "http://downloads.puppetlabs.com/#{name}"
+      )
+    p_struct[name]=config
 
-  name="hiera"
-  config=Pkg.new(
-    info      = "A simple pluggable Hierarchical Database.",
-    type      = "ruby",
-    version   = "1.3.0",
-    depend    = "",
-    base_url  = "http://downloads.puppetlabs.com/#{name}"
-    )
-  p_struct[name]=config
-
-  name="facter"
-  config=Pkg.new(
-    info      = "Facter is an independent, cross-platform Ruby library designed to gather information on all the nodes you will be managing with Puppet.",
-    type      = "ruby",
-    version   = "1.7.4",
-    depend    = "",
-    base_url  = "http://downloads.puppetlabs.com/#{name}"
-    )
-  p_struct[name]=config
+    name="hiera"
+    config=Pkg.new(
+      info      = "A simple pluggable Hierarchical Database.",
+      type      = "ruby",
+      version   = "1.3.0",
+      depend    = "",
+      base_url  = "http://downloads.puppetlabs.com/#{name}"
+      )
+    p_struct[name]=config
+  
+    name="facter"
+    config=Pkg.new(
+      info      = "Facter is an independent, cross-platform Ruby library designed to gather information on all the nodes you will be managing with Puppet.",
+      type      = "ruby",
+      version   = "1.7.4",
+      depend    = "",
+      base_url  = "http://downloads.puppetlabs.com/#{name}"
+      )
+    p_struct[name]=config
+  end
 
   return p_struct
 end

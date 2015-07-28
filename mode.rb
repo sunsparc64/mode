@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.6.5
+# Version:      2.6.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -169,6 +169,7 @@ $valid_type_list        = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot',
 $valid_mode_list        = [ 'client', 'server', 'osx' ]
 $valid_vm_list          = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'gdom', 'parallels' ]
 $execute_host           = "localhost"
+$default_options        = ""
 
 # Declare some package versions
 
@@ -178,9 +179,19 @@ $puppet_version = "3.4.2"
 
 # Set some global OS types
 
-$os_name = %x[uname]
-$os_arch = %x[uname -p]
-$os_info = %x[uname -a]
+$os_name = %x[uname].chomp
+$os_arch = %x[uname -p].chomp
+$os_mach = %x[uname -m].chomp
+if $os_name.match(/SunOS|Darwin/)
+  $os_info = %x[uname -a].chomp
+  $os_rel  = %x[uname -r].chomp
+  if $os_rel.match(/5\.11/) and $os_name.match(/SunOS/)
+    $os_update   = %x[uname -v].chomp
+    $default_net = "net0"
+  end
+else
+  $os_info = %x[lsb_release -i].chomp
+end
 
 $id = %x[/usr/bin/id -u]
 $id = Integer($id)
@@ -190,13 +201,16 @@ if $os_arch.match(/sparc/)
     $valid_vm_list = [ 'zone', 'cdom', 'gdom' ]
   end
 else
-  case $os_info
+  case $os_name
   when /SunOS/
     $valid_vm_list = [ 'vbox', 'zone' ]
-    platform = %x[prtdiag |grep 'System Configuration']
+    platform = %x[prtdiag |grep 'System Configuration'].chomp
   when /Linux/
     $valid_vm_list = [ 'vbox', 'lxc' ]
-    platform = %x[dmidecode |grep 'Product Name']
+    platform = %x[/sbin/dmidecode |grep 'Product Name'].chomp
+    if File.exist?("/bin/lsb_release")
+      $os_info = %x[lsb_release -i].chomp
+    end
   when /Darwin/
     $valid_vm_list = [ 'vbox', 'fusion', 'parallels' ]
   end
@@ -368,19 +382,6 @@ def check_local_config(install_mode)
   check_dir_exists($work_dir)
   check_dir_owner($work_dir,$id)
   check_dir_exists($tmp_dir)
-  $os_name = %x[uname].chomp
-  $os_arch = %x[uname -p].chomp
-  $os_mach = %x[uname -m].chomp
-  if $os_name.match(/SunOS|Darwin/)
-    $os_info = %x[uname -a].chomp
-    $os_rel  = %x[uname -r].chomp
-    if $os_rel.match(/5\.11/) and $os_name.match(/SunOS/)
-      $os_update   = %x[uname -v].chomp
-      $default_net = "net0"
-    end
-  else
-    $os_info = %x[lsb_release -i].chomp
-  end
   if $os_name.match(/Linux/)
     $os_rel = %x[lsb_release -r |awk '{print $2}'].chomp
   end
@@ -415,7 +416,9 @@ def check_local_config(install_mode)
       puts "Information:\tSetting apache allow range to "+$default_apache_allow
     end
     if $os_name.match(/SunOS/)
-      check_sol_puppet()
+      if $default_options.match(/puppet/)
+        check_sol_puppet()
+      end
       check_sol_bind()
     end
     if $os_name.match(/Linux/)
@@ -550,6 +553,7 @@ begin
     [ "--vm",         "-E", Getopt::REQUIRED ], # VM type
     [ "--share",      "-S", Getopt::REQUIRED ], # Shared folder
     [ "--mount",      "-M", Getopt::REQUIRED ], # Mount point
+    [ "--enable",     "-Z", Getopt::REQUIRED ], # Mount point
     [ "--mirror",     "-R", Getopt::REQUIRED ], # Mirror / Repo
     [ "--publisher",  "-P", Getopt::REQUIRED ], # Set publisher information (Solaris AI)
     [ "--config",     "-i", Getopt::REQUIRED ], # Install config (e.g. kickstart, or preseed file) - Used with show, etc
@@ -568,11 +572,17 @@ if option["version"]
   exit
 end
 
-# Prient usage
+# Print usage
 
 if option["help"]
   print_usage()
   exit
+end
+
+# Enable options, e.g. Puppet, needs work!
+
+if option["enable"]
+  $default_options = option["enable"]
 end
 
 # Handle list switch
@@ -787,7 +797,22 @@ end
 # Handle empty OS option
 
 if !option["os"]
-  option["os"] = ""
+  if option["vm"]
+    if option["action"]
+      if option["action"].match(/add|create/)
+        if !option["method"]
+          puts "Warning:\tNo OS or install method specified when creating VM"
+          exit
+        else
+          option["os"] = ""
+        end
+      else
+        option["os"] = ""
+      end
+    end
+  else
+    option["os"] = ""
+  end
 end
 
 # Handle empty method option
@@ -1513,7 +1538,9 @@ if option["action"]
       check_osx_dnsmasq()
       check_osx_tftpd()
       check_osx_dhcpd()
-      check_osx_puppet()
+      if $default_options.match(/puppet/)
+        check_osx_puppet()
+      end
     end
     if install_vm.match(/fusion|vbox/)
       check_vm_network(install_vm,install_mode,install_network)

@@ -531,4 +531,6 @@
 # Documentation and code fixes
 # 2.6.5: Tue Jul 28 10:28:25 AEST 2015
 # Added support for distribution server on RHEL 7 
+# 2.6.6: Tue Jul 28 16:12:55 AEST 2015
+# Fixed issues with RHEL 7 as a distribution server
 
