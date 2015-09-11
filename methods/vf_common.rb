@@ -75,7 +75,7 @@ def get_fusion_vm_vmx_file_value(install_client,install_search)
       vm_value = "File Not Readable"
     end
   else
-    puts "Warning:\tWMware configuration file not found for client"
+    puts "Warning:\tWMware configuration file \""+vmx_file+"\" not found for client"
   end
   return vm_value
 end
@@ -102,6 +102,9 @@ def list_all_fusion_vms()
       install_client = entry.gsub(/\.vmwarevm/,"")
       install_os     = get_fusion_vm_os(install_client)
       install_mac    = get_fusion_vm_mac(install_client)
+      if !install_os
+        install_os = "unknown"
+      end
       puts install_client+" os="+install_os+" mac="+install_mac
     end
   end
@@ -113,7 +116,8 @@ end
 
 def get_fusion_vm_vmx_file(install_client)
   fusion_vm_dir    = $fusion_dir+"/"+install_client+".vmwarevm"
-  fusion_vmx_file  = fusion_vm_dir+"/"+install_client+".vmx"
+  fusion_vmx_file  = Dir.entries(fusion_vm_dir).grep(/vmx$/)[0].chomp
+  fusion_vmx_file  = fusion_vm_dir+"/"+fusion_vmx_file
   return fusion_vmx_file
 end
 
