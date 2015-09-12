@@ -655,90 +655,159 @@ def add_serial_to_vbox_vm(install_client)
   return
 end
 
-# Configure a AI Virtual Box VM
+# Get VirtualBox Guest OS name
 
+def get_vbox_guest_os(install_method,install_arch)
+  install_os = eval"[get_#{install_method}_vbox_guest_os(install_arch)]"
+  return install_os
+end
+
+# Get VirtualBox Guest OS name
+
+def get_ai_vbox_guest_os(install_arch)
+  install_os = "Solaris11_64"
+  return install_os
+end
+
+# Configure a AI Virtual Box VM
 def configure_ai_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os="Solaris11_64"
+  install_os = get_ai_vbox_guest_os(install_arch)
   configure_vbox_vm(install_client,install_mac,install_os,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
+end
+
+# Get VirtualBox Guest OS name
+
+def get_js_vbox_guest_os(install_arch)
+  install_os = "OpenSolaris_64"
+  return install_os
 end
 
 # Configure a Jumpstart Virtual Box VM
 
 def configure_js_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = "OpenSolaris_64"
+  install_os = get_js_vbox_guest_os(install_arch)
   configure_vbox_vm(install_client,install_mac,install_os,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
 
-# Configure a RedHat or Centos Kickstart VirtualBox VM
+# Get VirtualBox Guest OS name
 
-def configure_ks_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+def get_ks_vbox_guest_os(install_arch)
   if install_arch.match(/i386/)
     install_os = "RedHat"
   else
     install_os = "RedHat_64"
   end
+  return install_os
+end
+
+# Configure a RedHat or Centos Kickstart VirtualBox VM
+
+def configure_ks_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  install_os = get_ks_vbox_guest_os(install_arch)
   configure_vbox_vm(install_client,install_mac,install_os,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
 
-# Configure a Preseed Ubuntu VirtualBox VM
+# Get VirtualBox Guest OS name
 
-def configure_ps_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+def get_ps_vbox_guest_os(install_arch)
   if install_arch.match(/i386/)
     install_os = "Ubuntu"
   else
     install_os = "Ubuntu_64"
   end
+  return install_os
+end
+
+# Configure a Preseed Ubuntu VirtualBox VM
+
+def configure_ps_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  install_os = get_ps_vbox_guest_os(install_arch)
   configure_vbox_vm(install_client,install_mac,install_os,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
 
-# Configure a AutoYast SuSE VirtualBox VM
+# Get VirtualBox Guest OS name
 
-def configure_ay_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+def get_ay_vbox_guest_os(install_arch)
   if install_arch.match(/i386/)
     install_os = "OpenSUSE"
   else
     install_os = "OpenSUSE_64"
   end
+  return install_os
+end
+
+# Configure a AutoYast SuSE VirtualBox VM
+
+def configure_ay_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  install_os = get_ay_vbox_guest_os(install_arch)
   configure_vbox_vm(install_client,install_mac,install_os,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
+end
+
+# Get VirtualBox Guest OS name
+
+def get_ob_vbox_guest_os(install_arch)
+  install_os = "Linux_64"
+  return install_os
 end
 
 # Configure an OpenBSD VM
 
 def configure_ob_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = "Linux_64"
+  install_os = get_ob_vbox_guest_os(install_arch)
   configure_vbox_vm(install_client,install_mac,install_os,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
 
-# Configure a NetBSD VM
+# Get VirtualBox Guest OS name
 
-def configure_nb_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+def get_nb_vbox_guest_os(install_arch)
   if install_arch.match(/i386/)
     install_os = "NetBSD"
   else
     install_os = "NetBSD_64"
   end
+  return install_os
+end
+
+# Configure a NetBSD VM
+
+def configure_nb_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  install_os = get_nb_vbox_guest_os(install_arch)
   configure_vbox_vm(install_client,install_mac,install_os,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
+end
+
+# Get VirtualBox Guest OS name
+
+def get_vs_vbox_guest_os(install_arch)
+  install_os = "Linux_64"
+  return install_os
 end
 
 # Configure a ESX VirtualBox VM
 
 def configure_vs_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = "Linux_64"
+  install_os = get_vs_vbox_guest_os(install_arch)
   configure_vbox_vm(install_client,install_mac,install_os,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
+end
+
+# Get VirtualBox Guest OS name
+
+def get_other_vbox_guest_os(install_arch)
+  install_os = "Other"
+  return install_os
 end
 
 # Configure a other VirtualBox VM
 
 def configure_other_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = "Other"
+  install_os = get_other_vbox_guest_os(install_arch)
   configure_vbox_vm(install_client,install_mac,install_os,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end

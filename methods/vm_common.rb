@@ -1,6 +1,13 @@
 
 # Code for creating client VMs for testing (e.g. VirtualBox)
 
+# Get Guest OS type
+
+def get_guest_os(install_arch,install_method)
+  install_os = eval"[get_#{install_vm}_guest_os(install_method,install_arch)]"
+  return install_os
+end
+
 # Check VM network
 
 def check_vm_network(install_vm,install_mode,install_network)

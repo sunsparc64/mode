@@ -231,18 +231,22 @@ def populate_ks_questions(service_name,client_name,client_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  name = "url"
-  config = Ks.new(
-    type      = "output",
-    question  = "Install Medium",
-    ask       = "yes",
-    parameter = "url",
-    value     = get_ks_install_url(service_name),
-    valid     = "",
-    eval      = "no"
-    )
-  $q_struct[name] = config
-  $q_order.push(name)
+  if !service_name.match(/packer/)
+
+    name = "url"
+    config = Ks.new(
+      type      = "output",
+      question  = "Install Medium",
+      ask       = "yes",
+      parameter = "url",
+      value     = get_ks_install_url(service_name),
+      valid     = "",
+      eval      = "no"
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
+
+  end
 
   name = "install_language"
   config = Ks.new(

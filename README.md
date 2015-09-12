@@ -31,6 +31,7 @@ BOOTP based install services, eg:
 - OpenBSD PXE boot service
 - Initial CoreOS PXE boot support
 - Provide completely headless VM support
+- Simplify creation of Packer images
 
 This script is a wrapper which sits on top of the exisitng tools. It changes
 defaults to be more suitable to customer environments, and sanity checks server
@@ -77,6 +78,10 @@ Mode is designed to be used in a number of scenarios:
 
 Features
 --------
+
+Packer support
+
+- Simplify creation of Packer images for VirtualBox
 
 Linux Container Creation
 
@@ -224,6 +229,7 @@ All:
 
 - Socat
 - Ruby
+- Packer
   - Version 1.8 or greater
     - Although it's been coded with 2.x I've avoided using 2.x features
 - Gems
@@ -242,6 +248,7 @@ All:
   - socket
   - net/http
   - net/scp
+  - json
 - Packages (Linux)
   - git
   - gcc

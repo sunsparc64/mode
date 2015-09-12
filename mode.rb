@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.7.0
+# Version:      2.7.2
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -27,6 +27,7 @@ require 'unix_crypt'
 require 'pathname'
 require 'netaddr'
 require 'net/ssh'
+require 'json'
 
 begin
   require 'nokogiri'
@@ -170,6 +171,7 @@ $valid_mode_list        = [ 'client', 'server', 'osx' ]
 $valid_vm_list          = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'gdom', 'parallels' ]
 $execute_host           = "localhost"
 $default_options        = ""
+$do_checksums           = 0
 
 # Declare some package versions
 
@@ -606,6 +608,37 @@ if option["action"] == "list"
   end
 end
 
+# Handle install service switch
+
+if option["service"]
+  install_service = option["service"].downcase
+  if $verbose_mode == 1
+    puts "Information:\tSetting install service to: "+install_service
+  end
+  if install_service.match(/^packer$/)
+    option["mode"]  = "client"
+    install_mode    = "client"
+    if !option["method"] and !option["os"]
+      puts "Warning:\tNo OS, or Install Method specified for build type "+install_service
+      exit
+    end
+    if !option["vm"]
+      puts "Warning:\tNo VM type specified for build type "+install_service
+      exit
+    end
+    if !option["client"]
+      puts "Warning:\tNo Client name specified for build type "+install_service
+      exit
+    end
+    if !option["file"]
+      puts "Warning:\tNo ISO file specified for build type "+install_service
+      exit
+    end
+  end
+else
+  install_service = ""
+end
+
 # Handle server switch
 
 if option["server"]
@@ -734,21 +767,6 @@ if option["type"]
   end
 else
   install_type = ""
-end
-
-# Get/set service name
-
-if option["service"]
-  install_service = option["service"]
-  if !install_service.match(/^[A-z]/)
-    puts "Warning:\tService name must start with letter"
-    exit
-  end
-  if $verbose_mode == 1
-    puts "Information:\tSetting install service name to: "+install_service
-  end
-else
-  install_service = ""
 end
 
 # Handle vm switch
@@ -1083,6 +1101,8 @@ else
   $use_alt_repo  = 0
 end
 
+# Check OS option
+
 if option["os"]
   if option["os"].match(/^Linux|^linux/)
     print_valid_list("Warning:\tInvalid OS specified",$valid_linux_os_list)
@@ -1162,17 +1182,6 @@ else
   if $verbose_mode == 1 and option["clone"]
     puts "Information:\tSetting clone name to: "+install_clone
   end
-end
-
-# Handle install service switch
-
-if option["service"]
-  install_service = option["service"].downcase
-  if $verbose_mode == 1
-    puts "Information:\tSetting install service to: "+install_service
-  end
-else
-  install_service = ""
 end
 
 # Handle install mode switch
@@ -1352,15 +1361,19 @@ if option["action"]
         exit
       end
       if install_vm.match(/fusion|vbox|parallels/)
-        if install_type.match(/snapshot/)
-          if install_client.match(/[A-z]/) and install_clone.match(/[A-z]|\*/)
-            delete_vm_snapshot(install_vm,install_client,install_clone)
-          else
-            puts "Warning:\tClient name or clone not specified"
-            exit
-          end
+        if install_service.match(/packer/)
+          eval"[unconfigure_#{install_service}_client(install_client)]"
         else
-          delete_vm(install_vm,install_client)
+          if install_type.match(/snapshot/)
+            if install_client.match(/[A-z]/) and install_clone.match(/[A-z]|\*/)
+              delete_vm_snapshot(install_vm,install_client,install_clone)
+            else
+              puts "Warning:\tClient name or clone not specified"
+              exit
+            end
+          else
+            delete_vm(install_vm,install_client)
+          end
         end
       else
         remove_hosts_entry(install_client,install_ip)
@@ -1371,18 +1384,19 @@ if option["action"]
       end
     else
       if install_service.match(/[A-z]|[0-9]/)
-        if !install_method.match(/[a-z]/)
-          unconfigure_server(install_service)
+        if install_service.match(/packer/)
+          eval"[unconfigure_#{install_service}_client(install_client)]"
         else
-          eval"[unconfigure_#{install_method}_server(install_service)]"
+          if !install_method.match(/[a-z]/)
+            unconfigure_server(install_service)
+          else
+            eval"[unconfigure_#{install_method}_server(install_service)]"
+          end
         end
-      else
-        puts "Warning:\tClient name not specified"
-        exit
       end
     end
   when /add|create/
-    if install_mode.match(/server/) or install_file.match(/[A-z]/) or install_type.match(/service/) and !install_vm.match(/[A-z]/)
+    if install_mode.match(/server/) or install_file.match(/[A-z]/) or install_type.match(/service/) and !install_vm.match(/[A-z]/) and !install_service.match(/packer/)
       check_local_config("server")
       eval"[configure_server(install_method,install_arch,publisher_host,publisher_port,install_service,install_file)]"
     else
@@ -1391,14 +1405,20 @@ if option["action"]
       end
       if install_client.match(/[A-z]|[0-9]/)
         if install_service.match(/[A-z]|[0-9]/)
-          check_dhcpd_config(publisher_host)
+          if !install_service.match(/packer/)
+            check_dhcpd_config(publisher_host)
+          end
           if !install_method.match(/[a-z]/)
             install_method = get_install_method(install_client,install_service)
           end
           check_install_ip(install_ip)
           check_install_mac(install_mac)
-          check_local_config("server")
-          eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror)]"
+          if install_service.match(/packer/)
+            eval"[configure_#{install_service}_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_size)]"
+          else
+            check_local_config("server")
+            eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror)]"
+          end
         else
           if install_vm.match(/fusion|vbox|parallels/)
             create_vm(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount,install_ip)

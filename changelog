@@ -541,4 +541,7 @@
 # Bug fixes for Linux Deployment Server support
 # 2.7.0: Fri 11 Sep 2015 11:54:05 AEST
 # Fixed error with listing VMware Fusion VMs
-
+# 2.7.1: Sat 12 Sep 2015 16:22:35 AEST
+# Added initial support for Packer and building Linux Kickstart VirtualBox VMs
+# 2.7.2: Sat 12 Sep 2015 18:39:05 AEST
+# Added code to delete Packer images

@@ -692,75 +692,138 @@ def list_fusion_vms(search_string)
   return
 end
 
+# Get VMware Fusion Guest OS name
+
+def get_fusion_guest_os(install_method,install_arch)
+  install_os = eval"[get_#{install_method}_fusion_guest_os(install_client)]"
+  return install_os
+end
+
+# Get VMware Fusion Guest OS name
+
+def get_ai_fustion_guest_os(install_arch)
+  install_os = "solaris11-64"
+  return install_os
+end
+
 # Configure a AI VMware Fusion VM
 
 def configure_ai_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os="solaris11-64"
+  install_os = get_ai_fustion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
+end
+
+# Get VMware Fusion Guest OS name
+
+def get_js_fustion_guest_os(install_arch)
+  install_os = "solaris10-64"
+  return install_os
 end
 
 # Configure a Jumpstart VMware Fusion VM
 
 def configure_js_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = "solaris10-64"
+  install_os = get_js_fustion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
+end
+
+# Get VMware Fusion Guest OS name
+
+def get_ay_fustion_guest_os(install_arch)
+  install_os = "sles11"
+  if !install_arch.match(/i386/) and !install_arch.match(/64/)
+    install_os = install_os+"-64"
+  end
+  return install_os
 end
 
 # configure an AutoYast (Suse) VMware Fusion VM
 
 def configure_ay_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = "sles11"
+  install_os = get_ay_fustion_guest_os(install_arch)
+  configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  return
+end
+
+# Get VMware Fusion Guest OS name
+
+def get_nb_fustion_guest_os(install_arch)
+  install_os = "freebsd"
   if !install_arch.match(/i386/) and !install_arch.match(/64/)
     install_os = install_os+"-64"
   end
-  configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  return
+  return install_os
 end
 
 # Configure a NetBSB VMware Fusion VM
 
 def configure_nb_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = "freebsd"
-  if !install_arch.match(/i386/) and !install_arch.match(/64/)
-    install_os = install_os+"-64"
-  end
+  install_os = get_nb_fustion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
+end
+
+# Get VMware Fusion Guest OS name
+
+def get_ob_fustion_guest_os(install_arch)
+  install_os = "otherlinux-64"
+  return install_os
 end
 
 # Configure an OpenBSD VMware Fusion VM
 
 def configure_ob_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = "otherlinux-64"
+  install_os = get_ob_fustion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
+end
+
+# Get VMware Fusion Guest OS name
+
+def get_ps_fustion_guest_os(install_arch)
+  install_os = "ubuntu"
+  if !install_arch.match(/i386/) and !install_arch.match(/64/)
+    install_os = install_os+"-64"
+  end
+  return install_os
 end
 
 # Configure an Ubuntu VMware Fusion VM
 
 def configure_ps_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = "ubuntu"
-  if !install_arch.match(/i386/) and !install_arch.match(/64/)
-    install_os = install_os+"-64"
-  end
+  install_os = get_ps_fustion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
+end
+
+# Get VMware Fusion Guest OS name
+
+def get_pe_fustion_guest_os(install_arch)
+  install_os = "windows7srv-64"
+  return install_os
 end
 
 # Configure a Windows VMware Fusion VM
 
 def configure_pe_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = "windows7srv-64"
+  install_os = get_pe_fustion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
+end
+
+# Get VMware Fusion Guest OS name
+
+def get_other_fustion_guest_os(install_arch)
+  install_os = "otherguest"
+  return install_os
 end
 
 # Configure another VMware Fusion VM
 
 def configure_other_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = "otherguest"
+  install_os = get_other_fustion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
