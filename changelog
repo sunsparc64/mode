@@ -545,3 +545,7 @@
 # Added initial support for Packer and building Linux Kickstart VirtualBox VMs
 # 2.7.2: Sat 12 Sep 2015 18:39:05 AEST
 # Added code to delete Packer images
+# 2.7.3: Sun 13 Sep 2015 06:46:57 AEST
+# Added code to print changelog
+# 2.7.4: Sun 13 Sep 2015 07:54:29 AEST
+# Added inital support for AutoYast and Preseed and Packer

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.7.2
+# Version:      2.7.4
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -572,11 +572,28 @@ begin
     [ "--publisher",  "-P", Getopt::REQUIRED ], # Set publisher information (Solaris AI)
     [ "--config",     "-i", Getopt::REQUIRED ], # Install config (e.g. kickstart, or preseed file) - Used with show, etc
     [ "--verbose",    "-v", Getopt::BOOLEAN ],  # Verbose mode
+    [ "--changelog",  "-1", Getopt::BOOLEAN ],  # Print changelog
     [ "--test",       "-w", Getopt::BOOLEAN ]   # Test mode
   )
 rescue
   print_usage()
   exit
+end
+
+def print_changelog()
+  if File.exist?("changelog")
+    changelog = File.readlines("changelog")
+    changelog = changelog.reverse
+    changelog.each_with_index do |line, index|
+      line = line.gsub(/^# /,"")
+      if line.match(/^[0-9]/)
+        puts line
+        puts changelog[index-1].gsub(/^# /,"")
+        puts
+      end
+    end
+  end
+  return
 end
 
 # Print version
@@ -590,6 +607,13 @@ end
 
 if option["help"]
   print_usage()
+  exit
+end
+
+# Print changelog
+
+if option["changelog"]
+  print_changelog
   exit
 end
 

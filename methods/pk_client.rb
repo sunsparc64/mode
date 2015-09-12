@@ -2,7 +2,22 @@
 
 # Configure Packer JSON file
 
-def create_packer_ks_json(install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu)
+def create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu)
+  install_service = get_packer_install_service(install_file)
+  case install_service
+  when /sles/
+    ks_file      = install_client+"/"+install_client+".xml"
+    ks_url       = "http://{{ .HTTPIP }}:{{ .HTTPPort }}/"+ks_file
+    boot_command = "<esc><wait> linux install=cdrom autoyast="+ks_file+" language="+$default_language+"<enter><wait>"
+  when /debian|ubuntu/
+    ks_file      = install_client+"/"+install_client+".cfg"
+    ks_url       = "http://{{ .HTTPIP }}:{{ .HTTPPort }}/"+ks_file
+    boot_command = "linux auto=true priority=critical preseed/url="+ks_file+" console-keymaps-at/keymap=us locale=en_US hostname="+install_client+"<enter><wait>"
+  else
+    ks_file      = install_client+"/"+install_client+".cfg"
+    ks_url       = "http://{{ .HTTPIP }}:{{ .HTTPPort }}/"+ks_file
+    boot_command = "<esc><wait> linux ks="+ks_file+"<enter><wait>"
+  end
 	$vbox_disk_type = $vbox_disk_type.gsub(/sas/,"scsi")
 	case install_vm
 	when /vbox|virtualbox/
@@ -30,35 +45,58 @@ def create_packer_ks_json(install_client,install_vm,install_arch,install_file,in
 	packer_dir = $client_base_dir+"/packer"
   client_dir = packer_dir+"/"+install_client
   image_dir  = client_dir+"/images"
-  ks_file    = install_client+"/"+install_client+".cfg"
   json_file  = client_dir+"/"+install_client+".json"
   check_dir_exists(client_dir)
 	install_guest = install_guest.join
-  json_data = {
-  	:variables => {
-  		:hostname => install_client
-  	},
-  	:builders => [
-  		:name 								=> install_client,
-  		:vm_name							=> install_client,
-  		:type 								=> install_type,
-  		:guest_os_type 				=> install_guest,
-  		:hard_drive_interface => $vbox_disk_type,
-  		:output_directory     => image_dir,
-  		:disk_size						=> install_size,
-  		:iso_url 							=> iso_url,
-  		:ssh_username					=> $default_admin_user,
-  		:ssh_password       	=> $default_admin_password,
-  		:iso_checksum 				=> install_checksum,
-  		:iso_checksum_type		=> install_checksum_type,
-  		:http_directory 			=> packer_dir,
-  		:boot_command      		=> "<esc><wait>linux ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/#{ks_file}<enter><wait>",
-			:vboxmanage => [
-				[ "modifyvm", "{{.Name}}", "--memory", install_memory ],
-				[ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
-			]
-		]
-  }
+  if install_vm.match(/vbox/)
+    json_data = {
+    	:variables => {
+    		:hostname => install_client
+    	},
+    	:builders => [
+    		:name 								=> install_client,
+    		:vm_name							=> install_client,
+    		:type 								=> install_type,
+    		:guest_os_type 				=> install_guest,
+    		:hard_drive_interface => $vbox_disk_type,
+    		:output_directory     => image_dir,
+    		:disk_size						=> install_size,
+    		:iso_url 							=> iso_url,
+    		:ssh_username					=> $default_admin_user,
+    		:ssh_password       	=> $default_admin_password,
+    		:iso_checksum 				=> install_checksum,
+    		:iso_checksum_type		=> install_checksum_type,
+    		:http_directory 			=> packer_dir,
+    		:boot_command      		=> boot_command,
+  			:vboxmanage => [
+  				[ "modifyvm", "{{.Name}}", "--memory", install_memory ],
+  				[ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
+  			]
+  		]
+    }
+  else
+    json_data = {
+      :variables => {
+        :hostname => install_client
+      },
+      :builders => [
+        :name                 => install_client,
+        :vm_name              => install_client,
+        :type                 => install_type,
+        :guest_os_type        => install_guest,
+        :hard_drive_interface => $vbox_disk_type,
+        :output_directory     => image_dir,
+        :disk_size            => install_size,
+        :iso_url              => iso_url,
+        :ssh_username         => $default_admin_user,
+        :ssh_password         => $default_admin_password,
+        :iso_checksum         => install_checksum,
+        :iso_checksum_type    => install_checksum_type,
+        :http_directory       => packer_dir,
+        :boot_command         => boot_command
+      ]
+    }
+  end
   json_output = JSON.pretty_generate(json_data)
   delete_file(json_file)
   File.write(json_file,json_output)
@@ -132,7 +170,7 @@ def configure_packer_client(install_method,install_vm,install_os,install_client,
 	end
 	install_guest = eval"[get_#{install_vm}_guest_os(install_method,install_arch)]"
 	eval"[configure_packer_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror)]"
-	eval"[create_packer_#{install_method}_json(install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu)]"
+	create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu)
 	#build_packer_config(install_client)
 	return
 end
@@ -148,16 +186,22 @@ def build_packer_config(install_client)
 	return
 end
 
-# Configure Packer Kickstart client
+# Get Packer install service
 
-def configure_packer_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror)
+def get_packer_install_service(install_file)
+  (linux_distro,iso_version,iso_arch) = get_linux_version_info(install_file)
+  iso_version     = iso_version.gsub(/\./,"_")
+  install_service = "packer_"+linux_distro+"_"+iso_version+"_"+iso_arch
+  return install_service
+end
+
+# Get Packer install config file
+
+def create_packer_ks_install_files(install_client,install_service,install_ip,publisher_host)
   client_dir  = $client_base_dir+"/packer/"+install_client
   output_file = client_dir+"/"+install_client+".cfg"
   check_dir_exists(client_dir)
   delete_file(output_file)
-  (linux_distro,iso_version,iso_arch) = get_linux_version_info(install_file)
-  iso_version     = iso_version.gsub(/\./,"_")
-  install_service = install_service+"_"+linux_distro+"_"+iso_version+"_"+iso_arch
   populate_ks_questions(install_service,install_client,install_ip)
   process_questions(install_service)
   output_ks_header(install_client,output_file)
@@ -165,5 +209,54 @@ def configure_packer_ks_client(install_client,install_arch,install_mac,install_i
   output_ks_pkg_list(install_client,pkg_list,output_file,install_service)
   post_list = populate_ks_post_list(install_client,install_service,publisher_host)
   output_ks_post_list(install_client,post_list,output_file,install_service)
+  return
+end
+
+def create_packer_ay_install_files(install_client,install_service,install_ip)
+  client_dir  = $client_base_dir+"/packer/"+install_client
+  output_file = client_dir+"/"+install_client+".xml"
+  check_dir_exists(client_dir)
+  delete_file(output_file)
+  populate_ks_questions(install_service,install_client,install_ip)
+  process_questions(install_service)
+  output_ay_client_profile(install_client,install_ip,install_mac,output_file,install_service)
+  return
+end
+
+def create_packer_ps_install_files(install_client,install_service,install_ip,install_mirror)
+  client_dir  = $client_base_dir+"/packer/"+install_client
+  populate_ps_questions(install_service,install_client,install_ip,install_mirror)
+  process_questions(install_service)
+  output_ps_header(install_client,output_file)
+  output_file = client_dir+"/"+install_client+"_post.sh"
+  post_list   = populate_ps_post_list(install_client,install_service)
+  output_ks_post_list(install_client,post_list,output_file,install_service)
+  output_file = client_dir+"/"+install_client+"_first_boot.sh"
+  post_list   = populate_ps_first_boot_list()
+  output_ks_post_list(install_client,post_list,output_file,install_service)
+  return
+end
+
+# Configure Packer Kickstart client
+
+def configure_packer_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror)
+  install_service = get_packer_install_service(install_file)
+  create_packer_ks_install_files(install_client,install_service,install_ip,publisher_host)
+  return
+end
+
+# Configure Packer AutoYast client
+
+def configure_packer_ay_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror)
+  install_service = get_packer_install_service(install_file)
+  create_packer_ay_install_files(install_client,install_service,install_ip)
+  return
+end
+
+# Configure Packer Preseed client
+
+def configure_packer_ps_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror)
+  install_service = get_packer_install_service(install_file)
+  create_packer_ps_install_files(install_client,install_service,install_ip,install_mirror)
   return
 end
