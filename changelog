@@ -553,3 +553,5 @@
 # Fixed issue with Packer JSON creation
 # 2.7.6: Sun 13 Sep 2015 15:46:18 AEST
 # Added Packer VMware Fusion support
+# 2.7.7: Sun 13 Sep 2015 16:04:39 AEST
+# Added SSH timeout for Packer

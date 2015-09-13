@@ -81,7 +81,7 @@ Features
 
 Packer support
 
-- Simplify creation of Packer images for VirtualBox
+- Simplify creation of Packer images for VirtualBox and VMware Fusion
 
 Linux Container Creation
 
