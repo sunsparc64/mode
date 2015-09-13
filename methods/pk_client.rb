@@ -14,6 +14,10 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     ks_file      = install_client+"/"+install_client+".cfg"
     ks_url       = "http://{{ .HTTPIP }}:{{ .HTTPPort }}/"+ks_file
     boot_command = "linux text install auto=true priority=critical preseed/url="+ks_url+" console-keymaps-at/keymap=us locale=en_US hostname="+install_client+"<enter><wait>"
+  when /vsphere|esx|vmware/
+    ks_file      = install_client+"/"+install_client+".cfg"
+    ks_url       = "http://{{ .HTTPIP }}:{{ .HTTPPort }}/"+ks_file
+    boot_command = "<enter><wait>O<wait> ks="+ks_url+"<enter><wait>"
   else
     ks_file      = install_client+"/"+install_client+".cfg"
     ks_url       = "http://{{ .HTTPIP }}:{{ .HTTPPort }}/"+ks_file
@@ -203,6 +207,24 @@ end
 
 # Get Packer install config file
 
+
+def create_packer_vs_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license)
+  client_dir  = $client_base_dir+"/packer/"+install_vm+"/"+install_client
+  output_file = client_dir+"/"+install_client+".cfg"
+  check_dir_exists(client_dir)
+  delete_file(output_file)
+  populate_vs_questions(install_service,install_client,install_ip)
+  process_questions(install_service)
+  output_vs_header(output_file)
+  # Output firstboot list
+  post_list = populate_vs_firstboot_list(install_service,install_license)
+  output_vs_post_list(post_list,output_file)
+  # Output post list
+  post_list = populate_vs_post_list(install_service)
+  output_vs_post_list(post_list,output_file)
+  return
+end
+
 def create_packer_ks_install_files(install_client,install_service,install_ip,publisher_host,install_vm)
   client_dir  = $client_base_dir+"/packer/"+install_vm+"/"+install_client
   output_file = client_dir+"/"+install_client+".cfg"
@@ -240,6 +262,14 @@ def create_packer_ps_install_files(install_client,install_service,install_ip,ins
   output_file = client_dir+"/"+install_client+"_first_boot.sh"
   post_list   = populate_ps_first_boot_list()
   output_ks_post_list(install_client,post_list,output_file,install_service)
+  return
+end
+
+# Configure Packer vSphere client
+
+def configure_packer_vs_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm)
+  install_service = get_packer_install_service(install_file)
+  create_packer_vs_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license)
   return
 end
 
