@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.7.5
+# Version:      2.7.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1386,7 +1386,7 @@ if option["action"]
       end
       if install_vm.match(/fusion|vbox|parallels/)
         if install_service.match(/packer/)
-          eval"[unconfigure_#{install_service}_client(install_client)]"
+          eval"[unconfigure_#{install_service}_client(install_client,install_vm)]"
         else
           if install_type.match(/snapshot/)
             if install_client.match(/[A-z]/) and install_clone.match(/[A-z]|\*/)

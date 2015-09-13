@@ -695,13 +695,13 @@ end
 # Get VMware Fusion Guest OS name
 
 def get_fusion_guest_os(install_method,install_arch)
-  install_os = eval"[get_#{install_method}_fusion_guest_os(install_client)]"
+  install_os = eval"[get_#{install_method}_fusion_guest_os(install_arch)]"
   return install_os
 end
 
 # Get VMware Fusion Guest OS name
 
-def get_ai_fustion_guest_os(install_arch)
+def get_ai_fusion_guest_os(install_arch)
   install_os = "solaris11-64"
   return install_os
 end
@@ -716,7 +716,7 @@ end
 
 # Get VMware Fusion Guest OS name
 
-def get_js_fustion_guest_os(install_arch)
+def get_js_fusion_guest_os(install_arch)
   install_os = "solaris10-64"
   return install_os
 end
@@ -731,7 +731,7 @@ end
 
 # Get VMware Fusion Guest OS name
 
-def get_ay_fustion_guest_os(install_arch)
+def get_ay_fusion_guest_os(install_arch)
   install_os = "sles11"
   if !install_arch.match(/i386/) and !install_arch.match(/64/)
     install_os = install_os+"-64"
@@ -749,7 +749,7 @@ end
 
 # Get VMware Fusion Guest OS name
 
-def get_nb_fustion_guest_os(install_arch)
+def get_nb_fusion_guest_os(install_arch)
   install_os = "freebsd"
   if !install_arch.match(/i386/) and !install_arch.match(/64/)
     install_os = install_os+"-64"
@@ -767,7 +767,7 @@ end
 
 # Get VMware Fusion Guest OS name
 
-def get_ob_fustion_guest_os(install_arch)
+def get_ob_fusion_guest_os(install_arch)
   install_os = "otherlinux-64"
   return install_os
 end
@@ -782,7 +782,7 @@ end
 
 # Get VMware Fusion Guest OS name
 
-def get_ps_fustion_guest_os(install_arch)
+def get_ps_fusion_guest_os(install_arch)
   install_os = "ubuntu"
   if !install_arch.match(/i386/) and !install_arch.match(/64/)
     install_os = install_os+"-64"
@@ -800,7 +800,7 @@ end
 
 # Get VMware Fusion Guest OS name
 
-def get_pe_fustion_guest_os(install_arch)
+def get_pe_fusion_guest_os(install_arch)
   install_os = "windows7srv-64"
   return install_os
 end
@@ -815,7 +815,7 @@ end
 
 # Get VMware Fusion Guest OS name
 
-def get_other_fustion_guest_os(install_arch)
+def get_other_fusion_guest_os(install_arch)
   install_os = "otherguest"
   return install_os
 end
@@ -828,22 +828,10 @@ def configure_other_fusion_vm(install_client,install_mac,install_arch,install_os
   return
 end
 
-# Configure a Kickstart VMware Fusion VM
+# Get VMware Fusion Guest OS name
 
-def configure_ks_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  if !install_os or !install_os.match(/[A-z]/)
-    if install_client.match(/ubuntu/)
-      install_os = "ubuntu"
-    end
-    if install_client.match(/centos|redhat|rhel|sl|scientific|oel|suse/) or install_os.downcase.match(/centos|redhat|rhel|sl|scientific|oel|suse/)
-      case install_release
-      when /^5/
-        install_os = "rhel5"
-      else
-        install_os = "rhel6"
-      end
-    end
-  end
+def get_ks_fusion_guest_os(install_arch)
+  install_os = "rhel6"
   if install_arch.match(/64/)
     install_os = install_os+"-64"
   else
@@ -851,14 +839,28 @@ def configure_ks_fusion_vm(install_client,install_mac,install_arch,install_os,in
       install_os = install_os+"-64"
     end
   end
+  return install_os
+end
+
+# Configure a Kickstart VMware Fusion VM
+
+def configure_ks_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  install_os = get_ks_fustion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
+end
+
+# Get VMware Fusion Guest OS name
+
+def get_vs_fusion_guest_os(install_arch)
+  install_os = "vmkernel5"
+  return install_os
 end
 
 # Configure a ESX VMware Fusion VM
 
 def configure_vs_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = "vmkernel5"
+  install_os = get_vs_fustion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end

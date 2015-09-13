@@ -551,3 +551,5 @@
 # Added inital support for AutoYast and Preseed and Packer
 # 2.7.5: Sun 13 Sep 2015 14:56:58 AEST
 # Fixed issue with Packer JSON creation
+# 2.7.6: Sun 13 Sep 2015 15:46:18 AEST
+# Added Packer VMware Fusion support
