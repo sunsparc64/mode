@@ -8,15 +8,15 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   when /sles/
     ks_file      = install_client+"/"+install_client+".xml"
     ks_url       = "http://{{ .HTTPIP }}:{{ .HTTPPort }}/"+ks_file
-    boot_command = "<esc><wait> linux install=cdrom autoyast="+ks_file+" language="+$default_language+"<enter><wait>"
+    boot_command = "<esc><wait> linux text install=cdrom autoyast="+ks_url+" language="+$default_language+"<enter><wait>"
   when /debian|ubuntu/
     ks_file      = install_client+"/"+install_client+".cfg"
     ks_url       = "http://{{ .HTTPIP }}:{{ .HTTPPort }}/"+ks_file
-    boot_command = "linux auto=true priority=critical preseed/url="+ks_file+" console-keymaps-at/keymap=us locale=en_US hostname="+install_client+"<enter><wait>"
+    boot_command = "linux text install auto=true priority=critical preseed/url="+ks_url+" console-keymaps-at/keymap=us locale=en_US hostname="+install_client+"<enter><wait>"
   else
     ks_file      = install_client+"/"+install_client+".cfg"
     ks_url       = "http://{{ .HTTPIP }}:{{ .HTTPPort }}/"+ks_file
-    boot_command = "<esc><wait> linux ks="+ks_file+"<enter><wait>"
+    boot_command = "<esc><wait> linux text install ks="+ks_url+"<enter><wait>"
   end
 	$vbox_disk_type = $vbox_disk_type.gsub(/sas/,"scsi")
 	case install_vm
