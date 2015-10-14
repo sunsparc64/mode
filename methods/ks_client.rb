@@ -89,7 +89,7 @@ def configure_ks_pxe_client(client_name,client_ip,client_mac,client_arch,service
     if disable_dhcp == "true"
       append_string = "  APPEND auto=true priority=critical preseed/url=#{ks_url} console-keymaps-at/keymap=us locale=en_US hostname=#{client_name} domain=#{client_domain} interface=#{client_nic} netcfg/get_ipaddress=#{client_ip} netcfg/get_netmask=#{client_netmask} netcfg/get_gateway=#{client_gateway} netcfg/get_nameservers=#{client_nameserver} netcfg/disable_dhcp=true initrd=#{initrd_file}"
     else
-      append_string = "  APPEND auto=true priority=critical preseed/url=#{ks_url} console-keymaps-at/keymap=us locale=en_US hostname=#{client_name} initrd=#{initrd_file}"
+      append_string = "  APPEND `"
     end
   else
     if service_name.match(/sles/)

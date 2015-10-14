@@ -2,9 +2,12 @@
 
 # Configure Packer JSON file
 
-def create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu)
-  install_size    = install_size.gsub(/G/,"000")
-  install_service = get_packer_install_service(install_file)
+def create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu,install_network)
+  install_size     = install_size.gsub(/G/,"000")
+  install_service  = get_packer_install_service(install_file)
+  ssh_username     = $default_admin_user
+  ssh_password     = $default_admin_password
+  shutdown_command = "shutdown -P now"
   case install_service
   when /sles/
     ks_file      = install_client+"/"+install_client+".xml"
@@ -15,9 +18,12 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     ks_url       = "http://{{ .HTTPIP }}:{{ .HTTPPort }}/"+ks_file
     boot_command = "linux text install auto=true priority=critical preseed/url="+ks_url+" console-keymaps-at/keymap=us locale=en_US hostname="+install_client+"<enter><wait>"
   when /vsphere|esx|vmware/
-    ks_file      = install_client+"/"+install_client+".cfg"
-    ks_url       = "http://{{ .HTTPIP }}:{{ .HTTPPort }}/"+ks_file
-    boot_command = "<enter><wait>O<wait> ks="+ks_url+"<enter><wait>"
+    ks_file          = install_client+"/"+install_client+".cfg"
+    ks_url           = "http://{{ .HTTPIP }}:{{ .HTTPPort }}/"+ks_file
+    boot_command     = "<enter><wait>O<wait> ks="+ks_url+"<enter><wait>"
+    ssh_username     = "root"
+    ssh_password     = $default_root_password
+    shutdown_command = "esxcli system maintenanceMode set -e true -t 0 ; esxcli system shutdown poweroff -d 10 -r 'Packer Shutdown' ; esxcli system maintenanceMode set -e false -t 0"
   else
     ks_file      = install_client+"/"+install_client+".cfg"
     ks_url       = "http://{{ .HTTPIP }}:{{ .HTTPPort }}/"+ks_file
@@ -43,8 +49,12 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
 		install_checksum      = ""
 		install_checksum_type = "none"
 	end
-	if $default_vm_network.match(/bridged/)
+	if $default_vm_network.match(/bridged/) and install_vm.match(/vbox/)
     vbox_nic_name = get_bridged_vbox_nic()
+  end
+  if $default_vm_network.match(/hostonly/) and install_vm.match(/vbox/)
+    if_name       = get_bridged_vbox_nic()
+    vbox_nic_name = check_vbox_hostonly_network(if_name)
   end
 	iso_url    = "file://"+install_file
 	packer_dir = $client_base_dir+"/packer/"+install_vm
@@ -67,9 +77,10 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     		:output_directory     => image_dir,
     		:disk_size						=> install_size,
     		:iso_url 							=> iso_url,
-    		:ssh_username					=> $default_admin_user,
-    		:ssh_password       	=> $default_admin_password,
+    		:ssh_username					=> ssh_username,
+    		:ssh_password       	=> ssh_password,
         :ssh_wait_timeout     => "600s",
+        :shutdown_command     => shutdown_command,
     		:iso_checksum 				=> install_checksum,
     		:iso_checksum_type		=> install_checksum_type,
     		:http_directory 			=> packer_dir,
@@ -93,16 +104,26 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
         :output_directory     => image_dir,
         :disk_size            => install_size,
         :iso_url              => iso_url,
-        :ssh_username         => $default_admin_user,
-        :ssh_password         => $default_admin_password,
+        :ssh_username         => ssh_username,
+        :ssh_password         => ssh_password,
         :ssh_wait_timeout     => "600s",
+        :shutdown_command     => shutdown_command,
         :iso_checksum         => install_checksum,
         :iso_checksum_type    => install_checksum_type,
         :http_directory       => packer_dir,
         :boot_command         => boot_command,
         :vmx_data => {
-          :memsize  => install_memory,
-          :numvcpus => install_cpu
+          :memsize                            => install_memory,
+          :numvcpus                           => install_cpu,
+          :"vhv.enable"                       => "TRUE",
+          :"ethernet0.present"                => "TRUE",
+          :"ethernet0.startConnected"         => "TRUE",
+          :"ethernet0.virtualDev"             => "e1000",
+          :"ethernet0.networkName"            => "VM Network",
+          :"ethernet0.addressType"            => "generated",
+          :"ethernet0.generatedAddressOffset" => "0",
+          :"ethernet0.wakeOnPcktRcv"          => "FALSE",
+          :"ethernet0.connectionType"         => install_network
         }
       ]
     }
@@ -180,7 +201,7 @@ def configure_packer_client(install_method,install_vm,install_os,install_client,
 	end
 	install_guest = eval"[get_#{install_vm}_guest_os(install_method,install_arch)]"
 	eval"[configure_packer_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm)]"
-	create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu)
+	create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu,install_network)
 	#build_packer_config(install_client,install_vm)
 	return
 end

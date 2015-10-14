@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.7.8
+# Version:      2.7.9
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -16,7 +16,7 @@
 
 # Additional notes:
 #
-# - Swapped Dir.exits for File.directory so ruby 2.x is not required
+# - Swapped Dir.exist for File.directory so ruby 2.x is not required
 # - Swapped Dir.home for ENV["HOME"] so ruby 2.x is not required
 
 require 'rubygems'

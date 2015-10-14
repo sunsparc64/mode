@@ -557,3 +557,5 @@
 # Added SSH timeout for Packer
 # 2.7.8: Sun 13 Sep 2015 16:38:30 AEST
 # Added support for vSphere for Packer
+# 2.7.9: Sun 13 Sep 2015 16:51:35 AEST
+# Fixed vSphere support for Packer
