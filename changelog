@@ -559,3 +559,5 @@
 # Added support for vSphere for Packer
 # 2.7.9: Sun 13 Sep 2015 16:51:35 AEST
 # Fixed vSphere support for Packer
+# 2.8.0: Fri 16 Oct 2015 10:08:40 AEDT
+# Fixed netboot directory determination on Solaris

@@ -35,6 +35,7 @@ end
 # Copy Linux ISO contents to repo
 
 def configure_ks_repo(service_name,iso_file,repo_version_dir)
+  netboot_repo_dir = $tftp_dir+"/"+service_name
   if $os_name.match(/SunOS/)
     check_fs_exists(repo_version_dir)
     if !File.symlink?(netboot_repo_dir)
@@ -42,7 +43,6 @@ def configure_ks_repo(service_name,iso_file,repo_version_dir)
     end
   end
   if $os_name.match(/Linux/)
-    netboot_repo_dir = $tftp_dir+"/"+service_name
     check_fs_exists(netboot_repo_dir)
     if !File.symlink?(repo_version_dir)
       File.symlink(netboot_repo_dir,repo_version_dir)
