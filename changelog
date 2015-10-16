@@ -563,3 +563,5 @@
 # Fixed netboot directory determination on Solaris
 # 2.8.1: Fri 16 Oct 2015 19:23:22 AEDT
 # More fixes for Solaris
+# 2.8.2: Sat 17 Oct 2015 08:40:06 AEDT
+# Minor bug fix

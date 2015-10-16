@@ -991,7 +991,6 @@ def check_vbox_hostonly_network(if_name)
         execute_command(message,command)
       end
     end
-    end
   end
   return if_name
 end
