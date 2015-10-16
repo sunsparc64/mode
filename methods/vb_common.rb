@@ -950,11 +950,48 @@ def check_vbox_hostonly_network(if_name)
     command = "VBoxManage hostonlyif ipconfig #{if_name} --ip #{$default_hostonly_ip} --netmask #{$default_netmask}"
     execute_command(message,command)
   end
-  gw_if_name = get_osx_gw_if_name()
-  if $os_rel.split(".")[0].to_i < 14
-    check_osx_nat(gw_if_name,if_name)
+  message = "Information:\tChecking VirtualBox DHCP Server is Disabled"
+  command = "VBoxManage list dhcpservers"
+  output  = execute_command(message,command)
+  if output.match(/Enabled/)
+    message = "Information:\tDisabling VirtualBox DHCP Server\t"
+    command = "VBoxManage dhcpserver remove --netname HostInterfaceNetworking-#{if_name}"
+  end
+  if $os_name.match(/Darwin/)
+    gw_if_name = get_osx_gw_if_name()
+    if $os_rel.split(".")[0].to_i < 14
+      check_osx_nat(gw_if_name,if_name)
+    else
+      check_osx_pfctl(gw_if_name,if_name)
+    end
   else
-    check_osx_pfctl(gw_if_name,if_name)
+    if $os_name.match(/Solaris/)
+      message = "Information:\tChecking IPv4 Routing is Enabled"
+      command = "routeadm |grep 'IPv4 routing'"
+      output  = execute_command(message,command)
+      if output.match(/disabled/)
+        message = "Information:\tEnabling IPv4 Routing"
+        command = "routeadm -e ipv4-routing -u"
+        execute_command(message,command)
+      end
+      message = "Information:\tChecking IPv4 Forwarding is Enabled"
+      command = "routeadm |grep 'IPv4 forwarding'"
+      output  = execute_command(message,command)
+      if output.match(/disabled/)
+        message = "Information:\tEnabling IPv4 Forwarding"
+        command = "routeadm -e ipv4-forwarding -u"
+        execute_command(message,command)
+      end
+      message = "Information:\tChecking DHCP Server is listening on "+if_name
+      command = "svccfg -s svc:/network/dhcp/server:ipv4 listprop config/listen_ifnames |grep #{if_name}"
+      output  = execute_command(message,command)
+      if !output.match(/#{if_name}/)
+        message = "Information:\tSetting DHCP Server to listen on "+if_name
+        command = "svccfg -s svc:/network/dhcp/server:ipv4 setprop config/listen_ifnames = astring: #{if_name} ; svcadm refresh svc:/network/dhcp/server:ipv4"
+        execute_command(message,command)
+      end
+    end
+    end
   end
   return if_name
 end
@@ -962,9 +999,13 @@ end
 # Check VirtualBox is installed
 
 def check_vbox_is_installed()
-  app_dir = "/Applications/VirtualBox.app"
+  if $os_name.match(/Darwin/)
+    app_dir = "/Applications/VirtualBox.app"
+  else
+    app_dir = "/usr/bin"
+  end
   if !File.directory?(app_dir)
-    puts "Virtualbox not installed"
+    puts "Warning:\tVirtualBox is not installed in "+app_dir
     exit
   else
     suppress_messages = %x[VBoxManage getextradata global GUI/SuppressMessages |awk '{print $2}'].chomp
