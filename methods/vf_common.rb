@@ -324,6 +324,17 @@ def list_ai_fusion_vms()
   return
 end
 
+# Check Fusion VM MAC address
+
+def check_fusion_vm_mac(install_mac)
+  if install_mac.gsub(/:/,"").match(/^08/)
+    puts "Warning:\tInvalid MAC address: "+install_mac
+    install_mac = generate_mac_address()
+    puts "Information:\tGenerated new MAC address: "+install_mac
+  end
+  return install_mac
+end
+
 # Get Fusion VM MAC address
 
 def get_fusion_vm_mac(install_client)

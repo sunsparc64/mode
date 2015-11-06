@@ -45,6 +45,9 @@ end
 #end
 
 def create_vm(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount,install_ip)
+  if install_vm.match(/fusion/) and install_mac.match(/[0-9]/)
+    install_mac = check_fusion_vm_mac(install_mac)
+  end
   if !install_method.match(/[a-z]/) and !install_os.match(/[a-z]/)
     if $verbose_mode == 1
       puts "Warning:\tInstall method or OS not specified"
