@@ -959,11 +959,17 @@ def populate_fusion_vm_vmx_info(install_client,install_mac,install_os,install_me
   vmx_info.push(".encoding,UTF-8")
   vmx_info.push("config.version,8")
   if version > 6
-    vmx_info.push("virtualHW.version,11")
+    if version > 7
+      if version >= 8
+        vmx_info.push("virtualHW.version,12")
+      else
+        vmx_info.push("virtualHW.version,11")
+      end
+    end
   else
     vmx_info.push("virtualHW.version,10")
   end
-  vmx_info.push("vcpu.hotadd,TRUE")
+  vmx_info.push("vcpu.hotadd,FALSE")
   vmx_info.push("scsi0.present,TRUE")
   if install_os.match(/windows7srv-64/)
     vmx_info.push("scsi0.virtualDev,lsisas1068")
@@ -971,7 +977,7 @@ def populate_fusion_vm_vmx_info(install_client,install_mac,install_os,install_me
     vmx_info.push("scsi0.virtualDev,lsilogic")
   end
   vmx_info.push("memsize,#{install_memory}")
-  vmx_info.push("mem.hotadd,TRUE")
+  vmx_info.push("mem.hotadd,FALSE")
   vmx_info.push("scsi0:0.present,TRUE")
   vmx_info.push("scsi0:0.fileName,#{install_client}.vmdk")
   if install_file.match(/[a-z]/)
@@ -1020,7 +1026,7 @@ def populate_fusion_vm_vmx_info(install_client,install_mac,install_os,install_me
   vmx_info.push("pciBridge7.functions,8")
   vmx_info.push("vmci0.present,TRUE")
   vmx_info.push("hpet0.present,TRUE")
-  vmx_info.push("usb.vbluetooth.startConnected,TRUE")
+  vmx_info.push("usb.vbluetooth.startConnected,FALSE")
   vmx_info.push("tools.syncTime,TRUE")
   vmx_info.push("displayName,#{install_client}")
   vmx_info.push("guestOS,#{install_os}")
@@ -1046,7 +1052,11 @@ def populate_fusion_vm_vmx_info(install_client,install_mac,install_os,install_me
   vmx_info.push("ethernet0.pciSlotNumber,33")
   vmx_info.push("sound.pciSlotNumber,34")
   vmx_info.push("vmci0.pciSlotNumber,36")
-  vmx_info.push("sata0.pciSlotNumber,37")
+  if version >= 8
+    vmx_info.push("sata0.pciSlotNumber,-1")
+  else
+    vmx_info.push("sata0.pciSlotNumber,37")
+  end
   if install_os.match(/windows7srv-64/)
     vmx_info.push("scsi0.sasWWID,50 05 05 63 9c 8f c0 c0")
   end
@@ -1084,6 +1094,12 @@ def populate_fusion_vm_vmx_info(install_client,install_mac,install_os,install_me
   vmx_info.push("isolation.tools.hgfs.disable,FALSE")
   vmx_info.push("hgfs.mapRootShare,TRUE")
   vmx_info.push("hgfs.linkRootShare,TRUE")
+  if version >= 8
+    vmx_info.push("acpi.smbiosVersion2.7,FALSE")
+    vmx_info.push("numa.autosize.vcpu.maxPerVirtualNode,1")
+    vmx_info.push("numa.autosize.cookie,10001")
+    vmx_info.push("migrate.hostlog,#{install_client}-#{install_mac}.hlog")
+  end
   if install_share.match(/[A-z]/)
     vmx_info.push("sharedFolder0.present,TRUE")
     vmx_info.push("sharedFolder0.enabled,TRUE")
