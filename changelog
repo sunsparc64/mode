@@ -571,3 +571,5 @@
 # Updated support for VMware Fusion 8
 # 2.8.5: Fri  6 Nov 2015 13:43:44 AEDT
 # Added MAC address check for VMware Fusion
+# 2.8.6: Sat  7 Nov 2015 10:11:27 AEDT
+# Fixed support for Solaris 11.3 and RedHat 6.7

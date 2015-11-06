@@ -201,7 +201,7 @@ def configure_ks_client(install_client,install_arch,install_mac,install_ip,insta
     output_ks_header(install_client,output_file)
     pkg_list = populate_ks_pkg_list(install_service)
     output_ks_pkg_list(install_client,pkg_list,output_file,install_service)
-    post_list = populate_ks_post_list(install_client,install_service,publisher_host)
+    post_list = populate_ks_post_list(install_arch,install_service,publisher_host,install_client,install_ip)
     output_ks_post_list(install_client,post_list,output_file,install_service)
   else
     if install_service.match(/sles/)
@@ -238,7 +238,7 @@ end
 
 # Populate post commands
 
-def populate_ks_post_list(client_arch,service_name,publisher_host)
+def populate_ks_post_list(client_arch,service_name,publisher_host,client_name,client_ip)
   gateway_ip  = $default_host.split(/\./)[0..2].join(".")+".254"
   post_list   = []
   admin_group = $q_struct["admin_group"].value
@@ -395,6 +395,13 @@ def populate_ks_post_list(client_arch,service_name,publisher_host)
     post_list.push("chmod 755 /etc/rc.modules")
     post_list.push("")
   end
+  if service_name.match(/rhel_/)
+    post_list.push("# Add host entry")
+    post_list.push("")
+    post_list.push("echo '#{client_ip} #{client_name}' >> /etc/hosts")
+    post_list.push("echo 'HOSTNAME=#{client_name}' >> /etc/sysconfig/network")
+    post_list.push("")
+  end
   if $do_ssh_keys == 1
     post_list.push("# Copy SSH keys")
     post_list.push("")
@@ -429,7 +436,6 @@ def populate_ks_post_list(client_arch,service_name,publisher_host)
     post_list.push("puppet agent --test")
     post_list.push("")
   end
-  post_list.push("")
   post_list.push("# Install VirtualBox Tools")
   post_list.push("")
   post_list.push("mkdir /mnt/cdrom")
@@ -528,7 +534,9 @@ def populate_ks_pkg_list(service_name)
     pkg_list.push("libxslt-devel")
     pkg_list.push("libstdc++-devel")
     pkg_list.push("gcc-c++")
-    pkg_list.push("libgnome-keyring")
+    if !service_name.match(/rhel_6/)
+      pkg_list.push("libgnome-keyring")
+    end
     pkg_list.push("perl-Error")
     pkg_list.push("perl-TermReadKey")
     pkg_list.push("git")

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.8.5
+# Version:      2.8.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -26,10 +26,10 @@ require 'parseconfig'
 require 'unix_crypt'
 require 'pathname'
 require 'netaddr'
-require 'net/ssh'
 require 'json'
 
 begin
+  require 'net/ssh'
   require 'nokogiri'
   require 'mechanize'
   require 'uri'
@@ -187,6 +187,7 @@ $os_mach = %x[uname -m].chomp
 if $os_name.match(/SunOS|Darwin/)
   $os_info = %x[uname -a].chomp
   $os_rel  = %x[uname -r].chomp
+  $os_rev  = $os_rel.split(/./)[1]
   if $os_rel.match(/5\.11/) and $os_name.match(/SunOS/)
     $os_update   = %x[uname -v].chomp
     $default_net = "net0"
@@ -360,6 +361,24 @@ def get_default_host()
     if $default_host.match(/addr:/)
       $default_host = $default_host.split(/:/)[1].split(/ /)[0]
     end
+  end
+end
+
+# Set config file locations
+
+def set_local_config()
+  if $os_name.match(/Linux/)
+    if $os_info.match(/RedHat|CentOS/)
+      $tftp_dir   = "/var/lib/tftpboot"
+      $dhcpd_file = "/etc/dhcp/dhcpd.conf"
+    else
+      $tftp_dir   = "/tftpboot"
+      $dhcpd_file = "/etc/dhcp/dhcpd.conf"
+    end
+  end
+  if $os_name == "Darwin"
+    $tftp_dir   = "/private/tftpboot"
+    $dhcpd_file = "/usr/local/etc/dhcpd.conf"
   end
 end
 
@@ -1235,7 +1254,7 @@ end
 
 # Try to determine install method if only given OS
 
-if !option["method"] and !option["action"].match(/delete|running|boot|stop/)
+if !option["method"] and !option["action"].match(/delete|running|reboot|restart|halt|boot|stop/)
   case install_os
   when /sol|sunos/
     if install_release.match(/[0-9]/)
@@ -1400,6 +1419,7 @@ if option["action"]
           end
         end
       else
+        set_local_config()
         remove_hosts_entry(install_client,install_ip)
         remove_dhcp_client(install_client)
         if option["yes"]
@@ -1489,7 +1509,7 @@ if option["action"]
         end
       end
     end
-  when /restart/
+  when /restart|reboot/
     if install_service.match(/[A-z]/)
       eval"[restart_#{install_service}()]"
     else

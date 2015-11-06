@@ -346,14 +346,16 @@ end
 # List AI services
 
 def list_ai_services()
-  message = "Listing:\nAvoilable AI services"
-  command = "installadm list |grep 'auto_install' |grep -v default |awk '{print $1}'"
-  output  = execute_command(message,command)
-  if output.length > 0
-    puts
-    puts "Available AI services:"
-    puts
-    puts output
+  if $os_name.match(/SunOS/) and $os_ver > 10
+    message = "Information:\nAvailable AI services"
+    command = "installadm list |grep 'auto_install' |grep -v default |awk '{print $1}'"
+    output  = execute_command(message,command)
+    if output.length > 0
+      puts
+      puts "Available AI services:"
+      puts
+      puts output
+    end
   end
   return
 end

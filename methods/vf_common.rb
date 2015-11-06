@@ -460,7 +460,7 @@ def check_fusion_hostonly_network(if_name)
       copy.push(line)
     end
   end
-  message = "Information:\t Checking vmnet interfaces are plumbed"
+  message = "Information:\tChecking vmnet interfaces are plumbed"
   command = "ifconfig -a |grep vmnet"
   output  = execute_command(message,command)
   if !output.match(/vmnet/)
@@ -481,6 +481,14 @@ def check_fusion_hostonly_network(if_name)
     execute_command(message,command)
     message = "Information:\tStarting VMware network"
     command = "sudo sh -c '\"#{vmnet_cli}\" --start'"
+    execute_command(message,command)
+  end
+  message = "Information:\tChecking vmnet interface address"
+  command = "ifconfig vmnet1 |grep inet"
+  output  = execute_command(message,command)
+  if !output.match(/#{$default_hostonly_ip}/)
+    message = "Information:\tSetting vmnet1 address to "+$default_hostonly_ip
+    command = "sudo sh -c \"ifconfig vmnet1 inet #{$default_hostonly_ip}\""
     execute_command(message,command)
   end
   if $os_rel.split(".")[0].to_i < 14
@@ -571,6 +579,10 @@ end
 
 # Stop VMware Fusion VM
 
+def halt_fusion_vm(install_client)
+  stop_fusion_vm(install_client)
+end
+
 def stop_fusion_vm(install_client)
   vm_list = get_running_fusion_vms()
   if vm_list.to_s.match(/#{install_client}/)
@@ -588,6 +600,10 @@ def stop_fusion_vm(install_client)
 end
 
 # Reset VMware Fusion VM
+
+def reboot_fusion_vm(install_client)
+  reset_fusion_vm(install_client)
+end
 
 def reset_fusion_vm(install_client)
   vm_list = get_running_fusion_vms()

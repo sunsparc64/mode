@@ -246,7 +246,7 @@ def create_packer_vs_install_files(install_client,install_service,install_ip,pub
   return
 end
 
-def create_packer_ks_install_files(install_client,install_service,install_ip,publisher_host,install_vm)
+def create_packer_ks_install_files(install_arch,install_client,install_service,install_ip,publisher_host,install_vm)
   client_dir  = $client_base_dir+"/packer/"+install_vm+"/"+install_client
   output_file = client_dir+"/"+install_client+".cfg"
   check_dir_exists(client_dir)
@@ -256,7 +256,7 @@ def create_packer_ks_install_files(install_client,install_service,install_ip,pub
   output_ks_header(install_client,output_file)
   pkg_list = populate_ks_pkg_list(install_service)
   output_ks_pkg_list(install_client,pkg_list,output_file,install_service)
-  post_list = populate_ks_post_list(install_client,install_service,publisher_host)
+  post_list = populate_ks_post_list(install_arch,install_service,publisher_host,install_client,install_ip)
   output_ks_post_list(install_client,post_list,output_file,install_service)
   return
 end
@@ -298,7 +298,7 @@ end
 
 def configure_packer_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm)
   install_service = get_packer_install_service(install_file)
-  create_packer_ks_install_files(install_client,install_service,install_ip,publisher_host,install_vm)
+  create_packer_ks_install_files(install_arch,install_client,install_service,install_ip,publisher_host,install_vm)
   return
 end
 

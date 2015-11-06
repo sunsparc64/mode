@@ -1271,7 +1271,7 @@ def check_zfs_fs_exists(dir_name)
       else
         zfs_name = $default_zpool+dir_name
       end
-      if dir_name.match(/vmware_|openbsd_|coreos_/)
+      if dir_name.match(/vmware_|openbsd_|coreos_/) or $os_rel > 10
         service_name = File.basename(dir_name)
         mount_dir    = $tftp_dir+"/"+service_name
         if !File.directory?(mount_dir)
@@ -1283,7 +1283,7 @@ def check_zfs_fs_exists(dir_name)
       message      = "Information:\tCreating "+dir_name+" with mount point "+mount_dir
       command      = "zfs create -o mountpoint=#{mount_dir} #{zfs_name}"
       execute_command(message,command)
-      if dir_name.match(/vmware_|openbsd_|coreos_/)
+      if dir_name.match(/vmware_|openbsd_|coreos_/) or $os_rel > 10
         message = "Information:\tSymlinking "+mount_dir+" to "+dir_name
         command = "ln -s #{mount_dir} #{dir_name}"
         execute_command(message,command)
