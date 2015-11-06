@@ -709,7 +709,7 @@ end
 # Configure a AI VMware Fusion VM
 
 def configure_ai_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = get_ai_fustion_guest_os(install_arch)
+  install_os = get_ai_fusion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
@@ -724,7 +724,7 @@ end
 # Configure a Jumpstart VMware Fusion VM
 
 def configure_js_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = get_js_fustion_guest_os(install_arch)
+  install_os = get_js_fusion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
@@ -742,7 +742,7 @@ end
 # configure an AutoYast (Suse) VMware Fusion VM
 
 def configure_ay_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = get_ay_fustion_guest_os(install_arch)
+  install_os = get_ay_fusion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
@@ -760,7 +760,7 @@ end
 # Configure a NetBSB VMware Fusion VM
 
 def configure_nb_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = get_nb_fustion_guest_os(install_arch)
+  install_os = get_nb_fusion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
@@ -775,7 +775,7 @@ end
 # Configure an OpenBSD VMware Fusion VM
 
 def configure_ob_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = get_ob_fustion_guest_os(install_arch)
+  install_os = get_ob_fusion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
@@ -793,7 +793,7 @@ end
 # Configure an Ubuntu VMware Fusion VM
 
 def configure_ps_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = get_ps_fustion_guest_os(install_arch)
+  install_os = get_ps_fusion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
@@ -808,7 +808,7 @@ end
 # Configure a Windows VMware Fusion VM
 
 def configure_pe_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = get_pe_fustion_guest_os(install_arch)
+  install_os = get_pe_fusion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
@@ -823,7 +823,7 @@ end
 # Configure another VMware Fusion VM
 
 def configure_other_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = get_other_fustion_guest_os(install_arch)
+  install_os = get_other_fusion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
@@ -845,7 +845,7 @@ end
 # Configure a Kickstart VMware Fusion VM
 
 def configure_ks_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = get_ks_fustion_guest_os(install_arch)
+  install_os = get_ks_fusion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
@@ -860,7 +860,7 @@ end
 # Configure a ESX VMware Fusion VM
 
 def configure_vs_fusion_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  install_os = get_vs_fustion_guest_os(install_arch)
+  install_os = get_vs_fusion_guest_os(install_arch)
   configure_fusion_vm(install_client,install_mac,install_os,install_arch,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
