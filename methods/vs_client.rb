@@ -53,7 +53,8 @@ def configure_vs_pxe_client(client_name,client_mac,install_service)
   pxe_cfg_file = "01-"+pxe_cfg_file
   pxe_cfg_file = pxe_cfg_file.downcase
   pxe_cfg_file = pxe_cfg_dir+"/"+pxe_cfg_file
-  ks_url       = "http://"+$default_host+"/"+install_service+"/"+client_name+".cfg"
+  #ks_url       = "http://"+$default_host+"/"+install_service+"/"+client_name+".cfg"
+  ks_url       = "http://"+$default_host+"/clients/"+install_service+"/"+client_name+"/"+client_name+".cfg"
   mboot_file   = "/"+install_service+"/mboot.c32"
   if $verbose_mode == 1
     puts "Creating:\tMenu config file "+pxe_cfg_file
@@ -145,10 +146,10 @@ def unconfigure_vs_pxe_client(client_name)
     command = "rm #{pxe_cfg_file}"
     execute_command(message,command)
   end
-  client_info  = get_vs_clients()
+  client_info     = get_vs_clients()
   install_service = client_info.grep(/#{client_name}/)[0].split(/ = /)[1].chomp
-  ks_dir       = $tftp_dir+"/"+install_service
-  ks_cfg_file  = ks_dir+"/"+client_name+".cfg"
+  ks_dir          = $tftp_dir+"/"+install_service
+  ks_cfg_file     = ks_dir+"/"+client_name+".cfg"
   if File.exist?(ks_cfg_file)
     message = "Removing:\tKickstart boot config file "+ks_cfg_file+" for "+client_name
     command = "rm #{ks_cfg_file}"
@@ -184,11 +185,14 @@ def configure_vs_client(install_client,install_arch,install_mac,install_ip,insta
   end
   populate_vs_questions(install_service,install_client,install_ip)
   process_questions(install_service)
-  output_file=repo_version_dir+"/"+install_client+".cfg"
+  client_dir = $client_base_dir+"/"+install_service+"/"+install_client
+  check_fs_exists(client_dir)
+  output_file = client_dir+"/"+install_client+".cfg"
+  #output_file=repo_version_dir+"/"+install_client+".cfg"
   if File.exists?(output_file)
     File.delete(output_file)
   end
-  output_file=repo_version_dir+"/"+install_client+".cfg"
+  #output_file=repo_version_dir+"/"+install_client+".cfg"
   output_vs_header(output_file)
   # Output firstboot list
   post_list = populate_vs_firstboot_list(install_service,install_license)
@@ -201,6 +205,7 @@ def configure_vs_client(install_client,install_arch,install_mac,install_ip,insta
   end
   configure_vs_pxe_client(install_client,install_mac,install_service)
   configure_vs_dhcp_client(install_client,install_mac,install_ip,install_arch,install_service)
+  add_apache_alias($client_base_dir)
   return
 end
 

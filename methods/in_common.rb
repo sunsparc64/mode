@@ -1497,6 +1497,9 @@ def enable_service(service_name)
   if $os_name.match(/Darwin/)
     output = enable_osx_service(service_name)
   end
+  if $os_name.match(/Linux/)
+    output = enable_linux_service(service_name)
+  end
   return output
 end
 
@@ -1649,6 +1652,9 @@ def add_apache_proxy(publisher_host,publisher_port,service_base_name)
   if $os_name.match(/Darwin/)
     apache_config_file = "/etc/apache2/httpd.conf"
   end
+  if $os_name.match(/Linux/)
+    apache_config_file = "/etc/httpd/conf/httpd.conf"
+  end
   apache_check = %x[cat #{apache_config_file} |grep #{service_base_name}]
   if !apache_check.match(/#{service_base_name}/)
     message = "Archiving:\t"+apache_config_file+" to "+apache_config_file+".no_"+service_base_name
@@ -1672,6 +1678,9 @@ def remove_apache_proxy(service_base_name)
   end
   if $os_name.match(/Darwin/)
     apache_config_file = "/etc/apache2/httpd.conf"
+  end
+  if $os_name.match(/Linux/)
+    apache_config_file = "/etc/httpd/conf/httpd.conf"
   end
   message      = "Checking:\tApache confing file "+apache_config_file+" for "+service_base_name
   command      = "cat #{apache_config_file} |grep '#{service_base_name}'"
@@ -1739,14 +1748,25 @@ def add_apache_alias(service_base_name)
       message = "Updating:\tApache config file"
       command = "cp #{tmp_file} #{apache_config_file} ; rm #{tmp_file}"
       execute_command(message,command)
-      service_name = "apache"
+    end
+    if $os_name.match(/SunOS|Linux/)
+      if $os_name.match(/Linux/)
+        service_name = "httpd"
+      else
+        service_name = "apache"
+      end
       enable_service(service_name)
       refresh_service(service_name)
     end
-  end
-  if $os_name.match(/Linux/)
-    if !File.symlink?(apache_doc_dir)
-      File.symlink(apache_alias_dir,apache_doc_dir)
+    if $os_name.match(/Linux/)
+      if $os_info.match(/RedHat/)
+        if $os_ver.match(/^7|^6\.7/)
+          httpd_p = "httpd_sys_rw_content_t"
+          message = "Information:\tFixing permissions on "+$client_base_dir
+          command = "chcon -R -t #{httpd_p} #{$client_base_dir}"
+          execute_command(message,command)
+        end
+      end
     end
   end
   return
