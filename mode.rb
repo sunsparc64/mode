@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.8.7
+# Version:      2.8.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -848,7 +848,7 @@ end
 
 if option["mac"]
   install_mac = option["mac"]
-  check_install_mac(install_mac)
+  install_mac = check_install_mac(install_mac)
   if $verbose_mode == 1
      puts "Information:\tSetting client MAC address to: "+install_mac
   end

@@ -575,3 +575,5 @@
 # Fixed support for Solaris 11.3 and RedHat 6.7
 # 2.8.7: Sun  8 Nov 2015 06:46:03 AEDT
 # Added support for RedHat 6.7 changes to apache and SELinux
+# 2.8.8: Mon  9 Nov 2015 13:23:38 AEDT
+# Fixed MAC address check
