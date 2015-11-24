@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.8.8
+# Version:      2.8.9
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -27,6 +27,8 @@ require 'unix_crypt'
 require 'pathname'
 require 'netaddr'
 require 'json'
+require 'pathname'
+require 'ipaddr'
 
 begin
   require 'net/ssh'
@@ -39,139 +41,151 @@ begin
 rescue LoadError
 end
 
-
-
 # Set up some global variables/defaults
 
-$script                 = $0
-$script_file            = Pathname.new($script).realpath
-$script_dir             = File.dirname($script_file)
-$wiki_dir               = $script_dir+"/"+File.basename($script,".rb")+".wiki"
-$verbose_mode           = 0
-$test_mode              = 0
-$download_mode          = 1
-$iso_base_dir           = "/export/isos"
-$repo_base_dir          = "/export/repo"
-$image_base_dir         = "/export/images"
-$pkg_base_dir           = "/export/pkgs"
-$ldom_base_dir          = "/ldoms"
-$zone_base_dir          = "/zones"
-$iso_mount_dir          = "/cdrom"
-$ai_base_dir            = "/export/auto_install"
-$client_base_dir        = "/export/clients"
-$lxc_base_dir           = "/lxc"
-$lxc_image_dir          = "/export/images"
-$work_dir               = ""
-$tmp_dir                = ""
-$alt_repo_name          = "alt"
-$alt_prefix_name        = "solaris"
-$home_dir               = ENV["HOME"]
-$dhcpd_file             = "/etc/inet/dhcpd4.conf"
-$fusion_dir             = ""
-$default_zpool          = "rpool"
-$default_ai_port        = "10081"
-$default_host           = ""
-$default_hostname       = %x["hostname"].chomp
-$default_nic            = ""
-$default_net            = "net0"
-$default_timezone       = "Australia/Victoria"
-$default_terminal       = "sun"
-$default_country        = "AU"
-$local_opencsw_mirror   = "http://192.168.1.250/pub/Software/OpenCSW"
-$default_opencsw        = "testing"
-$default_ubuntu_mirror  = $default_country.downcase+".archive.ubuntu.com"
-$default_centos_mirror  = "mirror.centos.org"
-$default_sl_mirror      = "ftp.scientificlinux.org/linux"
-$default_epel_mirror    = "download.fedoraproject.org"
-$local_sl_mirror        = "mirror.aarnet.edu.au/pub"
-$local_ubuntu_mirror    = "mirror.aarnet.edu.au"
-$local_centos_mirror    = "mirror.aarnet.edu.au/pub"
-$local_epel_mirror      = "mirror.aarnet.edu.au"
-$default_timeserver     = "0."+$default_country.downcase+".pool.ntp.org"
-$default_keymap         = "US-English"
-$default_environment    = "en_US.UTF-8"
-$default_language       = "en_US"
-$default_system_locale  = "C"
-$default_nameserver     = "8.8.8.8"
-$default_name_service   = "none"
-$default_security       = "none"
-$default_netmask        = "255.255.255.0"
-$default_domain         = "local"
-$default_search         = "local"
-$default_files          = "files"
-$default_hosts          = "files dns"
-$default_root_password  = "XXXX"
-$default_admin_password = "YYYY"
-$default_maas_admin     = "root"
-$default_maas_email     = $default_maas_admin+"@"+$default_host
-$default_mass_password  = $default_admin_password
-$use_alt_repo           = 0
-$destroy_fs             = "n"
-$use_defaults           = 0
-$default_apache_allow   = ""
-$default_admin_name     = "Sys Admin"
-$default_admin_user     = "sysadmin"
-$default_admin_group    = "wheel"
-$default_admin_home     = "/home/"+$default_admin_user
-$default_admin_shell    = "/bin/bash"
-$default_admin_uid      = "200"
-$default_admin_gid      = "200"
-$preseed_admin_uid      = "1000"
-$preseed_admin_gid      = "1000"
-$tftp_dir               = "/etc/netboot"
-$default_cluster        = "SUNWCprog"
-$default_install        = "initial_install"
-$default_nfs4_domain    = "dynamic"
-$default_auto_reg       = "disable"
-$q_struct               = {}
-$q_order                = []
-$text_mode              = 1
-$backup_dir             = ""
-$rpm2cpio_url           = "http://svnweb.freebsd.org/ports/head/archivers/rpm2cpio/files/rpm2cpio?revision=259745&view=co"
-$rpm2cpio_bin           = ""
-$vbox_disk_type         = "sas"
-$default_vm_size        = "20G"
-$default_vm_mem         = "1024"
-$default_vm_vcpu        = "1"
-$serial_mode            = 0
-$os_name                = ""
-$yes_to_all             = 0
-$default_cdom_mau       = "1"
-$default_gdom_mau       = "1"
-$default_cdom_vcpu      = "8"
-$default_gdom_mem       = "4G"
-$default_gdom_vcpu      = "8"
-$default_gdom_mem       = "4G"
-$default_gdom_size      = "10G"
-$default_cdom_name      = "initial"
-$default_dpool          = "dpool"
-$default_gdom_vnet      = "vnet0"
-$use_sudo               = 1
-$do_ssh_keys            = 0
-$default_vm_network     = "hostonly"
-$default_vm_hw_version  = "8"
-$default_hostonly_ip    = "192.168.2.254"
-$default_server_size    = "small"
-$default_manifest_name  = "modest"
-$vbox_additions_iso     = "/Applications/VirtualBox.app//Contents/MacOS/VBoxGuestAdditions.iso"
-$openbsd_base_url       = "http://ftp.openbsd.org/pub/OpenBSD"
-$default_x86_virtual    = "VirtualBox"
-$default_x86_vm_net     = "enp0s3"
-$default_ext_network    = "192.168.1.0"
-$puppet_rpm_base_url    = "http://yum.puppetlabs.com"
-$centos_rpm_base_url    = "http://"+$local_centos_mirror+"/centos"
-$default_vm_utc         = "off"
-$valid_os_list          = [ 'sol', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL' ]
-$valid_linux_os_list    = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL' ]
-$valid_arch_list        = [ 'x86_64', 'i386', 'sparc' ]
-$valid_console_list     = [ 'text', 'console', 'x11', 'headless' ]
-$valid_method_list      = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay' ]
-$valid_type_list        = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server' ]
-$valid_mode_list        = [ 'client', 'server', 'osx' ]
-$valid_vm_list          = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'gdom', 'parallels' ]
-$execute_host           = "localhost"
-$default_options        = ""
-$do_checksums           = 0
+$script                   = $0
+$script_file              = Pathname.new($script).realpath
+$script_dir               = File.dirname($script_file)
+$wiki_dir                 = $script_dir+"/"+File.basename($script,".rb")+".wiki"
+$verbose_mode             = 0
+$test_mode                = 0
+$download_mode            = 1
+$iso_base_dir             = "/export/isos"
+$repo_base_dir            = "/export/repo"
+$image_base_dir           = "/export/images"
+$pkg_base_dir             = "/export/pkgs"
+$ldom_base_dir            = "/ldoms"
+$zone_base_dir            = "/zones"
+$iso_mount_dir            = "/cdrom"
+$ai_base_dir              = "/export/auto_install"
+$client_base_dir          = "/export/clients"
+$lxc_base_dir             = "/lxc"
+$lxc_image_dir            = "/export/images"
+$work_dir                 = ""
+$tmp_dir                  = ""
+$alt_repo_name            = "alt"
+$alt_prefix_name          = "solaris"
+$home_dir                 = ENV["HOME"]
+$dhcpd_file               = "/etc/inet/dhcpd4.conf"
+$fusion_dir               = ""
+$default_zpool            = "rpool"
+$default_ai_port          = "10081"
+$default_host             = ""
+$default_hostname         = %x["hostname"].chomp
+$default_nic              = ""
+$default_net              = "net0"
+$default_timezone         = "Australia/Victoria"
+$default_terminal         = "sun"
+$default_country          = "AU"
+$local_opencsw_mirror     = "http://192.168.1.250/pub/Software/OpenCSW"
+$default_opencsw          = "testing"
+$default_ubuntu_mirror    = $default_country.downcase+".archive.ubuntu.com"
+$default_centos_mirror    = "mirror.centos.org"
+$default_sl_mirror        = "ftp.scientificlinux.org/linux"
+$default_epel_mirror      = "download.fedoraproject.org"
+$local_sl_mirror          = "mirror.aarnet.edu.au/pub"
+$local_ubuntu_mirror      = "mirror.aarnet.edu.au"
+$local_centos_mirror      = "mirror.aarnet.edu.au/pub"
+$local_epel_mirror        = "mirror.aarnet.edu.au"
+$default_timeserver       = "0."+$default_country.downcase+".pool.ntp.org"
+$default_keymap           = "US-English"
+$default_environment      = "en_US.UTF-8"
+$default_language         = "en_US"
+$default_system_locale    = "C"
+$default_nameserver       = "8.8.8.8"
+$default_name_service     = "none"
+$default_security         = "none"
+$default_netmask          = "255.255.255.0"
+$default_domainname       = "lab.net"
+$default_search           = "local"
+$default_files            = "files"
+$default_hosts            = "files dns"
+$default_root_password    = "XXXX"
+$default_admin_password   = "YYYY"
+$default_maas_admin       = "root"
+$default_maas_email       = $default_maas_admin+"@"+$default_host
+$default_mass_password    = $default_admin_password
+$default_server_admin     = "root"
+$default_server_password  = "XXXX"
+$use_alt_repo             = 0
+$destroy_fs               = "n"
+$use_defaults             = 0
+$default_apache_allow     = ""
+$default_admin_name       = "Sys Admin"
+$default_admin_user       = "sysadmin"
+$default_server_admin     = "root"
+$default_admin_group      = "wheel"
+$default_admin_home       = "/home/"+$default_admin_user
+$default_admin_shell      = "/bin/bash"
+$default_admin_uid        = "200"
+$default_admin_gid        = "200"
+$preseed_admin_uid        = "1000"
+$preseed_admin_gid        = "1000"
+$tftp_dir                 = "/etc/netboot"
+$default_cluster          = "SUNWCprog"
+$default_install          = "initial_install"
+$default_nfs4_domain      = "dynamic"
+$default_auto_reg         = "disable"
+$q_struct                 = {}
+$q_order                  = []
+$text_mode                = 1
+$backup_dir               = ""
+$ovftool_tar_url          = "https://github.com/richardatlateralblast/ottar/blob/master/vmware-ovftools.tar.gz?raw=true"
+$ovftool_dmg_url          = "https://github.com/richardatlateralblast/ottar/blob/master/VMware-ovftool-4.1.0-2459827-mac.x64.dmg?raw=true"
+$ovftool_bin              = "/Applications/VMware OVF Tool/ovftool"
+$rpm2cpio_url             = "http://svnweb.freebsd.org/ports/head/archivers/rpm2cpio/files/rpm2cpio?revision=259745&view=co"
+$rpm2cpio_bin             = ""
+$vbox_disk_type           = "sas"
+$default_vm_size          = "20G"
+$default_vm_mem           = "1024"
+$default_vm_vcpu          = "1"
+$serial_mode              = 0
+$os_name                  = ""
+$yes_to_all               = 0
+$default_cdom_mau         = "1"
+$default_gdom_mau         = "1"
+$default_cdom_vcpu        = "8"
+$default_gdom_mem         = "4G"
+$default_gdom_vcpu        = "8"
+$default_gdom_mem         = "4G"
+$default_gdom_size        = "10G"
+$default_cdom_name        = "initial"
+$default_dpool            = "dpool"
+$default_gdom_vnet        = "vnet0"
+$use_sudo                 = 1
+$do_ssh_keys              = 0
+$default_vm_network       = "hostonly"
+$default_vm_hw_version    = "8"
+$default_hostonly_ip      = "192.168.2.254"
+$default_server_size      = "small"
+$default_manifest_name    = "modest"
+$vbox_additions_iso       = "/Applications/VirtualBox.app//Contents/MacOS/VBoxGuestAdditions.iso"
+$openbsd_base_url         = "http://ftp.openbsd.org/pub/OpenBSD"
+$default_x86_virtual      = "VirtualBox"
+$default_x86_vm_net       = "enp0s3"
+$default_ext_network      = "192.168.1.0"
+$puppet_rpm_base_url      = "http://yum.puppetlabs.com"
+$centos_rpm_base_url      = "http://"+$local_centos_mirror+"/centos"
+$default_vm_utc           = "off"
+$valid_os_list            = [ 'sol', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL' ]
+$valid_linux_os_list      = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL' ]
+$valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
+$valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
+$valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay' ]
+$valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa' ]
+$valid_mode_list          = [ 'client', 'server', 'osx' ]
+$valid_vm_list            = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'gdom', 'parallels' ]
+$execute_host             = "localhost"
+$default_options          = ""
+$do_checksums             = 0
+$default_ipfamily         = "ipv4"
+$default_datastore        = "datastore1"
+$default_server_network   = "VM Network"
+$default_diskmode         = "thin"
+$default_sitename         = $default_domainname.split(".")[0]
+$default_vcsa_size        = "tiny"
+$default_thindiskmode     = "true"
+$default_sshenable        = "true"
 
 # Declare some package versions
 
@@ -552,47 +566,57 @@ end
 
 begin
   option = Getopt::Long.getopts(
-    [ "--arch",       "-A", Getopt::REQUIRED ], # Architecture of client or VM (e.g. x86_64)
-    [ "--action",     "-a", Getopt::REQUIRED ], # Action (e.g. boot, stop, create, delete, list, etc)
-    [ "--client",     "-c", Getopt::REQUIRED ], # Client name
-    [ "--server",     "-D", Getopt::REQUIRED ], # Server name (allow execution of commands on a remote host)
-    [ "--clone",      "-f", Getopt::REQUIRED ], # Clone name
-    [ "--console",    "-X", Getopt::REQUIRED ], # Select console type (e.g. text, serial, x11) (default is text)
-    [ "--delete",     "-d", Getopt::BOOLEAN ],  # Delete client or VM
-    [ "--copykeys",   "-s", Getopt::BOOLEAN ],  # Copy SSH Keys
-    [ "--yes",        "-y", Getopt::BOOLEAN ],  # Answer yes to all questions (accept defaults)
-    [ "--mac",        "-e", Getopt::REQUIRED ], # MAC Address
-    [ "--file",       "-f", Getopt::REQUIRED ], # File, eg ISO
-    [ "--help",       "-h", Getopt::BOOLEAN ],  # Display usage information
-    [ "--version",    "-V", Getopt::BOOLEAN ],  # Display version information
-    [ "--info",       "-H", Getopt::REQUIRED ], # Display usage information
-    [ "--repo",       "-R", Getopt::REQUIRED ], # Set repository
-    [ "--ip",         "-i", Getopt::REQUIRED ], # IP Address
-    [ "--size",       "-j", Getopt::REQUIRED ], # VM disk size
-    [ "--network",    "-k", Getopt::REQUIRED ], # Set network type (e.g. hostonly, bridget, nat)
-    [ "--publisher",  "-l", Getopt::REQUIRED ], # Publisher host
-    [ "--license",    "-L", Getopt::REQUIRED ], # License key (e.g. ESX)
-    [ "--model",      "-T", Getopt::REQUIRED ], # Model
-    [ "--service",    "-n", Getopt::REQUIRED ], # Service name
-    [ "--os",         "-o", Getopt::REQUIRED ], # OS type
-    [ "--post",       "-p", Getopt::REQUIRED ], # Post install configuration
-    [ "--memory",     "-q", Getopt::REQUIRED ], # VM memory size
-    [ "--password",   "-Q", Getopt::REQUIRED ], # Set password
-    [ "--release",    "-r", Getopt::REQUIRED ], # OS Release
-    [ "--type",       "-t", Getopt::REQUIRED ], # Install type (e.g. ISO, client, OVA, Network)
-    [ "--method",     "-m", Getopt::REQUIRED ], # Install method (e.g. Kickstart)
-    [ "--admin",      "-u", Getopt::REQUIRED ], # Admin username
-    [ "--mode",       "-C", Getopt::REQUIRED ], # Set mode to client or server
-    [ "--vm",         "-E", Getopt::REQUIRED ], # VM type
-    [ "--share",      "-S", Getopt::REQUIRED ], # Shared folder
-    [ "--mount",      "-M", Getopt::REQUIRED ], # Mount point
-    [ "--enable",     "-Z", Getopt::REQUIRED ], # Mount point
-    [ "--mirror",     "-R", Getopt::REQUIRED ], # Mirror / Repo
-    [ "--publisher",  "-P", Getopt::REQUIRED ], # Set publisher information (Solaris AI)
-    [ "--config",     "-i", Getopt::REQUIRED ], # Install config (e.g. kickstart, or preseed file) - Used with show, etc
-    [ "--verbose",    "-v", Getopt::BOOLEAN ],  # Verbose mode
-    [ "--changelog",  "-1", Getopt::BOOLEAN ],  # Print changelog
-    [ "--test",       "-w", Getopt::BOOLEAN ]   # Test mode
+    [ "--action",         "-a", Getopt::REQUIRED ], # Action (e.g. boot, stop, create, delete, list, etc)
+    [ "--arch",           "-A", Getopt::REQUIRED ], # Architecture of client or VM (e.g. x86_64)
+    [ "--domainname",     "-b", Getopt::REQUIRED ], # Set domain (Used with deploy for VCSA)
+    [ "--memory",         "-B", Getopt::REQUIRED ], # VM memory size
+    [ "--client",         "-c", Getopt::REQUIRED ], # Client name
+    [ "--mode",           "-C", Getopt::REQUIRED ], # Set mode to client or server
+    [ "--datastore",      "-d", Getopt::REQUIRED ], # Datastore to deploy to on remote server
+    [ "--nameserver",     "-d", Getopt::REQUIRED ], # Delete client or VM
+    [ "--server",         "-D", Getopt::REQUIRED ], # Server name/IP (allow execution of commands on a remote host, or deploy to)
+    [ "--mac",            "-e", Getopt::REQUIRED ], # MAC Address
+    [ "--vm",             "-E", Getopt::REQUIRED ], # VM type
+    [ "--file",           "-f", Getopt::REQUIRED ], # File, eg ISO
+    [ "--clone",          "-f", Getopt::REQUIRED ], # Clone name
+    [ "--config",         "-g", Getopt::REQUIRED ], # Install config (e.g. kickstart, or preseed file) - Used with show, etc
+    [ "--diskmode",       "-G", Getopt::REQUIRED ], # Disk mode (e.g. thin)
+    [ "--help",           "-h", Getopt::BOOLEAN ],  # Display usage information
+    [ "--info",           "-H", Getopt::REQUIRED ], # Display usage information
+    [ "--ip",             "-i", Getopt::REQUIRED ], # IP Address of client
+    [ "--ipfamily",       "-I", Getopt::REQUIRED ], # IP family (e.g. IPv4 or IPv6)
+    [ "--size",           "-j", Getopt::REQUIRED ], # VM disk size (if used with deploy action, this sets the size of the VM, e.g. tiny)
+    [ "--network",        "-k", Getopt::REQUIRED ], # Set network type (e.g. hostonly, bridget, nat)
+    [ "--servernetwork",  "-K", Getopt::REQUIRED ], # Server network (used when deploying to a remote server)
+    [ "--publisher",      "-l", Getopt::REQUIRED ], # Publisher host
+    [ "--license",        "-L", Getopt::REQUIRED ], # License key (e.g. ESX)
+    [ "--method",         "-m", Getopt::REQUIRED ], # Install method (e.g. Kickstart)
+    [ "--mount",          "-M", Getopt::REQUIRED ], # Mount point
+    [ "--service",        "-n", Getopt::REQUIRED ], # Service name
+    [ "--timeserver",     "-N", Getopt::REQUIRED ], # Set NTP server IP / Address
+    [ "--os",             "-o", Getopt::REQUIRED ], # OS type
+    [ "--post",           "-p", Getopt::REQUIRED ], # Post install configuration
+    [ "--publisher",      "-P", Getopt::REQUIRED ], # Set publisher information (Solaris AI)
+    [ "--adminpassword",  "-q", Getopt::REQUIRED ], # Client admin password
+    [ "--ssopassword",    "-q", Getopt::REQUIRED ], # SSO password
+    [ "--serverpassword", "-Q", Getopt::REQUIRED ], # Admin password of server to deploy to
+    [ "--release",        "-r", Getopt::REQUIRED ], # OS Release
+    [ "--mirror",         "-R", Getopt::REQUIRED ], # Mirror / Repo
+    [ "--repo",           "-R", Getopt::REQUIRED ], # Set repository
+    [ "--copykeys",       "-s", Getopt::BOOLEAN ],  # Copy SSH Keys
+    [ "--share",          "-S", Getopt::REQUIRED ], # Shared folder
+    [ "--type",           "-t", Getopt::REQUIRED ], # Install type (e.g. ISO, client, OVA, Network)
+    [ "--model",          "-T", Getopt::REQUIRED ], # Model
+    [ "--admin",          "-u", Getopt::REQUIRED ], # Admin username for client VM to be created
+    [ "--serveradmin",    "-U", Getopt::REQUIRED ], # Admin username for server to deploy to
+    [ "--verbose",        "-v", Getopt::BOOLEAN ],  # Verbose mode
+    [ "--version",        "-V", Getopt::BOOLEAN ],  # Display version information
+    [ "--test",           "-w", Getopt::BOOLEAN ],  # Test mode
+    [ "--rootpassword",   "-W", Getopt::REQUIRED ], # Client root password
+    [ "--console",        "-X", Getopt::REQUIRED ], # Select console type (e.g. text, serial, x11) (default is text)
+    [ "--yes",            "-y", Getopt::BOOLEAN ],  # Answer yes to all questions (accept defaults)
+    [ "--enable",         "-Z", Getopt::REQUIRED ], # Mount point
+    [ "--changelog",      "-1", Getopt::BOOLEAN ]   # Print changelog
   )
 rescue
   print_usage()
@@ -636,19 +660,249 @@ if option["changelog"]
   exit
 end
 
+# Get install action
+
+if option["action"]
+  install_action = option["action"]
+else
+  install_action = ""
+end
+
 # Enable options, e.g. Puppet, needs work!
 
 if option["enable"]
   $default_options = option["enable"]
 end
 
+# handle option type
+
+if option["type"]
+  install_type = option["type"]
+else
+  install_type   = ""
+end
+
+# Handle file
+
+if option["file"]
+  install_file = option["file"]
+  if !File.exist?(install_file)
+    puts "Warning:\tFile "+install_file+" does not exist"
+    exit
+  end
+  if install_action.match(/deploy/)
+    if !install_type.match(/[A-z]/)
+      install_type   = get_install_type_from_file(install_file)
+      option["type"] = install_type
+    end
+  end
+end
+
+# Get password
+
+if option["rootpassword"]
+  install_root_password = option["rootpassword"]
+  if $verbose_mode == 1
+    puts "Information:\tSetting password to: "+install_root_password
+  end
+else
+  install_root_password = $default_root_password
+end
+
+if option["ssopassword"]
+  option["adminpassword"] = option["ssopassword"]
+end
+
+if option["adminpassword"]
+  install_admin_password = option["adminpassword"]
+  if $verbose_mode == 1
+    puts "Information:\tSetting password to: "+install_admin_password
+  end
+else
+  install_admin_password = $default_admin_password
+end
+
+# Handle IP family switch
+
+if option["ipfamily"]
+  install_ipfamily = option["ipfamily"]
+else
+  install_ipfamily = $default_ipfamily
+end
+
+# Handle IP
+
+if option["ip"]
+  install_ip = option["ip"]
+else
+  install_ip = ""
+end
+
+# Get Netmask
+
+if option["netmask"]
+  install_netmask = option["netmask"]
+else
+  if install_type.match(/vcsa/)
+    install_netmask = $default_cidr
+  else
+    install_netmask = $default_netmask
+  end
+end
+
+# Get gateway
+
+if option["gateway"]
+  install_gateway = option["gateway"]
+else
+  install_gateway = $default_gateway_ip
+end
+
+# Handle server admin and password
+
+if option["serveradmin"]
+  install_server_admin = option["serveradmin"]
+else
+  install_server_admin = $default_server_admin
+end
+
+if option["serverpassword"]
+  install_server_password = option["serverpassword"]
+else
+  install_server_password = $default_root_password
+end
+
+# Handle server
+
+if option["server"]
+  install_server = option["server"]
+else
+  install_server = ""
+end
+
+# Handle datastore
+
+if option["datastore"]
+  install_datastore = option["datastore"]
+else
+  install_datastore = $default_datastore
+end
+
+# Handle diskmode
+
+if option["diskmode"]
+  install_diskmode = option["diskmode"]
+else
+  install_diskmode = $default_diskmode
+end
+
+# Handle deploy
+
+if install_action.match(/deploy/)
+  if !install_type.match(/[A-z]/)
+    install_type = "esx"
+  end
+  if install_type.match(/esx|vcsa/)
+    if !install_server_password.match(/[A-z]|[0-9]/)
+      install_server_password = install_root_password
+    end
+    check_ovftool_exists()
+    if install_type.match(/vcsa/)
+      if !install_file.match(/[A-z]/)
+        puts "Warning:\tNo deployment image file specified"
+        exit
+      end
+      check_password(install_root_password)
+      check_password(install_admin_password)
+    end
+  end
+end
+
+# Handle network
+
+if option["servernetwork"]
+  install_server_network = option["servernetwork"]
+else
+  install_server_network = $default_server_network
+end
+
+# Handle DNS
+
+if option["nameserver"]
+  install_nameserver = option["nameserver"]
+  check_install_ip(install_nameserver)
+else
+  install_nameserver = $default_nameserver
+end
+
+# Handle NTP
+
+if option["timeserver"]
+  install_timeserver = option["timeserver"]
+else
+  install_timeserver = $default_timeserver
+end
+
+# Handle domain
+
+if option["domainname"]
+  install_domainname = option["domainname"]
+else
+  install_domainname = $default_domainname
+end
+
+# Handle sitename
+
+if option["sitename"]
+  install_sitename = option["sitename"]
+else
+  if install_domainname.match(/\./)
+    install_sitename = install_domainname.split(".")[0]
+  else
+    install_sitename = install_domainname
+  end
+end
+
 # Handle list switch
 
 if option["action"] == "list"
   if !option["vm"] and !option["service"] and !option["method"] and !option["type"]
-    puts "No type or service given"
+    puts "Warning:\tNo type or service given"
     exit
   end
+end
+
+# Handle action switch
+
+if option["action"]
+  install_action = option["action"]
+  if install_action.match(/migrate|deploy/)
+    if install_action.match(/deploy/)
+      if option["type"]
+        install_type = option["type"]
+        if install_type.match(/vcsa/)
+          install_vm = "fusion"
+        end
+      else
+        install_type   = get_install_type_from_file(install_file)
+        option["type"] = install_type
+        if install_type.match(/vcsa/)
+          install_vm = "fusion"
+        end
+      end
+    end
+    if !option["vm"]
+      puts "Information:\tVirtualisation method not specified, setting virtualisation method to VMware"
+      option["vm"] = "fusion"
+      install_vm   = option["vm"]
+    end
+    if !option["server"] or !option["ip"]
+      puts "Warning:\tRemote server hostname or IP not specified"
+      exit
+    end
+  end
+else
+  install_action = ""
 end
 
 # Handle install service switch
@@ -679,13 +933,11 @@ if option["service"]
     end
   end
 else
-  install_service = ""
-end
-
-# Handle server switch
-
-if option["server"]
-  $execute_host = option["server"]
+  if install_type.match(/vcsa/)
+    install_service = get_install_service_from_file(install_file)
+  else
+    install_service = ""
+  end
 end
 
 # Handle mirror switch
@@ -860,11 +1112,20 @@ end
 
 if option["size"]
   install_size = option["size"]
+  if install_type.match(/vcsa/)
+    if install_size.match(/[0-9]/)
+      install_size = $default_vcsa_size
+    end
+  end
   if $verbose_mode == 1
     puts "Information:\tSetting disk size to: "+install_size
   end
 else
-  install_size = $default_vm_size
+  if install_type.match(/vcsa/)
+    install_size = $default_vcsa_size
+  else
+    install_size = $default_vm_size
+  end
 end
 
 # Handle empty OS option
@@ -1120,11 +1381,8 @@ if option["file"]
     puts "Warning:\tFile doesn't exist: "+install_file
     exit
   end
-  if $verbose_mode == 1
-    puts "Information:\tSetting install file to: "+install_file
-  end
   if !install_type.match(/[A-z]/)
-    install_type = File.extname(install_file).downcase.split(/\./)[1]
+    install_type = get_install_type_from_file(install_file)
     if $verbose_mode == 1
       puts "Information:\tSetting install type to: "+install_type
     end
@@ -1241,20 +1499,9 @@ else
   install_mode = ""
 end
 
-# Get password
-
-if option["password"]
-  install_password = option["password"]
-  if $verbose_mode == 1
-    puts "Information:\tSetting password to: "+install_password
-  end
-else
-  install_password = ""
-end
-
 # Try to determine install method if only given OS
 
-if !option["method"] and !option["action"].match(/delete|running|reboot|restart|halt|boot|stop/)
+if !option["method"] and !option["action"].match(/delete|running|reboot|restart|halt|boot|stop|deploy|migrate/)
   case install_os
   when /sol|sunos/
     if install_release.match(/[0-9]/)
@@ -1458,17 +1705,21 @@ if option["action"]
           check_install_ip(install_ip)
           check_install_mac(install_mac)
           if install_service.match(/packer/)
-            eval"[configure_#{install_service}_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_size)]"
+            eval"[configure_#{install_service}_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,
+                              install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,
+                              install_network,install_license,install_mirror,install_size)]"
           else
             check_local_config("server")
-            eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror)]"
+            eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,
+                              install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror)]"
           end
         else
           if install_vm.match(/fusion|vbox|parallels/)
             create_vm(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount,install_ip)
           end
           if install_vm.match(/zone|lxc|gdom/)
-            eval"[configure_#{install_vm}(install_client,install_ip,install_mac,install_arch,install_os,install_rel,publisher_host,install_file,install_service)]"
+            eval"[configure_#{install_vm}(install_client,install_ip,install_mac,install_arch,install_os,install_rel,publisher_host,
+                                          install_file,install_service)]"
           end
           if install_vm.match(/cdom/)
             configure_cdom(publisher_host)
@@ -1545,7 +1796,7 @@ if option["action"]
       eval"[list_#{install_action}_#{install_vm}_vms]"
     end
   when /crypt/
-    install_crypt = get_password_crypt(install_password)
+    install_crypt = get_password_crypt(install_root_password)
     puts install_crypt
   when /serial|console/
     if !install_client.match(/[A-z]/)
@@ -1587,6 +1838,20 @@ if option["action"]
         puts "Warning:\tClient name not specified"
         exit
       end
+    end
+  when /migrate/
+    eval"[migrate_#{install_vm}_vm(install_client,install_server,install_server_admin,install_server_password,install_server_network,install_datastore)]"
+  when /deploy/
+    if install_type.match(/vcsa/)
+      set_ovftool_bin()
+      install_file = handle_vcsa_ova(install_file,install_service)
+      deploy_vcsa_vm(install_server,install_datastore,install_server_admin,install_server_password,install_server_network,install_client,
+                     install_size,install_root_password,install_timeserver,install_admin_password,install_domainname,install_sitename,
+                     install_ipfamily,install_mode,install_ip,install_netmask,install_gateway,install_nameserver,install_service,install_file)      
+    else
+      eval"[deploy_#{install_vm}_vm(install_server,install_datastore,install_server_admin,install_server_password,install_server_network,install_client,
+                                    install_size,install_root_password,install_timeserver,install_admin_password,install_domainname,install_sitename,
+                                    install_ipfamily,install_mode,install_ip,install_netmask,install_gateway,install_nameserver,install_service,install_file)]"
     end
   when /restore|revert/
     if install_vm.match(/[A-z]/)

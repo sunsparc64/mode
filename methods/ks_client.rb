@@ -180,8 +180,6 @@ def configure_ks_client(install_client,install_arch,install_mac,install_ip,insta
   configure_ks_pxe_boot(install_service,install_arch)
   repo_version_dir = $repo_base_dir+"/"+install_service
   add_apache_alias($client_base_dir)
-  puts "Got here"
-  exit
   client_dir = $client_base_dir+"/"+install_service+"/"+install_client
   check_fs_exists(client_dir)
   if !File.directory?(repo_version_dir)

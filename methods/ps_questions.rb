@@ -235,7 +235,7 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
   client_domain = %x[domainname]
   client_domain = client_domain.chomp
   if !client_domain.match(/[0-9]/)
-    client_domain = $default_domain
+    client_domain = $default_domainname
   end
 
   name = "domain"

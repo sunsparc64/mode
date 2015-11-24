@@ -32,6 +32,7 @@ BOOTP based install services, eg:
 - Initial CoreOS PXE boot support
 - Provide completely headless VM support
 - Simplify creation of Packer images
+- Deploy Virtual Center Server Appliance
 
 This script is a wrapper which sits on top of the exisitng tools. It changes
 defaults to be more suitable to customer environments, and sanity checks server

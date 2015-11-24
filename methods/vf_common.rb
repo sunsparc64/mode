@@ -1,5 +1,13 @@
 # VMware Fusion support code
 
+# Deploy Fusion VM
+
+def deploy_fusion_vm(install_server,install_datastore,install_server_admin,install_server_password,install_server_network,install_client,
+                     install_size,install_root_password,install_timeserver,install_admin_password,install_domainname,install_sitename,
+                     install_ipfamily,install_mode,install_ip,install_netmask,install_gateway,install_nameserver,install_service,install_file)
+  return
+end
+
 # Show VM config
 
 def show_fusion_vm_config(install_client)
@@ -10,6 +18,36 @@ def show_fusion_vm_config(install_client)
   else
     puts "Warning:\tFusion VM config file "+fusion_vmx_file+" does not exit"
   end
+  return
+end
+
+# Migrate Fusion VM
+
+def migrate_fusion_vm(install_client,install_server,install_serveradmin,install_serverpassword,install_servernetwork,install_datastore)
+  exists = check_fusion_vm_exists(install_client)
+  if exists == "no"
+    puts "Warning:\tFusion VM "+install_client+" does not exist"
+    exit
+  end
+  local_vmx_file   = get_fusion_vm_vmx_file(install_client)
+  local_vmdk_file  = get_fusion_vm_vmdk_file(install_client)
+  if !File.exist?(local_vmx_file) or !File.exist?(local_vmdk_file)
+    puts "Warning:\tVMware config or disk file for "+install_client+" does not exist"
+    exit
+  end
+  remote_vmx_file  = File.basename(local_vmx_file)
+  remote_vmx_file  = "/vmfs/volumes/"+install_datastore+"/"+install_client+"/"+remote_vmx_file
+  fixed_vmx_file   = local_vmx_file+".esx"
+  create_fusion_vm_esx_file(install_client,local_vmx_file,fixed_vmx_file)
+  remote_vmdk_file = File.basename(local_vmdk_file)
+  remote_vmdk_dir  = "/vmfs/volumes/"+install_datastore+"/"+install_client
+  remote_vmdk_file = remote_vmdk_dir+"/"+remote_vmdk_file+".old"
+  command = "mkdir "+remote_vmdk_dir
+  execute_ssh_command(install_server,install_serveradmin,install_serverpassword,command)
+  scp_file(install_server,install_serveradmin,install_serverpassword,fixed_vmx_file,remote_vmx_file)
+  scp_file(install_server,install_serveradmin,install_serverpassword,local_vmdk_file,remote_vmdk_file)
+  import_esx_disk(install_client,install_server,install_serveradmin,install_serverpassword,install_datastore,remote_vmx_file,remote_vmdk_file)
+  import_esx_vm(install_server,install_serveradmin,install_serverpassword,remote_vmx_file)
   return
 end
 
@@ -119,6 +157,15 @@ def get_fusion_vm_vmx_file(install_client)
   fusion_vmx_file  = Dir.entries(fusion_vm_dir).grep(/vmx$/)[0].chomp
   fusion_vmx_file  = fusion_vm_dir+"/"+fusion_vmx_file
   return fusion_vmx_file
+end
+
+# Get Fusion VM vmdk file location
+
+def get_fusion_vm_vmdk_file(install_client)
+  fusion_vm_dir     = $fusion_dir+"/"+install_client+".vmwarevm"
+  fusion_vmdk_file  = Dir.entries(fusion_vm_dir).grep(/vmdk$/)[0].chomp
+  fusion_vmdk_file  = fusion_vm_dir+"/"+fusion_vmdk_file
+  return fusion_vmdk_file
 end
 
 # Snapshot Fusion VM
@@ -649,7 +696,7 @@ def create_fusion_vm_disk(install_client,fusion_vm_dir,fusion_disk_file)
   check_dir_exists(fusion_vm_dir)
   vdisk_bin = "/Applications/VMware Fusion.app/Contents/Library/vmware-vdiskmanager"
   message   = "Creating:\tVMware Fusion disk '"+fusion_disk_file+"' for "+install_client
-  command   = "cd '#{fusion_vm_dir}' ; '#{vdisk_bin}' -c -s '#{$default_vm_size}' -a LsiLogic -t 1 '#{fusion_disk_file}'"
+  command   = "cd '#{fusion_vm_dir}' ; '#{vdisk_bin}' -c -s '#{$default_vm_size}' -a LsiLogic -t 0 '#{fusion_disk_file}'"
   execute_command(message,command)
   return
 end
@@ -953,6 +1000,44 @@ def create_fusion_vm_vmx_file(install_client,install_mac,install_os,fusion_vmx_f
   if $verbose_mode == 1
     puts "Information:\tVMware Fusion VM "+install_client+" configuration:"
     system("cat '#{fusion_vmx_file}'")
+  end
+  return
+end
+
+# Create ESX VM vmx file
+
+def create_fusion_vm_esx_file(install_client,local_vmx_file,fixed_vmx_file)
+  vmx_info = []
+  old_vmx_info = File.readlines(local_vmx_file)
+  old_vmx_info.each do |line|
+    vmx_line = line.chomp()
+    (vmx_param,vmx_value) = vmx_line.split(/\=/)
+    vmx_param = vmx_param.gsub(/\s+/,"")
+    vmx_value = vmx_value.gsub(/^\s+/,"")
+    vmx_value = vmx_value.gsub(/"/,"")
+    vmx_line  = vmx_param+","+vmx_value
+    case vmx_line
+    when /virtualHW\.version/
+      vmx_info.push("virtualHW.version,11")
+    else
+      if !vmx_param.match(/^serial|^shared|^hgfs/)
+        vmx_info.push(vmx_line)
+      end
+    end
+  end
+  file = File.open(fixed_vmx_file,"w")
+  vmx_info.each do |vmx_line|
+    (vmx_param,vmx_value) = vmx_line.split(/\,/)
+    if !vmx_value
+      vmx_value = ""
+    end
+    output = vmx_param+" = \""+vmx_value+"\"\n"
+    file.write(output)
+  end
+  file.close
+  if $verbose_mode == 1
+    puts "Information:\tVMware Fusion VM "+install_client+" configuration:"
+    system("cat '#{fixed_vmx_file}'")
   end
   return
 end

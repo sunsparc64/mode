@@ -12,7 +12,7 @@ Inetd = Struct.new(:enabled, :iid, :protocol, :script, :server, :service)
 def populate_ay_hosts(client_name,client_ip)
   hosts = []
   hosts.push("127.0.0.1,localhost")
-  hosts.push("#{client_ip},#{client_name},#{client_name}.#{$default_domain}")
+  hosts.push("#{client_ip},#{client_name},#{client_name}.#{$default_domainname}")
   hosts.push("::1,localhost ipv6-localhost ipv6-loopback")
   hosts.push("fe00::0,ipv6-localnet")
   hosts.push("ff00::0,ipv6-mcastprefix")
@@ -1801,7 +1801,7 @@ def output_ay_client_profile(client_name,client_ip,client_mac,output_file,servic
       }
       xml.dns {
         xml.dhcp_hostname("false", :"config:type" => "boolean")
-        xml.domain($default_domain)
+        xml.domain($default_domainname)
         xml.hostname(client_name)
         xml.nameservers(:"config:type" => "list") {
           xml.nameserver($default_nameserver)

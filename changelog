@@ -577,3 +577,5 @@
 # Added support for RedHat 6.7 changes to apache and SELinux
 # 2.8.8: Mon  9 Nov 2015 13:23:38 AEDT
 # Fixed MAC address check
+# 2.8.9: Tue 24 Nov 2015 18:40:29 AEDT
+# Added support for VCSA deployment

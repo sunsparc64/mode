@@ -1,6 +1,110 @@
 
 # Code common to all services
 
+# Get install type from file
+
+def get_install_type_from_file(install_file)
+  case install_file.downcase
+  when /vcsa/
+    install_type = "vcsa"
+  else
+    install_type = File.extname(install_file).downcase.split(/\./)[1]
+  end
+  return install_type
+end
+
+# Check password
+
+def check_password(install_password)
+  if !install_password.match(/[A-Z]/)
+    puts "Warning:\tPassword does not contain and upper case character"
+    exit
+  end
+  if !install_password.match(/[0-9]/)
+    puts "Warning:\tPassword does not contain a number"
+    exit
+  end
+  return
+end
+
+# Check ovftool is installed
+
+def check_ovftool_exists()
+  if $os_name.match(/Darwin/)
+    check_osx_ovftool()
+  end
+  return
+end
+
+# Detach DMG
+
+def detach_dmg(tmp_dir)
+  %x[sudo hdiutil detach "#{tmp_dir}"]
+  return
+end
+
+# Attach DMG
+
+def attach_dmg(ovftool_dmg)
+  tmp_dir = %x[sudo sh -c 'echo Y | hdiutil attach "#{pkg_file}" |tail -1 |cut -f3-'].chomp
+  if !tmp_dir.match(/[A-z]/)
+    tmp_dir = %x[ls -rt /Volumes |grep "#{app_name}" |tail -1].chomp
+    tmp_dir = "/Volumes/"+tmp_dir
+  end
+  if $werbose_mode == 1
+    puts "Information:\tDMG mounted on "+tmp_dir
+  end
+  return tmp_dir
+end
+
+# Check OSX ovftool
+
+def check_osx_ovftool()
+  ovftool_bin = "/Applications/VMware OVF Tool/ovftool"
+  if !File.exist?(ovftool_bin)
+    puts "Warning:\tOVF Tool not installed"
+    message = "Fetching "+$ovftool_dmg_url+" to "+ovftool_dmg
+    command = "wget #{$ovftool_dmg_url} -O #{ovftool_dmg}"
+    execute_command(message,command)
+    puts "Information:\tInstalling OVF Tool"
+    ovftool_dmg = $ovftool_dmg_url.split(/\?/)[0]
+    ovftool_dmg = File.basename(ovftool_dmg)
+    tmp_dir  = attach_dmg(ovftool_dmg)
+    pkg_file = tmp_dir+"/VMware OVF Tool.pkg"
+    message = "Information:\tInstalling package "+pkg_file
+    command = "/usr/sbin/installer -pkg #{pkg_bin} -target /"
+    execute_command(message,command)
+    detach_dmg(tmp_dir)
+  end
+  return
+end
+
+# SCP file to remote host
+
+def scp_file(install_server,install_serveradmin,install_serverpassword,local_file,remote_file)
+  if $verbose_mode == 1
+    puts "Information:\tCopying file \""+local_file+"\" to \""+install_server+":"+remote_file+"\""
+  end
+  Net::SCP.start(install_server,install_serveradmin,:password => install_serverpassword, :paranoid => false) do |scp|
+    scp.upload! local_file, remote_file
+  end
+  return
+end
+
+# Execute SSH command
+
+def execute_ssh_command(install_server,install_serveradmin,install_serverpassword,command)
+  if $verbose_mode == 1
+    puts "Information:\tExecuting command \""+command+"\" on server "+install_server
+  end
+  Net::SSH.start(install_server,install_serveradmin,:password => install_serverpassword, :paranoid => false) do |ssh|
+    ssh.exec!(command)
+  end
+  return
+end
+
+# Get client config
+
 def get_client_config(install_client,install_service,install_method,install_config)
   if !install_service.match(/[a-z]/)
     install_service = get_install_service(install_client)
@@ -132,6 +236,24 @@ def get_install_method_from_service(install_service)
   return install_method
 end
 
+# Get install service from ISO file name
+
+def get_install_service_from_file(install_file)
+  install_service = ""
+  service_name    = ""
+  service_version = ""
+  case install_file
+  when /vCenter-Server-Appliance|VCSA/
+    service_name    = "vcsa"
+    service_version = install_file.split(/-/)[3].gsub(/\./,"_")
+  when /VMvisor-Installer/
+    service_name = "vsphere"
+    service_version = install_file.split(/-/)[4].gsub(/\./,"_")
+  end
+  install_service = service_name+"_"+service_version
+  return install_service
+end
+
 # Get Install method from ISO file name
 
 def get_install_method_from_iso(install_file)
@@ -184,6 +306,26 @@ def list_all_services()
     eval"[list_#{install_method}_services()]"
   end
   puts
+  return
+end
+
+# Check IP validity
+
+def check_ip(install_ip)
+  invalid_ip = 0
+  ip_fields  = install_ip.split(/\./)
+  if !ip_fields.length == 4
+    invalid_ip = 1
+  end
+  ip_fields.each do |ip_field|
+    if ip_field.match(/[A-z]/) or ip_field.to_i > 255
+      invalid_ip = 1
+    end
+  end
+  if invalid_ip == 1
+    puts "Warning:\tInvalid IP Address"
+    exit
+  end
   return
 end
 
@@ -430,7 +572,7 @@ def check_dir_owner(dir_name,uid)
   test_uid = File.stat(dir_name).uid
   if test_uid != uid.to_i
     message = "Information:\tChanging ownership of "+dir_name+" to "+uid.to_s
-    command = "chown -R #{uid.to_s} #{dir_name}"
+    command = "sudo sh -c 'chown -R #{uid.to_s} #{dir_name}'"
     execute_command(message,command)
   end
   return
@@ -757,11 +899,11 @@ def check_dhcpd_config(publisher_host)
     file.write("\n")
     file.close
     if File.exist?($dhcpd_file)
-      message = "Archiving:\tDHCPd configuration file "+$dhcpd_file+" to "+backup_file
+      message = "Archiving DHCPd configuration file "+$dhcpd_file+" to "+backup_file
       command = "cp #{$dhcpd_file} #{backup_file}"
       execute_command(message,command)
     end
-    message = "Creating:\tDHCPd configuration file "+$dhcpd_file
+    message = "Creating DHCPd configuration file "+$dhcpd_file
     command = "cp #{tmp_file} #{$dhcpd_file}"
     execute_command(message,command)
     if $os_name == "SunOS" and $os_rel == "5.11"
@@ -1233,7 +1375,7 @@ def check_dir_exists(dir_name)
   output  = ""
   if !File.directory?(dir_name) and !File.symlink?(dir_name)
     if dir_name.match(/[A-z]/)
-      message = "Creating:\t"+dir_name
+      message = "Information:\tCreating: "+dir_name
       command = "mkdir -p '#{dir_name}'"
       output  = execute_command(message,command)
     end
@@ -1579,7 +1721,7 @@ def check_client_arch(client_arch,opt)
   if !client_arch.match(/i386|sparc|x86_64/)
     if opt["F"] or opt["O"]
       if opt["A"]
-        puts "Setting:\tArchitecture to x86_64"
+        puts "Information:\tSetting architecture to x86_64"
         client_arch = "x86_64"
       end
     end
@@ -1787,17 +1929,17 @@ end
 # If there is something mounted there already it will unmount it
 
 def mount_iso(iso_file)
-  puts "Processing:\t"+iso_file
+  puts "Information:\tProcessing: "+iso_file
   output  = check_dir_exists($iso_mount_dir)
   message = "Checking:\tExisting mounts"
   command = "df |awk '{print $1}' |grep '^#{$iso_mount_dir}$'"
-  output=execute_command(message,command)
+  output  = execute_command(message,command)
   if output.match(/[A-z]/)
-    message = "Unmounting:\t"+$iso_mount_dir
+    message = "Information:\tUnmounting: "+$iso_mount_dir
     command = "umount "+$iso_mount_dir
     output  = execute_command(message,command)
   end
-  message = "Mounting:\tISO "+iso_file+" on "+$iso_mount_dir
+  message = "Information:\tMounting ISO "+iso_file+" on "+$iso_mount_dir
   if $os_name.match(/SunOS/)
     command = "mount -F hsfs "+iso_file+" "+$iso_mount_dir
   end
@@ -1808,7 +1950,7 @@ def mount_iso(iso_file)
     end
     disk_id = %x[#{command}]
     disk_id = disk_id.chomp
-    command = "mount -t cd9660 "+disk_id+" "+$iso_mount_dir
+    command = "sudo mount -t cd9660 "+disk_id+" "+$iso_mount_dir
   end
   if $os_name.match(/Linux/)
     command = "mount -t iso9660 -o loop "+iso_file+" "+$iso_mount_dir
@@ -1828,6 +1970,8 @@ def mount_iso(iso_file)
       iso_test_dir = $iso_mount_dir+"/repodata"
     when /rhel|OracleLinux|Fedora/
       iso_test_dir = $iso_mount_dir+"/Packages"
+    when /VCSA/
+      iso_test_dir = $iso_mount_dir+"/vcsa"
     when /VM/
       iso_test_dir = $iso_mount_dir+"/upgrade"
     when /install|FreeBSD/
@@ -1889,6 +2033,8 @@ def copy_iso(iso_file,repo_version_dir)
     case iso_file
     when /CentOS|rhel|OracleLinux|Fedora/
       test_dir = repo_version_dir+"/isolinux"
+    when /VCSA/
+      test_dir = repo_version_dir+"/vcsa"
     when /VM/
       test_dir = repo_version_dir+"/upgrade"
     when /install|FreeBSD/
@@ -1951,13 +2097,14 @@ def umount_iso()
     disk_id = %x[#{command}]
     disk_id = disk_id.chomp
   end
-  message = "Unmounting:\tISO mounted on "+$iso_mount_dir
-  command = "umount #{$iso_mount_dir}"
-  execute_command(message,command)
   if $os_name.match(/Darwin/)
     message = "Detaching:\tISO device "+disk_id
-    command = "hdiutil detach #{disk_id}"
+    command = "sudo hdiutil detach #{disk_id}"
     execute_command(message,command)
+  else
+    message = "Unmounting:\tISO mounted on "+$iso_mount_dir
+    command = "umount #{$iso_mount_dir}"
+    execute_command(message,command)  
   end
   return
 end
