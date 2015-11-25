@@ -58,8 +58,8 @@ def deploy_vcsa_vm(install_server,install_datastore,install_server_admin,install
   end
   if File.directory?(deployment_dir)
     message = "Information:\tDeploying VCSA OVA"
-    command = "cd #{deployment_dir} ; ./vcsa-deploy #{vcsa_json_file}"
-    execute(message,command)
+    command = "cd #{deployment_dir} ; echo yes | ./vcsa-deploy #{vcsa_json_file} --accept-eula"
+    execute_command(message,command)
   end
   return
 end

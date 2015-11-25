@@ -579,3 +579,5 @@
 # Fixed MAC address check
 # 2.8.9: Tue 24 Nov 2015 18:40:29 AEDT
 # Added support for VCSA deployment
+# 2.9.0: Thu 26 Nov 2015 10:35:04 AEDT
+# Improved VCSA deployment
