@@ -10,6 +10,7 @@ def handle_vcsa_ova(install_file,install_service)
     repo_version_dir = $repo_base_dir+"/"+install_service
     check_dir_exists(repo_version_dir)
     check_dir_owner(repo_version_dir,uid)
+    mount_iso(install_file)
     copy_iso(install_file,repo_version_dir)
     install_file = repo_version_dir+"/vcsa/vmware-vcsa"
     umount_iso()
@@ -58,7 +59,11 @@ def deploy_vcsa_vm(install_server,install_datastore,install_server_admin,install
   end
   if File.directory?(deployment_dir)
     message = "Information:\tDeploying VCSA OVA"
-    command = "cd #{deployment_dir} ; echo yes | ./vcsa-deploy #{vcsa_json_file} --accept-eula"
+    if deployment_dir.match(/6_0_0_3040890/)
+      command = "cd #{deployment_dir} ; echo yes | ./vcsa-deploy #{vcsa_json_file} --accept-eula"
+    else
+      command = "cd #{deployment_dir} ; echo yes | ./vcsa-deploy #{vcsa_json_file}"
+    end
     execute_command(message,command)
   end
   return

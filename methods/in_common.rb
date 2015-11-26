@@ -245,10 +245,10 @@ def get_install_service_from_file(install_file)
   case install_file
   when /vCenter-Server-Appliance|VCSA/
     service_name    = "vcsa"
-    service_version = install_file.split(/-/)[3].gsub(/\./,"_")
+    service_version = install_file.split(/-/)[3..4].join(".").gsub(/\./,"_").gsub(/_iso/,"")
   when /VMvisor-Installer/
     service_name = "vsphere"
-    service_version = install_file.split(/-/)[4].gsub(/\./,"_")
+    service_version = install_file.split(/-/)[4..5].join(".").gsub(/\./,"_").gsub(/_iso/,"")
   end
   install_service = service_name+"_"+service_version
   return install_service
