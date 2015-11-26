@@ -230,18 +230,21 @@ All:
 
 - Socat
 - Ruby
-- Packer
   - Version 1.8 or greater
     - Although it's been coded with 2.x I've avoided using 2.x features
-- Gems
+- Packer (If using Packer)
+- Required Gems
   - rubygems
-  - getopt
+  - getopt/long
   - builder
   - socket
   - parseconfig
   - unix_crypt
   - pathname
   - netaddr
+  - ipaddr
+  - json
+Optional Gems (required for some additional functionality)
   - net/ssh
   - nokogiri
   - mechanize
@@ -249,7 +252,6 @@ All:
   - socket
   - net/http
   - net/scp
-  - json
 - Packages (Linux)
   - git
   - gcc
