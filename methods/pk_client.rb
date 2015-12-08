@@ -1,13 +1,49 @@
-# Configure Packer client
+# Packer client related commands
+
+# List packer clients
+
+def list_packer_clients(install_vm)
+  packer_dir = $client_base_dir+"/packer"
+  if !install_vm.match(/[A-z]/)
+    vm_types = [ 'fusion', 'vbox' ]
+  else
+    vm_types = []
+    vm_types.push(install_vm)
+  end
+  vm_types.each do |vm_type|
+    vm_dir = packer_dir+"/"+vm_type
+    if File.directory?(vm_dir)
+      puts ""
+      if vm_type.match(/vbox/)
+        vm_title = "VirtualBox"
+      else
+        vm_title = "VMware Fusion"
+      end
+      puts "Packer "+vm_title+" clients:"
+      puts
+      vm_list = Dir.entries(vm_dir)
+      vm_list.each do |vm_name|
+        if vm_name.match(/[A-z]/)
+          json_file = vm_dir+"/"+vm_name+"/"+vm_name+".json"
+          if File.exist?(json_file)
+            json  = File.readlines(json_file)
+            vm_os = json.grep(/guest_os_type/)[0].split(/:/)[1].split(/"/)[1]
+            puts vm_name+" os="+vm_os
+          end
+        end
+      end
+    end
+  end
+end
 
 # Configure Packer JSON file
 
-def create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu,install_network)
+def create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu,install_network,install_mac)
   install_size     = install_size.gsub(/G/,"000")
   install_service  = get_packer_install_service(install_file)
   ssh_username     = $default_admin_user
   ssh_password     = $default_admin_password
-  shutdown_command = "shutdown -P now"
+  shutdown_command = ""
   case install_service
   when /sles/
     ks_file      = install_client+"/"+install_client+".xml"
@@ -64,69 +100,138 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   check_dir_exists(client_dir)
 	install_guest = install_guest.join
   if install_vm.match(/vbox/)
-    json_data = {
-    	:variables => {
-    		:hostname => install_client
-    	},
-    	:builders => [
-    		:name 								=> install_client,
-    		:vm_name							=> install_client,
-    		:type 								=> install_type,
-    		:guest_os_type 				=> install_guest,
-    		:hard_drive_interface => $vbox_disk_type,
-    		:output_directory     => image_dir,
-    		:disk_size						=> install_size,
-    		:iso_url 							=> iso_url,
-    		:ssh_username					=> ssh_username,
-    		:ssh_password       	=> ssh_password,
-        :ssh_wait_timeout     => "600s",
-        :shutdown_command     => shutdown_command,
-    		:iso_checksum 				=> install_checksum,
-    		:iso_checksum_type		=> install_checksum_type,
-    		:http_directory 			=> packer_dir,
-    		:boot_command      		=> boot_command,
-  			:vboxmanage => [
-  				[ "modifyvm", "{{.Name}}", "--memory", install_memory ],
-  				[ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
-  			]
-  		]
-    }
+    if install_mac.match(/[0-9]|[A-z]/)
+      json_data = {
+      	:variables => {
+      		:hostname => install_client
+      	},
+      	:builders => [
+      		:name 								=> install_client,
+      		:vm_name							=> install_client,
+      		:type 								=> install_type,
+      		:guest_os_type 				=> install_guest,
+      		:hard_drive_interface => $vbox_disk_type,
+      		:output_directory     => image_dir,
+      		:disk_size						=> install_size,
+      		:iso_url 							=> iso_url,
+      		:ssh_username					=> ssh_username,
+      		:ssh_password       	=> ssh_password,
+          :ssh_wait_timeout     => "600s",
+          :shutdown_command     => shutdown_command,
+      		:iso_checksum 				=> install_checksum,
+      		:iso_checksum_type		=> install_checksum_type,
+      		:http_directory 			=> packer_dir,
+      		:boot_command      		=> boot_command,
+    			:vboxmanage => [
+    				[ "modifyvm", "{{.Name}}", "--memory", install_memory ],
+    				[ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
+    			]
+    		]
+      }
+    else
+      json_data = {
+        :variables => {
+          :hostname => install_client
+        },
+        :builders => [
+          :name                 => install_client,
+          :vm_name              => install_client,
+          :type                 => install_type,
+          :guest_os_type        => install_guest,
+          :hard_drive_interface => $vbox_disk_type,
+          :output_directory     => image_dir,
+          :disk_size            => install_size,
+          :iso_url              => iso_url,
+          :ssh_username         => ssh_username,
+          :ssh_password         => ssh_password,
+          :ssh_wait_timeout     => "600s",
+          :shutdown_command     => shutdown_command,
+          :iso_checksum         => install_checksum,
+          :iso_checksum_type    => install_checksum_type,
+          :http_directory       => packer_dir,
+          :boot_command         => boot_command,
+          :vboxmanage => [
+            [ "modifyvm", "{{.Name}}", "--memory", install_memory ],
+            [ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
+            [ "modifyvm", "{{.Name}}", "--macaddress", install_mac ],
+          ]
+        ]
+      }
+    end
   else
-    json_data = {
-      :variables => {
-        :hostname => install_client
-      },
-      :builders => [
-        :name                 => install_client,
-        :vm_name              => install_client,
-        :type                 => install_type,
-        :guest_os_type        => install_guest,
-        :output_directory     => image_dir,
-        :disk_size            => install_size,
-        :iso_url              => iso_url,
-        :ssh_username         => ssh_username,
-        :ssh_password         => ssh_password,
-        :ssh_wait_timeout     => "600s",
-        :shutdown_command     => shutdown_command,
-        :iso_checksum         => install_checksum,
-        :iso_checksum_type    => install_checksum_type,
-        :http_directory       => packer_dir,
-        :boot_command         => boot_command,
-        :vmx_data => {
-          :memsize                            => install_memory,
-          :numvcpus                           => install_cpu,
-          :"vhv.enable"                       => "TRUE",
-          :"ethernet0.present"                => "TRUE",
-          :"ethernet0.startConnected"         => "TRUE",
-          :"ethernet0.virtualDev"             => "e1000",
-          :"ethernet0.networkName"            => "VM Network",
-          :"ethernet0.addressType"            => "generated",
-          :"ethernet0.generatedAddressOffset" => "0",
-          :"ethernet0.wakeOnPcktRcv"          => "FALSE",
-          :"ethernet0.connectionType"         => install_network
-        }
-      ]
-    }
+    if install_mac.match(/[0-9]|[A-z]/)
+      json_data = {
+        :variables => {
+          :hostname => install_client
+        },
+        :builders => [
+          :name                 => install_client,
+          :vm_name              => install_client,
+          :type                 => install_type,
+          :guest_os_type        => install_guest,
+          :output_directory     => image_dir,
+          :disk_size            => install_size,
+          :iso_url              => iso_url,
+          :ssh_username         => ssh_username,
+          :ssh_password         => ssh_password,
+          :ssh_wait_timeout     => "600s",
+          :shutdown_command     => shutdown_command,
+          :iso_checksum         => install_checksum,
+          :iso_checksum_type    => install_checksum_type,
+          :http_directory       => packer_dir,
+          :boot_command         => boot_command,
+          :vmx_data => {
+            :memsize                            => install_memory,
+            :numvcpus                           => install_cpu,
+            :"vhv.enable"                       => "TRUE",
+            :"ethernet0.present"                => "TRUE",
+            :"ethernet0.startConnected"         => "TRUE",
+            :"ethernet0.virtualDev"             => "e1000",
+            :"ethernet0.networkName"            => "VM Network",
+            :"ethernet0.addressType"            => "static",
+            :"ethernet0.address"                => install_mac,
+            :"ethernet0.wakeOnPcktRcv"          => "FALSE",
+            :"ethernet0.connectionType"         => install_network
+          }
+        ]
+      }
+    else
+      json_data = {
+        :variables => {
+          :hostname => install_client
+        },
+        :builders => [
+          :name                 => install_client,
+          :vm_name              => install_client,
+          :type                 => install_type,
+          :guest_os_type        => install_guest,
+          :output_directory     => image_dir,
+          :disk_size            => install_size,
+          :iso_url              => iso_url,
+          :ssh_username         => ssh_username,
+          :ssh_password         => ssh_password,
+          :ssh_wait_timeout     => "600s",
+          :shutdown_command     => shutdown_command,
+          :iso_checksum         => install_checksum,
+          :iso_checksum_type    => install_checksum_type,
+          :http_directory       => packer_dir,
+          :boot_command         => boot_command,
+          :vmx_data => {
+            :memsize                            => install_memory,
+            :numvcpus                           => install_cpu,
+            :"vhv.enable"                       => "TRUE",
+            :"ethernet0.present"                => "TRUE",
+            :"ethernet0.startConnected"         => "TRUE",
+            :"ethernet0.virtualDev"             => "e1000",
+            :"ethernet0.networkName"            => "VM Network",
+            :"ethernet0.addressType"            => "generated",
+            :"ethernet0.generatedAddressOffset" => "0",
+            :"ethernet0.wakeOnPcktRcv"          => "FALSE",
+            :"ethernet0.connectionType"         => install_network
+          }
+        ]
+      }
+    end
   end
   json_output = JSON.pretty_generate(json_data)
   delete_file(json_file)
@@ -201,7 +306,7 @@ def configure_packer_client(install_method,install_vm,install_os,install_client,
 	end
 	install_guest = eval"[get_#{install_vm}_guest_os(install_method,install_arch)]"
 	eval"[configure_packer_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm)]"
-	create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu,install_network)
+	create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu,install_network,install_mac)
 	#build_packer_config(install_client,install_vm)
 	return
 end

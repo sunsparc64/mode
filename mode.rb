@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.9.1
+# Version:      2.9.3
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -668,6 +668,37 @@ else
   install_action = ""
 end
 
+# Handle vm switch
+
+if option["vm"]
+  option["vm"] = option["vm"].downcase
+  option["vm"] = option["vm"].gsub(/virtualbox/,"vbox")
+end
+
+# Check action when set to build
+
+if install_action.match(/build/)
+  if !option["service"]
+    puts "Information:\tSetting Install Service to Packer"
+    option["service"] = "packer"
+    install_service   = "packer"
+  else
+    if !option["service"].match(/packer/)
+      puts "Warning:\tInstall Service not set to Packer"
+      exit
+    end
+  end
+  if !option["vm"]
+    puts "Warning:\tVM type not specified"
+    exit
+  else
+    if !option["vm"].match(/vbox|fusion/)
+      puts "Warning:\tInvalid VM type specified"
+      exit
+    end
+  end
+end
+
 # Enable options, e.g. Puppet, needs work!
 
 if option["enable"]
@@ -915,19 +946,19 @@ if option["service"]
   if install_service.match(/^packer$/)
     option["mode"]  = "client"
     install_mode    = "client"
-    if !option["method"] and !option["os"]
+    if !option["method"] and !option["os"] and !option["action"].match(/build|list/)
       puts "Warning:\tNo OS, or Install Method specified for build type "+install_service
       exit
     end
-    if !option["vm"]
+    if !option["vm"] and !option["action"].match(/list/)
       puts "Warning:\tNo VM type specified for build type "+install_service
       exit
     end
-    if !option["client"]
+    if !option["client"] and !option["action"].match(/list/)
       puts "Warning:\tNo Client name specified for build type "+install_service
       exit
     end
-    if !option["file"]
+    if !option["file"] and !option["action"].match(/build|list/)
       puts "Warning:\tNo ISO file specified for build type "+install_service
       exit
     end
@@ -1062,13 +1093,6 @@ if option["type"]
   end
 else
   install_type = ""
-end
-
-# Handle vm switch
-
-if option["vm"]
-  option["vm"] = option["vm"].downcase
-  option["vm"] = option["vm"].gsub(/virtualbox/,"vbox")
 end
 
 # Handle release switch
@@ -1609,6 +1633,10 @@ if option["action"]
   when /info/
     print_examples(install_method,install_type,install_vm)
   when /list/
+    if install_service.match(/packer/)
+      list_packer_clients(install_vm)
+      exit
+    end
     if install_type.match(/service/)
       if install_method.match(/[A-z]/)
         eval"[list_#{install_method}_services]"
@@ -1685,6 +1713,10 @@ if option["action"]
           end
         end
       end
+    end
+  when /build/
+    if install_service.match(/packer/)
+      build_packer_config(install_client,install_vm)
     end
   when /add|create/
     if install_mode.match(/server/) or install_file.match(/[A-z]/) or install_type.match(/service/) and !install_vm.match(/[A-z]/) and !install_service.match(/packer/)

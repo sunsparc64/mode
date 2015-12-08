@@ -12,8 +12,8 @@ difficult for the original script. It also greatly increased the usability.
 Introduction
 ------------
 
-A Ruby script to configure server and client configuration for PXE/DHCP and
-BOOTP based install services, eg:
+A Ruby script to configure server and client configuration for PXE/DHCP, BOOTP
+and HTTP based install services, eg:
 
 - Solaris 11 Automated Installer (AI) service
 - Solaris 10 (and earlier) Jumpstart services
@@ -33,6 +33,7 @@ BOOTP based install services, eg:
 - Provide completely headless VM support
 - Simplify creation of Packer images
 - Deploy Virtual Center Server Appliance
+- Simplify creation and build of VMs with Packer
 
 This script is a wrapper which sits on top of the exisitng tools. It changes
 defaults to be more suitable to customer environments, and sanity checks server
