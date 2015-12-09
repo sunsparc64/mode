@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.9.3
+# Version:      2.9.4
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -727,6 +727,8 @@ if option["file"]
       option["type"] = install_type
     end
   end
+else
+  install_file = ""
 end
 
 # Get password
@@ -946,7 +948,7 @@ if option["service"]
   if install_service.match(/^packer$/)
     option["mode"]  = "client"
     install_mode    = "client"
-    if !option["method"] and !option["os"] and !option["action"].match(/build|list/)
+    if !option["method"] and !option["os"] and !option["action"].match(/build|list|import/)
       puts "Warning:\tNo OS, or Install Method specified for build type "+install_service
       exit
     end
@@ -958,7 +960,7 @@ if option["service"]
       puts "Warning:\tNo Client name specified for build type "+install_service
       exit
     end
-    if !option["file"] and !option["action"].match(/build|list/)
+    if !option["file"] and !option["action"].match(/build|list|import/)
       puts "Warning:\tNo ISO file specified for build type "+install_service
       exit
     end
@@ -968,6 +970,15 @@ else
     install_service = get_install_service_from_file(install_file)
   else
     install_service = ""
+  end
+end
+
+# Make sure a service (e.g. packer) or an install file (e.g. OVA) is specified for an import
+
+if install_action.match(/import/)
+  if !install_file.match(/[A-z]/) and !install_service.match(/[A-z]/)
+    puts "Warning:\tNo install file or service specified"
+    exit
   end
 end
 
@@ -1809,9 +1820,15 @@ if option["action"]
       end
     end
   when /import/
-    if install_vm.match(/fusion|vbox/)
-      set_ovftool_bin()
-      eval"[import_#{vfunct}_ova(install_client,client_mac,install_ip,install_file)]"
+    if !install_file.match(/[A-z]/)
+      if install_service.match(/packer/)
+        eval"[import_packer_#{install_vm}_vm(install_client,install_vm)]"
+      end
+    else
+      if install_vm.match(/fusion|vbox/)
+        set_ovftool_bin()
+        eval"[import_#{install_vm}_ova(install_client,install_mac,install_ip,install_file)]"
+      end
     end
   when /export/
     if install_vm(/fusion|vbox/)

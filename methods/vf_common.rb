@@ -21,6 +21,22 @@ def show_fusion_vm_config(install_client)
   return
 end
 
+# Import Packer Fusion VM image
+
+def import_packer_fusion_vm(install_client,install_vm)
+  (exists,images_dir) = check_packer_vm_image_exists(install_client,install_vm)
+  if exists == "no"
+    puts "Warning:\tPacker Fusion VM image for "+install_client+" does not exist"
+    exit
+  end
+  fusion_vm_dir,fusion_vmx_file,fusion_disk_file = check_fusion_vm_doesnt_exist(install_client) 
+  check_dir_exists(fusion_vm_dir)
+  message = "Information:\tCopying Packer VM images from \""+images_dir+"\" to \""+fusion_vm_dir+"\""
+  command = "cp '#{images_dir}'/* '#{fusion_vm_dir}'"
+  execute_command(message,command)
+  return
+end
+
 # Migrate Fusion VM
 
 def migrate_fusion_vm(install_client,install_server,install_serveradmin,install_serverpassword,install_servernetwork,install_datastore)

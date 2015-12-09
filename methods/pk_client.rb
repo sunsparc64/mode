@@ -1,5 +1,22 @@
 # Packer client related commands
 
+def get_packer_client_dir(install_client,install_vm)
+  packer_dir = $client_base_dir+"/packer"
+  client_dir = packer_dir+"/"+install_vm+"/"+install_client
+  return client_dir
+end
+
+def check_packer_vm_image_exists(install_client,install_vm)
+  client_dir = get_packer_client_dir(install_client,install_vm)
+  images_dir = client_dir+"/images"
+  if File.directory?(images_dir)
+    exists = "yes"
+  else
+    exists = "no"
+  end
+  return exists,images_dir
+end
+
 # List packer clients
 
 def list_packer_clients(install_vm)
@@ -296,7 +313,7 @@ end
 def configure_packer_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_size)
 	exists = eval"[check_#{install_vm}_vm_exists(install_client)]"
 	if exists == "yes"
-		puts "Warning:\tVirtualBox VM "+install_client+" already exists "
+		puts "Warning:\tVirtualBox VM "+install_client+" already exists"
 		exit
 	end
 	exists = check_packer_image_exists(install_client,install_vm)
@@ -314,6 +331,12 @@ end
 # Build a packer config
 
 def build_packer_config(install_client,install_vm)
+  exists = eval"[check_#{install_vm}_vm_exists(install_client)]"
+  if exists.to_s.match(/yes/)
+    puts "Warning:\tVirtualBox VM "+install_client+" already exists "
+    exit
+  end
+  exists = check_packer_image_exists(install_client,install_vm)
   client_dir = $client_base_dir+"/packer/"+install_vm+"/"+install_client
   json_file  = client_dir+"/"+install_client+".json"
 	message    = "Information:\tBuilding Packer Image "+json_file

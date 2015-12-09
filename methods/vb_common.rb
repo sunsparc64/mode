@@ -375,6 +375,13 @@ def check_vbox_vm_exists(install_client)
   else
     exists = "yes"
   end
+  if exists == "no"
+    vbox_vm_dir = get_vbox_vm_dir(install_client)
+    if File.directory?(vbox_vm_dir)
+      puts "Warning:\tVirtualBox VM "+install_client+" directory exists"
+      exists = "yes"
+    end
+  end
   return exists
 end
 
@@ -1096,5 +1103,6 @@ def unconfigure_vbox_vm(install_client)
   message = "Deleting:\tVirtualBox VM "+install_client
   command = "VBoxManage unregistervm #{install_client} --delete"
   execute_command(message,command)
+  delete_vbox_vm_config(install_client)
   return
 end
