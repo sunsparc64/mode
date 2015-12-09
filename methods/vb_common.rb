@@ -1,5 +1,21 @@
 # VirtualBox VM support code
 
+# Import Packer VirtualBox image
+
+def import_packer_fusion_vm(install_client,install_vm)
+  (exists,images_dir) = check_packer_vm_image_exists(install_client,install_vm)
+  if exists == "no"
+    puts "Warning:\tPacker VirtualBox VM image for "+install_client+" does not exist"
+    exit
+  end
+  fusion_vm_dir,fusion_vmx_file,fusion_disk_file = check_fusion_vm_doesnt_exist(install_client) 
+  check_dir_exists(fusion_vm_dir)
+  message = "Information:\tCopying Packer VM images from \""+images_dir+"\" to \""+fusion_vm_dir+"\""
+  command = "cp '#{images_dir}'/* '#{fusion_vm_dir}'"
+  execute_command(message,command)
+  return
+end
+
 # Add shared folder to VM
 
 def add_shared_folder_to_vbox_vm(install_client,install_share,install_mount)
@@ -375,13 +391,6 @@ def check_vbox_vm_exists(install_client)
   else
     exists = "yes"
   end
-  if exists == "no"
-    vbox_vm_dir = get_vbox_vm_dir(install_client)
-    if File.directory?(vbox_vm_dir)
-      puts "Warning:\tVirtualBox VM "+install_client+" directory exists"
-      exists = "yes"
-    end
-  end
   return exists
 end
 
@@ -513,6 +522,12 @@ def delete_vbox_vm_config(install_client)
     command = "rm \"#{config_file}\""
     execute_command(message,command)
   end
+  config_file = vbox_vm_dir+"/"+install_client+".vbox-prev"
+  if File.exist?(config_file)
+    message = "Removing:\tVirtualbox configuration file "+config_file
+    command = "rm \"#{config_file}\""
+    execute_command(message,command)
+  end
   return
 end
 
@@ -522,7 +537,8 @@ def check_vbox_vm_config_exists(install_client)
   exists      = "no"
   vbox_vm_dir = get_vbox_vm_dir(install_client)
   config_file = vbox_vm_dir+"/"+install_client+".vbox"
-  if File.exist?(config_file)
+  prev_file   = vbox_vm_dir+"/"+install_client+".vbox-prev"
+  if File.exist?(config_file) or File.exist?(prev_file)
     exists = "yes"
   else
     exists = "no"
@@ -1095,8 +1111,13 @@ def unconfigure_vbox_vm(install_client)
   check_vbox_is_installed()
   exists = check_vbox_vm_exists(install_client)
   if exists == "no"
-    puts "VirtualBox VM "+install_client+" does not exist"
-    exit
+    exists = check_vbox_vm_config_exists(install_client)
+    if exists == "yes"
+      delete_vbox_vm_config(install_client)
+    else
+      puts "VirtualBox VM "+install_client+" does not exist"
+      exit
+    end
   end
   stop_vbox_vm(install_client)
   sleep(5)

@@ -587,3 +587,7 @@
 # Added build capability to packer support
 # 2.9.3: Tue  8 Dec 2015 15:59:10 AEDT
 # Improved packer support
+# 2.9.4: Wed  9 Dec 2015 12:39:30 AEDT
+# Added code to import VMware Fusion Packer VM image
+# 2.9.5: Wed  9 Dec 2015 13:03:54 AEDT
+# Improved VirtualBox VM old config file cleanup 
