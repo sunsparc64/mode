@@ -2,19 +2,24 @@
 
 # Import Packer VirtualBox image
 
-def import_packer_fusion_vm(install_client,install_vm)
+def import_packer_vbox_vm(install_client,install_vm)
   (exists,images_dir) = check_packer_vm_image_exists(install_client,install_vm)
   if exists == "no"
     puts "Warning:\tPacker VirtualBox VM image for "+install_client+" does not exist"
     exit
   end
-  fusion_vm_dir,fusion_vmx_file,fusion_disk_file = check_fusion_vm_doesnt_exist(install_client) 
-  check_dir_exists(fusion_vm_dir)
-  message = "Information:\tCopying Packer VM images from \""+images_dir+"\" to \""+fusion_vm_dir+"\""
-  command = "cp '#{images_dir}'/* '#{fusion_vm_dir}'"
-  execute_command(message,command)
+  ovf_file = images_dir+"/"+install_client+".ovf"
+  if File.exist?(ovf_file)
+    message = "Information:\tImporting OVF file for Packer VirtualBox VM "+install_client
+    command = "VBoxManage import '#{ovf_file}'"
+    execute_command(message,command)
+  else
+    puts "Warning:\tOVF file for Packer VirtualBox VM "+install_client+" does not exist"
+    exit
+  end
   return
 end
+
 
 # Add shared folder to VM
 
