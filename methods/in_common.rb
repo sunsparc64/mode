@@ -1496,7 +1496,7 @@ def execute_command(message,command)
       end
     end
     if $verbose_mode == 1
-      puts "Information:\t"+command
+      puts "Executing:\t\t"+command
     end
     if $execute_host == "localhost"
       output = %x[#{command}]
@@ -1509,11 +1509,11 @@ def execute_command(message,command)
   if $verbose_mode == 1
     if output.length > 1
       if !output.match(/\n/)
-        puts "Output:\t\t"+output
+        puts "Output:\t\t\t"+output
       else
         multi_line_output = output.split(/\n/)
         multi_line_output.each do |line|
-          puts "Output:\t\t"+line
+          puts "Output:\t\t\t"+line
         end
       end
     end
