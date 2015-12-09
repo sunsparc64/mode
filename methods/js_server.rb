@@ -41,29 +41,29 @@ def configure_js_tftp_service(client_arch,service_name,repo_version_dir,os_versi
   if $os_name.match(/SunOS/)
     if $os_rel.match(/11/)
       pkg_name = "system/boot/network"
-      message  = "Checking:\tBoot server package is installed"
+      message  = "Information:\tChecking boot server package is installed"
       command  = "pkg info #{pkg_name} |grep Name |awk '{print $2}'"
       output   = execute_command(message,command)
       if !output.match(/#{pkg_name}/)
-        message = "Installing:\tBoot server package"
+        message = "Information:\tInstalling boot server package"
         command = "pkg install #{pkg_name}"
         output  = execute_command(message,command)
       end
       old_tftp_dir="/tftpboot"
       if !File.symlink?(tftp_dir)
-        message = "Symlinking:\tDirectory "+old_tftp_dir+" to "+$tftp_dir
+        message = "Information:\tSymlinking directory "+old_tftp_dir+" to "+$tftp_dir
         command = "ln -s #{old_tftp_dir} #{$tftp_dir}"
         output  = execute_command(message,command)
       end
       smf_service_name="svc:/network/tftp/udp6:default"
-      message = "Checking:\tTFTP service is installed"
+      message = "Information:\tChecking TFTP service is installed"
       command = "svcs -a |grep '#{smf_service_name}'"
       output  = execute_command(message,command)
       if !output.match(/#{smf_service_name}/)
-        message = "Creating:\tTFTP service information"
+        message = "Information:\tCreating TFTP service information"
         command = "echo 'tftp  dgram  udp6  wait  root  /usr/sbin/in.tftpd  in.tftpd -s /tftpboot' >> /tmp/tftp"
         output  = execute_command(message,command)
-        message = "Creating:\tTFTP service manifest"
+        message = "Information:\tCreating TFTP service manifest"
         command = "inetconv -i /tmp/tftp"
         output  = execute_command(message,command)
       end
@@ -77,7 +77,7 @@ def configure_js_tftp_service(client_arch,service_name,repo_version_dir,os_versi
   end
   if !File.directory?(boot_dir)
     check_dir_exists(boot_dir)
-    message = "Copying:\tBoot files from "+source_dir+" to "+boot_dir
+    message = "Information:\tCopying boot files from "+source_dir+" to "+boot_dir
     command = "cp -r #{source_dir}/* #{boot_dir}"
     output  = execute_command(message,command)
   end
@@ -103,7 +103,7 @@ def copy_js_sparc_boot_images(repo_version_dir,os_version,os_update)
     boot_file = repo_version_dir+"/Solaris_"+os_version+"/Tools/Boot/platform/"+boot_arch+"/inetboot"
     tftp_file = tftp_dir+"/"+boot_arch+".inetboot.sol_"+os_version+"_"+os_update
     if !File.exist?(boot_file)
-      message = "Copying:\tBoot image "+boot_file+" to "+tftp_file
+      message = "Information:\tCopying boot image "+boot_file+" to "+tftp_file
       command = "cp #{boot_file} #{tftp_file}"
       execute_command(message,command)
     end
@@ -146,7 +146,7 @@ def configure_js_repo(iso_file,repo_version_dir,os_version,os_update)
           puts "Warning:\tISO update version does not match ISO name"
           exit
         end
-        message = "Copying:\tISO file "+iso_file+" contents to "+repo_version_dir
+        message = "Information:\tCopying ISO file "+iso_file+" contents to "+repo_version_dir
         if $os_name.match(/SunOS/)
           command = "cd /cdrom/Solaris_#{os_version}/Tools ; ./setup_install_server #{repo_version_dir}"
         else
@@ -174,7 +174,7 @@ def fix_js_rm_client(repo_version_dir,os_version)
   rm_script   = repo_version_dir+"/Solaris_"+os_version+"/Tools/"+file_name
   backup_file = rm_script+".modest"
   if !File.exist?(backup_file)
-    message = "Archiving:\tRemove install script "+rm_script+" to "+backup_file
+    message = "Information:\tArchiving remove install script "+rm_script+" to "+backup_file
     command = "cp #{rm_script} #{backup_file}"
     execute_command(message,command)
     text = File.read(rm_script)
@@ -218,7 +218,7 @@ def fix_js_check(repo_version_dir,os_version)
   check_script = repo_version_dir+"/Solaris_"+os_version+"/Misc/jumpstart_sample/"+file_name
   backup_file  = check_script+".modest"
   if !File.exist?(backup_file)
-    message = "Archiving:\tCheck script "+check_script+" to "+backup_file
+    message = "Information:\tArchiving check script "+check_script+" to "+backup_file
     command = "cp #{check_script} #{backup_file}"
     execute_command(message,command)
     text     = File.read(check_script)
@@ -226,7 +226,7 @@ def fix_js_check(repo_version_dir,os_version)
     copy[0]  = "#!/usr/sbin/sh\n"
     tmp_file = "/tmp/check_script"
     File.open(tmp_file,"w") {|file| file.puts copy}
-    message  = "Updating:\tCheck script"
+    message  = "Information:\tUpdating check script"
     command  = "cp #{tmp_file} #{check_script} ; chmod +x #{check_script} ; rm #{tmp_file}"
     execute_command(message,command)
   end

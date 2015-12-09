@@ -17,7 +17,7 @@ def create_js_sysid_file(client_name,sysid_file)
     file.write(output)
   end
   file.close
-  message = "Creating:\tConfiguration file "+sysid_file+" for "+client_name
+  message = "Information:\tCreating configuration file "+sysid_file+" for "+client_name
   command = "cp #{tmp_file} #{sysid_file} ; rm #{tmp_file}"
   execute_command(message,command)
   print_contents_of_file(sysid_file)
@@ -40,12 +40,12 @@ def create_js_machine_file(client_name,machine_file)
     file.write(output)
   end
   file.close
-  message = "Creating:\tConfiguration file "+machine_file+" for "+client_name
+  message = "Information:\tCreating configuration file "+machine_file+" for "+client_name
   command = "cp #{tmp_file} #{machine_file} ; rm #{tmp_file}"
   execute_command(message,command)
   if $verbose_mode == 1
     puts
-    puts "information:\tContents of configuration file: "+machine_file
+    puts "Information:\tContents of configuration file: "+machine_file
     puts
     system("cat #{machine_file}")
     puts
@@ -63,7 +63,7 @@ def create_js_rules_file(client_name,client_karch,rules_file)
   file         = File.open(tmp_file,"w")
   file.write("#{karch_line}\n")
   file.close
-  message = "Creating:\tConfiguration file "+rules_file+" for "+client_name
+  message = "Information:\tCreating configuration file "+rules_file+" for "+client_name
   command = "cp #{tmp_file} #{rules_file} ; rm #{tmp_file}"
   execute_command(message,command)
   print_contents_of_file(rules_file)
@@ -100,26 +100,26 @@ def check_js_config(client_name,client_dir,repo_version_dir,os_version)
   rules_file    = client_dir+"/rules"
   rules_ok_file = rules_file+".ok"
   if File.exist?(rules_ok_file)
-    message = "Removing:\tExisting rules.ok file for client "+client_name
+    message = "Information:\tRemoving existing rules.ok file for client "+client_name
     command = "rm #{rules_ok_file}"
     output  = execute_command(message,command)
   end
   if !File.exist?("#{client_dir}/check")
-    message = "Copying:\tCheck script "+check_script+" to "+client_dir
+    message = "Information:\tCopying check script "+check_script+" to "+client_dir
     command = "cd #{client_dir} ; cp -p #{check_script} ."
     output  = execute_command(message,command)
   end
-  message   = "Checking:\tSum for rules file for "+client_name
+  message   = "Information:\tChecking sum for rules file for "+client_name
   command   = "cksum -o 2 #{rules_file} | awk '{print $1}'"
   output    = execute_command(message,command)
   if output.match(/ /)
     rules_sum = output.chomp.split(/ /)[0]
   end
-  message   = "Copying:\tRules file"
+  message   = "Information:\tCopying rules file"
   command   = "cd #{client_dir}; cp rules rules.ok"
   execute_command(message,command)
   output    = "# version=2 checksum=#{rules_sum}"
-  message   = "Creating:\tRules file "+rules_ok_file
+  message   = "Information:\tCreating rules file "+rules_ok_file
   command   = "echo '#{output}' >> #{rules_ok_file}"
   execute_command(message,command)
   print_contents_of_file(rules_ok_file)
@@ -143,7 +143,7 @@ def configure_js_pxe_client(client_name,client_mac,client_arch,service_name,repo
     test_file     = $tftp_dir+"/"+tftp_pxe_file
     if !File.exist?(test_file)
       pxegrub_file = service_name+"/boot/grub/pxegrub"
-      message      = "Creating:\tPXE boot file for "+client_name+" with MAC address "+client_mac
+      message      = "Information:\tCreating PXE boot file for "+client_name+" with MAC address "+client_mac
       command      = "cd #{$tftp_dir} ; ln -s #{pxegrub_file} #{tftp_pxe_file}"
       execute_command(message,command)
     end
@@ -170,11 +170,11 @@ def configure_js_pxe_client(client_name,client_mac,client_arch,service_name,repo
     end
     file.write("\tmodule$ #{service_name}/boot/$ISADIR/x86.miniroot\n")
     file.close
-    message = "Creating:\tPXE boot config file "+pxe_cfg_file
+    message = "Information:\tCreating PXE boot config file "+pxe_cfg_file
     command = "cp #{tmp_file} #{pxe_cfg_file} ; rm #{tmp_file}"
     execute_command(message,command)
     if $verbose_mode == 1
-      puts "information:\tPXE menu file "+pxe_cfg_file+" contents:"
+      puts "Information:\tPXE menu file "+pxe_cfg_file+" contents:"
       puts
       system("cat #{pxe_cfg_file}")
       puts
@@ -253,7 +253,7 @@ def configure_js_client(install_client,install_arch,install_mac,install_ip,insta
       install_service = install_service+"_"+install_arch
     end
     if !install_service.match(/#{client_arch}/)
-      puts "Service "+install_service+" and Client architecture "+install_arch+" do not match"
+      puts "Information:\tService "+install_service+" and Client architecture "+install_arch+" do not match"
      exit
     end
     repo_version_dir=$repo_base_dir+"/"+install_service

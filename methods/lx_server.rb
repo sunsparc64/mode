@@ -76,10 +76,10 @@ def configure_ubuntu_lxc_server(server_type)
       file.write("\n")
       file.close
       backup_file = config_file+".nolxc"
-      message = "Archiving:\tNetwork configuration file "+config_file+" to "+backup_file
+      message = "Information:\tArchiving network configuration file "+config_file+" to "+backup_file
       command = "cp #{config_file} #{backup_file}"
       execute_command(message,command)
-      message = "Creating:\tNetwork configuration file "+config_file
+      message = "Information:\tCreating network configuration file "+config_file
       command = "cp #{tmp_file} #{config_file} ; rm #{tmp_file}"
       execute_command(message,command)
       service = "networking"

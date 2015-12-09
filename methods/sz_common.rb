@@ -84,11 +84,11 @@ end
 
 def check_branded_zone_pkg()
   if $os_rel.match(/11/)
-    message = "Checking:\tBranded zone support is installed"
+    message = "Information:\tChecking branded zone support is installed"
     command = "pkg info pkg:/system/zones/brand/brand-solaris10 |grep Version |awk '{print $2}'"
     output  = execute_command(message,command)
     if !output.match(/[0-9]/)
-      message = "Installing:\tBranded zone packages"
+      message = "Information:\tInstalling branded zone packages"
       command = "pkg install pkg:/system/zones/brand/brand-solaris10"
       execute_command(message,command)
     end
@@ -137,12 +137,12 @@ def standard_zone_post_install(client_name,client_rel)
     output = admin_username+":"+admin_crypt+":::99999:7:::\n"
     file.write(output)
     file.close
-    message = "Creating:\tShadow file"
+    message = "Information:\tCreating shadow file"
     command = "cat #{tmp_file} > #{shadow_file} ; rm #{tmp_file}"
     execute_command(message,command)
     print_contents_of_file(shadow_file)
     client_home = client_dir+admin_home
-    message = "Creating:\tSSH directory for "+admin_username
+    message = "Information:\tCreating SSH directory for "+admin_username
     command = "mkdir -p #{client_home}/.ssh ; cd #{client_dir}/export/home ; chown -R #{admin_uid}:#{admin_gid} #{admin_username}"
     execute_command(message,command)
     # Copy admin user keys
@@ -154,12 +154,12 @@ def standard_zone_post_install(client_name,client_rel)
     end
     [rsa_file,dsa_file].each do |pub_file|
       if File.exists?(pub_file)
-        message = "Copying:\tSSH public key "+pub_file+" to "+key_file
+        message = "Information:\tCopying SSH public key "+pub_file+" to "+key_file
         command = "cat #{pub_file} >> #{key_file}"
         execute_command(message,command)
       end
     end
-    message = "Creating:\tSSH directory for root"
+    message = "Information:\tCreating SSH directory for root"
     command = "mkdir -p #{client_dir}/root/.ssh ; cd #{client_dir} ; chown -R 0:0 root"
     execute_command(message,command)
     # Copy root keys
@@ -171,30 +171,30 @@ def standard_zone_post_install(client_name,client_rel)
     end
     [rsa_file,dsa_file].each do |pub_file|
       if File.exists?(pub_file)
-        message = "Copying:\tSSH public key "+pub_file+" to "+key_file
+        message = "Information:\tCopying SSH public key "+pub_file+" to "+key_file
         command = "cat #{pub_file} >> #{key_file}"
         execute_command(message,command)
       end
     end
     # Fix permissions
-    message = "Fixing:\t\tSSH permissions for "+admin_username
+    message = "Information:\tFixing SSH permissions for "+admin_username
     command = "cd #{client_dir}/export/home ; chown -R #{admin_uid}:#{admin_gid} #{admin_username}"
     execute_command(message,command)
-    message = "Fixing:\t\tSSH permissions for root "
+    message = "Information:\tFixing SSH permissions for root "
     command = "cd #{client_dir} ; chown -R 0:0 root"
     execute_command(message,command)
     # Add sudoers entry
     sudoers_file = client_dir+"/etc/sudoers"
-    message = "Creating:\tSudoers file "+sudoers_file
+    message = "Information:\tCreating sudoers file "+sudoers_file
     command = "cat #{sudoers_file} |grep -v '^#includedir' > #{tmp_file} ; cat #{tmp_file} > #{sudoers_file}"
     execute_command(message,command)
-    message = "Adding:\t\tSudoers include to "+sudoers_file
+    message = "Information:\tAdding sudoers include to "+sudoers_file
     command = "echo '#includedir /etc/sudoers.d' >> #{sudoers_file} ; rm #{tmp_file}"
     execute_command(message,command)
     sudoers_dir  = client_dir+"/etc/sudoers.d"
     check_dir_exists(sudoers_dir)
     sudoers_file = sudoers_dir+"/"+admin_username
-    message = "Creating:\tSudoers file "+sudoers_file
+    message = "Information:\tCreating sudoers file "+sudoers_file
     command = "echo '#{admin_username} ALL=(ALL) NOPASSWD:ALL' > #{sudoers_file}"
     execute_command(message,command)
   else
@@ -228,7 +228,7 @@ def branded_zone_post_install(client_name,client_rel)
     file.write("pkutil -i CSWwget\n")
     file.write("\n")
     file.close
-    message = "Creating:\tPost install script "+post_file
+    message = "Information:\tCreating post install script "+post_file
     command = "cp #{tmp_file} #{post_file} ; rm #{tmp_file}"
     execute_command(message,command)
   else
@@ -243,7 +243,7 @@ end
 def create_branded_zone(image_file,client_ip,zone_nic,client_name,client_rel)
   check_branded_zone_pkg()
   if Files.exists?(image_file)
-    message = "Installing:\tBranded zone "+client_name
+    message = "Information:\tInstalling Branded Zone "+client_name
     command = "cd /tmp ; #{image_file} -p #{$zone_base_dir} -i #{zone_nic} -z #{client_name} -f"
     execute_command(message,command)
   else
@@ -257,7 +257,7 @@ end
 # Check zone doesn't exist
 
 def check_zone_doesnt_exist(client_name)
-  message = "Checking:\tZone "+client_name+" doesn't exist"
+  message = "Information:\tChecking Zone "+client_name+" doesn't exist"
   command = "zoneadm list -cv |awk '{print $2}' |grep '#{client_name}'"
   output  = execute_command(message,command)
   return output
@@ -273,7 +273,7 @@ def create_zone_config(client_name,client_ip)
   zone_status = check_zone_doesnt_exist(client_name)
   if !zone_status.match(/#{client_name}/)
     if $os_arch.match(/i386/)
-      message = "Checking:\tPlatform"
+      message = "Information:\tChecking Platform"
       command = "prtdiag -v |grep 'VMware'"
       output  = execute_command(message,command)
       if output.match(/VMware/)
@@ -312,10 +312,10 @@ end
 # Install zone
 
 def install_zone(client_name,zone_filr)
-  message = "Creating:\tSolaris "+client_rel+" zone "+client_name+" in "+zone_dir
+  message = "Information:\tCreating Solaris "+client_rel+" Zone "+client_name+" in "+zone_dir
   command = "zonecfg -z #{client_name} -f #{zone_file}"
   execute_command(message,command)
-  message = "Installing:\tZone "+client_name
+  message = "Information:\tInstalling Zone "+client_name
   command = "zoneadm -z #{client_name} install"
   execute_command(message,command)
   system("rm #{zone_file}")
@@ -326,7 +326,7 @@ end
 
 def create_zone(client_name,client_ip,zone_dir,client_rel,image_file,service_name)
   virtual = 0
-  message = "Checking:\tPlatform"
+  message = "Information:\tChecking Platform"
   command = "prtdiag -v |grep 'VMware'"
   output  = execute_command(message,command)
   if output.match(/VMware/)
@@ -380,7 +380,7 @@ end
 # Halt zone
 
 def halt_zone(client_name)
-  message = "Halting:\tZone "+client_name
+  message = "Information:\tHalting Zone "+client_name
   command = "zoneadm -z #{client_name} halt"
   execute_command(message,command)
   return
@@ -390,10 +390,10 @@ end
 
 def unconfigure_zone(client_name)
   halt_zone(client_name)
-  message = "Uninstalling:\tZone "+client_name
+  message = "Information:\tUninstalling Zone "+client_name
   command = "zoneadm -z #{client_name} uninstall -F"
   execute_command(message,command)
-  message = "Deleting:\tZone "+client_name+" configuration"
+  message = "Information:\tDeleting Zone "+client_name+" configuration"
   command = "zonecfg -z #{client_name} delete -F"
   execute_command(message,command)
   if $yes_to_all == 1
@@ -408,7 +408,7 @@ end
 # Get zone status
 
 def get_zone_status(client_name)
-  message = "Checking:\tZone "+client_name+" isn't running"
+  message = "Information:\tChecking Zone "+client_name+" isn't running"
   command = "zoneadm list -cv |grep ' #{client_name} ' |awk '{print $3}'"
   output  = execute_command(message,command)
   return output
@@ -417,7 +417,7 @@ end
 # Boot zone
 
 def boot_zone(client_name)
-  message = "Booting:\tZone "+client_name
+  message = "Information:\tBooting Zone "+client_name
   command = "zoneadm -z #{client_name} boot"
   execute_command(message,command)
   if $serial_mode == 1
@@ -431,7 +431,7 @@ end
 def stop_zone(client_name)
   status  = get_zone_status(client_name)
   if !status.match(/running/)
-    message = "Stopping:\tZone "+client_name
+    message = "Information:\tStopping Zone "+client_name
     command = "zlogin #{client_name} shutdown -y -g0 -i 0"
     execute_command(message,command)
   end
@@ -465,7 +465,7 @@ def configure_zone(client_name,client_ip,client_mac,client_arch,client_os,client
 
   if !File.directory?($zone_base_dir)
     check_fs_exists($zone_base_dir)
-    message = "Setting:\tMount point for "+$zone_base_dir
+    message = "Information:\tSetting mount point for "+$zone_base_dir
     command = "zfs set #{$default_zpool}#{$zone_base_dir} mountpoint=#{$zone_base_dir}"
     execute_command(message,command)
   end

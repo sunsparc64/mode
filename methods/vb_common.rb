@@ -47,11 +47,11 @@ end
 # Attach file to VirtualBox VM
 
 def attach_file_to_vbox_vm(install_client,install_file,install_type)
-  message = "Attaching:\tCDROM to VM "+install_client
+  message = "Information:\tAttaching CDROM to VM "+install_client
   command = "VBoxManage storagectl \"#{install_client}\" --name \"cdrom\" --add \"sata\" --controller \"IntelAHCI\""
   execute_command(message,command)
   if File.exist?($vbox_additions_iso)
-    message = "Attaching:\tISO "+install_file+" to VM "+install_client
+    message = "Information:\tAttaching ISO "+install_file+" to VM "+install_client
     command = "VBoxManage storageattach \"#{install_client}\" --storagectl \"cdrom\" --port 0 --device 0 --type dvddrive --medium \"#{install_file}\""
     execute_command(message,command)
     if install_type == "boot"
@@ -387,7 +387,7 @@ end
 # Check VirtualBox VM exists
 
 def check_vbox_vm_exists(install_client)
-  message   = "Checking:\tVM "+install_client+" exists"
+  message   = "Information:\tChecking VM "+install_client+" exists"
   command   = "VBoxManage list vms |grep -v 'inaccessible'"
   host_list = execute_command(message,command)
   if !host_list.match(install_client)
@@ -402,7 +402,7 @@ end
 # Get VirtualBox bridged network interface
 
 def get_bridged_vbox_nic()
-  message  = "Checking:\tBridged interfaces"
+  message  = "Information:\tChecking Bridged interfaces"
   command  = "VBoxManage list bridgedifs"
   nic_list = execute_command(message,command)
   if !nic_list.match(/[A-z]/)
@@ -425,7 +425,7 @@ end
 # Add bridged network to VirtualBox VM
 
 def add_bridged_network_to_vbox_vm(install_client,nic_name)
-  message = "Adding:\tBridged network "+nic_name+" to "+install_client
+  message = "Information:\tAdding bridged network "+nic_name+" to "+install_client
   command = "VBoxManage modifyvm #{install_client} --nic1 bridged --bridgeadapter1 #{nic_name}"
   execute_command(message,command)
   return
@@ -434,7 +434,7 @@ end
 # Add non-bridged network to VirtualBox VM
 
 def add_nonbridged_network_to_vbox_vm(install_client,nic_name)
-  message = "Adding:\t\tNetwork "+nic_name+" to "+install_client
+  message = "Information:\tAdding network "+nic_name+" to "+install_client
   if nic_name.match(/vboxnet/)
     command = "VBoxManage modifyvm #{install_client} --hostonlyadapter1 #{nic_name} ; VBoxManage modifyvm #{install_client} --nic1 hostonly"
   else
@@ -447,7 +447,7 @@ end
 # Set boot priority to network
 
 def set_vbox_vm_boot_priority(install_client)
-  message = "Setting:\tBoot priority for "+install_client+" to disk then network"
+  message = "Information:\tSetting boot priority for "+install_client+" to disk then network"
   command = "VBoxManage modifyvm #{install_client} --boot1 disk --boot2 net"
   execute_command(message,command)
   return
@@ -456,7 +456,7 @@ end
 # Set boot device
 
 def set_vbox_boot_device(install_client,install_type)
-  message = "Setting:\tBoot priority for "+install_client+" to disk then network"
+  message = "Information:\tSetting boot device for "+install_client+" to "+install_type
   command = "VBoxManage modifyvm #{install_client} --boot1 #{install_type}"
   execute_command(message,command)
   return
@@ -465,7 +465,7 @@ end
 # Get VirtualBox VM OS
 
 def get_vbox_vm_os(install_client)
-  message   = "Getting:\tVirtualBox VM OS for "+install_client
+  message   = "Information:\tGetting VirtualBox VM OS for "+install_client
   command   = "VBoxManage showvminfo #{install_client} |grep Guest |grep OS |head -1 |cut -f2 -d:"
   install_os = execute_command(message,command)
   install_os = install_os.gsub(/^\s+/,"")
@@ -506,7 +506,7 @@ end
 # Get VirtualBox VM directory
 
 def get_vbox_vm_dir(install_client)
-  message          = "Getting:\tVirtualBox VM directory"
+  message          = "Information:\tGetting VirtualBox VM directory"
   command          = "VBoxManage list systemproperties |grep 'Default machine folder' |cut -f2 -d':' |sed 's/^[         ]*//g'"
   vbox_vm_base_dir = execute_command(message,command)
   vbox_vm_base_dir = vbox_vm_base_dir.chomp
@@ -523,13 +523,13 @@ def delete_vbox_vm_config(install_client)
   vbox_vm_dir = get_vbox_vm_dir(install_client)
   config_file = vbox_vm_dir+"/"+install_client+".vbox"
   if File.exist?(config_file)
-    message = "Removing:\tVirtualbox configuration file "+config_file
+    message = "Information:\tRemoving Virtualbox configuration file "+config_file
     command = "rm \"#{config_file}\""
     execute_command(message,command)
   end
   config_file = vbox_vm_dir+"/"+install_client+".vbox-prev"
   if File.exist?(config_file)
-    message = "Removing:\tVirtualbox configuration file "+config_file
+    message = "Information:\tRemoving Virtualbox configuration file "+config_file
     command = "rm \"#{config_file}\""
     execute_command(message,command)
   end
@@ -567,7 +567,7 @@ end
 # Routine to register VM
 
 def register_vbox_vm(install_client,install_os)
-  message = "Registering:\tVM "+install_client
+  message = "Information:\tRegistering VM "+install_client
   command = "VBoxManage createvm --name \"#{install_client}\" --ostype \"#{install_os}\" --register"
   execute_command(message,command)
   return
@@ -594,7 +594,7 @@ end
 # Add controller to VM
 
 def add_controller_to_vbox_vm(install_client,vbox_controller)
-  message = "Adding:\t\tController to VirtualBox VM"
+  message = "Information:\tAdding controller to VirtualBox VM"
   command = "VBoxManage storagectl \"#{install_client}\" --name \"#{$vbox_disk_type}\" --add \"#{$vbox_disk_type}\" --controller \"#{vbox_controller}\""
   execute_command(message,command)
   return
@@ -603,7 +603,7 @@ end
 # Create Virtual Bpx VM HDD
 
 def create_vbox_hdd(install_client,vbox_disk_name,vbox_disk_size)
-  message = "Creating:\tVM hard disk for "+install_client
+  message = "Information:\tCreating VM hard disk for "+install_client
   command = "VBoxManage createhd --filename \"#{vbox_disk_name}\" --size \"#{vbox_disk_size}\""
   execute_command(message,command)
   return
@@ -621,7 +621,7 @@ end
 # Add hard disk to VirtualBox VM
 
 def add_hdd_to_vbox_vm(install_client,vbox_disk_name)
-  message = "Attaching:\tStorage \"#{vbox_disk_name}\" of type \"#{$vbox_disk_type}\" to VM "+install_client
+  message = "Information:\tAttaching storage \"#{vbox_disk_name}\" of type \"#{$vbox_disk_type}\" to VM "+install_client
   command = "VBoxManage storageattach \"#{install_client}\" --storagectl \"#{$vbox_disk_type}\" --port 0 --device 0 --type hdd --medium \"#{vbox_disk_name}\""
   execute_command(message,command)
   return
@@ -630,11 +630,11 @@ end
 # Add guest additions ISO
 
 def add_tools_to_vbox_vm(install_client)
-  message = "Attaching:\tCDROM \""+$vbox_additions_iso+"\" to VM "+install_client
+  message = "Information:\tAttaching CDROM \""+$vbox_additions_iso+"\" to VM "+install_client
   command = "VBoxManage storagectl \"#{install_client}\" --name \"cdrom\" --add \"sata\" --controller \"IntelAHCI\""
   execute_command(message,command)
   if File.exist?($vbox_additions_iso)
-    message = "Attaching:\tISO "+$vbox_additions_iso+" to VM "+install_client
+    message = "Information:\tAttaching ISO "+$vbox_additions_iso+" to VM "+install_client
     command = "VBoxManage storageattach \"#{install_client}\" --storagectl \"cdrom\" --port 1 --device 0 --type dvddrive --medium \"#{$vbox_additions_iso}\""
     execute_command(message,command)
   end
@@ -644,11 +644,11 @@ end
 # Add hard disk to VirtualBox VM
 
 def add_cdrom_to_vbox_vm(install_client,install_file)
-  message = "Attaching:\tCDROM \""+install_file+"\" to VM "+install_client
+  message = "Information:\tAttaching CDROM \""+install_file+"\" to VM "+install_client
   command = "VBoxManage storagectl \"#{install_client}\" --name \"cdrom\" --add \"sata\" --controller \"IntelAHCI\""
   execute_command(message,command)
   if File.exist?($vbox_additions_iso)
-    message = "Attaching:\tISO "+$vbox_additions_iso+" to VM "+install_client
+    message = "Information:\tAttaching ISO "+$vbox_additions_iso+" to VM "+install_client
     command = "VBoxManage storageattach \"#{install_client}\" --storagectl \"cdrom\" --port 0 --device 0 --type dvddrive --medium \"#{install_file}\""
     execute_command(message,command)
   end
@@ -658,7 +658,7 @@ end
 # Add memory to Virtualbox VM
 
 def add_memory_to_vbox_vm(install_client,install_memory)
-  message = "Adding:\t\tMemory to VM "+install_client
+  message = "Information:\tAdding memory to VM "+install_client
   command = "VBoxManage modifyvm \"#{install_client}\" --memory \"#{install_memory}\""
   execute_command(message,command)
   return
@@ -668,7 +668,7 @@ end
 
 def add_socket_to_vbox_vm(install_client)
   socket_name = "/tmp/#{install_client}"
-  message     = "Adding:\t\tSerial controller to "+install_client
+  message     = "Information:\tAdding serial controller to "+install_client
   command     = "VBoxManage modifyvm \"#{install_client}\" --uartmode1 server #{socket_name}"
   execute_command(message,command)
   return socket_name
@@ -677,7 +677,7 @@ end
 # Routine to add serial to a VM
 
 def add_serial_to_vbox_vm(install_client)
-  message = "Adding:\t\tSerial Port to "+install_client
+  message = "Information:\tAdding serial Port to "+install_client
   command = "VBoxManage modifyvm \"#{install_client}\" --uart1 0x3F8 4"
   execute_command(message,command)
   return
@@ -843,14 +843,14 @@ end
 # Modify a VirtualBox VM parameter
 
 def modify_vbox_vm(install_client,param_name,param_value)
-  message = "Setting:\tVirtualBox Parameter "+param_name+" to "+param_value
+  message = "Information:\tSetting VirtualBox Parameter "+param_name+" to "+param_value
   command = "VBoxManage modifyvm #{install_client} --#{param_name} #{param_value}"
   execute_command(message,command)
   return
 end
 
 def setextradata_vbox_vm(install_client,param_name,param_value)
-  message = "Setting:\tVirtualBox Extradata "+param_name+" to "+param_value
+  message = "Information:\tSetting VirtualBox Extradata "+param_name+" to "+param_value
   command = "VBoxManage setextradata #{install_client} \"#{param_name}\" \"#{param_value}\""
   execute_command(message,command)
   return
@@ -859,7 +859,7 @@ end
 # Change VirtualBox VM Cores
 
 def change_vbox_vm_cpu(install_client,client_cpus)
-  message = "Setting:\tVirtualBox VM "+install_client+" CPUs to "+client_cpus
+  message = "Information:\tSetting VirtualBox VM "+install_client+" CPUs to "+client_cpus
   command = "VBoxManage modifyvm #{install_client} --cpus #{client_cpus}"
   execute_command(message,command)
   return
@@ -868,7 +868,7 @@ end
 # Change VirtualBox VM UTC
 
 def change_vbox_vm_utc(install_client,client_utc)
-  message = "Setting:\tVirtualBox VM "+install_client+" RTC to "+client_utc
+  message = "Information:\tSetting VirtualBox VM "+install_client+" RTC to "+client_utc
   command = "VBoxManage modifyvm #{install_client} --rtcuseutc #{client_utc}"
   execute_command(message,command)
   return
@@ -952,29 +952,29 @@ end
 # Check VirtualBox hostonly network
 
 def check_vbox_hostonly_network(if_name)
-  message = "Checking:\tVirtualBox hostonly network exists"
+  message = "Information:\tChecking VirtualBox hostonly network exists"
   command = "VBoxManage list hostonlyifs |grep '^Name' |awk '{print $2}' |head -1"
   if_name = execute_command(message,command)
   if_name = if_name.chomp
   if !if_name.match(/vboxnet/)
-    message = "Plumbing:\tVirtualBox hostonly network"
+    message = "information:\tPlumbing VirtualBox hostonly network"
     command = "VBoxManage hostonlyif create"
     execute_command(message,command)
-    message = "Finding:\tVirtualBox hostonly network name"
+    message = "Information:\tFinding VirtualBox hostonly network name"
     command = "VBoxManage list hostonlyifs |grep '^Name' |awk '{print $2}' |head -1"
     if_name = execute_command(message,command)
     if_name = if_name.chomp
     if_name = if_name.gsub(/'/,"")
-    message = "Disabling:\tDHCP on "+if_name
+    message = "Information:\tDisabling DHCP on "+if_name
     command = "VBoxManage dhcpserver remove --ifname #{if_name}"
     execute_command(message,command)
   end
-  message = "Checking:\tVirtualBox hostonly network "+if_name+" has address "+$default_hostonly_ip
+  message = "Information:\tChecking VirtualBox hostonly network "+if_name+" has address "+$default_hostonly_ip
   command = "VBoxManage list hostonlyifs |grep 'IPAddress' |awk '{print $2}' |head -1"
   host_ip = execute_command(message,command)
   host_ip = host_ip.chomp
   if !host_ip.match(/#{$default_hostonly_ip}/)
-    message = "Configuring:\tVirtualBox hostonly network "+if_name+" with IP "+$default_hostonly_ip
+    message = "Information:\tConfiguring VirtualBox hostonly network "+if_name+" with IP "+$default_hostonly_ip
     command = "VBoxManage hostonlyif ipconfig #{if_name} --ip #{$default_hostonly_ip} --netmask #{$default_netmask}"
     execute_command(message,command)
   end
@@ -1095,7 +1095,7 @@ def configure_vbox_vm(install_client,install_mac,install_os,install_size,install
     configure_vmware_esxi_vbox_vm(install_client)
   end
   add_cpu_to_vbox_vm(install_client,install_cpu)
-  puts "Created:\tVirtualBox VM "+install_client+" with MAC address "+install_mac
+  puts "Information:\tCreated VirtualBox VM "+install_client+" with MAC address "+install_mac
   return
 end
 
@@ -1120,13 +1120,13 @@ def unconfigure_vbox_vm(install_client)
     if exists == "yes"
       delete_vbox_vm_config(install_client)
     else
-      puts "VirtualBox VM "+install_client+" does not exist"
+      puts "Warning:\tVirtualBox VM "+install_client+" does not exist"
       exit
     end
   end
   stop_vbox_vm(install_client)
   sleep(5)
-  message = "Deleting:\tVirtualBox VM "+install_client
+  message = "Information:\tDeleting VirtualBox VM "+install_client
   command = "VBoxManage unregistervm #{install_client} --delete"
   execute_command(message,command)
   delete_vbox_vm_config(install_client)

@@ -2190,7 +2190,7 @@ def output_ay_client_profile(client_name,client_ip,client_mac,output_file,servic
     file.write(item)
   end
   file.close
-  message = "Validating:\tAutoYast XML configuration for "+client_name
+  message = "Information:\tValidating AutoYast XML configuration for "+client_name
   command = "xmllint #{output_file}"
   execute_command(message,command)
   return

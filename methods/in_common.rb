@@ -1496,7 +1496,7 @@ def execute_command(message,command)
       end
     end
     if $verbose_mode == 1
-      puts "Executing:\t"+command
+      puts "Information:\t"+command
     end
     if $execute_host == "localhost"
       output = %x[#{command}]

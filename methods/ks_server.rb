@@ -55,7 +55,7 @@ def configure_ks_repo(service_name,iso_file,repo_version_dir)
     check_dir = repo_version_dir+"/isolinux"
   end
   if $verbose_mode == 1
-    puts "Checking:\tDirectory "+check_dir+" exits"
+    puts "Information:\tChecking directory "+check_dir+" exits"
   end
   if !File.directory?(check_dir)
     mount_iso(iso_file)
@@ -109,7 +109,7 @@ def configure_ks_pxe_boot(service_name,iso_arch)
       end
       if File.directory?(rpm_dir)
         if !service_name.match(/sl_|fedora_19|rhel_6/)
-          message  = "Locating:\tSyslinux package"
+          message  = "Information:\tLocating syslinux package"
           command  = "cd #{rpm_dir} ; find . -name 'syslinux-[0-9]*' |grep '#{iso_arch}'"
           output   = execute_command(message,command)
           rpm_file = output.chomp
@@ -128,7 +128,7 @@ def configure_ks_pxe_boot(service_name,iso_arch)
           end
         end
         check_dir_exists(pxe_boot_dir)
-        message = "Copying:\tPXE boot files from "+rpm_file+" to "+pxe_boot_dir
+        message = "Information:\tCopying PXE boot files from "+rpm_file+" to "+pxe_boot_dir
         command = "cd #{pxe_boot_dir} ; #{$rpm2cpio_bin} #{rpm_file} | cpio -iud"
         output  = execute_command(message,command)
         if $os_info.match(/RedHat/) and $os_rel.match(/^7/) and pxe_boot_dir.match(/[a-z]/)
@@ -157,7 +157,7 @@ def configure_ks_pxe_boot(service_name,iso_arch)
       else
         iso_image_dir = $repo_base_dir+"/"+service_name+"/images"
       end
-      message       = "Copying:\tPXE boot images from "+iso_image_dir+" to "+pxe_image_dir
+      message       = "Information:\tCopying PXE boot images from "+iso_image_dir+" to "+pxe_image_dir
       command       = "cp -r #{iso_image_dir} #{pxe_boot_dir}"
       output        = execute_command(message,command)
     end
@@ -174,7 +174,7 @@ def configure_ks_pxe_boot(service_name,iso_arch)
       iso_image_dir = $repo_base_dir+"/"+service_name+"/isolinux"
     end
     if !File.exist?(test_file)
-      message = "Copying:\tPXE boot files from "+iso_image_dir+" to "+pxe_image_dir
+      message = "Information:\tCopying PXE boot files from "+iso_image_dir+" to "+pxe_image_dir
       command = "cd #{pxe_image_dir} ; cp -r #{iso_image_dir}/* . "
       output  = execute_command(message,command)
     end
@@ -231,11 +231,11 @@ def configure_ks_vmware_repo(service_name,client_arch)
   if $download_mode == 1
     if !File.directory?(vmware_dir)
       check_dir_exists(vmware_dir)
-      message = "Fetching:\tVMware RPMs"
+      message = "Information:\tFetching VMware RPMs"
       command = "cd #{vmware_dir} ; lftp -e 'mget * ; quit' #{vmware_url}"
       execute_command(message,command)
       check_dir_exists(repodata_dir)
-      message = "Fetching:\tVMware RPM repodata"
+      message = "Information:\tFetching VMware RPM repodata"
       command = "cd #{repodata_dir} ; lftp -e 'mget * ; quit' #{repodata_url}"
       execute_command(message,command)
     end

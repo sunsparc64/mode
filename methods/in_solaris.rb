@@ -15,7 +15,7 @@ def check_solaris_install()
   pkgutil_bin  = "/opt/csw/bin/pkgutil"
   pkgutil_conf = "/opt/csw/etc/pkgutil.conf"
   ["git", "autoconf", "automake", "libtool"].each do |pkg_name|
-    message = "Checking:\tPackage "+pkg_name+" is installed"
+    message = "Information:\tChecking package "+pkg_name+" is installed"
     command = "which #{pkg}"
     output  = execute_command(message,command)
     if !output.match(/^\//)
@@ -28,18 +28,18 @@ def check_solaris_install()
     remote_file = $local_opencsw_mirror+"/"+pkg_file
     wget_file(remote_file,local_file)
     if File.exist?(local_file)
-      message = "Installing:\tOpenCSW Package pkgutil"
+      message = "Information:\tInstalling OpenCSW Package pkgutil"
       command = "pkgadd -d #{local_file}"
       execute_command(message,command)
     end
   end
   if File.exist?(pkgutil_conf)
-    message = "Checking:\tMirror is set for OpenCSW"
+    message = "Information:\tChecking mirror is set for OpenCSW"
     command = "cat #{pkgutil_conf} |grep '^mirror' |grep -v '^#'"
     output  = execute_command(message,command)
     if !output.match(/#{$local_opencsw_mirror}/)
       mirror  = "mirror="+$local_opencsw_mirror
-      message = "Adding:\tLocal OpenCSW Mirror"
+      message = "Information:\tAdding local OpenCSW Mirror"
       command = "echo '#{mirror}' >> #{pkgutil_conf}"
       execute_command(message,command)
     end
@@ -50,7 +50,7 @@ end
 # Check local publisher is configured
 
 def check_local_publisher()
-  message = "Checking:\tPtublisher is online"
+  message = "Information:\tChecking publisher is online"
   command = "pkg publisher | grep online"
   output  = execute_command(message,command)
   if !output.match(/online/)
@@ -64,10 +64,10 @@ def check_local_publisher()
         mount_iso(iso_file)
         copy_iso(iso_file,repo_version_dir)
         if File.directory?(publisher_dir)
-          message = "Refreshing:\tRepository at "+repo_version_dir
+          message = "Information:\tRefreshing repository at "+repo_version_dir
           command = "pkgrepo -s #{repo_version_dir} refresh"
           execute_command(message,command)
-          message = "Enabling:\tRepository at "+repo_version_dir
+          message = "Information:\tEnabling repository at "+repo_version_dir
           command = "pkg set-publisher -G '*' -g #{repo_version_dir} solaris"
           execute_command(message,command)
         else
@@ -88,7 +88,7 @@ def handle_smf_service(function,smf_service_name)
   if $os_name.match(/SunOS/)
     uc_function = function.capitalize
     if function.match(/enable/)
-      message = "Checking:\tStatus of service "+smf_service_name
+      message = "Information:\tChecking status of service "+smf_service_name
       command = "svcs #{smf_service_name} |grep -v STATE"
       output  = execute_command(message,command)
       if output.match(/maintenance/)
@@ -138,7 +138,7 @@ end
 
 def check_smf_service(smf_service_name)
   if $os_name.match(/SunOS/)
-    message = "Checking:\tService "+smf_service_name
+    message = "Information:\tChecking service "+smf_service_name
     command = "svcs -a |grep '#{smf_service_name}"
     output  = execute_command(message,command)
   end
@@ -151,15 +151,15 @@ end
 def install_sol11_pkg(pkg_name)
   pkg_test = %x[which #{pkg_name}]
   if pkg_test.match(/no #{pkg_name}/)
-    message = "Checking:\tPackage "+pkg_name+" is installed"
+    message = "Information:\tChecking Package "+pkg_name+" is installed"
     command = "pkg info #{pkg_name} 2>&1| grep 'Name:' |awk '{print $3}'"
     output  = execute_command(message,command)
     if !output.match(/#{pkg_name}/)
-      message = "Checking:\tPtublisher is online"
+      message = "Information:\tChecking publisher is online"
       command = "pkg publisher | grep online"
       output  = execute_command(message,command)
       if output.match(/online/)
-        message = "Installing:\tPackage "+pkg_name
+        message = "Information:\tInstalling Package "+pkg_name
         command = "pkg install #{pkg_name}"
         execute_command(message,command)
       end
@@ -174,12 +174,12 @@ def check_sol11_ntp()
   ntp_file = "/etc/inet/ntp.conf"
   [0..3].each do |number|
     ntp_host = number+"."+$default_country.downcase+".ntp.pool.org"
-    message  = "Checking:\tNTP server "+ntp_host+" is in "+ntp_file
+    message  = "Information:\tChecking NTP server "+ntp_host+" is in "+ntp_file
     command  = "cat #{ntp_file} | grep '#{ntp_host}'"
     output   = execute_command(message,command)
     ntp_test = output.chomp
     if !ntp_test.match(/#ntp_test/)
-      message = "Adding:\tNTP host "+ntp_host+" to "+ntp_file
+      message = "Information:\tAdding NTP host "+ntp_host+" to "+ntp_file
       command = "echo '#{ntp_host}' >> #{ntp_file}"
       execute_command(message,command)
     end
@@ -187,12 +187,12 @@ def check_sol11_ntp()
   ["driftfile /var/ntp/ntp.drift","statsdir /var/ntp/ntpstats/",
     "filegen peerstats file peerstats type day enable",
    "filegen loopstats file loopstats type day enable"].each do |ntp_entry|
-    message  = "Checking:\tNTP entry "+ntp_entry+" is in "+ntp_file
+    message  = "Information:\tChecking NTP entry "+ntp_entry+" is in "+ntp_file
     command  = "cat #{ntp_file} | grep '#{ntp_entry}'"
     output   = execute_command(message,command)
     ntp_test = output.chomp
     if !ntp_test.match(/#{ntp_entry}/)
-      message = "Adding:\tNTP entry "+ntp_entry+" to "+ntp_file
+      message = "Information:\tAdding NTP entry "+ntp_entry+" to "+ntp_file
       command = "echo '#{ntp_entry}' >> #{ntp_file}"
       execute_command(message,command)
     end
@@ -240,10 +240,10 @@ def create_named_conf()
     file.write("\n")
     file.write("\n")
     file.close
-    message = "Creating:\tDirectories for named"
+    message = "Information:t\Creatingidrectories for named"
     command = "mkdir /var/dump ; mkdir /var/stats ; mkdir -p /var/run/namedb ; mkdir -p /etc/namedb/master ; mkdir -p /etc/namedb/working"
     execute_command(message,command)
-    message = "Creating:\tNamed configuration file "+named_conf
+    message = "Information:\tCreating named configuration file "+named_conf
     command = "cp #{tmp_file} #{named_conf} ; rm #{tmp_file}"
     execute_command(message,command)
     print_contents_of_file(named_conf)
@@ -266,7 +266,7 @@ def create_named_conf()
     file.write("puppet\tIN\tA\t#{$default_host}")
     file.write("\n")
     file.close
-    message = "Creating:\tNamed configuration file "+forward_file
+    message = "Information:\tCreating named configuration file "+forward_file
     command = "cp #{tmp_file} #{forward_file} ; rm #{tmp_file}"
     execute_command(message,command)
     print_contents_of_file(forward_file)
@@ -289,7 +289,7 @@ def create_named_conf()
     file.write("#{host_segment}\tIN\tPTR\tpuppet.\n")
     file.write("\n")
     file.close
-    message = "Creating:\tNamed configuration file "+reverse_file
+    message = "Information:\tCreating named configuration file "+reverse_file
     command = "cp #{tmp_file} #{reverse_file} ; rm #{tmp_file}"
     execute_command(message,command)
     print_contents_of_file(reverse_file)
@@ -314,10 +314,10 @@ end
 # Import SMF file
 
 def import_smf_manifest(service,xml_file)
-  message = "Importing:\tService manifest for "+service
+  message = "Information:\tImporting service manifest for "+service
   command = "svccfg import #{xml_file}"
   execute_command(message,command)
-  message = "Starting:\tService manifest for "+service
+  message = "Information:\tStarting service manifest for "+service
   command = "svcadm restart #{service}"
   execute_command(message,command)
   return
@@ -370,7 +370,7 @@ def create_sol11_puppet_manifest(service)
     file.write(item)
   end
   file.close
-  message = "Creating:\tPuppet "+service
+  message = "Information:\tCreating Puppet "+service
   command = "cp #{tmp_file} #{xml_file} ; rm #{tmp_file}"
   execute_command(message,command)
   print_contents_of_file(xml_file)
@@ -396,7 +396,7 @@ def check_sol_puppet()
     end
   end
   if !File.exist?(puppet_bin)
-    message = "Installing:\tPuppet"
+    message = "Information:\tInstalling Puppet"
     if $os_info.match(/11\.2/)
       command = "pkg install puppet"
     else
@@ -405,30 +405,30 @@ def check_sol_puppet()
     end
     execute_command(message,command)
   end
-  message = "Checking:\tPuppet user exists"
+  message = "Information:\tChecking Puppet user exists"
   command = "cat /etc/passwd |grep '^puppet'"
   output  = execute_command(message,command)
   if !output.match(/puppet/)
-    message = "Creating:\tPuppet user"
+    message = "Information:\tCreating Puppet user"
     command = "#{puppet_bin} resource group puppet ensure=present ; #{puppet_bin} resource user puppet ensure=present gid=puppet shell='/bin/false'"
     execute_command(message,command)
   end
   if !File.exist?(puppet_conf)
-    message = "Creating:\tPuppet config file "+puppet_conf
+    message = "Information:\tCreating Puppet config file "+puppet_conf
     command = "#{puppet_bin} master --genconfig > #{puppet_conf}"
     execute_command(message,command)
-    message = "Adding SSL Client Entry to "+puppet_conf
+    message = "Information:\tAdding SSL Client Entry to "+puppet_conf
     command = "echo '    ssl_client_header = SSL_CLIENT_S_DN' >> #{puppet_conf}"
     execute_command(message,command)
-    message = "Adding SSL Verify Entry to "+puppet_conf
+    message = "Information:\tAdding SSL Verify Entry to "+puppet_conf
     command = "echo '    ssl_client_verify_header = SSL_CLIENT_VERIFY' >> #{puppet_conf}"
     execute_command(message,command)
-    message = "Creating:\tPuppet directories"
+    message = "Information:\tCreating Puppet directories"
     command = "mkdir -p #{puppet_dir}/run ; chown -R puppet:puppet #{puppet_dir}"
     execute_command(message,command)
   end
   ["master","agent"].each do |service|
-    message = "Checking:\tService "+service
+    message = "information:\tChecking srvice "+service
     command = "svcs -a |grep '#{service}' |grep puppet"
     output  = execute_command(message,command)
     if !output.match(/#{service}/)
@@ -447,7 +447,7 @@ def check_sol_puppet()
     module_dir = "/etc/puppet/modules"
     module_dir = module_dir+"/"+module_name
     if !File.directory?(module_dir)
-      message = "Installing:\tPuppet module "+module_name
+      message = "Information:\tInstalling Puppet module "+module_name
       command = "#{puppet_bin} module install puppetlabs-#{module_name}"
       execute_command(message,command)
     end

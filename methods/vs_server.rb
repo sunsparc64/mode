@@ -108,7 +108,7 @@ def configure_vs_pxe_boot(install_service)
     rpm_dir = $work_dir+"/rpms"
     check_dir_exists(rpm_dir)
     if File.directory?(rpm_dir)
-      message  = "Locating:\tSyslinux package"
+      message  = "Information:\tLocating syslinux package"
       command  = "ls #{rpm_dir} |grep 'syslinux-[0-9]'"
       output   = execute_command(message,command)
       rpm_file = output.chomp
@@ -121,7 +121,7 @@ def configure_vs_pxe_boot(install_service)
         rpm_file = rpm_dir+"/"+rpm_file
       end
       check_dir_exists(pxe_boot_dir)
-      message = "Copying:\tPXE boot files from "+rpm_file+" to "+pxe_boot_dir
+      message = "Information:\tCopying PXE boot files from "+rpm_file+" to "+pxe_boot_dir
       command = "cd #{pxe_boot_dir} ; #{$rpm2cpio_bin} #{rpm_file} | cpio -iud"
       output  = execute_command(message,command)
     else
@@ -133,7 +133,7 @@ def configure_vs_pxe_boot(install_service)
     pxe_image_dir=pxe_boot_dir+"/images"
     if !File.directory?(pxe_image_dir)
       iso_image_dir = $repo_base_dir+"/"+install_service+"/images"
-      message       = "Copying:\tPXE boot images from "+iso_image_dir+" to "+pxe_image_dir
+      message       = "Information:\tCopying PXE boot images from "+iso_image_dir+" to "+pxe_image_dir
       command       = "cp -r #{iso_image_dir} #{pxe_boot_dir}"
       output        = execute_command(message,command)
     end

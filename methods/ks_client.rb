@@ -18,7 +18,7 @@ def configure_ks_pxe_client(client_name,client_ip,client_mac,client_arch,service
   test_file     = $tftp_dir+"/"+tftp_pxe_file
   tmp_file      = "/tmp/pxecfg"
   if File.symlink?(test_file)
-    message = "Removing:\tOld PXE boot file "+test_file
+    message = "Information:\tRemoving old PXE boot file "+test_file
     command = "rm #{test_file}"
     execute_command(message,command)
   end
@@ -27,7 +27,7 @@ def configure_ks_pxe_client(client_name,client_ip,client_mac,client_arch,service
   else
     pxelinux_file = service_name+"/usr/share/syslinux/pxelinux.0"
   end
-  message = "Creating:\tPXE boot file for "+client_name+" with MAC address "+client_mac
+  message = "Information:\tCreating PXE boot file for "+client_name+" with MAC address "+client_mac
   command = "cd #{$tftp_dir} ; ln -s #{pxelinux_file} #{tftp_pxe_file}"
   execute_command(message,command)
   pxe_cfg_dir  = $tftp_dir+"/pxelinux.cfg"
@@ -50,7 +50,7 @@ def configure_ks_pxe_client(client_name,client_ip,client_mac,client_arch,service
       ldlinux_link = $tftp_dir+"/ldlinux.c32"
       if !File.exist?(ldlinux_link) and !File.symlink?(ldlinux_link)
         ldlinux_file = "/"+service_name+"/images/pxeboot/netboot/ldlinux.c32"
-        message = "Creating:\tSymlink for ldlinux.c32"
+        message = "Information:\tCreating symlink for ldlinux.c32"
         command = "ln -s #{ldlinux_file} #{ldlinux_link}"
         execute_command(message,command)
       end
@@ -115,7 +115,7 @@ def configure_ks_pxe_client(client_name,client_ip,client_mac,client_arch,service
   append_string = append_string+"\n"
   file.write(append_string)
   file.close
-  message = "Creating:\tPXE configuration file "+pxe_cfg_file
+  message = "Information:\tCreating PXE configuration file "+pxe_cfg_file
   command = "cp #{tmp_file} #{pxe_cfg_file} ; rm #{tmp_file}"
   execute_command(message,command)
   print_contents_of_file(pxe_cfg_file)
@@ -135,7 +135,7 @@ def unconfigure_ks_pxe_client(client_name)
   tftp_pxe_file = "01"+tftp_pxe_file+".pxelinux"
   tftp_pxe_file = $tftp_dir+"/"+tftp_pxe_file
   if File.exist?(tftp_pxe_file)
-    message = "Removing:\tPXE boot file "+tftp_pxe_file+" for "+client_name
+    message = "Information:\tRemoving PXE boot file "+tftp_pxe_file+" for "+client_name
     command = "rm #{tftp_pxe_file}"
     output  = execute_command(message,command)
   end
@@ -145,7 +145,7 @@ def unconfigure_ks_pxe_client(client_name)
   pxe_cfg_file = pxe_cfg_file.downcase
   pxe_cfg_file = pxe_cfg_dir+"/"+pxe_cfg_file
   if File.exist?(pxe_cfg_file)
-    message = "Removing:\tPXE boot config file "+pxe_cfg_file+" for "+client_name
+    message = "Information:\tRemoving PXE boot config file "+pxe_cfg_file+" for "+client_name
     command = "rm #{pxe_cfg_file}"
     output  = execute_command(message,command)
   end
@@ -609,7 +609,7 @@ end
 def output_ks_post_list(client_name,post_list,output_file,service_name)
   tmp_file = "/tmp/postinstall_"+client_name
   if service_name.match(/centos|fedora|rhel|sl_|oel/)
-    message = "Appending:\tPost install script "+output_file
+    message = "Information:\tAppending post install script "+output_file
     command = "cp #{output_file} #{tmp_file}"
     file=File.open(tmp_file, 'a')
     output = "\n%post\n"
@@ -629,7 +629,7 @@ def output_ks_post_list(client_name,post_list,output_file,service_name)
     file.write(output)
   end
   file.close
-  message = "Creating:\tPost install script "+output_file
+  message = "Information:\tCreating post install script "+output_file
   execute_command(message,command)
   if $verbose_mode == 1
     puts "Information:\tInstall file "+output_file+" contents:"

@@ -3,7 +3,7 @@
 # Add CDROM to Parallels VM
 
 def attach_file_to_parallels_vm(install_client,install_file)
-  message = "Attaching:\tImage "+install_file+" to "+install_client
+  message = "Information:\tAttaching Image "+install_file+" to "+install_client
   command = "prlctl set \"#{install_client}\" --device-set cdrom0 --image \"#{install_file}\""
   execute_command(message,command)
   return
@@ -12,7 +12,7 @@ end
 # Detach CDROM from Parallels VM
 
 def detach_file_from_parallels_vm(install_client)
-  message = "Attaching:\tImage "+install_file+" to "+install_client
+  message = "Information:\tAttaching Image "+install_file+" to "+install_client
   command = "prlctl set \"#{install_client}\" --device-set cdrom0 --disable\""
   execute_command(message,command)
   return
@@ -21,7 +21,7 @@ end
 # Get Parallels VM OS
 
 def get_parallels_os(vm_name)
-	message = "Determining:\tOS for "+vm_name
+	message = "Information:\tDetermining OS for "+vm_name
 	command = "prlctl list --info \"#{vm_name}\" |grep '^OS' |cut -f2 -d:"
 	os_info = execute_command(message,command)
 	case os_info
@@ -34,7 +34,7 @@ end
 # Get Parallels VM status
 
 def get_parallels_vm_status(install_client)
-  message = "Determining:\tStatus of Parallels VM "+install_client
+  message = "Information:\tDetermining status of Parallels VM "+install_client
   command = "prlctl list \"#{install_client}\" --info |grep '^Status' |grep ^State |cut -f2 -d:"
   status  = execute_command(message,command)
   status  = status.chomp.gsub(/\s+/,"")
@@ -44,7 +44,7 @@ end
 # Get a list of all VMs
 
 def get_all_parallels_vms()
-  message = "Listing:\tParallels VMs"
+  message = "Information:\tListing Parallels VMs"
   command = "prlctl list --all |grep -v UUID |awk '{print $4}'"
   vm_list = execute_command(message,command)
   vm_list = vm_list.split("\n")
@@ -73,7 +73,7 @@ end
 # List running VMs
 
 def list_running_parallels_vms()
-  message = "Listing:\tRunning VMs"
+  message = "Information:\tListing running VMs"
   command = "prlctl list --all |grep running |awk '{print $4}'"
 	vm_list = execute_command(message,command)
   vm_list = vm_list.split("\n")
@@ -91,7 +91,7 @@ end
 # List stopped VMs
 
 def list_stopped_parallels_vms()
-  message = "Listing:\tStopped VMs"
+  message = "Information:\tListing stopped VMs"
   command = "prlctl list --all |grep stopped |awk '{print $4}'"
   vm_list = execute_command(message,command)
   vm_list = vm_list.split("\n")
@@ -111,7 +111,7 @@ end
 
 def list_parallels_vms(search_string)
   output_list = []
-  message = "Searching:\tParallels VMs:"
+  message = "Information:\tSearching Parallels VMs:"
   command = "prlctl list --all |grep -v UUID |awk '{print $4}'"
   vm_list = execute_command(message,command)
   vm_list = vm_list.split(/\n/)
@@ -147,7 +147,7 @@ def clone_parallels_vm(install_client,new_name,install_mac,client_ip)
     puts "Warning:\tParallels VM "+install_client+" does not exist"
     exit
   end
-  message = "Cloning:\tParallels VM "+install_client+" to "+new_name
+  message = "Information:\tCloning Parallels VM "+install_client+" to "+new_name
   command = "prlctl clone \"#{install_client}\" --name \"#{new_name}\""
   execute_command(message,command)
   if client_ip.match(/[0-9]/)
@@ -162,7 +162,7 @@ end
 # Get Parallels VM disk
 
 def get_parallels_disk(install_client)
-  message = "Determining:\tDirectory for Parallels VM "+install_client
+  message = "Information:\tDetermining directory for Parallels VM "+install_client
   command = "prlctl list #{install_client} --info |grep image |awk '{print $4}' |cut -f2 -d="
   vm_dir  = execute_command(message,command)
   vm_dir  = vm_dir.chomp.gsub(/'/,"")
@@ -172,7 +172,7 @@ end
 # Get Parallels VM UUID
 
 def get_parallels_vm_uuid(install_client)
-  message = "Determining:\tUUID for Parallels VM "+install_client
+  message = "Information:\tDetermining UUID for Parallels VM "+install_client
   command = "prlctl list --info \"#{install_client}\" |grep '^ID' |cut -f2 -d:"
   vm_uuid = vm_uuid.chomp.gsub(/^\s+/,"")
   vm_uuid = execute_command(message,command)
@@ -182,30 +182,30 @@ end
 # Check Parallels hostonly network
 
 def check_parallels_hostonly_network()
-  message = "Checking:\tParallels hostonly network exists"
+  message = "Information:\tChecking Parallels hostonly network exists"
   command = "prlsrvctl net list |grep ^prls |grep host-only |awk '{print $1}'"
   if_name = execute_command(message,command)
   if_name = if_name.chomp
   if !if_name.match(/prls/)
-    message  = "Determining:\tPossible Parallels host-only network interface name"
+    message  = "Information:\tDetermining possible Parallels host-only network interface name"
     command  = "prlsrvctl net list |grep ^prls"
     if_count = execute_command(message,command)
     if_count = if_count.grep(/prls/).count.to_s
     if_name  = "prlsnet"+if_count
-    message = "Plumbing:\tParallels hostonly network "+if_name
+    message = "Information:\tPlumbing Parallels hostonly network "+if_name
     command = "prlsrvctl net add #{if_name} --type host-only"
     execute_command(message,command)
   end
-  message  = "Determining:\tParallels network interface name"
+  message  = "Information:\tDetermining Parallels network interface name"
   command  = "prlsrvctl net list |grep ^#{if_name} |awk '{print $3}'"
   nic_name = execute_command(message,command)
   nic_name = nic_name.chomp
-  message = "Checking:\tParallels hostonly network "+nic_name+" has address "+$default_hostonly_ip
+  message = "Information:\tChecking Parallels hostonly network "+nic_name+" has address "+$default_hostonly_ip
   command = "ifconfig #{nic_name} |grep inet |awk '{print $2}"
   host_ip = execute_command(message,command)
   host_ip = host_ip.chomp
   if !host_ip.match(/#{$default_hostonly_ip}/)
-    message = "Configuring:\tParallels hostonly network "+nic_name+" with IP "+$default_hostonly_ip
+    message = "Information:\tConfiguring Parallels hostonly network "+nic_name+" with IP "+$default_hostonly_ip
     command = "sudo sh -c 'ifconfig #{nic_name} inet #{$default_hostonly_ip} netmask #{$default_netmask} up'"
     execute_command(message,command)
   end
@@ -229,7 +229,7 @@ end
 def control_parallels_vm(install_client,install_status)
   current_status = get_parallels_vm_status(install_client)
   if !current_status.match(/#{install_status}/)
-    message = "Setting:\tParallels VM status for "+install_client+" to "+
+    message = "Information:\tSetting Parallels VM status for "+install_client+" to "+
     if install_status == "stop"
       command = "prlctl #{install_status} \"#{install_client}\" --kill"
     else
@@ -258,7 +258,7 @@ end
 # Routine to add serial to a VM
 
 def add_serial_to_parallels_vm(install_client)
-  message = "Adding Serial Port to "+install_client
+  message = "Information:\tAdding Serial Port to "+install_client
   command = "prlctl set \"#{install_client}\" --add-device serial --ouput /tmp/#{install_client}"
   execute_command(message,command)
   return
@@ -339,7 +339,7 @@ end
 # Change Parallels VM Memory
 
 def change_parallels_vm_mem(install_client,install_memory)
-  message = "Setting Parallels VM "+install_client+" RAM to "+install_memory
+  message = "Information:\tSetting Parallels VM "+install_client+" RAM to "+install_memory
   command = "prlctl set #{install_client} --memsize #{install_memory}"
   execute_command(message,command)
   return
@@ -348,7 +348,7 @@ end
 # Change Parallels VM Cores
 
 def change_parallels_vm_cpu(install_client,install_cpu)
-  message = "Setting Parallels VM "+install_client+" CPUs to "+install_cpu
+  message = "Information:\tSetting Parallels VM "+install_client+" CPUs to "+install_cpu
   command = "prlctl set #{install_client} --cpus #{install_cpus}"
   execute_command(message,command)
   return
@@ -357,7 +357,7 @@ end
 # Change Parallels VM MAC address
 
 def change_parallels_vm_mac(install_client,install_mac)
-  message = "Setting Parallels VM "+install_client+" MAC address to "+install_mac
+  message = "Information:\tSetting Parallels VM "+install_client+" MAC address to "+install_mac
   if install_mac.match(/:/)
     install_mac = install_mac.gsub(/:/,"")
   end
@@ -369,7 +369,7 @@ end
 # Get Parallels VM MAC address
 
 def get_parallels_vm_mac(install_client)
-  message = "Getting MAC address for "+install_client
+  message = "Information:\tGetting MAC address for "+install_client
   command = "prlctl list --info #{install_client} |grep net0 |grep mac |awk '{print $4}' |cut -f2 -d="
   vm_mac  = execute_command(message,command)
   vm_mac  = vm_mac.chomp
@@ -382,7 +382,7 @@ end
 def check_parallels_is_installed()
   app_dir = "/Applications/Parallels Desktop.app"
   if !File.directory?(app_dir)
-    puts "Parallels not installed"
+    puts "Warning:\tParallels not installed"
     exit
   end
 end
@@ -393,7 +393,7 @@ def boot_parallels_vm(install_client)
   check_parallels_hostonly_network()
   exists = check_parallels_vm_exists(install_client)
   if exists == "no"
-    puts "Parallels VM "+install_client+" does not exist"
+    puts "Warning:\tParallels VM "+install_client+" does not exist"
     exit
   end
   message = "Starting:\tVM "+install_client

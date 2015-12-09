@@ -139,9 +139,9 @@ def list_js_isos()
     service_name     = "sol_"+iso_version+"_"+iso_arch
     repo_version_dir = $repo_base_dir+"/"+service_name
     if File.directory?(repo_version_dir)
-      puts "Service Name:\t"+service_name+" (exists)"
+      puts "Information:\tService Name "+service_name+" (exists)"
     else
-      puts "Service Name:\t"+service_name
+      puts "Information:\tService Name "+service_name
     end
     puts
   end

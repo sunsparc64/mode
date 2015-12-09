@@ -79,9 +79,9 @@ def list_ks_isos()
     service_name     = linux_distro+"_"+iso_version+"_"+iso_arch
     repo_version_dir = $repo_base_dir+"/"+service_name
     if File.directory?(repo_version_dir)
-      puts "Service Name:\t"+service_name+" (exists)"
+      puts "Information:\tService Name "+service_name+" (exists)"
     else
-      puts "Service Name:\t"+service_name
+      puts "Information:\tService Name "+service_name
     end
     puts
   end

@@ -3,7 +3,7 @@
 # Get OSX default rotute interface
 
 def get_osx_gw_if_name()
-  message    = "Getting:\tInterface name of default router"
+  message    = "Information:\tGetting interface name of default router"
   command    = "netstat -rn |grep ^default |head -1 |awk '{print $6}'"
   gw_if_name = execute_command(message,command)
   gw_if_name = gw_if_name.chomp
@@ -27,16 +27,16 @@ end
 # Check IP forwarding is enabled
 
 def check_osx_ip_forwarding(gw_if_name)
-  message = "Checking:\tIP forwarding is enabled"
+  message = "Information:\tChecking IP forwarding is enabled"
   command = "sudo sysctl -a net.inet.ip.forwarding |awk '{print $2}'"
   output  = execute_command(message,command)
   output  = output.chomp.to_i
   if output == 0
-    message = "Enabling:\tIP forwarding"
+    message = "Information:\tEnabling IP forwarding"
     command = "sudo sysctl net.inet.ip.forwarding=1"
     execute_command(message,command)
   end
-  message = "Checking:\tRule for IP forwarding has been created"
+  message = "Information:\tChecking rule for IP forwarding has been created"
   if $os_rel.split(/\./)[0].to_i > 13
     command = "sudo pfctl -a '*' -sr 2>&1 |grep 'pass quick on #{gw_if_name}'"
   else
@@ -56,7 +56,7 @@ def check_osx_pfctl(gw_if_name,if_name)
   end
   output = File.open(pf_file,"w")
   if $verbose_mode == 1
-    puts "Enabling forwarding between "+gw_if_name+" and "+if_name
+    puts "Information:\tEnabling forwarding between "+gw_if_name+" and "+if_name
   end
   output.write("nat on #{gw_if_name} from #{if_name}:network to any -> (#{gw_if_name})\n")
   output.write("pass inet proto icmp all\n")
@@ -80,7 +80,7 @@ end
 def check_osx_nat(gw_if_name,if_name)
   output = check_osx_ip_forwarding(gw_if_name)
   if !output.match(/#{gw_if_name}/)
-    message = "Enabling:\tNATd to forward traffic on "+gw_if_name
+    message = "Information:\tEnabling NATd to forward traffic on "+gw_if_name
     if $os_rel.match(/^14/)
       check_osx_pfctl(gw_if_name,if_name)
     else
@@ -89,11 +89,11 @@ def check_osx_nat(gw_if_name,if_name)
     end
   end
   if $os_rel.split(/\./)[0].to_i < 13
-    message = "Checking:\tNATd is running"
+    message = "Information:\tChecking NATd is running"
     command = "ps -ef |grep '#{gw_if_name}' |grep natd |grep 'same_ports'"
     output  = execute_command(message,command)
     if !output.match(/natd/)
-      message = "Starting:\tNATd to foward packets between "+if_name+" and "+gw_if_name
+      message = "Information:\tStarting NATd to foward packets between "+if_name+" and "+gw_if_name
       command = "sudo /usr/sbin/natd -interface #{gw_if_name} -use_sockets -same_ports -unregistered_only -dynamic -clamp_mss -enable_natportmap -natportmap_interface #{if_name}"
       execute_command(message,command)
     end
@@ -108,12 +108,12 @@ def tune_osx_nfs()
   nfs_params = ["nfs.server.nfsd_threads = 64","nfs.server.reqcache_size = 1024","nfs.server.tcp = 1","nfs.server.udp = 0","nfs.server.fsevents = 0"]
   nfs_params.each do |nfs_tune|
     nfs_tune = "nfs.client.nfsiod_thread_max = 64"
-    message  = "Checking:\tNFS tuning"
+    message  = "Information:\tChecking NFS tuning"
     command  = "cat #{nfs_file} |grep '#{nfs_tune}'"
     output   = execute_command(message,command)
     if !output.match(/#{nfs_tune}/)
       backup_file(nfs_file)
-      message = "Tuning:\tNFS"
+      message = "Information:\tTuning NFS"
       command = "echo '#{nfs_tune}' >> #{nfs_file}"
       execute_command(message,command)
     end
@@ -124,11 +124,11 @@ end
 # Get Mac disk name
 
 def get_osx_disk_name()
-  message = "Getting:\tRoot disk device ID"
+  message = "Information:\tGetting root disk device ID"
   command = "df |grep '/$' |awk '{print \\$1}'"
   output  = execute_command(message,command)
   disk_id = output.chomp
-  message = "Getting:\tVolume name for "+disk_id
+  message = "Information:\tGetting volume name for "+disk_id
   command = "diskutil info #{disk_id} | grep 'Volume Name' |cut -f2 -d':'"
   output  = execute_command(message,command)
   volume  = output.chomp.gsub(/^\s+/,"")
@@ -157,45 +157,45 @@ def check_osx_puppet_install()
       if !File.exist?(local_file)
         wget_file(remote_file,local_file)
       end
-      message = "Mounting:\tDisk image "+local_file
+      message = "Information:\tMounting disk image "+local_file
       command = "hdiutil mount #{local_file}"
       execute_command(message,command)
       local_pkg = "/Volumes/"+file_name+"/"+local_pkg
       volume    = get_osx_disk_name()
       volume    = "/Volumes/"+volume
-      message   = "Installing:\tPackage "+local_pkg
+      message   = "Information:\tInstalling package "+local_pkg
       command   = "installer -package #{local_pkg} -target '#{volume}'"
       execute_command(message,command)
       if key.match(/puppet/)
-        message = "Checking:\tRuby version"
+        message = "Information:\tChecking Ruby version"
         command = "which ruby"
         output  = execute_command(message,command)
         if output.match(/rvm/)
           use_rvm  = 1
-          message  = "Storing:\tRVM Ruby version"
+          message  = "Information:\tStoring RVM Ruby version"
           command  = "rvm current"
           output   = execute_command(message,command)
           rvm_ruby = output.chomp
-          message  = "Setting:\tRVM to use system ruby"
+          message  = "Information:\tSetting RVM to use system ruby"
           command  = "rvm use system"
           execute_command(message,command)
         end
-        message = "Creating:\tPuppet group"
+        message = "Information:\tCreating Puppet group"
         command = "puppet resource group puppet ensure=present"
         execute_command(message,command)
-        message = "Creating:\tPuppet user"
+        message = "Information:\tCreating Puppet user"
         command = "puppet resource user puppet ensure=present gid=puppet shell='/sbin/nologin'"
         execute_command(message,command)
         etc_dir = "/etc/puppet"
         check_dir_exists(etc_dir)
-        message = "Creating:\tPuppet directory"
+        message = "Information:\tCreating Puppet directory"
         command = "mkdir -p /var/lib/puppet ; mkdir -p /etc/puppet/manifests ; mkdir -p /etc/puppet/ssl"
         execute_command(message,command)
-        message = "Fixing:\tPuppet permissions"
+        message = "Information:\tFixing Puppet permissions"
         command = "chown -R puppet:puppet  /var/lib/puppet ; chown -R puppet:puppet  /etc/puppet"
         execute_command(message,command)
         if use_rvm == 1
-          message = "Reverting:\tRVM to use "+rvm_ruby
+          message = "Information:\tReverting RVM to use "+rvm_ruby
           command = "rvm use rvm_ruby"
           execute_command(message,command)
         end
@@ -259,7 +259,7 @@ def create_osx_puppet_agent_plist()
       file.write(item)
     end
     file.close
-    message = "Creating:\tService file "+plist_file
+    message = "Information:\tCreating service file "+plist_file
     command = "cp #{tmp_file} #{plist_file} ; rm #{tmp_file} ; chown root:wheel #{plist_file} ; chmod 644 #{plist_file}"
     execute_command(message,command)
   end
@@ -312,7 +312,7 @@ def create_osx_puppet_master_plist()
       file.write(item)
     end
     file.close
-    message = "Creating:\tService file "+plist_file
+    message = "Information:\tCreating service file "+plist_file
     command = "cp #{tmp_file} #{plist_file} ; rm #{tmp_file} ; chown root:wheel #{plist_file} ; chmod 644 #{plist_file}"
     execute_command(message,command)
   end
@@ -338,10 +338,10 @@ def check_osx_puppet_plist()
   plist_name = "com.puppetlabs.puppet"
   if !File.exist?(plist_file)
     create_osx_puppet_plist()
-    message = "Loading:\tPuppet Agent plist file "+plist_file
+    message = "Information:\tLoading Puppet Agent plist file "+plist_file
     command = "launchctl load -w #{plist_file}"
     execute_command(message,command)
-    message = "Loading:\tStarting Puppet Agent "+plist_name
+    message = "Information:\tStarting Puppet Agent "+plist_name
     command = "launchctl start #{plist_name}"
     execute_command(message,command)
   end
@@ -349,10 +349,10 @@ def check_osx_puppet_plist()
   plist_name = "com.puppetlabs.puppetmaster"
   if !File.exist?(plist_file)
     create_osx_puppet_master_plist()
-    message = "Loading:\tPuppet Master plist file "+plist_file
+    message = "Information:\tLoading Puppet Master plist file "+plist_file
     command = "launchctl load -w #{plist_file}"
     execute_command(message,command)
-    message = "Loading:\tStarting Puppet Master "+plist_name
+    message = "Information:\tStarting Puppet Master "+plist_name
     command = "launchctl start #{plist_name}"
     execute_command(message,command)
   end
@@ -366,7 +366,7 @@ def check_osx_apache()
   check_dir_exists(ssl_dir)
   server_key = ssl_dir+"/server.key"
   if !File.exist?(server_key)
-    message = "Generating:\tApache SSL Server Key "+server_key
+    message = "information:\tGenerating Apache SSL Server Key "+server_key
     command = "ssh-keygen -f #{server_key}"
     execute_command(message,command)
   end
@@ -402,7 +402,7 @@ def create_osx_puppet_config()
       file.write(output)
     end
     file.close
-    message = "Creating:\tPuppet configuration file "+puppet_file
+    message = "Information:\tCreating Puppet configuration file "+puppet_file
     command = "cp #{tmp_file} #{puppet_file} ; rm #{tmp_file}"
     execute_command(message,command)
     print_contents_of_file(puppet_file)
@@ -432,14 +432,14 @@ def check_osx_ips()
   pip_bin    = "/usr/bin/pip"
   setup_url  = "https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py"
   if !File.symlink?(pip_bin)
-    message = "Installing:\tPip"
+    message = "Information:\tInstalling Pip"
     command = "/usr/bin/easy_install --prefix=/usr pip"
     execute_command(message,command)
-    message = "Updating:\tSetuptools"
+    message = "Information:\tUpdating Setuptools"
     command = "wget #{setup_url} -O |sudo #{python_bin}"
     execute_command(message,command)
     ["simplejson","coverage","pyOpenSSL","mercurial"].each do |module_name|
-      message = "Installing:\tPython module "+module_name
+      message = "information:\tInstalling Python module "+module_name
       command = "#{pip_bin} install #{module_name}"
       execute_command(message,command)
     end
@@ -451,14 +451,14 @@ def check_osx_ips()
   check_dir_exists(pkg_dest_dir)
   hg_bin = "/usr/local/bin/hg"
   if !File.exist?(hg_bin)
-    message = "Installing:\tMercurial"
+    message = "Information:\tInstalling Mercurial"
     command = "brew install mercurial"
     execute_command(message,command)
   end
   pkgrepo_bin = "/usr/local/bin/pkgrepo"
   if !File.exist?(pkgrepo_bin)
     ips_url = "https://hg.java.net/hg/ips~pkg-gate"
-    message = "Downloading:\tIPS source code"
+    message = "Information:\tDownloading IPS source code"
     command = "cd #{$work_dir} ; hg clone #{ips_url} ips"
     execute_command(message,command)
   end
@@ -478,7 +478,7 @@ def check_osx_service_is_enabled(service)
     exit
   end
   tmp_file  = "/tmp/tmp.plist"
-  message   = "Checking:\tService "+service+" is enabled"
+  message   = "Information:\tChecking service "+service+" is enabled"
   if service.match(/dhcp/)
     command   = "cat #{plist_file} | grep Disabled |grep true"
   else
@@ -508,10 +508,10 @@ def check_osx_service_is_enabled(service)
       end
     end
     File.open(tmp_file,"w") {|file| file.puts copy}
-    message = "Enabling:\t"+service
+    message = "Information:\tEnabling "+service
     command = "cp #{tmp_file} #{plist_file} ; rm #{tmp_file}"
     execute_command(message,command)
-    message = "Loading:\t"+service+" profile"
+    message = "Information:\tLoading "+service+" profile"
     command = "launchctl load -w #{plist_file}"
     execute_command(message,command)
   end
@@ -529,7 +529,7 @@ end
 # Check OS X brew package
 
 def check_brew_pkg(pkg_name)
-  message = "Checking:\tBrew package "+pkg_name
+  message = "Information:\tChecking Brew package "+pkg_name
   command = "brew info #{pkg_name}"
   output  = execute_command(message,command)
   return output
@@ -540,7 +540,7 @@ end
 def install_brew_pkg(pkg_name)
   pkg_status = check_brew_pkg(pkg_name)
   if !pkg_status.match(/[0-9]/)
-    message = "Installing:\tPackage "+pkg_name
+    message = "Information:\tInstalling Package "+pkg_name
     command = "brew install #{pkg_name}"
     execute_command(message,command)
   end
@@ -555,13 +555,13 @@ def check_osx_dnsmasq()
   plist_file   = "/Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist"
   dnsmasq_file = "/usr/local/etc/dnsmasq.conf"
   if !File.exist?(plist_file)
-    message = "Creating:\tPlist file "+plist_file+" for "+pkg_name
+    message = "Information:\tCreating Plist file "+plist_file+" for "+pkg_name
     command = "cp -fv /usr/local/opt/dnsmasq/*.plist /Library/LaunchDaemons"
     execute_command(message,command)
-    message = "Creating:\tConfiguration file "+plist_file
+    message = "Information:\tCreating Configuration file "+plist_file
     command = "cp #{dnsmasq_file}.example #{dnsmasq_file}"
     execute_command(message,command)
-    message = "Loaing:\tConfiguration for "+pkg_name
+    message = "Information:\tLoading Configuration for "+pkg_name
     command = "launchctl load -w #{plist_file}"
     execute_command(message,command)
   end
@@ -577,34 +577,34 @@ def check_osx_dhcpd_installed()
   if !File.symlink?(dhcpd_bin)
     pkg_name = "bind"
     install_brew_pkg(pkg_name)
-    message  = "Updating:\tBrew sources list"
+    message  = "Information:\tUpdating Brew sources list"
     command  = "brew update"
     execute_command(message,command)
-    message  = "Checking:\rOS X Version"
+    message  = "Information:\tChecking OS X Version"
     command  = "sw_vers |grep ProductVersion |awk '{print $2}'"
     output   = execute_command(message,command)
     if output.match(/10\.9/)
       if File.exist?(brew_file)
-        message = "Checking:\tVersion of ISC DHCPd"
+        message = "Information:\tChecking version of ISC DHCPd"
         command = "cat #{brew_file} | grep url"
         output  = execute_command(message,command)
         if output.match(/4\.2\.5\-P1/)
-          message = "Archiving:\tBrew file "+brew_file+" to "+backup_file
+          message = "Information:\tArchiving Brew file "+brew_file+" to "+backup_file
           command = "cp #{brew_file} #{backup_file}"
           execute_command(message,command)
-          message = "Fixing:\tBrew configuration file "+brew_file
+          message = "Information:\tFixing Brew configuration file "+brew_file
           command = "cat #{backup_file} | grep -v sha1 | sed 's/4\.2\.5\-P1/4\.3\.0rc1/g' > #{brew_file}"
           execute_command(message,command)
         end
         pkg_name = "isc-dhcp"
         install_brew_pkg(pkg_name)
       end
-        message = "Creating:\tLaunchd service for ISC DHCPd"
+        message = "Information:\tCreating Launchd service for ISC DHCPd"
         command = "cp -fv /usr/local/opt/isc-dhcp/*.plist /Library/LaunchDaemons"
         execute_command(message,command)
     end
     if !File.exist?($dhcpd_file)
-      message = "Creating:\tDHCPd configuration file "+$dhcpd_file
+      message = "Information:\tCreating DHCPd configuration file "+$dhcpd_file
       command = "touch #{$dhcpd_file}"
       execute_command(message,command)
     end
@@ -620,7 +620,7 @@ def create_osx_dhcpd_plist()
   plist_name = "homebrew.mxcl.isc-dhcp"
   plist_file = "/Library/LaunchDaemons/homebrew.mxcl.isc-dhcp.plist"
   dhcpd_bin  = "/usr/local/sbin/dhcpd"
-  message    = "Checking:\tDHCPd configruation"
+  message    = "Information:\tChecking DHCPd configruation"
   command    = "cat #{plist_file} | grep '#{$default_net}'"
   output     = execute_command(message,command)
   if !output.match(/#{$default_net}/)
@@ -649,7 +649,7 @@ def create_osx_dhcpd_plist()
       file.write(item)
     end
     file.close
-    message = "Creating:\tService file "+plist_file
+    message = "Information:\tCreating service file "+plist_file
     command = "cp #{tmp_file} #{plist_file} ; rm #{tmp_file}"
     execute_command(message,command)
   end
@@ -685,7 +685,7 @@ end
 
 def enable_osx_service(service_name)
   check_osx_service_is_enabled(service_name)
-  message = "Enabling:\tService "+service_name
+  message = "Information:\tEnabling service "+service_name
   command = "launchctl start #{service_name}"
   output  = execute_command(message,command)
   return output
@@ -694,7 +694,7 @@ end
 # Enable OS X service
 
 def disable_osx_service(service_name)
-  message = "Disabling:\tService "+service_name
+  message = "Information:\tDisabling service "+service_name
   command = "launchctl stop #{service_name}"
   output  = execute_command(message,command)
   return output

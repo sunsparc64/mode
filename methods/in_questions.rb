@@ -4,7 +4,7 @@
 def process_questions(service_name)
   $q_order.each do |key|
     if $verbose_mode == 1
-      puts "Processing:\tValue for "+key
+      puts "Information:\tProcessing value for "+key
     end
     correct = 0
     if $q_struct[key].ask.match(/yes/)
@@ -81,7 +81,7 @@ def evaluate_answer(key,answer,service_name)
   end
   answer = answer.to_s
   if $verbose_mode == 1
-    puts "Setting:\tParameter "+key+" to "+answer
+    puts "Information:\tSetting parameter "+key+" to "+answer
   end
   return correct
 end

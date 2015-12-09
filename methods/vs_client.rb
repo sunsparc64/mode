@@ -44,7 +44,7 @@ def configure_vs_pxe_client(client_name,client_mac,install_service)
   test_file      = $tftp_dir+"/"+tftp_pxe_file
   if !File.exists?(test_file)
     pxelinux_file = install_service+"/usr/share/syslinux/pxelinux.0"
-    message       = "Creating:\tPXE boot file for "+client_name+" with MAC address "+client_mac
+    message       = "Information:\tCreating PXE boot file for "+client_name+" with MAC address "+client_mac
     command       = "cd #{$tftp_dir} ; ln -s #{pxelinux_file} #{tftp_pxe_file}"
     execute_command(message,command)
   end
@@ -57,7 +57,7 @@ def configure_vs_pxe_client(client_name,client_mac,install_service)
   ks_url       = "http://"+$default_host+"/clients/"+install_service+"/"+client_name+"/"+client_name+".cfg"
   mboot_file   = "/"+install_service+"/mboot.c32"
   if $verbose_mode == 1
-    puts "Creating:\tMenu config file "+pxe_cfg_file
+    puts "Information:\tCreating Menu config file "+pxe_cfg_file
   end
   file = File.open(pxe_cfg_file,"w")
   if $serial_mode == 1
@@ -132,7 +132,7 @@ def unconfigure_vs_pxe_client(client_name)
   tftp_pxe_file = "01"+tftp_pxe_file+".pxelinux"
   tftp_pxe_file = $tftp_dir+"/"+tftp_pxe_file
   if File.exists?(tftp_pxe_file)
-    message = "Removing:\tPXE boot file "+tftp_pxe_file+" for "+client_name
+    message = "Information:\tRemoving PXE boot file "+tftp_pxe_file+" for "+client_name
     command = "rm #{tftp_pxe_file}"
     execute_command(message,command)
   end
@@ -142,7 +142,7 @@ def unconfigure_vs_pxe_client(client_name)
   pxe_cfg_file = pxe_cfg_file.downcase
   pxe_cfg_file = pxe_cfg_dir+"/"+pxe_cfg_file
   if File.exists?(pxe_cfg_file)
-    message = "Removing:\tPXE boot config file "+pxe_cfg_file+" for "+client_name
+    message = "Information:\tRemoving PXE boot config file "+pxe_cfg_file+" for "+client_name
     command = "rm #{pxe_cfg_file}"
     execute_command(message,command)
   end
@@ -151,7 +151,7 @@ def unconfigure_vs_pxe_client(client_name)
   ks_dir          = $tftp_dir+"/"+install_service
   ks_cfg_file     = ks_dir+"/"+client_name+".cfg"
   if File.exist?(ks_cfg_file)
-    message = "Removing:\tKickstart boot config file "+ks_cfg_file+" for "+client_name
+    message = "Information:\tRemoving Kickstart boot config file "+ks_cfg_file+" for "+client_name
     command = "rm #{ks_cfg_file}"
     execute_command(message,command)
   end
@@ -178,7 +178,7 @@ end
 def configure_vs_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror)
   repo_version_dir=$repo_base_dir+"/"+install_service
   if !File.directory?(repo_version_dir)
-    puts "Warning:\tService "+install_service+" does not exist"
+    puts "Information:\tWarning service "+install_service+" does not exist"
     puts
     list_vs_services()
     exit
@@ -324,7 +324,7 @@ end
 
 def output_vs_header(output_file)
   if $verbose_mode == 1
-    puts "Creating:\tVSphere file "+output_file
+    puts "Information:\tCreating vSphere file "+output_file
   end
   file=File.open(output_file, 'w')
   $q_order.each do |key|

@@ -23,18 +23,18 @@ def configure_xb_pxe_client(client_name,client_ip,client_mac,client_arch,service
     pxeboot_file  = service_name+"/isolinux/pxelinux.0"
   end
   if File.symlink?(test_file)
-    message = "Removing:\tOld PXE boot file "+test_file
+    message = "Information:\tRemoving old PXE boot file "+test_file
     command = "rm #{test_file}"
     execute_command(message,command)
   end
-  message = "Creating:\tPXE boot file for "+client_name+" with MAC address "+client_mac
+  message = "Information:\tCreating PXE boot file for "+client_name+" with MAC address "+client_mac
   command = "cd #{$tftp_dir} ; ln -s #{pxeboot_file} #{tftp_pxe_file}"
   execute_command(message,command)
   if service_name.match(/coreos/)
     ldlinux_file = $tftp_dir+"/"+service_name+"/isolinux/ldlinux.c32"
     ldlinux_link = $tftp_dir+"/ldlinux.c32"
     if !File.exist?(ldlinux_link)
-      message = "Copying:\tFile #{ldlinux_file} #{ldlinux_link}"
+      message = "Information:\tCopying file #{ldlinux_file} #{ldlinux_link}"
       command = "cp #{ldlinux_file} #{ldlinux_link}"
       execute_command(message,command)
     end
@@ -57,7 +57,7 @@ def configure_xb_pxe_client(client_name,client_ip,client_mac,client_arch,service
     file.write("  kernel #{vmlinuz_file}\n")
     file.write("  append initrd=#{initrd_file} cloud-config-url=#{client_url}\n")
     file.close
-    message = "Creating:\tPXE configuration file "+pxe_cfg_file
+    message = "Information:\tCreating PXE configuration file "+pxe_cfg_file
     command = "cp #{tmp_file} #{pxe_cfg_file} ; rm #{tmp_file}"
     execute_command(message,command)
     print_contents_of_file(pxe_cfg_file)
@@ -100,7 +100,7 @@ def unconfigure_xb_pxe_client(client_name)
   tftp_pxe_file = "01"+tftp_pxe_file+".pxeboot"
   tftp_pxe_file = $tftp_dir+"/"+tftp_pxe_file
   if File.exist?(tftp_pxe_file)
-    message = "Removing:\tPXE boot file "+tftp_pxe_file+" for "+client_name
+    message = "Information:\tRemoving PXE boot file "+tftp_pxe_file+" for "+client_name
     command = "rm #{tftp_pxe_file}"
     output  = execute_command(message,command)
   end

@@ -92,7 +92,7 @@ end
 # Publish IPS package
 
 def publish_ai_ips_pkg(pkg_name,spool_dir,install_dir,pkg_repo_dir)
-  message="Publishing: Package "+pkg_name+" to "+pkg_repo_dir
+  message="Information:\tPublishing package "+pkg_name+" to "+pkg_repo_dir
   command="cd #{install_dir} ; pkgsend publish -s #{pkg_repo_dir} -d . #{spool_dir}/#{pkg_name}.p5m.res"
   execute_command(message,command)
   return
@@ -128,7 +128,7 @@ def build_ai_pkg(p_struct,pkg_name,build_type,pkg_repo_dir)
       end
       check_dir_exists(dir_name)
     end
-    message="Extracting:\tSource "+source_file+" to "+extract_dir
+    message="Information:\tExtracting source "+source_file+" to "+extract_dir
     command="cd #{extract_dir} ; gcat #{source_file} |tar -xpf -"
     execute_command(message,command)
     compile_dir=extract_dir+"/"+pkg_name+"-"+pkg_version
@@ -152,7 +152,7 @@ end
 
 def check_ai_pkg_repo(p_struct,pkg_name,pkg_repo_dir)
   pkg_version=p_struct[pkg_name].version
-  message="Checking:\tIf repository contains "+pkg_name+" "+pkg_version
+  message="Information:\tChecking if repository contains "+pkg_name+" "+pkg_version
   command="pkg info -g #{pkg_repo_dir} -r #{pkg_name} |grep Version |awk '{print $2}'"
   output=execute_command(message,command)
   repo_pkg_version=output.chomp
@@ -164,15 +164,15 @@ end
 def create_ai_alt_repo(pkg_repo_dir)
   if !File.exists?("#{pkg_repo_dir}/pkg5.repository")
     check_fs_exists(pkg_repo_dir)
-    message="Creating:\tAlternate package repository in "+pkg_repo_dir
+    message="Information:\tCreating alternate package repository in "+pkg_repo_dir
     command="pkgrepo create #{pkg_repo_dir}"
     execute_command(message,command)
   else
-    message="Rebuilding:\tAlternate package repository in "+pkg_repo_dir
+    message="information:\tRebuilding alternate package repository in "+pkg_repo_dir
     command="pkgrepo rebuild -s #{pkg_repo_dir}"
     execute_command(message,command)
   end
-  message="Setting:\tAlternate pacakge repository prefix to "+$alt_prefix_name
+  message="Information:\tSetting alternate pacakge repository prefix to "+$alt_prefix_name
   command="pkgrepo set -s #{pkg_repo_dir} publisher/prefix=#{$alt_prefix_name}"
   execute_command(message,command)
   return

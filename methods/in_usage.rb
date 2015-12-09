@@ -3,9 +3,9 @@
 def print_error_header(type)
   puts
   if type.length > 2
-    puts "Invalid "+type.capitalize+" specified"
+    puts "Warning:\tInvalid "+type.capitalize+" specified"
   else
-    puts "Invalid "+type.upcase+" specified"
+    puts "Warning:\tInvalid "+type.upcase+" specified"
   end
   puts
   return

@@ -16,7 +16,7 @@ def unconfigure_ai_server(service_name)
       ["i386","sparc"].each do |sys_arch|
         service_test=%x[installadm list |grep #{service_name} |grep #{sys_arch}]
         if service_test.match(/[A-z|0-9]/)
-          message = "Deleting:\tService "+service_name+"_"+sys_arch+" and all clients under it"
+          message = "Information:\tDeleting service "+service_name+"_"+sys_arch+" and all clients under it"
           command = "installadm delete-service "+service_name+"_"+sys_arch+" -r -y"
           execute_command(message,command)
         end
@@ -24,7 +24,7 @@ def unconfigure_ai_server(service_name)
     else
       service_test=%x[installadm list |grep #{service_name}]
       if service_test.match(/[A-z|0-9]/)
-        message = "Deleting:\tService "+service_name+" and all clients under it"
+        message = "Information:\tDeleting service "+service_name+" and all clients under it"
         command = "installadm delete-service "+service_name+" -r -y"
         execute_command(message,command)
       end
@@ -32,7 +32,7 @@ def unconfigure_ai_server(service_name)
     file="/etc/inet/dhcpd4.conf"
     if File.exist?(file)
       backup_file     = file+".preai"
-      message         = "Restoring:\tFile "+backup_file+" to "+file
+      message         = "Information:\tRestoring file "+backup_file+" to "+file
       command         = "cp #{backup_file} #{file}"
       execute_command(message,command)
       smf_service_name = "svc:/network/dhcp/server:ipv4"
@@ -76,12 +76,12 @@ def check_dhcpd4_conf()
       puts "Checking:\t"+file+" exists"
     end
     if !File.exist?(file)
-      message = "Creating:\t"+file
+      message = "Information:\tCreating "+file
       command = "touch #{file}"
       output  = execute_command(message,command)
     else
       backup_file = file+".preai"
-      message     = "Archiving:\tFile "+file+" to "+backup_file
+      message     = "Information:\tArchiving file "+file+" to "+backup_file
       command     = "cp #{file} #{backup_file}"
       output      = execute_command(message,command)
     end
@@ -113,7 +113,7 @@ end
 # Check AI service is running
 
 def check_ai_service(service_name)
-  message = "Checking:\tAI service "+service_name
+  message = "Information:\tChecking AI service "+service_name
   if $os_name.match(/SunOS/)
     if service_name.match(/alt/)
       command = "installadm list |grep '#{service_name}'"
@@ -144,7 +144,7 @@ def configure_ai_services(iso_repo_version,publisher_url,client_arch)
     if $os_name.match(/SunOS/)
       service_check = check_ai_service(service_name)
       if !service_check.match(/#{service_name}/)
-        message = "Creating:\tAI service for #{lc_arch}"
+        message = "Information:\tCreating AI service for #{lc_arch}"
         command = "installadm create-service -a #{lc_arch} -n #{service_name} -p solaris=#{publisher_url} -d #{ai_dir}"
         execute_command(message,command)
       end
@@ -198,7 +198,7 @@ end
 # Get a list of the installed AI services
 
 def get_ai_install_services()
-  message = "Getting:\tList of AI services"
+  message = "Information:\tGetting list of AI services"
   if $os_name.match(/SunOS/)
     command = "installadm list |grep '^sol_11' |awk '{print $1}'"
   else
@@ -228,7 +228,7 @@ def get_ai_solaris_release(repo_version_dir)
     else
       puts "Warning:\tCould not find "+release_file
       puts "Warning:\tCould not verify solaris release from repository"
-      puts "Setting:\tSolaris release to 11"
+      puts "Information:\tSetting Solaris release to 11"
       iso_repo_version="11"
     end
   end

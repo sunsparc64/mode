@@ -593,4 +593,6 @@
 # Improved VirtualBox VM old config file cleanup 
 # 2.9.6: Wed  9 Dec 2015 13:39:26 AEDT
 # Added code to import VirtualBox Packer VM image
+# 2.9.7: Wed  9 Dec 2015 15:25:01 AEDT
+# Cleaned up verbose information output
 

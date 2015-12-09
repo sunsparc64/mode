@@ -14,7 +14,7 @@ def get_ai_repo_version(publisher_url,publisher_host,publisher_port)
   if $test_mode == 1 or $os_name.match(/Darwin/)
   repo_version  = "0.175.1"
   else
-    message      = "Determining:\tIf available repository version from "+publisher_url
+    message      = "Information:\tDetermining if available repository version from "+publisher_url
     command      = "pkg info -g #{publisher_url} entire |grep Branch |awk '{print $2}'"
     repo_version = execute_command(message,command)
     repo_version = repo_version.chomp
@@ -26,7 +26,7 @@ end
 # Check the publisher port isn't being used
 
 def check_publisher_port(publisher_port)
-  message      = "Determining:\tIf publisher port "+publisher_port+" is in use"
+  message      = "Information:\tDetermining if publisher port "+publisher_port+" is in use"
   command      = "svcprop -a pkg/server |grep 'port count'"
   ports_in_use = execute_command(message,command)
   if ports_in_use.match(/#{publisher_port}/)
@@ -48,7 +48,7 @@ end
 # Get publisher port for service
 
 def get_publisher_port(service_name)
-  message     = "Determining:\tPublisher port for service "+service_name
+  message     = "Information:\tDetermining publisher port for service "+service_name
   command     = "svcprop -a pkg/server |grep 'port count'"
   port_in_use = execute_command(message,command)
   return port_in_use
@@ -96,7 +96,7 @@ end
 def configure_ai_pkg_repo(publisher_host,publisher_port,service_name,repo_version_dir,read_only)
   if $os_name.match(/SunOS/)
     smf_name = "pkg/server:#{service_name}"
-    message  = "Checking:\tIf service "+smf_name+" exists"
+    message  = "Information:\tChecking if service "+smf_name+" exists"
     if service_name.match(/alt/)
       command = "svcs -a |grep '#{smf_name}"
     else
@@ -130,7 +130,7 @@ end
 def unconfigure_ai_pkg_repo(smf_service_name)
   service_name = smf_service_name.split(":")[1]
   if $os_name.match(/SunOS/)
-    message  = "Checking:\tIf repository service "+smf_service_name+" exists"
+    message  = "Information:\tChecking if repository service "+smf_service_name+" exists"
     if smf_service_name.match(/alt/)
       command  = "svcs -a |grep '#{smf_service_name}'"
     else

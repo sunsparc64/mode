@@ -335,7 +335,7 @@ def create_ai_manifest(output_file)
     file.write(item)
   end
   file.close
-  message = "Checking:\tService profile "+output_file
+  message = "Information:\tChecking service profile "+output_file
   command = "xmllint #{output_file}"
   execute_command(message,command)
   return

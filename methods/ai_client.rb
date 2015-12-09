@@ -100,20 +100,20 @@ def import_ai_manifest(output_file,service_name)
   arch_list.each do |sys_arch|
     lc_arch = sys_arch.downcase
     backup  = $work_dir+"/"+base_name+"_"+lc_arch+"_orig_default.xml."+date_string
-    message = "Archiving:\tService configuration for "+base_name+"_"+lc_arch+" to "+backup
+    message = "Information:\tArchiving service configuration for "+base_name+"_"+lc_arch+" to "+backup
     command = "installadm export -n #{base_name}_#{lc_arch} -m orig_default > #{backup}"
     output  = execute_command(message,command)
-    message = "Validating:\tService configuration "+output_file
+    message = "Information:\tValidating service configuration "+output_file
     command = "AIM_MANIFEST=#{output_file} ; export AIM_MANIFEST ; aimanifest validate"
     output  = execute_command(message,command)
     if output.match(/[A-z|0-9]/)
       puts "AI manifest file "+output_file+" does not contain a valid XML manifest"
       puts output
     else
-      message = "Importing:\t"+output_file+" to service "+service_name+" as manifest named "+$default_manifest_name
+      message = "Information:\tImporting "+output_file+" to service "+service_name+" as manifest named "+$default_manifest_name
       command = "installadm create-manifest -n #{base_name}_#{lc_arch} -m #{$default_manifest_name} -f #{output_file}"
       output  = execute_command(message,command)
-      message = "Setting:\tDefault manifest for service "+service_name+" to "+$default_manifest_name
+      message = "Information:\tSetting default manifest for service "+service_name+" to "+$default_manifest_name
       command = "installadm set-service -o default-manifest=#{$default_manifest_name} #{base_name}_#{lc_arch}"
       output  = execute_command(message,command)
     end
@@ -124,7 +124,7 @@ end
 # Import a profile and associate it with a client
 
 def import_ai_client_profile(output_file,client_name,client_mac,service_name)
-  message = "Creating:\tProfile for client "+client_name+" with MAC address "+client_mac
+  message = "Information:\tCreating profile for client "+client_name+" with MAC address "+client_mac
   command = "installadm create-profile -n #{service_name} -f #{output_file} -p #{client_name} -c mac='#{client_mac}'"
   execute_command(message,command)
   return
@@ -211,7 +211,7 @@ end
 # Routine to actually add a client
 
 def create_ai_client(client_name,client_arch,client_mac,service_name,client_ip)
-  message = "Creating:\tClient entry for #{client_name} with architecture #{client_arch} and MAC address #{client_mac}"
+  message = "Information:\tCreating client entry for #{client_name} with architecture #{client_arch} and MAC address #{client_mac}"
   command = "installadm create-client -n #{service_name} -e #{client_mac}"
    execute_command(message,command)
   if client_arch.match(/i386/) or client_arch.match(/i386/)
@@ -229,7 +229,7 @@ end
 
 def check_ai_client_doesnt_exist(client_name,client_mac,service_name)
   client_mac = client_mac.upcase
-  message    = "Checking:\tClient "+client_name+" doesn't exist"
+  message    = "Information:\tChecking client "+client_name+" doesn't exist"
   command    = "installadm list -p |grep '#{client_mac}'"
   output     = execute_command(message,command)
   if output.match(/#{client_name}/)
@@ -301,10 +301,10 @@ def unconfigure_ai_client(client_name,client_mac,service_name)
     end
   end
   if client_name.match(/[A-z]/) and service_name.match(/[A-z]/) and client_mac.match(/[A-z]/)
-    message = "Deleting:\tClient profile "+client_name+" from "+service_name
+    message = "Information:\tDeleting client profile "+client_name+" from "+service_name
     command = "installadm delete-profile -p #{client_name} -n #{service_name}"
     execute_command(message,command)
-    message = "Deleting:\tClient "+client_name+" with MAC address "+client_mac
+    message = "Information:\tDeleting client "+client_name+" with MAC address "+client_mac
     command = "installadm delete-client "+client_mac
     execute_command(message,command)
   else

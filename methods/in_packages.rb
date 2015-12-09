@@ -9,11 +9,11 @@ Pkg=Struct.new(:info, :type, :version, :depend, :base_url)
 
 def get_pkg_source(source_url,source_file)
   if !File.exists?("/usr/bin/wget")
-    message = "Installing:\tPackage wget"
+    message = "Information:\tInstalling package wget"
     command = "pkg install pkg:/web/wget"
     execute_command(message,command)
   end
-  message = "Fetching:\tSource "+source_url+" to "+source_file
+  message = "Information:\tFetching source "+source_url+" to "+source_file
   command = "wget #{source_url} -O #{source_file}"
   execute_command(message,command)
   return
@@ -22,7 +22,7 @@ end
 # Check installed packages
 
 def check_installed_pkg(p_struct,pkg_name)
-  message           = "Checking:\tIf package "+pkg_name+" is installed"
+  message           = "Information:\tChecking if package "+pkg_name+" is installed"
   command           = "pkg info #{pkg_name} |grep Version |awk '{print $2}'"
   installed_version = execute_command(message,command)
   installed_version = installed_version.chomp
@@ -35,7 +35,7 @@ def install_pkg(p_struct,pkg_name,pkg_repo_dir)
   pkg_version       = p_struct[pkg_name].version
   installed_version = check_installed_pkg(p_struct,pkg_name)
   if !installed_version.match(/#{pkg_version}/)
-    message = "Installing:\tPackage "+pkg_name
+    message = "Information:\tInstalling Package "+pkg_name
     command = "pkg install -g #{pkg_repo_dir} #{pkg_name}"
     execute_command(message,command)
   end
@@ -46,7 +46,7 @@ end
 
 def handle_pkg(p_struct,pkg_name,build_type,pkg_repo_dir)
   if $verbose_mode == 1
-    puts "Handling:\tPackage "+pkg_name
+    puts "Information:\tHandling Package "+pkg_name
   end
   depend_list     = []
   pkg_version     = p_struct[pkg_name].version
@@ -66,7 +66,7 @@ def handle_pkg(p_struct,pkg_name,build_type,pkg_repo_dir)
       end
       if !depend_pkg_name.match(/#{pkg_name}/)
         if $verbose_mode == 1
-          puts "Handling:\tDependency "+depend_pkg_name
+          puts "Information:\tHandling dependency "+depend_pkg_name
         end
         build_pkg(p_struct,depend_pkg_name,build_type,pkg_repo_dir)
         install_pkg(p_struct,depend_pkg_name,pkg_repo_dir)
@@ -114,11 +114,11 @@ end
 # Uninstall package
 
 def uninstall_pkg(pkg_name)
-  message = "Checking:\tIf package "+pkg_name+" is installed"
+  message = "Information:\tChecking if package "+pkg_name+" is installed"
   command = "pkg info #{pkg_name} |grep Version |awk '{print $2}'"
   output  = execute_command(message,command)
   if output.match(/[0-9]/)
-    message = "Uninstalling:\tPackage "+pkg_name
+    message = "Information:\tUninstalling Package "+pkg_name
     command = "pkg uninstall #{pkg_name}"
     output  = execute_command(message,command)
   end

@@ -1072,7 +1072,7 @@ def configure_fusion_vm(install_client,install_mac,install_os,install_arch,insta
     create_fusion_vm_disk(install_client,fusion_vm_dir,fusion_disk_file)
   end
   puts
-  puts "Client:     "+install_client+" created with MAC address "+install_mac
+  puts "Information:\tClient:     "+install_client+" created with MAC address "+install_mac
   puts
   return
 end
