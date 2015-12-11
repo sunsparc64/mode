@@ -240,7 +240,7 @@ def create_named_conf()
     file.write("\n")
     file.write("\n")
     file.close
-    message = "Information:t\Creatingidrectories for named"
+    message = "Information:\tCreatingidrectories for named"
     command = "mkdir /var/dump ; mkdir /var/stats ; mkdir -p /var/run/namedb ; mkdir -p /etc/namedb/master ; mkdir -p /etc/namedb/working"
     execute_command(message,command)
     message = "Information:\tCreating named configuration file "+named_conf
