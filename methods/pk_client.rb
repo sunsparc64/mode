@@ -282,22 +282,20 @@ def unconfigure_packer_client(install_client,install_vm)
 	if $verbose_mode == 1
 		puts "Information:\tDeleting Packer Image for "+install_client
 	end
-	packer_dir = $client_base_dir+"/packer"+install_vm
+	packer_dir = $client_base_dir+"/packer/"+install_vm
   client_dir = packer_dir+"/"+install_client
   image_dir  = client_dir+"/images"
   ovf_file   = image_dir+"/"+install_client+".ovf"
+  cfg_file   = client_dir+"/"+install_client+".cfg"
+  json_file  = client_dir+"/"+install_client+".json"
   disk_file  = image_dir+"/"+install_client+"-disk1.vmdk"
-  if File.exist?(ovf_file)
-  	if $verbose_mode == 1
-  		puts "Information:\tDeleting file "+ovf_file
-  	end
-  	File.delete(ovf_file)
-  end
-  if File.exist?(disk_file)
-  	if $verbose_mode == 1
-  		puts "Information:\tDeleting file "+disk_file
-  	end
-  	File.delete(disk_file)
+  [ ovf_file, cfg_file, json_file, disk_file ].each do |file_name|
+    if File.exist?(file_name)
+    	if $verbose_mode == 1
+    		puts "Information:\tDeleting file "+file_name
+    	end
+    	File.delete(file_name)
+    end
   end
   if Dir.exist?(image_dir)
   	if $verbose_mode == 1

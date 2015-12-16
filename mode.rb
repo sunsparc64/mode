@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      2.9.7
+# Version:      2.9.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -981,7 +981,7 @@ if option["service"]
     check_packer_is_installed()
     option["mode"]  = "client"
     install_mode    = "client"
-    if !option["method"] and !option["os"] and !option["action"].match(/build|list|import/)
+    if !option["method"] and !option["os"] and !option["action"].match(/build|list|import|delete/)
       puts "Warning:\tNo OS, or Install Method specified for build type "+install_service
       exit
     end
@@ -993,15 +993,15 @@ if option["service"]
       puts "Warning:\tNo Client name specified for build type "+install_service
       exit
     end
-    if !option["file"] and !option["action"].match(/build|list|import/)
+    if !option["file"] and !option["action"].match(/build|list|import|delete/)
       puts "Warning:\tNo ISO file specified for build type "+install_service
       exit
     end
-    if !option["ip"] and !option["action"].match(/build|list|import/)
+    if !option["ip"] and !option["action"].match(/build|list|import|delete/)
       puts "Warning:\tNo IP Address given "
       exit
     end
-    if !option["mac"] and !option["action"].match(/build|list|import/)
+    if !option["mac"] and !option["action"].match(/build|list|import|delete/)
       puts "Warning:\tNo MAC Address given"
       puts "Information:\tGenerating MAC Address"
       option["mac"] = generate_mac_address()

@@ -595,4 +595,6 @@
 # Added code to import VirtualBox Packer VM image
 # 2.9.7: Wed  9 Dec 2015 15:25:01 AEDT
 # Cleaned up verbose information output
+# 2.9.8: Wed 16 Dec 2015 18:48:27 AEDT
+# Fixed up Packer deletion code
 
