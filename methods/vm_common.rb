@@ -15,7 +15,10 @@ def check_vm_network(install_vm,install_mode,install_network)
   gw_if_name = get_osx_gw_if_name()
   if_name    = get_osx_vm_if_name(install_vm)
   eval"[check_#{install_vm}_natd(if_name,install_network)]"
-  check_osx_nat(gw_if_name,if_name)
+  eval"[check_#{install_vm}_network(if_name)]"
+  if $os_name.match(/Darwin/)
+    check_osx_nat(gw_if_name,if_name)
+  end
 end
 
 # Control VM

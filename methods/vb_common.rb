@@ -1099,6 +1099,19 @@ def configure_vbox_vm(install_client,install_mac,install_os,install_size,install
   return
 end
 
+# Check VirtualBox network interface
+
+def check_vbox_network(if_name)
+  message = "Information:\tChecking "+if_name+" is configured"
+  command = "ifconfig #{if_name} |grep inet"
+  output  = execute_command(message,command)
+  if !output.match(/#{$default_gateway_ip}/)
+    message = "Information:\tConfiguring "+if_name
+    command = "sudo sh -c 'ifconfig #{if_name} inet #{$default_gateway_ip} netmask #{$default_netmask} up'"
+    execute_command(message,command)
+  end
+  return
+end
 
 # Check VirtualBox NATd
 

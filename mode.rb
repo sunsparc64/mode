@@ -192,6 +192,7 @@ $default_sshenable        = "true"
 $facter_version = "1.7.4"
 $hiera_version  = "1.3.1"
 $puppet_version = "3.4.2"
+$packer_version = "0.8.6"
 
 # Set some global OS types
 
@@ -258,6 +259,10 @@ else
     $default_hostonly_ip = "130.194.3.254"
     if $os_name.match(/Linux/)
       $default_net = "eth0"
+      network_test = %x[ifconfig -a |grep eth0].chomp
+      if !network_test.match(/eth0/)
+        $default_net = %x[sudo sh -c 'route |grep default'].split(/\s+/)[-1].chomp
+      end
     end
   end
 end
@@ -357,15 +362,11 @@ def get_default_host()
       command = "ipadm show-addr #{$default_net} |grep net |head -1 |awk '{print $4}' |cut -f1 -d'/'"
     end
     if $os_name.match(/Darwin/)
-      $default_net="en0"
-      command = "ifconfig #{$default_net} |grep 'inet ' |grep -v inet6 |awk '{print $2}'"
+      $default_net = "en0"
+      command      = "ifconfig #{$default_net} |grep 'inet ' |grep -v inet6 |awk '{print $2}'"
     end
     if $os_name.match(/Linux/)
       command = "ifconfig #{$default_net} |grep 'inet ' |head -1 |awk '{print $2}'"
-      test_ip = %x[#{command}].chomp
-      if !test_ip.match(/inet|[0-9]/)
-        command = "ifconfig lxcbr0 |grep 'inet ' |awk '{print $2}'"
-      end
     end
     $default_host = execute_command(message,command)
     $default_host = $default_host.chomp
@@ -938,6 +939,37 @@ else
   install_action = ""
 end
 
+# Try to determine install method when give just an ISO
+
+if option["file"]
+  install_file = option["file"]
+  if install_file.match(/[A-z]/) and install_action.match(/create|add/)
+    if !option["method"]
+      option["method"] = get_install_method_from_iso(install_file)
+      install_method   = option["method"]
+    end
+  end
+else
+  install_file = ""
+end
+
+# Handle OS switch
+
+if option["os"]
+  install_os = option["os"].downcase
+  install_os = install_os.gsub(/scientificlinux|scientific/,"sl")
+  install_os = install_os.gsub(/oel/,"oraclelinux")
+  install_os = install_os.gsub(/esx|esxi|vsphere/,"vmware")
+  install_os = install_os.gsub(/^suse$/,"opensuse")
+  install_os = install_os.gsub(/solaris/,"sol")
+  install_os = install_os.gsub(/redhat/,"rhel")
+  if !$valid_os_list.to_s.downcase.match(/#{install_os}/)
+    print_valid_list("Warning:\tInvalid OS specified",$valid_os_list)
+  end
+else
+  install_os = ""
+end
+
 # Handle install service switch
 
 if option["service"]
@@ -946,6 +978,7 @@ if option["service"]
     puts "Information:\tSetting install service to: "+install_service
   end
   if install_service.match(/^packer$/)
+    check_packer_is_installed()
     option["mode"]  = "client"
     install_mode    = "client"
     if !option["method"] and !option["os"] and !option["action"].match(/build|list|import/)
@@ -963,6 +996,16 @@ if option["service"]
     if !option["file"] and !option["action"].match(/build|list|import/)
       puts "Warning:\tNo ISO file specified for build type "+install_service
       exit
+    end
+    if !option["ip"] and !option["action"].match(/build|list|import/)
+      puts "Warning:\tNo IP Address given "
+      exit
+    end
+    if !option["mac"] and !option["action"].match(/build|list|import/)
+      puts "Warning:\tNo MAC Address given"
+      puts "Information:\tGenerating MAC Address"
+      option["mac"] = generate_mac_address()
+      install_mac   = option["mac"]
     end
   end
 else
@@ -1248,23 +1291,6 @@ else
   else
     publisher_host = ""
   end
-end
-
-# Handle OS switch
-
-if option["os"]
-  install_os = option["os"].downcase
-  install_os = install_os.gsub(/scientificlinux|scientific/,"sl")
-  install_os = install_os.gsub(/oel/,"oraclelinux")
-  install_os = install_os.gsub(/esx|esxi|vsphere/,"vmware")
-  install_os = install_os.gsub(/^suse$/,"opensuse")
-  install_os = install_os.gsub(/solaris/,"sol")
-  install_os = install_os.gsub(/redhat/,"rhel")
-  if !$valid_os_list.to_s.downcase.match(/#{install_os}/)
-    print_valid_list("Warning:\tInvalid OS specified",$valid_os_list)
-  end
-else
-  install_os = ""
 end
 
 # If service is set, but method ind os isn't sn't try to set method from service name
@@ -1572,16 +1598,6 @@ if !option["method"] and !option["action"].match(/delete|running|reboot|restart|
       if !option["action"].match(/add|create/) and !option["vm"]
         print_valid_list("Warning:\tInvalid OS specified",$valid_os_list)
       end
-    end
-  end
-end
-
-# Try to determine OS when give just an ISO
-
-if option["file"]
-  if option["file"].match(/[A-z]/) and option["action"].match(/create|add/)
-    if !option["method"].match(/[A-z]/)
-      install_method = get_install_method_from_iso(install_file)
     end
   end
 end

@@ -247,10 +247,28 @@ def get_install_service_from_file(install_file)
     service_name    = "vcsa"
     service_version = install_file.split(/-/)[3..4].join(".").gsub(/\./,"_").gsub(/_iso/,"")
   when /VMvisor-Installer/
-    service_name = "vsphere"
+    service_name    = "vsphere"
     service_version = install_file.split(/-/)[4..5].join(".").gsub(/\./,"_").gsub(/_iso/,"")
+  when /CentOS/
+    service_name    = "centos"
+    service_version = install_file.split(/-/)[1..2].join(".").gsub(/\./,"_").gsub(/_iso/,"")
+  when /Fedora-Server/
+    service_name    = "fedora"
+    service_version = install_file.split(/-/)[-1].gsub(/\./,"_").gsub(/_iso/,"_")
+    service_arch    = install_file.split(/-/)[-2].gsub(/\./,"_").gsub(/_iso/,"_")
+    service_version = service_version+"_"+service_arch
+  when /OracleLinux/
+    service_name    = "oel"
+    service_version = install_file.split(/-/)[1..2].join(".").gsub(/\./,"_").gsub(/R|U/,"")
+    service_arch    = install_file.split(/-/)[-2]
+    service_version = service_version+"_"+service_arch
+  when /openSUSE/
+    service_name    = "opensuse"
+    service_version = install_file.split(/-/)[1].gsub(/\./,"_").gsub(/_iso/,"")
+    service_arch    = install_file.split(/-/)[-1].gsub(/\./,"_").gsub(/_iso/,"")
+    service_version = service_version+"_"+service_arch
   end
-  install_service = service_name+"_"+service_version
+  install_service = service_name+"_"+service_version.gsub(/__/,"_")
   return install_service
 end
 
@@ -1496,7 +1514,7 @@ def execute_command(message,command)
       end
     end
     if $verbose_mode == 1
-      puts "Executing:\t\t"+command
+      puts "Executing:\t"+command
     end
     if $execute_host == "localhost"
       output = %x[#{command}]
@@ -1509,11 +1527,11 @@ def execute_command(message,command)
   if $verbose_mode == 1
     if output.length > 1
       if !output.match(/\n/)
-        puts "Output:\t\t\t"+output
+        puts "Output:\t\t"+output
       else
         multi_line_output = output.split(/\n/)
         multi_line_output.each do |line|
-          puts "Output:\t\t\t"+line
+          puts "Output:\t\t"+line
         end
       end
     end
@@ -1772,12 +1790,12 @@ end
 def check_install_ip(install_ip)
   ips = install_ip.split(".")
   if ips.length != 4
-    puts "Warning:\tInvalid IP address"
+    puts "Warning:\tInvalid IP Address"
     exit
   end
   ips.each do |ip|
     if ip =~ /[A-z]/ or ip.length > 3 or ip.to_i > 254
-      puts "Warning:\tInvalid IP address"
+      puts "Warning:\tInvalid IP Address"
       exit
     end
   end

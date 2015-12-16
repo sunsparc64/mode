@@ -64,22 +64,22 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   case install_service
   when /sles/
     ks_file      = install_client+"/"+install_client+".xml"
-    ks_url       = "http://{{ .HTTPIP }}:{{ .HTTPPort }}/"+ks_file
+    ks_url       = "http://#{$default_gateway_ip}:{{ .HTTPPort }}/"+ks_file
     boot_command = "<esc><wait> linux text install=cdrom autoyast="+ks_url+" language="+$default_language+"<enter><wait>"
   when /debian|ubuntu/
     ks_file      = install_client+"/"+install_client+".cfg"
-    ks_url       = "http://{{ .HTTPIP }}:{{ .HTTPPort }}/"+ks_file
+    ks_url       = "http://#{$default_gateway_ip}:{{ .HTTPPort }}/"+ks_file
     boot_command = "linux text install auto=true priority=critical preseed/url="+ks_url+" console-keymaps-at/keymap=us locale=en_US hostname="+install_client+"<enter><wait>"
   when /vsphere|esx|vmware/
     ks_file          = install_client+"/"+install_client+".cfg"
-    ks_url           = "http://{{ .HTTPIP }}:{{ .HTTPPort }}/"+ks_file
+    ks_url           = "http://#{$default_gateway_ip}:{{ .HTTPPort }}/"+ks_file
     boot_command     = "<enter><wait>O<wait> ks="+ks_url+"<enter><wait>"
     ssh_username     = "root"
     ssh_password     = $default_root_password
     shutdown_command = "esxcli system maintenanceMode set -e true -t 0 ; esxcli system shutdown poweroff -d 10 -r 'Packer Shutdown' ; esxcli system maintenanceMode set -e false -t 0"
   else
     ks_file      = install_client+"/"+install_client+".cfg"
-    ks_url       = "http://{{ .HTTPIP }}:{{ .HTTPPort }}/"+ks_file
+    ks_url       = "http://#{$default_gateway_ip}:{{ .HTTPPort }}/"+ks_file
     boot_command = "<esc><wait> linux text install ks="+ks_url+"<enter><wait>"
   end
 	$vbox_disk_type = $vbox_disk_type.gsub(/sas/,"scsi")
@@ -311,6 +311,9 @@ end
 # Create a packer config
 
 def configure_packer_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_size)
+  uid = %x[id -u].chomp
+  check_dir_exists($client_base_dir)
+  check_dir_owner($client_base_dir,uid)
 	exists = eval"[check_#{install_vm}_vm_exists(install_client)]"
 	if exists == "yes"
 		puts "Warning:\tVirtualBox VM "+install_client+" already exists"
@@ -348,9 +351,10 @@ end
 # Get Packer install service
 
 def get_packer_install_service(install_file)
-  (linux_distro,iso_version,iso_arch) = get_linux_version_info(install_file)
-  iso_version     = iso_version.gsub(/\./,"_")
-  install_service = "packer_"+linux_distro+"_"+iso_version+"_"+iso_arch
+  install_service = get_install_service_from_file(install_file)
+#  (linux_distro,iso_version,iso_arch) = get_linux_version_info(install_file)
+#  iso_version     = iso_version.gsub(/\./,"_")
+#  install_service = "packer_"+linux_distro+"_"+iso_version+"_"+iso_arch
   return install_service
 end
 

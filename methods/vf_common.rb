@@ -554,10 +554,12 @@ def check_fusion_hostonly_network(if_name)
     command = "sudo sh -c \"ifconfig vmnet1 inet #{$default_hostonly_ip}\""
     execute_command(message,command)
   end
-  if $os_rel.split(".")[0].to_i < 14
-    check_osx_nat(gw_if_name,if_name)
-  else
-    check_osx_pfctl(gw_if_name,if_name)
+  if $os_name.match(/Darwin/)
+    if $os_rel.split(".")[0].to_i < 14
+      check_osx_nat(gw_if_name,if_name)
+    else
+      check_osx_pfctl(gw_if_name,if_name)
+    end
   end
   return
 end
