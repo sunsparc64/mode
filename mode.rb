@@ -172,7 +172,7 @@ $valid_linux_os_list      = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubun
 $valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
 $valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
 $valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay' ]
-$valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa' ]
+$valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer' ]
 $valid_mode_list          = [ 'client', 'server', 'osx' ]
 $valid_vm_list            = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'gdom', 'parallels' ]
 $execute_host             = "localhost"
@@ -186,6 +186,7 @@ $default_sitename         = $default_domainname.split(".")[0]
 $default_vcsa_size        = "tiny"
 $default_thindiskmode     = "true"
 $default_sshenable        = "true"
+$default_httpd_port       = "8888"
 
 # Declare some package versions
 
@@ -363,10 +364,10 @@ def get_default_host()
     end
     if $os_name.match(/Darwin/)
       $default_net = "en0"
-      command      = "ifconfig #{$default_net} |grep 'inet ' |grep -v inet6 |awk '{print $2}'"
+      command      = "ifconfig #{$default_net} |grep inet |grep -v inet6"
     end
     if $os_name.match(/Linux/)
-      command = "ifconfig #{$default_net} |grep 'inet ' |head -1 |awk '{print $2}'"
+      command = "ifconfig #{$default_net} |grep inet |grep -v inet6"
     end
     $default_host = execute_command(message,command)
     $default_host = $default_host.chomp
@@ -679,13 +680,13 @@ end
 # Check action when set to build
 
 if install_action.match(/build/)
-  if !option["service"]
+  if !option["type"]
     puts "Information:\tSetting Install Service to Packer"
-    option["service"] = "packer"
-    install_service   = "packer"
+    option["type"] = "packer"
+    install_type   = "packer"
   else
-    if !option["service"].match(/packer/)
-      puts "Warning:\tInstall Service not set to Packer"
+    if !option["type"].match(/packer/)
+      puts "Warning:\tInstall type not set to Packer"
       exit
     end
   end
@@ -977,7 +978,7 @@ if option["service"]
   if $verbose_mode == 1
     puts "Information:\tSetting install service to: "+install_service
   end
-  if install_service.match(/^packer$/)
+  if install_type.match(/^packer$/)
     check_packer_is_installed()
     option["mode"]  = "client"
     install_mode    = "client"
@@ -1328,7 +1329,7 @@ if option["vm"]
   install_mode = "client"
   install_vm   = option["vm"].downcase
   if option["network"]
-    $default_vm_network = options["network"]
+    $default_vm_network = option["network"]
   end
   if $verbose_mode == 1
     puts "Information:\tSetting VM network to: "+$default_vm_network
@@ -1660,7 +1661,7 @@ if option["action"]
   when /info/
     print_examples(install_method,install_type,install_vm)
   when /list/
-    if install_service.match(/packer/)
+    if install_type.match(/packer/)
       list_packer_clients(install_vm)
       exit
     end
@@ -1706,8 +1707,8 @@ if option["action"]
         exit
       end
       if install_vm.match(/fusion|vbox|parallels/)
-        if install_service.match(/packer/)
-          eval"[unconfigure_#{install_service}_client(install_client,install_vm)]"
+        if install_type.match(/packer/)
+          eval"[unconfigure_#{install_type}_client(install_client,install_vm)]"
         else
           if install_type.match(/snapshot/)
             if install_client.match(/[A-z]/) and install_clone.match(/[A-z]|\*/)
@@ -1729,10 +1730,10 @@ if option["action"]
         end
       end
     else
-      if install_service.match(/[A-z]|[0-9]/)
-        if install_service.match(/packer/)
-          eval"[unconfigure_#{install_service}_client(install_client)]"
-        else
+      if install_type.match(/packer/)
+        eval"[unconfigure_#{install_type}_client(install_client)]"
+      else
+        if install_service.match(/[A-z]|[0-9]/)
           if !install_method.match(/[a-z]/)
             unconfigure_server(install_service)
           else
@@ -1742,11 +1743,11 @@ if option["action"]
       end
     end
   when /build/
-    if install_service.match(/packer/)
+    if install_type.match(/packer/)
       build_packer_config(install_client,install_vm)
     end
   when /add|create/
-    if install_mode.match(/server/) or install_file.match(/[A-z]/) or install_type.match(/service/) and !install_vm.match(/[A-z]/) and !install_service.match(/packer/)
+    if install_mode.match(/server/) or install_file.match(/[A-z]/) or install_type.match(/service/) and !install_vm.match(/[A-z]/) and !install_type.match(/packer/)
       check_local_config("server")
       eval"[configure_server(install_method,install_arch,publisher_host,publisher_port,install_service,install_file)]"
     else
@@ -1754,8 +1755,8 @@ if option["action"]
         check_vm_network(install_vm,install_mode,install_network)
       end
       if install_client.match(/[A-z]|[0-9]/)
-        if install_service.match(/[A-z]|[0-9]/)
-          if !install_service.match(/packer/)
+        if install_service.match(/[A-z]|[0-9]/) or install_type.match(/packer/)
+          if !install_type.match(/packer/)
             check_dhcpd_config(publisher_host)
           end
           if !install_method.match(/[a-z]/)
@@ -1763,14 +1764,14 @@ if option["action"]
           end
           check_install_ip(install_ip)
           check_install_mac(install_mac)
-          if install_service.match(/packer/)
-            eval"[configure_#{install_service}_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,
+          if install_type.match(/packer/)
+            eval"[configure_#{install_type}_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,
                               install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,
-                              install_network,install_license,install_mirror,install_size)]"
+                              install_network,install_license,install_mirror,install_size,install_type)]"
           else
             check_local_config("server")
             eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,
-                              install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror)]"
+                              install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)]"
           end
         else
           if install_vm.match(/fusion|vbox|parallels/)
@@ -1837,7 +1838,7 @@ if option["action"]
     end
   when /import/
     if !install_file.match(/[A-z]/)
-      if install_service.match(/packer/)
+      if install_type.match(/packer/)
         eval"[import_packer_#{install_vm}_vm(install_client,install_vm)]"
       end
     else

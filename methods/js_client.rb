@@ -231,7 +231,8 @@ end
 
 # Configure client
 
-def configure_js_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license)
+def configure_js_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
+                        install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)
   if install_file.match(/flar/)
     if !File.exist?(image_file)
       puts "Warning:\tFlar file "+install_file+" does not exist"

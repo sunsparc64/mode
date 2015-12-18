@@ -267,6 +267,9 @@ def get_install_service_from_file(install_file)
     service_version = install_file.split(/-/)[1].gsub(/\./,"_").gsub(/_iso/,"")
     service_arch    = install_file.split(/-/)[-1].gsub(/\./,"_").gsub(/_iso/,"")
     service_version = service_version+"_"+service_arch
+  when /rhel/
+    service_name    = "rhel"
+    service_version = install_file.split(/-/)[2..3].join(".").gsub(/\./,"_").gsub(/_iso/,"")
   end
   install_service = service_name+"_"+service_version.gsub(/__/,"_")
   return install_service

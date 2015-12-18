@@ -66,9 +66,14 @@ def configure_ks_pxe_client(client_name,client_ip,client_mac,client_arch,service
     vmlinuz_file = vmlinuz_file.gsub(/^\//,"")
     initrd_file  = initrd_file.gsub(/^\//,"")
   end
-  ks_url       = "http://"+$default_host+"/clients/"+service_name+"/"+client_name+"/"+client_name+".cfg"
-  autoyast_url = "http://"+$default_host+"/clients/"+service_name+"/"+client_name+"/"+client_name+".xml"
-  install_url  = "http://"+$default_host+"/"+service_name
+  if service_name.match(/packer/)
+    host_info = $default_host+":"+$default_httpd_port
+  else
+    host_info = $default_host
+  end
+  ks_url       = "http://"+host_info+"/clients/"+service_name+"/"+client_name+"/"+client_name+".cfg"
+  autoyast_url = "http://"+host_info+"/clients/"+service_name+"/"+client_name+"/"+client_name+".xml"
+  install_url  = "http://"+host_info+"/"+service_name
   file         = File.open(tmp_file,"w")
   if $serial_mode == 1
     file.write("serial 0 115200\n")
@@ -169,7 +174,8 @@ end
 
 # Configure Kickstart client
 
-def configure_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror)
+def configure_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
+                        install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)
   if !install_arch.match(/[a-z]/)
     if install_service.match(/i386/)
       install_arch = "i386"
@@ -196,7 +202,7 @@ def configure_ks_client(install_client,install_arch,install_mac,install_ip,insta
   end
   delete_file(output_file)
   if install_service.match(/fedora|rhel|centos|sl_|oel/)
-    populate_ks_questions(install_service,install_client,install_ip)
+    populate_ks_questions(install_service,install_client,install_ip,install_type)
     process_questions(install_service)
     output_ks_header(install_client,output_file)
     pkg_list = populate_ks_pkg_list(install_service)
@@ -205,7 +211,7 @@ def configure_ks_client(install_client,install_arch,install_mac,install_ip,insta
     output_ks_post_list(install_client,post_list,output_file,install_service)
   else
     if install_service.match(/sles/)
-      populate_ks_questions(install_service,install_client,install_ip)
+      populate_ks_questions(install_service,install_client,install_ip,install_type)
       process_questions(install_service)
       output_ay_client_profile(install_client,install_ip,install_mac,output_file,install_service)
     else
@@ -239,7 +245,7 @@ end
 # Populate post commands
 
 def populate_ks_post_list(client_arch,service_name,publisher_host,client_name,client_ip)
-  gateway_ip  = $default_host.split(/\./)[0..2].join(".")+".254"
+  gateway_ip  = $default_gateway_ip
   post_list   = []
   admin_group = $q_struct["admin_group"].value
   admin_user  = $q_struct["admin_user"].value

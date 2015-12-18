@@ -131,8 +131,12 @@ end
 
 # Get install url
 
-def get_ks_install_url(service_name)
-  install_url = "--url=http://"+$default_host+"/"+service_name
+def get_ks_install_url(service_name,install_type)
+  if install_type.match(/packer/)
+    install_url = "--url=http://"+$default_host+":"+$default_httpd_port+"/"+service_name
+  else
+    install_url = "--url=http://"+$default_host+"/"+service_name
+  end
   return install_url
 end
 
@@ -147,7 +151,7 @@ end
 
 # Populate ks questions
 
-def populate_ks_questions(service_name,client_name,client_ip)
+def populate_ks_questions(service_name,client_name,client_ip,install_type)
   $q_struct = {}
   $q_order  = []
 
@@ -183,7 +187,7 @@ def populate_ks_questions(service_name,client_name,client_ip)
     question  = "Firewall",
     ask       = "yes",
     parameter = "firewall",
-    value     = "--enabled --ssh",
+    value     = "--enabled --ssh --service=ssh",
     valid     = "",
     eval      = "no"
     )
@@ -231,7 +235,7 @@ def populate_ks_questions(service_name,client_name,client_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  if !service_name.match(/packer/)
+  if !install_type.match(/packer/)
 
     name = "url"
     config = Ks.new(
@@ -239,7 +243,7 @@ def populate_ks_questions(service_name,client_name,client_ip)
       question  = "Install Medium",
       ask       = "yes",
       parameter = "url",
-      value     = get_ks_install_url(service_name),
+      value     = get_ks_install_url(service_name,install_type),
       valid     = "",
       eval      = "no"
       )
@@ -381,14 +385,20 @@ def populate_ks_questions(service_name,client_name,client_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  if !service_name.match(/fedora_20/)
+  if service_name.match(/rhel_7/)
+    nic_name = "enp0s3"
+  else
+    nic_name = "eth0"
+  end
+
+  if !service_name.match(/fedora_2/)
     name = "nic"
     config = Ks.new(
       type      = "",
       question  = "Primary Network Interface",
       ask       = "yes",
       parameter = "",
-      value     = "eth0",
+      value     = nic_name,
       valid     = "",
       eval      = "no"
       )
@@ -461,15 +471,13 @@ def populate_ks_questions(service_name,client_name,client_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  gateway = client_ip.split(/\./)[0..2].join(".")+".254"
-
   name = "gateway"
   config = Ks.new(
     type      = "",
     question  = "Gateway",
     ask       = "yes",
     parameter = "",
-    value     = gateway,
+    value     = $default_gateway_ip,
     valid     = "",
     eval      = "no"
     )

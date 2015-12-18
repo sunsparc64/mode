@@ -597,4 +597,6 @@
 # Cleaned up verbose information output
 # 2.9.8: Wed 16 Dec 2015 18:48:27 AEDT
 # Fixed up Packer deletion code
+# 2.9.9: Fri 18 Dec 2015 14:12:47 AEDT
+# Multiple fixes to Packer support code
 

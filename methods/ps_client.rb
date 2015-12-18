@@ -9,8 +9,10 @@ end
 
 # Configure Preseed client
 
-def configure_ps_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror)
-  configure_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror)
+def configure_ps_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
+                        install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)
+  configure_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
+                      install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)
   return
 end
 

@@ -246,7 +246,8 @@ end
 
 # Main code to actually add a client
 
-def configure_ai_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license)
+def configure_ai_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
+                        install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)
   # Populate questions for AI profile
   if !install_service.match(/i386|sparc/)
     install_service = install_service+"_"+install_arch
