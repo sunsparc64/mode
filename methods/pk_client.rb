@@ -91,7 +91,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     boot_command = "linux text install auto=true priority=critical preseed/url="+ks_url+" console-keymaps-at/keymap=us locale=en_US hostname="+install_client+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<enter><wait>"
   when /vsphere|esx|vmware/
     ks_file          = install_client+"/"+install_client+".cfg"
-    ks_url           = "http://#{$default_gateway_ip}:#{$default_httpd_port}/"+ks_file
+    ks_url           = "http://#{$default_gateway_ip}:#{$default_httpd_port}/"+ks_file+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip
     boot_command     = "<enter><wait>O<wait> ks="+ks_url+"<enter><wait>"
     ssh_username     = "root"
     ssh_password     = $default_root_password

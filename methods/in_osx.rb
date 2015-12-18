@@ -4,7 +4,7 @@
 
 def get_osx_gw_if_name()
   message    = "Information:\tGetting interface name of default router"
-  command    = "netstat -rn |grep ^default |head -1 |awk '{print $6}'"
+  command    = "sudo sh -c \"netstat -rn |grep ^default |head -1 |awk '{print \\\$6}'\""
   gw_if_name = execute_command(message,command)
   gw_if_name = gw_if_name.chomp
   return gw_if_name
@@ -28,19 +28,19 @@ end
 
 def check_osx_ip_forwarding(gw_if_name)
   message = "Information:\tChecking IP forwarding is enabled"
-  command = "sudo sysctl -a net.inet.ip.forwarding |awk '{print $2}'"
+  command = "sudo sh -c \"sysctl -a net.inet.ip.forwarding |awk '{print \\\$2}'\""
   output  = execute_command(message,command)
   output  = output.chomp.to_i
   if output == 0
     message = "Information:\tEnabling IP forwarding"
-    command = "sudo sysctl net.inet.ip.forwarding=1"
+    command = "sudo sh -c \"sysctl net.inet.ip.forwarding=1\""
     execute_command(message,command)
   end
   message = "Information:\tChecking rule for IP forwarding has been created"
   if $os_rel.split(/\./)[0].to_i > 13
-    command = "sudo pfctl -a '*' -sr 2>&1 |grep 'pass quick on #{gw_if_name}'"
+    command = "sudo sh -c \"pfctl -a '*' -sr 2>&1 |grep 'pass quick on #{gw_if_name}'\""
   else
-    command = "sudo ipfw list |grep 'any to any via #{gw_if_name}'"
+    command = "sudo sh -c \"ipfw list |grep 'any to any via #{gw_if_name}'\""
   end
   output  = execute_command(message,command)
   return output
@@ -66,10 +66,10 @@ def check_osx_pfctl(gw_if_name,if_name)
   output.write("pass quick on #{gw_if_name} proto tcp from any to any port domain keep state\n")
   output.close
   message = "Enabling:\tPacket filtering"
-  command = "sudo pfctl -e"
+  command = "sudo sh -c \"pfctl -e\""
   execute_command(message,command)
   message = "Loading:\yFilters from "+pf_file
-  command = "sudo pfctl -F all -f #{pf_file}"
+  command = "sudo sh -c \"pfctl -F all -f #{pf_file}\""
   execute_command(message,command)
   return
 end
@@ -81,11 +81,11 @@ def check_osx_nat(gw_if_name,if_name)
   output = check_osx_ip_forwarding(gw_if_name)
   if !output.match(/#{gw_if_name}/)
     message = "Information:\tEnabling NATd to forward traffic on "+gw_if_name
-    if $os_rel.match(/^14/)
-      check_osx_pfctl(gw_if_name,if_name)
-    else
-      command = "sudo ipfw add 100 divert natd ip from any to any via #{gw_if_name}"
+    if $os_rel.split(".")[0].to_i < 14
+      command = "sudo sh -c \"ipfw add 100 divert natd ip from any to any via #{gw_if_name}\""
       execute_command(message,command)
+    else
+      check_osx_pfctl(gw_if_name,if_name)
     end
   end
   if $os_rel.split(/\./)[0].to_i < 13
@@ -94,7 +94,7 @@ def check_osx_nat(gw_if_name,if_name)
     output  = execute_command(message,command)
     if !output.match(/natd/)
       message = "Information:\tStarting NATd to foward packets between "+if_name+" and "+gw_if_name
-      command = "sudo /usr/sbin/natd -interface #{gw_if_name} -use_sockets -same_ports -unregistered_only -dynamic -clamp_mss -enable_natportmap -natportmap_interface #{if_name}"
+      command = "sudo sh -c \"/usr/sbin/natd -interface #{gw_if_name} -use_sockets -same_ports -unregistered_only -dynamic -clamp_mss -enable_natportmap -natportmap_interface #{if_name}\""
       execute_command(message,command)
     end
   end
