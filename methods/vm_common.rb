@@ -15,10 +15,15 @@ def check_vm_network(install_vm,install_mode,install_network)
   gw_if_name = get_osx_gw_if_name()
   if_name    = get_osx_vm_if_name(install_vm)
   eval"[check_#{install_vm}_natd(if_name,install_network)]"
-  eval"[check_#{install_vm}_network(if_name)]"
-  if $os_name.match(/Darwin/)
-    check_osx_nat(gw_if_name,if_name)
+  message = "Information:\tChecking "+if_name+" is configured"
+  command = "ifconfig #{if_name} |grep inet"
+  output  = execute_command(message,command)
+  if !output.match(/#{$default_gateway_ip}/)
+    message = "Information:\tConfiguring "+if_name
+    command = "sudo sh -c 'ifconfig #{if_name} inet #{$default_gateway_ip} netmask #{$default_netmask} up'"
+    execute_command(message,command)
   end
+  return
 end
 
 # Control VM

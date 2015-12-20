@@ -599,4 +599,6 @@
 # Fixed up Packer deletion code
 # 2.9.9: Fri 18 Dec 2015 14:12:47 AEDT
 # Multiple fixes to Packer support code
+# 3.0.0: Mon 21 Dec 2015 10:26:26 AEDT
+# Added Fedora support for Packer
 

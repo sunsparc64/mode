@@ -36,7 +36,7 @@ end
 # Set network
 
 def set_ks_network()
-  if $q_struct["bootproto"].value == "dhcpG"
+  if $q_struct["bootproto"].value == "dhcp6"
     $q_struct["ip"].ask = "no"
     $q_struct["ip"].type = ""
     $q_struct["hostname"].ask = "no"
@@ -391,20 +391,18 @@ def populate_ks_questions(service_name,client_name,client_ip,install_type)
     nic_name = "eth0"
   end
 
-  if !service_name.match(/fedora_2/)
-    name = "nic"
-    config = Ks.new(
-      type      = "",
-      question  = "Primary Network Interface",
-      ask       = "yes",
-      parameter = "",
-      value     = nic_name,
-      valid     = "",
-      eval      = "no"
-      )
-    $q_struct[name] = config
-    $q_order.push(name)
-  end
+  name = "nic"
+  config = Ks.new(
+    type      = "",
+    question  = "Primary Network Interface",
+    ask       = "yes",
+    parameter = "",
+    value     = nic_name,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
 
   name = "bootproto"
   config = Ks.new(
@@ -1031,7 +1029,9 @@ def populate_ks_questions(service_name,client_name,client_ip,install_type)
     )
   $q_struct[name] = config
   $q_order.push(name)
- name = "logroot"
+
+
+  name = "logroot"
   config = Ks.new(
     type      = "output",
     question  = "Root Logical Volume Configuration",

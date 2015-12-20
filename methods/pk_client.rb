@@ -60,6 +60,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   nic_command2 = ""
   nic_config1  = ""
   nic_config1  = ""
+  ks_ip        = $default_host
   if $default_vm_network.match(/hostonly/)
     if_name  = get_bridged_vbox_nic()
     nic_name = check_vbox_hostonly_network(if_name)
@@ -67,6 +68,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     nic_config1  = "hostonly"
     nic_command2 = "--hostonlyadapter1"
     nic_config2  = "#{nic_name}"
+    ks_ip        = $default_gateway_ip
   end
   if $default_vm_network.match(/bridged/)
     nic_name = get_bridged_vbox_nic()
@@ -79,26 +81,33 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   install_service  = get_packer_install_service(install_file)
   ssh_username     = $default_admin_user
   ssh_password     = $default_admin_password
+  ssh_wait_timeout = "600s"
   shutdown_command = ""
   case install_service
   when /sles/
     ks_file      = install_client+"/"+install_client+".xml"
-    ks_url       = "http://#{$default_gateway_ip}:#{$default_httpd_port}/"+ks_file
+    ks_url       = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     boot_command = "<esc><wait> linux text install=cdrom autoyast="+ks_url+" language="+$default_language+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<enter><wait>"
   when /debian|ubuntu/
     ks_file      = install_client+"/"+install_client+".cfg"
-    ks_url       = "http://#{$default_gateway_ip}:#{$default_httpd_port}/"+ks_file
+    ks_url       = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     boot_command = "linux text install auto=true priority=critical preseed/url="+ks_url+" console-keymaps-at/keymap=us locale=en_US hostname="+install_client+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<enter><wait>"
   when /vsphere|esx|vmware/
     ks_file          = install_client+"/"+install_client+".cfg"
-    ks_url           = "http://#{$default_gateway_ip}:#{$default_httpd_port}/"+ks_file+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip
-    boot_command     = "<enter><wait>O<wait> ks="+ks_url+"<enter><wait>"
+    ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
+    boot_command     = "<enter><wait>O<wait> ks="+ks_url+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<wait><enter><wait>"
     ssh_username     = "root"
     ssh_password     = $default_root_password
     shutdown_command = "esxcli system maintenanceMode set -e true -t 0 ; esxcli system shutdown poweroff -d 10 -r 'Packer Shutdown' ; esxcli system maintenanceMode set -e false -t 0"
+    ssh_wait_timeout = "60m"
+  when /fedora/
+    ks_file          = install_client+"/"+install_client+".cfg"
+    ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
+    boot_command     = "<tab><wait><bs><bs><bs><bs><bs><bs>=0 inst.text inst.method=cdrom inst.repo=cdrom:/dev/sr0 inst.sshd inst.ks="+ks_url+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<enter><wait>"
+    ssh_wait_timeout = "1200s"
   else
     ks_file      = install_client+"/"+install_client+".cfg"
-    ks_url       = "http://#{$default_gateway_ip}:#{$default_httpd_port}/"+ks_file
+    ks_url       = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     boot_command = "<esc><wait> linux text install ks="+ks_url+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<enter><wait>"
   end
 	$vbox_disk_type = $vbox_disk_type.gsub(/sas/,"scsi")
@@ -153,7 +162,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
         		:iso_url 							=> iso_url,
         		:ssh_username					=> ssh_username,
         		:ssh_password       	=> ssh_password,
-            :ssh_wait_timeout     => "600s",
+            :ssh_wait_timeout     => ssh_wait_timeout,
             :shutdown_command     => shutdown_command,
         		:iso_checksum 				=> install_checksum,
         		:iso_checksum_type		=> install_checksum_type,
@@ -185,7 +194,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :iso_url              => iso_url,
             :ssh_username         => ssh_username,
             :ssh_password         => ssh_password,
-            :ssh_wait_timeout     => "600s",
+            :ssh_wait_timeout     => ssh_wait_timeout,
             :shutdown_command     => shutdown_command,
             :iso_checksum         => install_checksum,
             :iso_checksum_type    => install_checksum_type,
@@ -216,7 +225,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
           :iso_url              => iso_url,
           :ssh_username         => ssh_username,
           :ssh_password         => ssh_password,
-          :ssh_wait_timeout     => "600s",
+          :ssh_wait_timeout     => ssh_wait_timeout,
           :shutdown_command     => shutdown_command,
           :iso_checksum         => install_checksum,
           :iso_checksum_type    => install_checksum_type,
@@ -248,7 +257,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
           :iso_url              => iso_url,
           :ssh_username         => ssh_username,
           :ssh_password         => ssh_password,
-          :ssh_wait_timeout     => "600s",
+          :ssh_wait_timeout     => ssh_wait_timeout,
           :shutdown_command     => shutdown_command,
           :iso_checksum         => install_checksum,
           :iso_checksum_type    => install_checksum_type,
@@ -257,17 +266,17 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
           :http_port_max        => $default_httpd_port,
           :boot_command         => boot_command,
           :vmx_data => {
-            :memsize                            => install_memory,
-            :numvcpus                           => install_cpu,
+            :memsize                            => "#{install_memory}",
+            :numvcpus                           => "#{install_cpu}",
             :"vhv.enable"                       => "TRUE",
             :"ethernet0.present"                => "TRUE",
             :"ethernet0.startConnected"         => "TRUE",
             :"ethernet0.virtualDev"             => "e1000",
             :"ethernet0.networkName"            => "VM Network",
             :"ethernet0.addressType"            => "static",
-            :"ethernet0.address"                => install_mac,
+            :"ethernet0.address"                => "#{install_mac}",
             :"ethernet0.wakeOnPcktRcv"          => "FALSE",
-            :"ethernet0.connectionType"         => install_network
+            :"ethernet0.connectionType"         => "#{install_network}"
           }
         ]
       }
@@ -286,7 +295,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
           :iso_url              => iso_url,
           :ssh_username         => ssh_username,
           :ssh_password         => ssh_password,
-          :ssh_wait_timeout     => "600s",
+          :ssh_wait_timeout     => ssh_wait_timeout,
           :shutdown_command     => shutdown_command,
           :iso_checksum         => install_checksum,
           :iso_checksum_type    => install_checksum_type,
@@ -432,7 +441,7 @@ def create_packer_vs_install_files(install_client,install_service,install_ip,pub
   process_questions(install_service)
   output_vs_header(output_file)
   # Output firstboot list
-  post_list = populate_vs_firstboot_list(install_service,install_license)
+  post_list = populate_vs_firstboot_list(install_service,install_license,install_client)
   output_vs_post_list(post_list,output_file)
   # Output post list
   post_list = populate_vs_post_list(install_service)
