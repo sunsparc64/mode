@@ -100,7 +100,7 @@ def configure_ks_pxe_client(client_name,client_ip,client_mac,client_arch,service
     if service_name.match(/sles/)
       append_string = "  APPEND initrd=#{initrd_file} install=#{install_url} autoyast=#{autoyast_url} language=#{$default_language}"
     else
-      if service_name.match(/fedora_20/)
+      if service_name.match(/fedora_2[0-3]/)
         append_string = "  APPEND initrd=#{initrd_file} ks=#{ks_url} ip=#{client_ip} netmask=#{$default_netmask}"
       else
         append_string = "  APPEND initrd=#{initrd_file} ks=#{ks_url} ksdevice=bootif ip=#{client_ip} netmask=#{$default_netmask}"

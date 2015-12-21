@@ -5,7 +5,7 @@
 
 def get_vs_network()
   if $q_struct["bootproto"].value == "dhcp"
-    result = "--device "+$q_struct["nic"].value+" --bootproto "+$q_struct["bootproto"].value
+    result = "--netdevice "+$q_struct["nic"].value+" --bootproto "+$q_struct["bootproto"].value
   else
     client_ip = $q_struct["ip"].value
     client_name = $q_struct["hostname"].value

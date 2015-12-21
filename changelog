@@ -601,4 +601,6 @@
 # Multiple fixes to Packer support code
 # 3.0.0: Mon 21 Dec 2015 10:26:26 AEDT
 # Added Fedora support for Packer
+# 3.0.1: Mon 21 Dec 2015 11:18:10 AEDT
+# Improved ESXi support for Packer
 

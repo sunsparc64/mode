@@ -95,7 +95,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   when /vsphere|esx|vmware/
     ks_file          = install_client+"/"+install_client+".cfg"
     ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
-    boot_command     = "<enter><wait>O<wait> ks="+ks_url+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<wait><enter><wait>"
+    boot_command     = "<enter><wait>O<wait> ks="+ks_url+" ksdevice=vmnic0 netdevice=vmnic0 ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<wait><enter><wait>"
     ssh_username     = "root"
     ssh_password     = $default_root_password
     shutdown_command = "esxcli system maintenanceMode set -e true -t 0 ; esxcli system shutdown poweroff -d 10 -r 'Packer Shutdown' ; esxcli system maintenanceMode set -e false -t 0"
