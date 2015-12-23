@@ -606,7 +606,7 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
   if !install_type.match(/packer/)
 
     pkg_list = [
-      "avahi-daemon", "nfs-common", "openssh-server", "ansible"
+      "avahi-daemon", "nfs-common", "openssh-server", 
       "puppet", "python-software-properties", "software-properties-common",
       "curl", "sysv-rc-conf", "lsb-core"
     ]
