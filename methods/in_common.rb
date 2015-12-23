@@ -243,6 +243,15 @@ def get_install_service_from_file(install_file)
   service_name    = ""
   service_version = ""
   case install_file
+  when /ubuntu/
+    service_name    = "ubuntu"
+    service_version = install_file.split(/-/)[1].gsub(/\./,"_").gsub(/_iso/,"")
+    if install_file.match(/amd64/)
+      install_arch = "x86_64"
+    else
+      install_arch = "i386"
+    end
+    service_version = service_version+"_"+install_arch
   when /vCenter-Server-Appliance|VCSA/
     service_name    = "vcsa"
     service_version = install_file.split(/-/)[3..4].join(".").gsub(/\./,"_").gsub(/_iso/,"")

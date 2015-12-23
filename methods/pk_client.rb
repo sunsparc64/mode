@@ -79,8 +79,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   end
   install_size     = install_size.gsub(/G/,"000")
   install_service  = get_packer_install_service(install_file)
-  ssh_username     = $default_admin_user
-  ssh_password     = $default_admin_password
+  ssh_username     = $q_struct["admin_username"].value
+  ssh_password     = $q_struct["admin_password"].value
   ssh_wait_timeout = "600s"
   shutdown_command = ""
   case install_service
@@ -89,9 +89,32 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     ks_url       = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     boot_command = "<esc><wait> linux text install=cdrom autoyast="+ks_url+" language="+$default_language+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<enter><wait>"
   when /debian|ubuntu/
-    ks_file      = install_client+"/"+install_client+".cfg"
-    ks_url       = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
-    boot_command = "linux text install auto=true priority=critical preseed/url="+ks_url+" console-keymaps-at/keymap=us locale=en_US hostname="+install_client+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<enter><wait>"
+    ks_file          = install_client+"/"+install_client+".cfg"
+    ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
+    if install_service.match(/ubuntu_[14,15]/)
+      boot_command = "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"+
+                     "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"+
+                     "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"+
+                     "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"+
+                     "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"+
+                     "/install/vmlinuz debian-installer/language="+$q_struct["language"].value+
+                     " debian-installer/country="+$q_struct["country"].value+
+                     " keyboard-configuration/layoutcode="+$q_struct["layout"].value+
+                     " interface="+$q_struct["nic"].value+
+                     " netcfg/disable_autoconfig="+$q_struct["disable_autoconfig"].value+
+                     " netcfg/disable_dhcp="+$q_struct["disable_dhcp"].value+
+                     " hostname="+install_client+
+                     " netcfg/get_ipaddress="+install_ip+
+                     " netcfg/get_netmask="+$q_struct["netmask"].value+
+                     " netcfg/get_gateway="+$q_struct["gateway"].value+
+                     " netcfg/get_nameservers="+$q_struct["nameserver"].value+
+                     " netcfg/get_domain="+$q_struct["domain"].value+
+                     " preseed/url="+ks_url+
+                     " initrd=/install/initrd.gz -- <wait><enter><wait>"
+    else
+      boot_command = "<esc><esc><enter><wait>/install/vmlinuz console-setup/ask_detect=false console-setup/layoutcode=us console-setup/modelcode=pc105 debian-installer=en_US fb=false initrd=/install/initrd.gz kbd-chooser/method=us keyboard-configuration/layout=USA keyboard-configuration/variant=USA locale=en_US netcfg/get_hostname="+install_client+" netcfg/get_domain="+$default_domainname+" preseed/url="+ks_url+" locale=en_US hostname="+install_client+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+" -- <wait><enter><wait>"
+    end
+    shutdown_command = "echo 'shutdown -P now' > /tmp/shutdown.sh ; echo '#{$q_struct["admin_password"].value}'|sudo -S sh '/tmp/shutdown.sh'"
   when /vsphere|esx|vmware/
     ks_file          = install_client+"/"+install_client+".cfg"
     ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
@@ -99,12 +122,11 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     ssh_username     = "root"
     ssh_password     = $default_root_password
     shutdown_command = "esxcli system maintenanceMode set -e true -t 0 ; esxcli system shutdown poweroff -d 10 -r 'Packer Shutdown' ; esxcli system maintenanceMode set -e false -t 0"
-    ssh_wait_timeout = "60m"
+    ssh_wait_timeout = "1200s"
   when /fedora/
     ks_file          = install_client+"/"+install_client+".cfg"
     ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     boot_command     = "<tab><wait><bs><bs><bs><bs><bs><bs>=0 inst.text inst.method=cdrom inst.repo=cdrom:/dev/sr0 inst.sshd inst.ks="+ks_url+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<enter><wait>"
-    ssh_wait_timeout = "1200s"
   else
     ks_file      = install_client+"/"+install_client+".cfg"
     ks_url       = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
@@ -160,6 +182,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
         		:output_directory     => image_dir,
         		:disk_size						=> install_size,
         		:iso_url 							=> iso_url,
+            :ssh_host             => install_client,
         		:ssh_username					=> ssh_username,
         		:ssh_password       	=> ssh_password,
             :ssh_wait_timeout     => ssh_wait_timeout,
@@ -192,6 +215,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :output_directory     => image_dir,
             :disk_size            => install_size,
             :iso_url              => iso_url,
+            :ssh_host             => install_client,
             :ssh_username         => ssh_username,
             :ssh_password         => ssh_password,
             :ssh_wait_timeout     => ssh_wait_timeout,
@@ -223,6 +247,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
           :output_directory     => image_dir,
           :disk_size            => install_size,
           :iso_url              => iso_url,
+          :ssh_host             => install_client,
           :ssh_username         => ssh_username,
           :ssh_password         => ssh_password,
           :ssh_wait_timeout     => ssh_wait_timeout,
@@ -255,6 +280,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
           :output_directory     => image_dir,
           :disk_size            => install_size,
           :iso_url              => iso_url,
+          :ssh_host             => install_client,
           :ssh_username         => ssh_username,
           :ssh_password         => ssh_password,
           :ssh_wait_timeout     => ssh_wait_timeout,
@@ -293,6 +319,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
           :output_directory     => image_dir,
           :disk_size            => install_size,
           :iso_url              => iso_url,
+          :ssh_host             => install_client,
           :ssh_username         => ssh_username,
           :ssh_password         => ssh_password,
           :ssh_wait_timeout     => ssh_wait_timeout,
@@ -475,13 +502,16 @@ def create_packer_ay_install_files(install_client,install_service,install_ip,ins
   return
 end
 
-def create_packer_ps_install_files(install_client,install_service,install_ip,install_mirror,install_vm)
+def create_packer_ps_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_type)
   client_dir  = $client_base_dir+"/packer/"+install_vm+"/"+install_client
-  populate_ps_questions(install_service,install_client,install_ip,install_mirror)
+  output_file = client_dir+"/"+install_client+".cfg"
+  check_dir_exists(client_dir)
+  delete_file(output_file)
+  populate_ps_questions(install_service,install_client,install_ip,install_mirror,install_type)
   process_questions(install_service)
   output_ps_header(install_client,output_file)
   output_file = client_dir+"/"+install_client+"_post.sh"
-  post_list   = populate_ps_post_list(install_client,install_service)
+  post_list   = populate_ps_post_list(install_client,install_service,install_type)
   output_ks_post_list(install_client,post_list,output_file,install_service)
   output_file = client_dir+"/"+install_client+"_first_boot.sh"
   post_list   = populate_ps_first_boot_list()
@@ -521,6 +551,6 @@ end
 def configure_packer_ps_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
                                install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type)
   install_service = get_packer_install_service(install_file)
-  create_packer_ps_install_files(install_client,install_service,install_ip,install_mirror,install_vm)
+  create_packer_ps_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_type)
   return
 end

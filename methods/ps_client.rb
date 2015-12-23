@@ -109,7 +109,7 @@ def populate_ps_first_boot_list()
   resolv_conf = "/etc/resolvconf/resolv.conf.d/base"
   post_list.push("# Configure hosts file")
   post_list.push("")
-  post_list.push("echo 'nameserver #{$default_host}' > #{resolv_conf}")
+#  post_list.push("echo 'nameserver #{$default_host}' > #{resolv_conf}")
   post_list.push("echo 'nameserver 8.8.8.8' >> #{resolv_conf}")
   post_list.push("echo 'search local' >> #{resolv_conf}")
   post_list.push("")
@@ -136,9 +136,13 @@ end
 
 # Populate post commands
 
-def populate_ps_post_list(client_name,service_name)
+def populate_ps_post_list(client_name,service_name,install_type)
   post_list  = []
-  script_url = "http://"+$default_host+"/"+service_name+"/"+client_name+"_first_boot.sh"
+  if install_type.match(/packer/)
+    script_url = "http://"+$default_gateway_ip+"/"+client_name+"/"+client_name+"_first_boot.sh"
+  else
+    script_url = "http://"+$default_host+"/"+service_name+"/"+client_name+"_first_boot.sh"
+  end
   post_list.push("/usr/bin/curl -o /root/firstboot #{script_url}")
   first_boot = "/etc/init.d/firstboot"
   post_list.push("chmod +x /root/firstboot")

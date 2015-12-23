@@ -1,7 +1,7 @@
 
 # Preseed configuration questions for Ubuntu
 
-def populate_ps_questions(install_service,install_client,install_ip,install_mirror)
+def populate_ps_questions(install_service,install_client,install_ip,install_mirror,install_type)
   $q_struct = {}
   $q_order  = []
 
@@ -11,7 +11,7 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
     question  = "Language",
     ask       = "yes",
     parameter = "debian-installer/language",
-    value     = "en",
+    value     = $default_debian_language,
     valid     = "",
     eval      = "no"
     )
@@ -37,7 +37,7 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
     question  = "Locale",
     ask       = "yes",
     parameter = "debian-installer/locale",
-    value     = "en_US",
+    value     = $default_locale,
     valid     = "",
     eval      = "no"
     )
@@ -63,7 +63,7 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
     question  = "Keyboard layout",
     ask       = "no",
     parameter = "keyboard-configuration/layoutcode",
-    value     = "us",
+    value     = $default_keyboard.downcase,
     valid     = "",
     eval      = "no"
     )
@@ -76,7 +76,7 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
     question  = "Network interface",
     ask       = "yes",
     parameter = "netcfg/choose_interface",
-    value     = "eth0",
+    value     = $default_debian_interface,
     valid     = "",
     eval      = "no"
     )
@@ -89,7 +89,7 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
     question  = "Disable network autoconfig",
     ask       = "yes",
     parameter = "netcfg/disable_autoconfig",
-    value     = "true",
+    value     = $default_disable_autoconf,
     valid     = "",
     eval      = "no"
     )
@@ -102,7 +102,7 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
     question  = "Disable DHCP",
     ask       = "yes",
     parameter = "netcfg/disable_dhcp",
-    value     = "true",
+    value     = $default_disable_dhcp,
     valid     = "",
     eval      = "no"
     )
@@ -225,7 +225,7 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
     question  = "NIC",
     ask       = "yes",
     parameter = "",
-    value     = "eth0",
+    value     = $default_debian_interface,
     valid     = "",
     eval      = "no"
     )
@@ -305,44 +305,77 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
 
   if !install_mirror.match(/[a-z]/) or !install_mirror.match(/none/)
 
-    name = "mirror_country"
-    config = Ks.new(
-      type      = "string",
-      question  = "Mirror country",
-      ask       = "no",
-      parameter = "mirror/country",
-      value     = "manual",
-      valid     = "",
-      eval      = "no"
-      )
-    $q_struct[name] = config
-    $q_order.push(name)
+    if install_type.match(/packer/)
 
-    name = "mirror_hostname"
-    config = Ks.new(
-      type      = "string",
-      question  = "Mirror hostname",
-      ask       = "no",
-      parameter = "mirror/http/hostname",
-      value     = $default_host,
-      valid     = "",
-      eval      = "no"
-      )
-    $q_struct[name] = config
-    $q_order.push(name)
-  
-    name = "mirror_directory"
-    config = Ks.new(
-      type      = "string",
-      question  = "Mirror directory",
-      ask       = "no",
-      parameter = "mirror/http/directory",
-      value     = "/"+install_service,
-      valid     = "",
-      eval      = "no"
-      )
-    $q_struct[name] = config
-    $q_order.push(name)
+      name = "use_mirror"
+      config = Ks.new(
+        type      = "boolean",
+        question  = "Mirror hostname",
+        ask       = "no",
+        parameter = "apt-setup/use_mirror",
+        value     = $default_use_mirror,
+        valid     = "",
+        eval      = "no"
+        )
+      $q_struct[name] = config
+      $q_order.push(name)
+
+      name = "no_mirror"
+      config = Ks.new(
+        type      = "boolean",
+        question  = "Mirror hostname",
+        ask       = "no",
+        parameter = "apt-setup/no_mirror",
+        value     = $default_no_mirror,
+        valid     = "",
+        eval      = "no"
+        )
+      $q_struct[name] = config
+      $q_order.push(name)
+
+    else
+      mirror_hostname = $default_host
+
+      name = "mirror_country"
+      config = Ks.new(
+        type      = "string",
+        question  = "Mirror country",
+        ask       = "no",
+        parameter = "mirror/country",
+        value     = "manual",
+        valid     = "",
+        eval      = "no"
+        )
+      $q_struct[name] = config
+      $q_order.push(name)
+
+      name = "mirror_hostname"
+      config = Ks.new(
+        type      = "string",
+        question  = "Mirror hostname",
+        ask       = "no",
+        parameter = "mirror/http/hostname",
+        value     = mirror_hostname,
+        valid     = "",
+        eval      = "no"
+        )
+      $q_struct[name] = config
+      $q_order.push(name)
+    
+      name = "mirror_directory"
+      config = Ks.new(
+        type      = "string",
+        question  = "Mirror directory",
+        ask       = "no",
+        parameter = "mirror/http/directory",
+        value     = "/"+install_service,
+        valid     = "",
+        eval      = "no"
+        )
+      $q_struct[name] = config
+      $q_order.push(name)
+
+    end
   
     name = "mirror_proxy"
     config = Ks.new(
@@ -413,6 +446,45 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
     $q_order.push(name)
 
   end
+
+  name = "updates"
+  config = Ks.new(
+    type      = "select",
+    question  = "Update policy",
+    ask       = "yes",
+    parameter = "pkgsel/update-policy",
+    value     = "none",
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
+  name = "software"
+  config = Ks.new(
+    type      = "multiselect",
+    question  = "Software",
+    ask       = "yes",
+    parameter = "tasksel/first",
+    value     = $default_ubuntu_software,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
+  name = "exit"
+  config = Ks.new(
+    type      = "boolean",
+    question  = "Exit installer",
+    ask       = "yes",
+    parameter = "debian-installer/exit/halt",
+    value     = "false",
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
 
   name = "partition_method"
   config = Ks.new(
@@ -531,24 +603,28 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
   $q_struct[name] = config
   $q_order.push(name)
 
-  pkg_list = [
-    "avahi-daemon", "libterm-readkey-perl", "nfs-common", "openssh-server",
-    "puppet", "python-software-properties", "software-properties-common",
-    "curl", "sysv-rc-conf", "lsb-core"
-  ]
+  if !install_type.match(/packer/)
 
-  name = "additional_packages"
-  config = Ks.new(
-    type      = "string",
-    question  = "Additional packages",
-    ask       = "yes",
-    parameter = "pkgsel/include",
-    value     = pkg_list.join(","),
-    valid     = "",
-    eval      = "no"
-    )
-  $q_struct[name] = config
-  $q_order.push(name)
+    pkg_list = [
+      "avahi-daemon", "nfs-common", "openssh-server", "ansible"
+      "puppet", "python-software-properties", "software-properties-common",
+      "curl", "sysv-rc-conf", "lsb-core"
+    ]
+  
+    name = "additional_packages"
+    config = Ks.new(
+      type      = "string",
+      question  = "Additional packages",
+      ask       = "yes",
+      parameter = "pkgsel/include",
+      value     = pkg_list.join(" "),
+      valid     = "",
+      eval      = "no"
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
+
+  end
 
   name = "root_login"
   config = Ks.new(
@@ -706,20 +782,28 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
   $q_struct[name] = config
   $q_order.push(name)
 
-  script_url = "http://"+$default_host+"/clients/"+install_service+"/"+install_client+"/"+install_client+"_post.sh"
+  if install_type.match(/packer/)
+    script_url = "http://"+$default_gateway_ip+"/"+install_client+"/"+install_client+"_post.sh"
+  else
+    script_url = "http://"+$default_host+"/clients/"+install_service+"/"+install_client+"/"+install_client+"_post.sh"
+  end
 
-  name = "late_command"
-  config = Ks.new(
-    type      = "string",
-    question  = "Post install commands",
-    ask       = "yes",
-    parameter = "preseed/late_command",
-    value     = "chroot /target sh -c \"/usr/bin/curl -o /tmp/postinstall #{script_url} && /bin/sh -x /tmp/postinstall\"",
-    valid     = "",
-    eval      = ""
-    )
-  $q_struct[name] = config
-  $q_order.push(name)
+  if !install_type.match(/packer/)
+
+    name = "late_command"
+    config = Ks.new(
+      type      = "string",
+      question  = "Post install commands",
+      ask       = "yes",
+      parameter = "preseed/late_command",
+      value     = "chroot /target sh -c \"/usr/bin/curl -o /tmp/postinstall #{script_url} && /bin/sh -x /tmp/postinstall\"",
+      valid     = "",
+      eval      = ""
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
+
+  end
 
   return
 end

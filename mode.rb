@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.0.1
+# Version:      3.0.3
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -89,8 +89,17 @@ $local_centos_mirror      = "mirror.aarnet.edu.au/pub"
 $local_epel_mirror        = "mirror.aarnet.edu.au"
 $default_timeserver       = "0."+$default_country.downcase+".pool.ntp.org"
 $default_keymap           = "US-English"
+$default_disable_autoconf = "true"
+$default_disable_dhcp     = "true"
 $default_environment      = "en_US.UTF-8"
+$default_keyboard         = "US"
 $default_language         = "en_US"
+$default_locale           = "en_US"
+$default_debian_language  = "en"
+$default_ubuntu_software  = "OpenSSH server"
+$default_debian_interface = "eth0"
+$default_no_mirror        = "true"
+$default_use_mirror       = "false"
 $default_system_locale    = "C"
 $default_nameserver       = "8.8.8.8"
 $default_name_service     = "none"
