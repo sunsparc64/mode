@@ -55,7 +55,7 @@ end
 # Construct admin ks password line
 
 def get_ks_admin_password()
-  result = "--name="+$q_struct["admin_user"].value+" --groups="+$q_struct["admin_group"].value+" --homedir="+$q_struct["admin_home"].value+" --password="+$q_struct["admin_crypt"].value.to_s+" --iscrypted --shell="+$q_struct["admin_shell"].value+" --uid="+$q_struct["admin_uid"].value
+  result = "--name="+$q_struct["admin_username"].value+" --groups="+$q_struct["admin_group"].value+" --homedir="+$q_struct["admin_home"].value+" --password="+$q_struct["admin_crypt"].value.to_s+" --iscrypted --shell="+$q_struct["admin_shell"].value+" --uid="+$q_struct["admin_uid"].value
   return result
 end
 
@@ -603,7 +603,7 @@ def populate_ks_questions(service_name,client_name,client_ip,install_type)
   $q_struct[name] = config
   $q_order.push(name)
 
-  name = "admin_user"
+  name = "admin_username"
   config = Ks.new(
     type      = "",
     question  = "Admin Username",

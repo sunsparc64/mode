@@ -78,7 +78,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     nic_config2  = "#{nic_name}"
   end
   install_size     = install_size.gsub(/G/,"000")
-  install_service  = get_packer_install_service(install_file)
+  (install_service,install_os) = get_packer_install_service(install_file)
   ssh_username     = $q_struct["admin_username"].value
   ssh_password     = $q_struct["admin_password"].value
   ssh_wait_timeout = "600s"
@@ -87,33 +87,39 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   when /sles/
     ks_file      = install_client+"/"+install_client+".xml"
     ks_url       = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
-    boot_command = "<esc><wait> linux text install=cdrom autoyast="+ks_url+" language="+$default_language+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<enter><wait>"
+    boot_command = "<esc><wait> linux text install=cdrom autoyast="+
+                   ks_url+" language="+$default_language+
+                   " ip="+install_ip+
+                   " netmask="+$default_netmask+
+                   " gateway="+$default_gateway_ip+
+                   "<enter><wait>"
   when /debian|ubuntu/
     ks_file          = install_client+"/"+install_client+".cfg"
     ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     if install_service.match(/ubuntu_[14,15]/)
-      boot_command = "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"+
-                     "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"+
-                     "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"+
-                     "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"+
-                     "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"+
-                     "/install/vmlinuz debian-installer/language="+$q_struct["language"].value+
-                     " debian-installer/country="+$q_struct["country"].value+
-                     " keyboard-configuration/layoutcode="+$q_struct["layout"].value+
-                     " interface="+$q_struct["nic"].value+
-                     " netcfg/disable_autoconfig="+$q_struct["disable_autoconfig"].value+
-                     " netcfg/disable_dhcp="+$q_struct["disable_dhcp"].value+
-                     " hostname="+install_client+
-                     " netcfg/get_ipaddress="+install_ip+
-                     " netcfg/get_netmask="+$q_struct["netmask"].value+
-                     " netcfg/get_gateway="+$q_struct["gateway"].value+
-                     " netcfg/get_nameservers="+$q_struct["nameserver"].value+
-                     " netcfg/get_domain="+$q_struct["domain"].value+
-                     " preseed/url="+ks_url+
-                     " initrd=/install/initrd.gz -- <wait><enter><wait>"
+      boot_header = "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"+
+                    "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"+
+                    "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"+
+                    "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"+
+                    "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"
     else
-      boot_command = "<esc><esc><enter><wait>/install/vmlinuz console-setup/ask_detect=false console-setup/layoutcode=us console-setup/modelcode=pc105 debian-installer=en_US fb=false initrd=/install/initrd.gz kbd-chooser/method=us keyboard-configuration/layout=USA keyboard-configuration/variant=USA locale=en_US netcfg/get_hostname="+install_client+" netcfg/get_domain="+$default_domainname+" preseed/url="+ks_url+" locale=en_US hostname="+install_client+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+" -- <wait><enter><wait>"
+      boot_header = "<esc><esc><enter><wait>"
     end
+    boot_command     = boot_header+
+                       "/install/vmlinuz debian-installer/language="+$q_struct["language"].value+
+                       " debian-installer/country="+$q_struct["country"].value+
+                       " keyboard-configuration/layoutcode="+$q_struct["layout"].value+
+                       " interface="+$q_struct["nic"].value+
+                       " netcfg/disable_autoconfig="+$q_struct["disable_autoconfig"].value+
+                       " netcfg/disable_dhcp="+$q_struct["disable_dhcp"].value+
+                       " hostname="+install_client+
+                       " netcfg/get_ipaddress="+install_ip+
+                       " netcfg/get_netmask="+$q_struct["netmask"].value+
+                       " netcfg/get_gateway="+$q_struct["gateway"].value+
+                       " netcfg/get_nameservers="+$q_struct["nameserver"].value+
+                       " netcfg/get_domain="+$q_struct["domain"].value+
+                       " preseed/url="+ks_url+
+                       " initrd=/install/initrd.gz -- <wait><enter><wait>"
     shutdown_command = "echo 'shutdown -P now' > /tmp/shutdown.sh ; echo '#{$q_struct["admin_password"].value}'|sudo -S sh '/tmp/shutdown.sh'"
   when /vsphere|esx|vmware/
     ks_file          = install_client+"/"+install_client+".cfg"
@@ -182,7 +188,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
         		:output_directory     => image_dir,
         		:disk_size						=> install_size,
         		:iso_url 							=> iso_url,
-            :ssh_host             => install_client,
+            :ssh_host             => install_ip,
         		:ssh_username					=> ssh_username,
         		:ssh_password       	=> ssh_password,
             :ssh_wait_timeout     => ssh_wait_timeout,
@@ -215,7 +221,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :output_directory     => image_dir,
             :disk_size            => install_size,
             :iso_url              => iso_url,
-            :ssh_host             => install_client,
+            :ssh_host             => install_ip,
             :ssh_username         => ssh_username,
             :ssh_password         => ssh_password,
             :ssh_wait_timeout     => ssh_wait_timeout,
@@ -247,7 +253,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
           :output_directory     => image_dir,
           :disk_size            => install_size,
           :iso_url              => iso_url,
-          :ssh_host             => install_client,
+          :ssh_host             => install_ip,
           :ssh_username         => ssh_username,
           :ssh_password         => ssh_password,
           :ssh_wait_timeout     => ssh_wait_timeout,
@@ -280,7 +286,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
           :output_directory     => image_dir,
           :disk_size            => install_size,
           :iso_url              => iso_url,
-          :ssh_host             => install_client,
+          :ssh_host             => install_ip,
           :ssh_username         => ssh_username,
           :ssh_password         => ssh_password,
           :ssh_wait_timeout     => ssh_wait_timeout,
@@ -319,7 +325,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
           :output_directory     => image_dir,
           :disk_size            => install_size,
           :iso_url              => iso_url,
-          :ssh_host             => install_client,
+          :ssh_host             => install_ip,
           :ssh_username         => ssh_username,
           :ssh_password         => ssh_password,
           :ssh_wait_timeout     => ssh_wait_timeout,
@@ -449,11 +455,11 @@ end
 # Get Packer install service
 
 def get_packer_install_service(install_file)
-  install_service = get_install_service_from_file(install_file)
+  (install_service,install_os) = get_install_service_from_file(install_file)
 #  (linux_distro,iso_version,iso_arch) = get_linux_version_info(install_file)
 #  iso_version     = iso_version.gsub(/\./,"_")
 #  install_service = "packer_"+linux_distro+"_"+iso_version+"_"+iso_arch
-  return install_service
+  return install_service,install_os
 end
 
 # Get Packer install config file
@@ -523,7 +529,7 @@ end
 
 def configure_packer_vs_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
                                install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type)
-  install_service = get_packer_install_service(install_file)
+  (install_service,install_os) = get_packer_install_service(install_file)
   create_packer_vs_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license)
   return
 end
@@ -532,7 +538,7 @@ end
 
 def configure_packer_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
                                install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type)
-  install_service = get_packer_install_service(install_file)
+  (install_service,install_os) = get_packer_install_service(install_file)
   create_packer_ks_install_files(install_arch,install_client,install_service,install_ip,publisher_host,install_vm,install_type)
   return
 end
@@ -541,7 +547,7 @@ end
 
 def configure_packer_ay_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
                                install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type)
-  install_service = get_packer_install_service(install_file)
+  (install_service,install_so) = get_packer_install_service(install_file)
   create_packer_ay_install_files(install_client,install_service,install_ip,install_vm)
   return
 end
@@ -550,7 +556,7 @@ end
 
 def configure_packer_ps_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
                                install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type)
-  install_service = get_packer_install_service(install_file)
+  (install_service,install_os) = get_packer_install_service(install_file)
   create_packer_ps_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_type)
   return
 end

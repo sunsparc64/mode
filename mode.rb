@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.0.3
+# Version:      3.0.4
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1477,9 +1477,21 @@ end
 
 if option["os"]
   if option["os"].match(/^Linux|^linux/)
-    print_valid_list("Warning:\tInvalid OS specified",$valid_linux_os_list)
+    if !install_file.match(/[a-z]/)
+      print_valid_list("Warning:\tInvalid OS specified",$valid_linux_os_list)
+    else
+      (install_service,install_os) = get_packer_install_service(install_file)
+    end
     exit
   else
+    if install_file.match(/[A-z]/)
+      (install_service,test_os) = get_packer_install_service(install_file)
+      if !test_os.match(/#{install_os}/)
+        puts "Warning:\tSpecified OS does not match installation media OS"
+        puts "Information:\tSetting OS name to "+test_os
+        install_os = test_os
+      end
+    end
     case install_os
     when /vsphere|esx|vmware/
       option["method"] = "vs"

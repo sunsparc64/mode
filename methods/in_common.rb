@@ -261,6 +261,7 @@ def get_install_service_from_file(install_file)
   when /CentOS/
     service_name    = "centos"
     service_version = install_file.split(/-/)[1..2].join(".").gsub(/\./,"_").gsub(/_iso/,"")
+    install_os      = service_name
   when /Fedora-Server/
     service_name    = "fedora"
     service_version = install_file.split(/-/)[-1].gsub(/\./,"_").gsub(/_iso/,"_")
@@ -280,8 +281,13 @@ def get_install_service_from_file(install_file)
     service_name    = "rhel"
     service_version = install_file.split(/-/)[2..3].join(".").gsub(/\./,"_").gsub(/_iso/,"")
   end
+  install_os      = service_name
   install_service = service_name+"_"+service_version.gsub(/__/,"_")
-  return install_service
+  if $verbose_mode == 1
+    puts "Information:\tSetting service name to "+install_service
+    puts "Information:\tSetting OS name to "+install_os
+  end
+  return install_service,install_os
 end
 
 # Get Install method from ISO file name

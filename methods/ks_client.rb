@@ -248,7 +248,7 @@ def populate_ks_post_list(client_arch,service_name,publisher_host,client_name,cl
   gateway_ip  = $default_gateway_ip
   post_list   = []
   admin_group = $q_struct["admin_group"].value
-  admin_user  = $q_struct["admin_user"].value
+  admin_user  = $q_struct["admin_username"].value
   admin_crypt = $q_struct["admin_crypt"].value
   admin_home  = $q_struct["admin_home"].value
   admin_uid   = $q_struct["admin_uid"].value
@@ -530,7 +530,7 @@ def populate_ks_pkg_list(service_name)
     pkg_list.push("avahi")
     pkg_list.push("autoconf")
     pkg_list.push("automake")
-    if !service_name.match(/rhel_7/)
+    if !service_name.match(/[rhel,oel]_7/)
       pkg_list.push("ruby-devel")
     end
     pkg_list.push("zlib-devel")
