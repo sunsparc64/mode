@@ -87,11 +87,16 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   when /sles/
     ks_file      = install_client+"/"+install_client+".xml"
     ks_url       = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
-    boot_command = "<esc><wait> linux text install=cdrom autoyast="+
-                   ks_url+" language="+$default_language+
-                   " ip="+install_ip+
-                   " netmask="+$default_netmask+
-                   " gateway="+$default_gateway_ip+
+    boot_command = "<esc><enter><wait> linux text install=cd:/ textmode=1 insecure=1"+
+                   " netdevice="+$q_struct["nic"].value+
+                   " autoyast="+ ks_url+
+                   " language="+$default_language+
+                   " netsetup=-dhcp,+hostip,+netmask,+gateway,+nameserver1,+domain"+
+                   " hostip="+install_ip+"/24"+
+                   " netmask="+$q_struct["netmask"].value+
+                   " gateway="+$q_struct["gateway"].value+
+                   " nameserver="+$q_struct["nameserver"].value+
+                   " domain="+$default_domainname+
                    "<enter><wait>"
   when /debian|ubuntu/
     ks_file          = install_client+"/"+install_client+".cfg"
@@ -427,6 +432,7 @@ def configure_packer_client(install_method,install_vm,install_os,install_client,
 		puts "Warning:\tPacker image for VirtualBox VM "+install_client+" already exists "
 		exit
 	end
+  (install_service,install_os,install_method) = get_packer_install_service(install_file)
 	install_guest = eval"[get_#{install_vm}_guest_os(install_method,install_arch)]"
 	eval"[configure_packer_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
         install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type)]"
@@ -455,11 +461,11 @@ end
 # Get Packer install service
 
 def get_packer_install_service(install_file)
-  (install_service,install_os) = get_install_service_from_file(install_file)
+  (install_service,install_os,install_method) = get_install_service_from_file(install_file)
 #  (linux_distro,iso_version,iso_arch) = get_linux_version_info(install_file)
 #  iso_version     = iso_version.gsub(/\./,"_")
 #  install_service = "packer_"+linux_distro+"_"+iso_version+"_"+iso_arch
-  return install_service,install_os
+  return install_service,install_os,install_method
 end
 
 # Get Packer install config file
@@ -497,7 +503,7 @@ def create_packer_ks_install_files(install_arch,install_client,install_service,i
   return
 end
 
-def create_packer_ay_install_files(install_client,install_service,install_ip,install_vm)
+def create_packer_ay_install_files(install_client,install_service,install_ip,install_vm,install_mac,install_type)
   client_dir  = $client_base_dir+"/packer/"+install_vm+"/"+install_client
   output_file = client_dir+"/"+install_client+".xml"
   check_dir_exists(client_dir)
@@ -529,7 +535,6 @@ end
 
 def configure_packer_vs_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
                                install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type)
-  (install_service,install_os) = get_packer_install_service(install_file)
   create_packer_vs_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license)
   return
 end
@@ -538,7 +543,6 @@ end
 
 def configure_packer_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
                                install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type)
-  (install_service,install_os) = get_packer_install_service(install_file)
   create_packer_ks_install_files(install_arch,install_client,install_service,install_ip,publisher_host,install_vm,install_type)
   return
 end
@@ -547,8 +551,7 @@ end
 
 def configure_packer_ay_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
                                install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type)
-  (install_service,install_so) = get_packer_install_service(install_file)
-  create_packer_ay_install_files(install_client,install_service,install_ip,install_vm)
+  create_packer_ay_install_files(install_client,install_service,install_ip,install_vm,install_mac,install_type)
   return
 end
 
@@ -556,7 +559,6 @@ end
 
 def configure_packer_ps_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
                                install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type)
-  (install_service,install_os) = get_packer_install_service(install_file)
   create_packer_ps_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_type)
   return
 end

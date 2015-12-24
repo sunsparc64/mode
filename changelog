@@ -607,4 +607,8 @@
 # More fixes for ESXi support for Packer
 # 3.0.3: Wed 23 Dec 2015 10:29:20 AEDT
 # Fixes for Ubuntu including intial Ubuntu support for Packer
+# 3.0.4: Thu 24 Dec 2015 19:51:40 AEDT
+# Fixes for Ubuntu and OEL and initial OEL support for Packer
+# 3.0.5: Fri 25 Dec 2015 08:31:25 AEDT
+# Added initial SUSE support for Packer
 

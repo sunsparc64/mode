@@ -252,34 +252,48 @@ def get_install_service_from_file(install_file)
       install_arch = "i386"
     end
     service_version = service_version+"_"+install_arch
+    install_method  = "ps"
   when /vCenter-Server-Appliance|VCSA/
     service_name    = "vcsa"
     service_version = install_file.split(/-/)[3..4].join(".").gsub(/\./,"_").gsub(/_iso/,"")
+    install_method  = "image"
   when /VMvisor-Installer/
     service_name    = "vsphere"
     service_version = install_file.split(/-/)[4..5].join(".").gsub(/\./,"_").gsub(/_iso/,"")
+    install_method  = "vs"
   when /CentOS/
     service_name    = "centos"
     service_version = install_file.split(/-/)[1..2].join(".").gsub(/\./,"_").gsub(/_iso/,"")
     install_os      = service_name
+    install_method  = "ks"
   when /Fedora-Server/
     service_name    = "fedora"
     service_version = install_file.split(/-/)[-1].gsub(/\./,"_").gsub(/_iso/,"_")
     service_arch    = install_file.split(/-/)[-2].gsub(/\./,"_").gsub(/_iso/,"_")
     service_version = service_version+"_"+service_arch
+    install_method  = "ks"
   when /OracleLinux/
     service_name    = "oel"
     service_version = install_file.split(/-/)[1..2].join(".").gsub(/\./,"_").gsub(/R|U/,"")
     service_arch    = install_file.split(/-/)[-2]
     service_version = service_version+"_"+service_arch
+    install_method  = "ks"
   when /openSUSE/
     service_name    = "opensuse"
     service_version = install_file.split(/-/)[1].gsub(/\./,"_").gsub(/_iso/,"")
     service_arch    = install_file.split(/-/)[-1].gsub(/\./,"_").gsub(/_iso/,"")
     service_version = service_version+"_"+service_arch
+    install_method  = "ay"
   when /rhel/
     service_name    = "rhel"
     service_version = install_file.split(/-/)[2..3].join(".").gsub(/\./,"_").gsub(/_iso/,"")
+    install_method  = "ks"
+  when /SLES/
+    service_name    = "sles"
+    service_version = install_file.split(/-/)[1]
+    service_arch    = install_file.split(/-/)[4]
+    service_version = service_version+"_"+service_arch
+    install_method  = "ay"
   end
   install_os      = service_name
   install_service = service_name+"_"+service_version.gsub(/__/,"_")
@@ -287,7 +301,7 @@ def get_install_service_from_file(install_file)
     puts "Information:\tSetting service name to "+install_service
     puts "Information:\tSetting OS name to "+install_os
   end
-  return install_service,install_os
+  return install_service,install_os,install_method
 end
 
 # Get Install method from ISO file name

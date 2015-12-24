@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.0.4
+# Version:      3.0.5
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -180,7 +180,7 @@ $valid_os_list            = [ 'sol', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 
 $valid_linux_os_list      = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL' ]
 $valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
 $valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
-$valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay' ]
+$valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image' ]
 $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer' ]
 $valid_mode_list          = [ 'client', 'server', 'osx' ]
 $valid_vm_list            = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'gdom', 'parallels' ]
@@ -1019,8 +1019,8 @@ if option["service"]
     end
   end
 else
-  if install_type.match(/vcsa/)
-    install_service = get_install_service_from_file(install_file)
+  if install_type.match(/vcsa|packer/)
+    (install_service,install_os,install_method) = get_install_service_from_file(install_file)
   else
     install_service = ""
   end

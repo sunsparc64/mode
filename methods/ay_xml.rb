@@ -1401,7 +1401,7 @@ def output_ay_client_profile(client_name,client_ip,client_mac,output_file,servic
   add_packages          = populate_ay_add_packages()
   remove_packages       = populate_ay_remove_packages()
   patterns              = populate_ay_patterns(service_name)
-  disable_services      = populate_ay_disabled_services()
+  disabled_services     = populate_ay_disabled_services()
   disabled_http_modules = populate_ay_disabled_http_modules()
   enabled_http_modules  = populate_ay_enabled_http_modules()
   xml = Builder::XmlMarkup.new(:target => xml_output, :indent => 2)
