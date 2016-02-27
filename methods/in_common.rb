@@ -242,41 +242,53 @@ def get_install_service_from_file(install_file)
   install_service = ""
   service_name    = ""
   service_version = ""
+  if install_file.match(/amd64|x86_64/)
+    install_arch = "x86_64"
+  else
+    install_arch = "i386"
+  end
   case install_file
+  when /^9600/
+    install_arch    = "x86_64"
+    install_service = "win_2012_2_"+install_arch
+    install_method  = ""
+    install_label   = "IR3_SSS_X64FREE_EN-US_DV9"
   when /ubuntu/
     service_name    = "ubuntu"
     service_version = install_file.split(/-/)[1].gsub(/\./,"_").gsub(/_iso/,"")
-    if install_file.match(/amd64/)
-      install_arch = "x86_64"
-    else
-      install_arch = "i386"
-    end
     service_version = service_version+"_"+install_arch
     install_method  = "ps"
+    install_release = install_file.split(/-/)[1]
   when /vCenter-Server-Appliance|VCSA/
     service_name    = "vcsa"
     service_version = install_file.split(/-/)[3..4].join(".").gsub(/\./,"_").gsub(/_iso/,"")
     install_method  = "image"
+    install_release = install_file.split(/-/)[3..4].join(".").gsub(/\.iso/,"")
+    install_arch    = "x86_64"
   when /VMvisor-Installer/
     service_name    = "vsphere"
     service_version = install_file.split(/-/)[4..5].join(".").gsub(/\./,"_").gsub(/_iso/,"")
     install_method  = "vs"
+    install_release = install_file.split(/-/)[3..4].gsub(/\.x86_64\.iso/,"")
   when /CentOS/
     service_name    = "centos"
     service_version = install_file.split(/-/)[1..2].join(".").gsub(/\./,"_").gsub(/_iso/,"")
     install_os      = service_name
     install_method  = "ks"
+    install_release = install_file.split(/-/)[1]
   when /Fedora-Server/
     service_name    = "fedora"
     service_version = install_file.split(/-/)[-1].gsub(/\./,"_").gsub(/_iso/,"_")
     service_arch    = install_file.split(/-/)[-2].gsub(/\./,"_").gsub(/_iso/,"_")
     service_version = service_version+"_"+service_arch
     install_method  = "ks"
+    install_release = install_file.split(/-/)[-1].gsub(/\.iso/,"")
   when /OracleLinux/
     service_name    = "oel"
     service_version = install_file.split(/-/)[1..2].join(".").gsub(/\./,"_").gsub(/R|U/,"")
     service_arch    = install_file.split(/-/)[-2]
     service_version = service_version+"_"+service_arch
+    install_release = install_file.split(/-/)[1..2].join(".").gsub(/[A-z]/,"")
     install_method  = "ks"
   when /openSUSE/
     service_name    = "opensuse"
@@ -284,16 +296,31 @@ def get_install_service_from_file(install_file)
     service_arch    = install_file.split(/-/)[-1].gsub(/\./,"_").gsub(/_iso/,"")
     service_version = service_version+"_"+service_arch
     install_method  = "ay"
+    install_release = install_file.split(/-/)[1]
   when /rhel/
     service_name    = "rhel"
     service_version = install_file.split(/-/)[2..3].join(".").gsub(/\./,"_").gsub(/_iso/,"")
     install_method  = "ks"
+    install_release = install_file.split(/-/)[2]
   when /SLES/
     service_name    = "sles"
     service_version = install_file.split(/-/)[1]
     service_arch    = install_file.split(/-/)[4]
     service_version = service_version+"_"+service_arch
     install_method  = "ay"
+    install_release = install_file.split(/-/)[1]
+  when /sol/
+    service_name    = "sol"
+    install_release = install_file.split(/-/)[1].gsub(/_/,".")
+    if install_release.to_i > 10
+      install_method  = "ai"
+      install_arch    = "x86_64"
+    else
+      install_release = install_file.split(/-/)[1..2].join(".").gsub(/u/,"")
+      install_method  = "js"
+      install_arch    = "i386"
+    end
+    service_version = install_release+"_"+install_arch 
   end
   install_os      = service_name
   install_service = service_name+"_"+service_version.gsub(/__/,"_")
@@ -301,7 +328,7 @@ def get_install_service_from_file(install_file)
     puts "Information:\tSetting service name to "+install_service
     puts "Information:\tSetting OS name to "+install_os
   end
-  return install_service,install_os,install_method
+  return install_service,install_os,install_method,install_release,install_arch,install_label
 end
 
 # Get Install method from ISO file name
@@ -347,6 +374,12 @@ end
 def generate_mac_address()
   install_mac = (1..6).map{"%0.2X"%rand(256)}.join(":")
   return install_mac
+end
+
+# List all image services - needs code
+
+def list_image_services()
+  return
 end
 
 # List all services

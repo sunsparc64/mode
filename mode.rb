@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.0.5
+# Version:      3.0.7
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -75,6 +75,7 @@ $default_hostname         = %x["hostname"].chomp
 $default_nic              = ""
 $default_net              = "net0"
 $default_timezone         = "Australia/Victoria"
+$default_windows_timezone = "Eastern Standard Time"
 $default_terminal         = "sun"
 $default_country          = "AU"
 $local_opencsw_mirror     = "http://192.168.1.250/pub/Software/OpenCSW"
@@ -95,6 +96,8 @@ $default_environment      = "en_US.UTF-8"
 $default_keyboard         = "US"
 $default_language         = "en_US"
 $default_locale           = "en_US"
+$default_windows_locale   = "en_US"
+$default_windows_bootzise = "350"
 $default_debian_language  = "en"
 $default_ubuntu_software  = "OpenSSH server"
 $default_debian_interface = "eth0"
@@ -212,7 +215,8 @@ $os_mach = %x[uname -m].chomp
 if $os_name.match(/SunOS|Darwin/)
   $os_info = %x[uname -a].chomp
   $os_rel  = %x[uname -r].chomp
-  $os_rev  = $os_rel.split(/./)[1]
+  $os_rev  = $os_rel.split(/\./)[1]
+  $os_ver  = $os_rel.split(/\./)[0]
   if $os_rel.match(/5\.11/) and $os_name.match(/SunOS/)
     $os_update   = %x[uname -v].chomp
     $default_net = "net0"
@@ -323,9 +327,13 @@ def print_usage()
       long_switch  = switches[0].gsub(/\[/,"").gsub(/\s+/,"")
       short_switch = switches[1].gsub(/\s+/,"")
       if long_switch.gsub(/\s+/,"").length < 7
-        puts long_switch+",\t\t"+short_switch+"\t"+help_info
+        puts long_switch+",\t\t\t"+short_switch+"\t"+help_info
       else
-        puts long_switch+",\t"+short_switch+"\t"+help_info
+        if long_switch.gsub(/\s+/,"").length < 15
+          puts long_switch+",\t\t"+short_switch+"\t"+help_info
+        else
+          puts long_switch+",\t"+short_switch+"\t"+help_info
+        end
       end
     end
   end
@@ -624,6 +632,7 @@ begin
     [ "--version",        "-V", Getopt::BOOLEAN ],  # Display version information
     [ "--test",           "-w", Getopt::BOOLEAN ],  # Test mode
     [ "--rootpassword",   "-W", Getopt::REQUIRED ], # Client root password
+    [ "--locale",         "-x", Getopt::REQUIRED ], # Select language/language (e.g. en_US)
     [ "--console",        "-X", Getopt::REQUIRED ], # Select console type (e.g. text, serial, x11) (default is text)
     [ "--yes",            "-y", Getopt::BOOLEAN ],  # Answer yes to all questions (accept defaults)
     [ "--enable",         "-Z", Getopt::REQUIRED ], # Mount point
@@ -677,6 +686,14 @@ if option["action"]
   install_action = option["action"]
 else
   install_action = ""
+end
+
+# Get Locale / Language
+
+if option["locale"]
+  install_local = option["locale"]
+else
+  install_local = $default_locale
 end
 
 # Handle vm switch
@@ -977,7 +994,31 @@ if option["os"]
     print_valid_list("Warning:\tInvalid OS specified",$valid_os_list)
   end
 else
-  install_os = ""
+  if install_type.match(/vcsa|packer/)
+    (install_service,install_os,install_method,install_release,install_arch,install_label) = get_install_service_from_file(install_file)
+    option["service"] = install_service
+    option["os"]      = install_os
+    option["method"]  = install_method
+    option["release"] = install_release
+    optiont["arch"]   = install_arch
+    option["label"]   = install_label
+  else
+    install_os = ""
+  end
+end
+
+# Get Timezone
+
+if option["timezone"]
+  install_timezone = option["timezone"]
+else
+  if option["os"]
+    if option["os"].match(/win/)
+      install_timezone = $default_windows_timezone
+    else
+      install_timezone = $default_timezone
+    end
+  end
 end
 
 # Handle install service switch
@@ -1020,7 +1061,7 @@ if option["service"]
   end
 else
   if install_type.match(/vcsa|packer/)
-    (install_service,install_os,install_method) = get_install_service_from_file(install_file)
+    (install_service,install_os,install_method,install_release,install_arch,install_label) = get_install_service_from_file(install_file)
   else
     install_service = ""
   end
@@ -1788,7 +1829,7 @@ if option["action"]
           if install_type.match(/packer/)
             eval"[configure_#{install_type}_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,
                               install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,
-                              install_network,install_license,install_mirror,install_size,install_type)]"
+                              install_network,install_license,install_mirror,install_size,install_type,install_locale,install_label,install_timezone)]"
           else
             check_local_config("server")
             eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,

@@ -690,7 +690,27 @@ def get_vbox_guest_os(install_method,install_arch)
   return install_os
 end
 
-# Get VirtualBox Guest OS name
+# Get NT VirtualBox Guest OS name
+
+def get_ai_vbox_guest_os(install_arch,install_release)
+  install_os = "windows"+install_release.gsub(/r2/,"")
+  if install_arch.match(/64/)
+    install_os = install_os+"_64"
+  else
+    install_os = install_os+"_32"
+  end
+  return install_os
+end
+
+# Configure a NT Virtual Box VM
+
+def configure_nt_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  install_os = get_nt_vbox_guest_os(install_arch,install_release)
+  configure_vbox_vm(install_client,install_mac,install_os,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
+  return
+end
+
+# Get AI VirtualBox Guest OS name
 
 def get_ai_vbox_guest_os(install_arch)
   install_os = "Solaris11_64"
@@ -698,13 +718,14 @@ def get_ai_vbox_guest_os(install_arch)
 end
 
 # Configure a AI Virtual Box VM
+
 def configure_ai_vbox_vm(install_client,install_mac,install_arch,install_os,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   install_os = get_ai_vbox_guest_os(install_arch)
   configure_vbox_vm(install_client,install_mac,install_os,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   return
 end
 
-# Get VirtualBox Guest OS name
+# Get Jumpstart VirtualBox Guest OS name
 
 def get_js_vbox_guest_os(install_arch)
   install_os = "OpenSolaris_64"
@@ -719,7 +740,7 @@ def configure_js_vbox_vm(install_client,install_mac,install_arch,install_os,inst
   return
 end
 
-# Get VirtualBox Guest OS name
+# Get Kicktart VirtualBox Guest OS name
 
 def get_ks_vbox_guest_os(install_arch)
   if install_arch.match(/i386/)
@@ -776,7 +797,7 @@ def configure_ay_vbox_vm(install_client,install_mac,install_arch,install_os,inst
   return
 end
 
-# Get VirtualBox Guest OS name
+# Get OpenBSD VirtualBox Guest OS name
 
 def get_ob_vbox_guest_os(install_arch)
   install_os = "Linux_64"
@@ -791,7 +812,7 @@ def configure_ob_vbox_vm(install_client,install_mac,install_arch,install_os,inst
   return
 end
 
-# Get VirtualBox Guest OS name
+# Get NetBSD VirtualBox Guest OS name
 
 def get_nb_vbox_guest_os(install_arch)
   if install_arch.match(/i386/)
@@ -810,7 +831,7 @@ def configure_nb_vbox_vm(install_client,install_mac,install_arch,install_os,inst
   return
 end
 
-# Get VirtualBox Guest OS name
+# Get vSphere VirtualBox Guest OS name
 
 def get_vs_vbox_guest_os(install_arch)
   install_os = "Linux_64"
@@ -825,7 +846,7 @@ def configure_vs_vbox_vm(install_client,install_mac,install_arch,install_os,inst
   return
 end
 
-# Get VirtualBox Guest OS name
+# Get Other VirtualBox Guest OS name
 
 def get_other_vbox_guest_os(install_arch)
   install_os = "Other"

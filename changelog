@@ -611,4 +611,8 @@
 # Fixes for Ubuntu and OEL and initial OEL support for Packer
 # 3.0.5: Fri 25 Dec 2015 08:31:25 AEDT
 # Added initial SUSE support for Packer
+# 3.0.6: Sat 27 Feb 2016 16:19:26 AEDT
+# Moved Windows related development files from .rb to .xx so they are not imported until they are ready
+# 3.0.7: Sat 27 Feb 2016 16:34:24 AEDT
+# Fixed bug with list all services
 
