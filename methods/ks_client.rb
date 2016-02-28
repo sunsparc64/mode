@@ -504,7 +504,9 @@ def populate_ks_pkg_list(service_name)
     if service_name.match(/centos_[6,7]|fedora_[18,19,20,21,22,23]|rhel_[6,7]|oel_[6,7]|sl_[6,7]/)
       if !service_name.match(/fedora_23/)
         pkg_list.push("redhat-lsb-core")
-        pkg_list.push("augeas")
+        if !service_name.match(/rhel_6/)
+          pkg_list.push("augeas")
+        end
         pkg_list.push("tk")
       end
       pkg_list.push("ruby")
