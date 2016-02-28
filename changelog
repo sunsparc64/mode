@@ -621,3 +621,5 @@
 # Improved client listing code to show IP and MAC Address
 # 3.1.0: Sun 28 Feb 2016 17:44:03 AEDT
 # Added VM type detection for boot/stop like commands
+# 3.1.1: Sun 28 Feb 2016 20:46:39 AEDT
+# Fixed error with kickstart file creation and install server repo

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.1.0
+# Version:      3.1.1
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1322,7 +1322,7 @@ end
 
 # Get/set publisher port (Used for configuring AI server)
 
-if option["publisher"] and option["mode"] == "server" and $os_name == "SunOS"
+if option["publisher"] and option["mode"].match(/server/) and $os_name.match(/SunOS/)
   publisher_host = option["publisher"]
   if publisher_host.match(/:/)
     (publisher_host,publisher_port) = publisher_host.split(/:/) 
@@ -1336,7 +1336,16 @@ else
     publisher_host = $default_host
     publisher_port = $default_ai_port
   else
-    publisher_host = ""
+    if !option["vm"]
+      if option["action"].match(/create/)
+        install_mode = "server"
+        check_local_config(install_mode)
+      end
+    else
+      install_mode = "client"
+      check_local_config(install_mode)
+    end
+    publisher_host = $default_host
   end
 end
 

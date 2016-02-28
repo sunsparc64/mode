@@ -272,7 +272,7 @@ def populate_ks_post_list(client_arch,service_name,publisher_host,client_name,cl
   post_list.push("")
   post_list.push("# Setup sudoers")
   post_list.push("")
-  post_list.push("echo \"#{admin_user}\tALL=(ALL) NOPASSWD:ALL\" >> /etc/sudoers")
+  post_list.push("echo \"#{admin_user} ALL=(ALL) NOPASSWD:ALL\" >> /etc/sudoers")
   post_list.push("")
   resolv_conf = "/etc/resolv.conf"
   post_list.push("# Create #{resolv_conf}")
