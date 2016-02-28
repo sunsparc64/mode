@@ -105,7 +105,7 @@ end
 
 # Get client config
 
-def get_client_config(install_client,install_service,install_method,install_config)
+def get_client_config(install_client,install_service,install_method,install_type)
   if !install_service.match(/[a-z]/)
     install_service = get_install_service(install_client)
   end
@@ -115,7 +115,7 @@ def get_client_config(install_client,install_service,install_method,install_conf
   client_dir      = get_client_dir(install_client)
   config_file     = ""
   config_prefix   = client_dir+"/"+install_client
-  case install_config
+  case install_method
   when /config|cfg|ks|Kickstart/
     config_file = config_prefix+".cfg"
   when /post/
@@ -624,8 +624,10 @@ def list_clients(install_service)
         client_list.each do |client_name|
           if client_name.match(/[a-z,A-Z,0-9]/)
             client_dir = repo_version_dir+"/"+client_name
+            client_ip  = get_client_ip(client_name)
+            client_mac = get_client_mac(client_name)
             if File.directory?(client_dir)
-              puts client_name+" [ service = "+service_name+" ] "
+              puts client_name+" [ service = "+service_name+", ip = "+client_ip+", mac = "+client_mac+" ] "
             end
           end
         end
@@ -1255,12 +1257,39 @@ end
 # Get client IP
 
 def get_client_ip(client_name)
+  client_ip  = ""
   hosts_file = "/etc/hosts"
-  message    = "Getting:\tClient IP for "+client_name
-  command    = "cat #{hosts_file} |grep '#{client_name}$' |awk '{print $1}'"
-  output     = execute_command(message,command)
-  client_ip  = output.chomp
+  if File.exists?(hosts_file) or File.symlink?(hosts_file)
+    file_array = IO.readlines(hosts_file)
+    file_array.each do |line|
+      line = line.chomp
+      if line.match(/#{client_name}\s+/)
+        client_ip = line.split(/\s+/)[0]
+      end
+    end
+  end
   return client_ip
+end
+
+# Get client MAC
+
+def get_client_mac(client_name)
+  client_mac   = ""
+  found_client = 0
+  if File.exists?($dhcpd_file) or File.symlink?($dhcpd_file)
+    file_array = IO.readlines($dhcpd_file)
+    file_array.each do |line|
+      line = line.chomp
+      if line.match(/#{client_name} /)
+        found_client = 1
+      end
+      if line.match(/hardware ethernet/) and found_client == 1
+        client_mac = line.split(/\s+/)[3].gsub(/\;/,"")
+        return client_mac
+      end
+    end
+  end
+  return client_mac
 end
 
 # Add hosts entry

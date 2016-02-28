@@ -617,3 +617,5 @@
 # Fixed bug with list all services
 # 3.0.8: Sun 28 Feb 2016 12:34:41 AEDT
 # More listing bug fixes
+# 3.0.9: Sun 28 Feb 2016 14:45:30 AEDT
+# Improved client listing code to show IP and MAC Address

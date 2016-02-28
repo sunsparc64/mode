@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.0.8
+# Version:      3.0.9
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -598,7 +598,6 @@ begin
     [ "--vm",             "-E", Getopt::REQUIRED ], # VM type
     [ "--file",           "-f", Getopt::REQUIRED ], # File, eg ISO
     [ "--clone",          "-f", Getopt::REQUIRED ], # Clone name
-    [ "--config",         "-g", Getopt::REQUIRED ], # Install config (e.g. kickstart, or preseed file) - Used with show, etc
     [ "--diskmode",       "-G", Getopt::REQUIRED ], # Disk mode (e.g. thin)
     [ "--help",           "-h", Getopt::BOOLEAN ],  # Display usage information
     [ "--info",           "-H", Getopt::REQUIRED ], # Display usage information
@@ -1691,27 +1690,17 @@ else
   $do_ssh_keys = 0
 end
 
-# If given --config
-
-if option["config"]
-  install_config = option["config"]
-else
-  install_config = ""
-end
-
 # Handle action switch
 
 if option["action"]
   install_action = option["action"].downcase
   case install_action
-  when /display|view|show/
-    if install_client.match(/[a-z]/)
-      if install_config.match(/[a-z]/)
-        get_client_config(install_client,install_service,install_method,install_config)
+  when /display|view|show|prop/
+    if install_client.match(/[a-z,A-Z]/)
+      if install_vm.match(/[a-z]/)
+        eval"[show_#{install_vm}_vm_config(install_client)]"
       else
-        if install_vm.match(/[a-z]/)
-          eval"[show_#{install_vm}_vm_config(install_client)]"
-        end
+        get_client_config(install_client,install_service,install_method,install_type)
       end
     else
       puts "Warning:\tClient name not specified"
@@ -1720,7 +1709,7 @@ if option["action"]
     print_usage()
   when /version/
     print_version()
-  when /info/
+  when /info|usage|help/
     print_examples(install_method,install_type,install_vm)
   when /list/
     if install_type.match(/packer/)
