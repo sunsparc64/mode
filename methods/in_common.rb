@@ -1561,7 +1561,7 @@ def execute_command(message,command)
   output  = ""
   execute = 0
   if $verbose_mode == 1
-    if message.match(/[a-z,A-Z|0-9]/)
+    if message.match(/[a-z,A-Z,0-9]/)
       puts message
     end
   end
