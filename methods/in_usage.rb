@@ -114,7 +114,7 @@ end
 def print_examples(install_method,install_type,install_vm)
   puts
   examples = install_method+install_type+install_vm
-  if !examples.match(/[A-z]/)
+  if !examples.match(/[a-z,A-Z]/)
     examples = "all"
   end
   if examples.match(/iso|all/)

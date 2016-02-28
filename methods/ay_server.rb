@@ -12,7 +12,7 @@ end
 # Configure AutoYast server
 
 def configure_ay_server(client_arch,publisher_host,publisher_port,service_name,iso_file)
-  if service_name.match(/[A-z]/)
+  if service_name.match(/[a-z,A-Z]/)
     if service_name.downcase.match(/suse/)
       search_string = "SLES"
     end

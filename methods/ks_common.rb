@@ -23,7 +23,7 @@ def build_ks_alt_rpm_list(service_name,client_arch)
   base_url = "http://yum.puppetlabs.com/el/5/"
   dep_url  = base_url+"/dependencies/"+client_arch
   prod_url = base_url+"/products/"+client_arch
-  if service_name.match(/[A-z]_[5,6]/)
+  if service_name.match(/[a-z,A-Z]_[5,6]/)
     rpm_suffix    = "el5."+client_arch+".rpm"
     noarch_suffix = "el5.noarch.rpm"
     rpm_list.push("#{dep_url}/#{client_arch}/ruby-1.8.7.374-2.#{rpm_suffix}")

@@ -356,7 +356,7 @@ end
 
 def configure_lxc(client_name,client_ip,client_mac,client_arch,client_os,client_rel,publisher_host,image_file,service_name)
   check_lxc_doesnt_exist(client_name)
-  if !service_name.match(/[A-z]/) and !image_file.match(/[A-z]/)
+  if !service_name.match(/[a-z,A-Z]/) and !image_file.match(/[a-z,A-Z]/)
     puts "Warning:\tImage file or Service name not specified"
     puts "Warning:\tIf this is the first time you have run this command it may take a while"
     puts "Information:\tCreating standard container"
@@ -370,10 +370,10 @@ def configure_lxc(client_name,client_ip,client_mac,client_arch,client_os,client_
       create_centos_lxc_config(client_name,client_ip,client_mac)
     end
   else
-    if service_name.match(/[A-z]/)
+    if service_name.match(/[a-z,A-Z]/)
       image_file = $lxc_image_dir+"/"+service_name.gsub(/([0-9])_([0-9])/,'\1.\2').gsub(/_/,"-").gsub(/x86.64/,"x86_64")+".tar.gz"
     end
-    if image_file.match(/[A-z]/)
+    if image_file.match(/[a-z,A-Z]/)
       if !File.exists?(image_file)
         puts "Warning:\tImage file "+image_file+" does not exist"
         exit

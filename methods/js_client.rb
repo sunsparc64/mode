@@ -82,7 +82,7 @@ def list_js_clients()
       if File.directory?(clients_dir)
         client_list = Dir.entries(clients_dir)
         client_list.each do |client_name|
-          if client_name.match(/[A-z]/)
+          if client_name.match(/[a-z,A-Z]/)
             puts client_name+" service = "+service_name
           end
         end
@@ -200,7 +200,7 @@ end
 # Unconfigure client
 
 def unconfigure_js_client(client_name,client_mac,service_name)
-  if service_name.match(/[A-z]/)
+  if service_name.match(/[a-z,A-Z]/)
     repo_version_dir=$repo_base_dir+service_name
     if File.directory(repo_version_dir)
       remove_js_client(client_name,repo_version_dir,service_name)
@@ -245,7 +245,7 @@ def configure_js_client(install_client,install_arch,install_mac,install_ip,insta
     export_dir  = Pathname.new(install_file)
     export_dir  = export_dir.dirname.to_s
     add_apache_alias(export_dir)
-    if !service_name.match(/[A-z]/)
+    if !service_name.match(/[a-z,A-Z]/)
       install_service = Pathname.new(install_file)
       install_service = install_service.basename.to_s.gsub(/\.flar/,"")
     end

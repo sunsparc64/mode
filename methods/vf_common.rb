@@ -259,7 +259,7 @@ def export_fusion_ova(install_client,install_file)
   exists = check_fusion_vm_exists(install_client)
   if exists == "yes"
     stop_vbox_vm(install_client)
-    if !install_file.match(/[A-z]|[0-9]/)
+    if !install_file.match(/[0-9,a-z,A-Z]/)
       install_file = "/tmp/"+install_client+".ova"
       puts "Warning:\tNo ouput file given"
       puts "Information:\tExporting VM "+install_client+" to "+install_file
@@ -293,7 +293,7 @@ def import_fusion_ova(install_client,install_mac,install_ip,install_file)
       install_file = $iso_base_dir+"/"+install_file
     end
     if File.exist?(install_file)
-      if install_client.match(/[A-z]|[0-9]/)
+      if install_client.match(/[0-9,a-z,A-Z]/)
         if !File.directory?(fusion_vm_dir)
           Dir.mkdir(fusion_vm_dir)
         end
@@ -304,7 +304,7 @@ def import_fusion_ova(install_client,install_mac,install_ip,install_file)
         install_client = %x["#{$ovftool_bin}" "#{install_file}" |grep Name |tail -1 |cut -f2 -d:].chomp
         install_client = install_client.gsub(/\s+/,"")
         fusion_vmx_file = fusion_vm_dir+"/"+install_client+".vmx"
-        if !install_client.match(/[A-z]|[0-9]/)
+        if !install_client.match(/[0-9,a-z,A-Z]/)
           puts "Warning:\tCould not determine VM name for Virtual Appliance "+install_file
           exit
         else
@@ -771,7 +771,7 @@ def list_fusion_vms(search_string)
       install_mac    = get_fusion_vm_mac(install_client)
       install_os     = get_fusion_vm_os(install_client)
       output = install_client+" os="+install_os+" mac="+install_mac
-      if search_string.match(/[A-z]/)
+      if search_string.match(/[0-9,a-z,A-Z]/)
         if output.match(/#{search_string}/)
           puts output
         end
@@ -1230,7 +1230,7 @@ def populate_fusion_vm_vmx_info(install_client,install_mac,install_os,install_me
     vmx_info.push("numa.autosize.cookie,10001")
     vmx_info.push("migrate.hostlog,#{install_client}-#{install_mac}.hlog")
   end
-  if install_share.match(/[A-z]/)
+  if install_share.match(/[a-z,A-Z]/)
     vmx_info.push("sharedFolder0.present,TRUE")
     vmx_info.push("sharedFolder0.enabled,TRUE")
     vmx_info.push("sharedFolder0.readAccess,TRUE")

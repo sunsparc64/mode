@@ -15,7 +15,7 @@ def unconfigure_ai_server(service_name)
     if !service_name.match(/i386|sparc/)
       ["i386","sparc"].each do |sys_arch|
         service_test=%x[installadm list |grep #{service_name} |grep #{sys_arch}]
-        if service_test.match(/[A-z|0-9]/)
+        if service_test.match(/[a-z,A-Z,0-9]/)
           message = "Information:\tDeleting service "+service_name+"_"+sys_arch+" and all clients under it"
           command = "installadm delete-service "+service_name+"_"+sys_arch+" -r -y"
           execute_command(message,command)
@@ -23,7 +23,7 @@ def unconfigure_ai_server(service_name)
       end
     else
       service_test=%x[installadm list |grep #{service_name}]
-      if service_test.match(/[A-z|0-9]/)
+      if service_test.match(/[a-z,A-Z,0-9]/)
         message = "Information:\tDeleting service "+service_name+" and all clients under it"
         command = "installadm delete-service "+service_name+" -r -y"
         execute_command(message,command)
@@ -188,7 +188,7 @@ def check_repo_version_dir(repo_version_dir)
   dir_list.each do |dir_name|
     check_dir = check_dir+"/"+dir_name
     check_dir = check_dir.gsub(/\/\//,"/")
-    if dir_name.match(/[A-z|0-9]/)
+    if dir_name.match(/[a-z,A-Z,0-9]/)
       check_fs_exists(check_dir)
     end
   end
@@ -272,15 +272,15 @@ def configure_ai_server(client_arch,publisher_host,publisher_port,service_name,f
   # Get a list of installed services
   services_list = get_ai_install_services()
   # If given a service name check the service doesn't already exist
-  if service_name.match(/[A-z]/)
+  if service_name.match(/[a-z,A-Z]/)
     if services_list.match(/#{service_name}/)
       puts "Warning:\tService "+service_name+" already exists"
       exit
     end
   end
   # Check we have ISO to get repository data from
-  if !file_name.match(/[A-z|0-9]/)
-    if service_name.match(/[A-z]/)
+  if !file_name.match(/[a-z,A-Z,0-9]/)
+    if service_name.match(/[a-z,A-Z]/)
       search_string = service_name.gsub(/i386|sparc/,"")
       search_string = search_string.gsub(/sol_/,"sol-")
       search_string = search_string.gsub(/_beta/,"-beta")
@@ -313,7 +313,7 @@ def configure_ai_server(client_arch,publisher_host,publisher_port,service_name,f
     else
       iso_repo_version = "sol_"+iso_repo_version
     end
-    if !service_name.match(/[A-z|0-9]/)
+    if !service_name.match(/[a-z,A-Z,0-9]/)
       service_base_name = iso_repo_version
     else
       service_base_name = get_service_base_name(service_name)

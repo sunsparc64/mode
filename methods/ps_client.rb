@@ -29,7 +29,7 @@ def output_ps_header(client_name,output_file)
   tmp_file = "/tmp/preseed_"+client_name
   file = File.open(tmp_file, 'w')
   $q_order.each do |key|
-    if $q_struct[key].parameter.match(/[A-z]/)
+    if $q_struct[key].parameter.match(/[a-z,A-Z]/)
       output = "d-i "+$q_struct[key].parameter+" "+$q_struct[key].type+" "+$q_struct[key].value+"\n"
       file.write(output)
     end

@@ -57,7 +57,7 @@ def create_ai_mog_file(p_struct,pkg_name,spool_dir)
   text.push("set name=pkg.summary value=\"#{pkg_name} #{pkg_version}\"")
   text.push("set name=variant.arch value=#{pkg_arch}")
   text.push("set name=info.classification value=\"org.opensolaris.category.2008:Applications/System Utilities\"")
-  if pkg_depend.match(/[A-z]/)
+  if pkg_depend.match(/[a-z,A-Z]/)
     if pkg_depend.match(/,/)
       depend_list=pkg_depend.split(/,/)
     else

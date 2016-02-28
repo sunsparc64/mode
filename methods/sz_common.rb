@@ -332,7 +332,7 @@ def create_zone(client_name,client_ip,zone_dir,client_rel,image_file,service_nam
   if output.match(/VMware/)
     virtual = 1
   end
-  if service_name.match(/[A-z]/)
+  if service_name.match(/[a-z,A-Z]/)
     image_info    = service_name.split(/_/)
     image_version = image_info[1]+"u"+image_info[2]
     image_arch    = image_info[3]
@@ -353,7 +353,7 @@ def create_zone(client_name,client_ip,zone_dir,client_rel,image_file,service_nam
     end
     create_branded_zone(image_file,client_ip,zone_nic,client_name,client_rel)
   else
-    if !image_file.match(/[A-z]/)
+    if !image_file.match(/[a-z,A-Z]/)
       zone_file = create_zone_config(client_name,client_ip)
       install_zone(client_name,zone_file)
       standard_zone_post_install(client_name,client_rel)
@@ -443,10 +443,10 @@ end
 # Configure zone
 
 def configure_zone(client_name,client_ip,client_mac,client_arch,client_os,client_rel,publisher_host,image_file,service_name)
-  if client_arch.match(/[A-z]/)
+  if client_arch.match(/[a-z,A-Z]/)
     check_same_arch(client_arch)
   end
-  if !image_file.match(/[A-z]/) and !service_name.match(/[A-z]/)
+  if !image_file.match(/[a-z,A-Z]/) and !service_name.match(/[a-z,A-Z]/)
     if !client_rel.match(/[0-9]/)
       client_rel = $os_rel
     end
@@ -457,7 +457,7 @@ def configure_zone(client_name,client_ip,client_mac,client_arch,client_os,client
   else
     populate_js_client_profile_questions(client_ip,client_name)
     process_questions(service_name)
-    if image_file.match(/[A-z]/)
+    if image_file.match(/[a-z,A-Z]/)
       (client_rel,client_arch,service_name) = get_zone_image_info(image_file)
       check_same_arch(client_arch)
     end

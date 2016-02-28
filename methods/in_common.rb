@@ -47,7 +47,7 @@ end
 
 def attach_dmg(ovftool_dmg)
   tmp_dir = %x[sudo sh -c 'echo Y | hdiutil attach "#{pkg_file}" |tail -1 |cut -f3-'].chomp
-  if !tmp_dir.match(/[A-z]/)
+  if !tmp_dir.match(/[a-z,A-Z]/)
     tmp_dir = %x[ls -rt /Volumes |grep "#{app_name}" |tail -1].chomp
     tmp_dir = "/Volumes/"+tmp_dir
   end
@@ -288,7 +288,7 @@ def get_install_service_from_file(install_file)
     service_version = install_file.split(/-/)[1..2].join(".").gsub(/\./,"_").gsub(/R|U/,"")
     service_arch    = install_file.split(/-/)[-2]
     service_version = service_version+"_"+service_arch
-    install_release = install_file.split(/-/)[1..2].join(".").gsub(/[A-z]/,"")
+    install_release = install_file.split(/-/)[1..2].join(".").gsub(/[a-z,A-Z]/,"")
     install_method  = "ks"
   when /openSUSE/
     service_name    = "opensuse"
@@ -357,8 +357,8 @@ end
 # Configure a service
 
 def configure_server(install_method,install_arch,publisher_host,publisher_port,install_service,install_file)
-  if !install_method.match(/[A-z]/)
-    if !install_file.match(/[A-z]/)
+  if !install_method.match(/[a-z,A-Z]/)
+    if !install_file.match(/[a-z,A-Z]/)
       puts "Warning:\tCould not determine service name"
       exit
     else
@@ -401,7 +401,7 @@ def check_ip(install_ip)
     invalid_ip = 1
   end
   ip_fields.each do |ip_field|
-    if ip_field.match(/[A-z]/) or ip_field.to_i > 255
+    if ip_field.match(/[a-z,A-Z]/) or ip_field.to_i > 255
       invalid_ip = 1
     end
   end
@@ -417,7 +417,7 @@ end
 def check_hostname(install_client)
   install_client = install_client.split()
   install_client.each do |char|
-    if !char.match(/[A-z]||[0-9]|-/)
+    if !char.match(/[a-z,A-Z,0-9]|-/)
       puts "Invalid hostname: "+client_name.join()
       exit
     end
@@ -490,7 +490,7 @@ def get_iso_list(install_os,install_method,install_release,install_arch)
       install_release = "-"+install_release
     end
   end
-  if install_arch.match(/[A-z]/)
+  if install_arch.match(/[a-z,A-Z]/)
     if install_os.match(/sol/)
       install_arch = install_arch.gsub(/i386|x86_64/,"x86")
     end
@@ -501,7 +501,7 @@ def get_iso_list(install_os,install_method,install_release,install_arch)
     end
   end
   [ install_os, install_method, install_release, install_arch ].each do |search_string|
-    if search_string.match(/[A-z]|[0-9]/)
+    if search_string.match(/[a-z,A-Z,0-9]/)
       iso_list = iso_list.grep(/#{search_string}/)
     end
   end
@@ -599,33 +599,35 @@ def delete_client_dir(install_client)
   return
 end
 
-# List ks clients
+# List clients for an install service
 
-def list_clients(service_type)
+def list_clients(install_service)
   puts
-  puts "Available "+service_type+" Clients:"
+  puts "Available "+install_service+" Clients:"
   puts
-  if service_type.match(/Kickstart/)
+  case install_service.downcase
+  when /kickstart/
     search_string = "centos|redhat|rhel|scientific|fedora"
-  end
-  if service_type.match(/Preseed/)
+  when /preseed/
     search_string = "debian|ubuntu"
-  end
-  if service_type.match(/ESX/)
+  when /esx/
     search_string = "vmware"
-  end
-  if service_type.match(/AutoYast/)
+  when /autoyast/
     search_string = "suse|sles"
   end
-  service_list = Dir.entries($repo_base_dir)
+  service_list = Dir.entries($client_base_dir)
   service_list.each do |service_name|
-    if service_name.match(search_string)
+    if service_name.match(/#{search_string}|#{install_service}/) and service_name.match(/[a-z,A-Z]/)
       repo_version_dir = $client_base_dir+"/"+service_name
-      client_list      = Dir.entries(repo_version_dir)
-      client_list.each do |client_dir|
-        if client_dir.match(/[A-z]|[0-9]/)
-          client_name = File.basename(client_dir)
-          puts client_name+" [ service = "+service_name+" ] "
+      if File.directory?(repo_version_dir) or File.symlink?(repo_version_dir)
+        client_list      = Dir.entries(repo_version_dir)
+        client_list.each do |client_name|
+          if client_name.match(/[a-z,A-Z,0-9]/)
+            client_dir = repo_version_dir+"/"+client_name
+            if File.directory?(client_dir)
+              puts client_name+" [ service = "+service_name+" ] "
+            end
+          end
         end
       end
     end
@@ -863,7 +865,7 @@ def get_linux_version_info(iso_file_name)
             iso_version = iso_version.gsub(/server/,"")
           else
             iso_version = iso_info[1..2].join(".")
-            iso_version = iso_version.gsub(/[A-z]/,"")
+            iso_version = iso_version.gsub(/[a-z,A-Z]/,"")
           end
           iso_version = iso_version.gsub(/^\./,"")
         else
@@ -1360,7 +1362,7 @@ def add_dhcp_client(client_name,install_mac,client_ip,client_arch,service_name)
     file.write("host #{client_name} {\n")
     file.write("  fixed-address #{client_ip};\n")
     file.write("  hardware ethernet #{install_mac};\n")
-    if service_name.match(/[A-z]/)
+    if service_name.match(/[a-z,A-Z]/)
       file.write("  filename \"#{tftp_pxe_file}\";\n")
     end
     file.write("}\n")
@@ -1457,7 +1459,7 @@ end
 def check_dir_exists(dir_name)
   output  = ""
   if !File.directory?(dir_name) and !File.symlink?(dir_name)
-    if dir_name.match(/[A-z]/)
+    if dir_name.match(/[a-z,A-Z]/)
       message = "Information:\tCreating: "+dir_name
       command = "mkdir -p '#{dir_name}'"
       output  = execute_command(message,command)
@@ -1559,7 +1561,7 @@ def execute_command(message,command)
   output  = ""
   execute = 0
   if $verbose_mode == 1
-    if message.match(/[A-z|0-9]/)
+    if message.match(/[a-z,A-Z|0-9]/)
       puts message
     end
   end
@@ -1780,7 +1782,7 @@ def check_iso_base_dir(search_string)
   end
   check_fs_exists($iso_base_dir)
   message  = "Getting:\t"+$iso_base_dir+" contents"
-  if search_string.match(/[A-z]/)
+  if search_string.match(/[a-z,A-Z]/)
     command  = "ls #{$iso_base_dir}/*.iso |egrep \"#{search_string}\" |grep -v '2.iso' |grep -v 'supp-server'"
   else
     command  = "ls #{$iso_base_dir}/*.iso |grep -v '2.iso' |grep -v 'supp-server'"
@@ -1859,7 +1861,7 @@ def check_install_ip(install_ip)
     exit
   end
   ips.each do |ip|
-    if ip =~ /[A-z]/ or ip.length > 3 or ip.to_i > 254
+    if ip =~ /[a-z,A-Z]/ or ip.length > 3 or ip.to_i > 254
       puts "Warning:\tInvalid IP Address"
       exit
     end
@@ -2017,7 +2019,7 @@ def mount_iso(iso_file)
   message = "Checking:\tExisting mounts"
   command = "df |awk '{print $1}' |grep '^#{$iso_mount_dir}$'"
   output  = execute_command(message,command)
-  if output.match(/[A-z]/)
+  if output.match(/[a-z,A-Z]/)
     message = "Information:\tUnmounting: "+$iso_mount_dir
     command = "umount "+$iso_mount_dir
     output  = execute_command(message,command)

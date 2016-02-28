@@ -615,4 +615,5 @@
 # Moved Windows related development files from .rb to .xx so they are not imported until they are ready
 # 3.0.7: Sat 27 Feb 2016 16:34:24 AEDT
 # Fixed bug with list all services
-
+# 3.0.8: Sun 28 Feb 2016 12:34:41 AEDT
+# More listing bug fixes

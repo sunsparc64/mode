@@ -3,7 +3,7 @@
 # Configure BSD server
 
 def configure_xb_server(client_arch,publisher_host,publisher_port,service_name,iso_file)
-  if service_name.match(/[A-z]/)
+  if service_name.match(/[a-z,A-Z]/)
     case service_name
     when /openbsd/
       search_string = "install"
@@ -75,7 +75,7 @@ end
 def configure_other_server(client_arch,publisher_host,publisher_port,service_name,iso_file,search_string)
   iso_list = []
   check_dhcpd_config(publisher_host)
-  if iso_file.match(/[A-z]/)
+  if iso_file.match(/[a-z,A-Z]/)
     if File.exist?(iso_file)
       if !iso_file.match(/install|FreeBSD|coreos/)
         puts "Warning:\tISO "+iso_file+" does not appear to be a valid distribution"
@@ -101,8 +101,8 @@ def configure_other_server(client_arch,publisher_host,publisher_port,service_nam
       configure_xb_pxe_boot(iso_arch,iso_version,service_name,pxe_boot_dir,repo_version_dir)
     end
   else
-    if service_name.match(/[A-z]/)
-      if !client_arch.match(/[A-z]/)
+    if service_name.match(/[a-z,A-Z]/)
+      if !client_arch.match(/[a-z,A-Z]/)
         iso_info    = service_name.split(/_/)
         client_arch = iso_info[-1]
       end

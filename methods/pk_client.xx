@@ -21,7 +21,7 @@ end
 
 def list_packer_clients(install_vm)
   packer_dir = $client_base_dir+"/packer"
-  if !install_vm.match(/[A-z]/)
+  if !install_vm.match(/[a-z,A-Z]/)
     vm_types = [ 'fusion', 'vbox' ]
   else
     vm_types = []
@@ -40,7 +40,7 @@ def list_packer_clients(install_vm)
       puts
       vm_list = Dir.entries(vm_dir)
       vm_list.each do |vm_name|
-        if vm_name.match(/[A-z]/)
+        if vm_name.match(/[a-z,A-Z]/)
           json_file = vm_dir+"/"+vm_name+"/"+vm_name+".json"
           if File.exist?(json_file)
             json  = File.readlines(json_file)
@@ -182,7 +182,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   check_dir_exists(client_dir)
 	install_guest = install_guest.join
   if install_vm.match(/vbox/)
-    if install_mac.match(/[0-9]|[A-z]/)
+    if install_mac.match(/[0-9,a-z,A-Z]/)
       if $default_vm_network.match(/hostonly|bridged/)
         if install_service.match(/win|nt/)
           json_data = {
@@ -322,7 +322,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
       }
     end
   else
-    if install_mac.match(/[0-9]|[A-z]/)
+    if install_mac.match(/[0-9,a-z,A-Z]/)
       json_data = {
         :variables => {
           :hostname => install_client
@@ -460,7 +460,7 @@ end
 
 def configure_packer_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
                             install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_size,install_type,install_locale,install_label)
-  if !$default_host.match(/[0-9]|[A-z]/)
+  if !$default_host.match(/[0-9,a-z,A-Z]/)
     $default_host = get_default_host()
   end
   uid = %x[id -u].chomp

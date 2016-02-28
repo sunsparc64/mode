@@ -51,7 +51,7 @@ def handle_pkg(p_struct,pkg_name,build_type,pkg_repo_dir)
   depend_list     = []
   pkg_version     = p_struct[pkg_name].version
   temp_pkg_name = p_struct[pkg_name].depend
-  if tempt_pkg_name.match(/[A-z]/)
+  if tempt_pkg_name.match(/[a-z,A-Z]/)
     if temp_pkg_name.match(/,/)
       depend_list = temp_pkg_name.split(/,/)
     else
@@ -99,7 +99,7 @@ end
 # Get the alternate repository name
 
 def check_alt_service_name(service_name)
-  if !service_name.match(/[A-z]/)
+  if !service_name.match(/[a-z,A-Z]/)
     client_arch       = %x[uname -p]
     client_arch       = client_arch.chomp()
     service_name      = get_service_name(client_arch)

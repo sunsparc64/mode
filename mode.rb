@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.0.7
+# Version:      3.0.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1741,23 +1741,27 @@ if option["action"]
       else
         list_os_isos(install_os)
       end
-    else
-      if install_mode.match(/client/)
-        list_clients(install_service)
+      exit
+    end
+    if install_mode.match(/client/)
+      list_clients(install_service)
+      exit
+    end
+    if install_method.match(/[A-z]/) and !install_vm.match(/[A-z]/)
+      eval"[list_#{install_method}_clients()]"
+      exit
+    end
+    if install_type.match(/ova/)
+      list_ovas()
+      exit
+    end
+    if install_vm.match(/[A-z]/)
+      if install_type.match(/snapshot/)
+        list_vm_snapshots(install_vm,install_os,install_method,install_client)
+      else
+        list_vm(install_vm,install_os,install_method)
       end
-      if install_method.match(/[A-z]/) and !install_vm.match(/[A-z]/)
-        eval"[list_#{install_method}_clients()]"
-      end
-      if install_type.match(/ova/)
-        list_ovas()
-      end
-      if install_vm.match(/[A-z]/)
-        if install_type.match(/snapshot/)
-          list_vm_snapshots(install_vm,install_os,install_method,install_client)
-        else
-          list_vm(install_vm,install_os,install_method)
-        end
-      end
+      exit
     end
   when /delete|remove/
     if install_client.match(/[A-z]|[0-9]/)

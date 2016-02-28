@@ -12,7 +12,7 @@ def list_ai_clients()
   service_name = ""
   client_name  = ""
   client_info.each do |line|
-    if line.match(/^[A-z]/)
+    if line.match(/^[a-z,A-Z]/)
       service_name=line
     else
       client_name = line
@@ -37,7 +37,7 @@ end
 
 def check_valid_uid(answer)
   correct = 1
-  if answer.match(/[A-z]/)
+  if answer.match(/[a-z,A-Z]/)
     correct = 0
   else
     if Integer(answer) < 100
@@ -52,7 +52,7 @@ end
 
 def check_valid_gid(answer)
   correct = 1
-  if answer.match(/[A-z]/)
+  if answer.match(/[a-z,A-Z]/)
     correct = 0
   else
     if Integer(answer) < 10
@@ -106,7 +106,7 @@ def import_ai_manifest(output_file,service_name)
     message = "Information:\tValidating service configuration "+output_file
     command = "AIM_MANIFEST=#{output_file} ; export AIM_MANIFEST ; aimanifest validate"
     output  = execute_command(message,command)
-    if output.match(/[A-z|0-9]/)
+    if output.match(/[a-z,A-Z,0-9]/)
       puts "AI manifest file "+output_file+" does not contain a valid XML manifest"
       puts output
     else
@@ -273,15 +273,15 @@ end
 # Unconfigure  AI client
 
 def unconfigure_ai_client(client_name,client_mac,service_name)
-  if !client_mac.match(/[A-z|0-9]/) or !service_name.match(/[A-z|0-9]/)
+  if !client_mac.match(/[a-z,A-Z,0-9]/) or !service_name.match(/[a-z,A-Z,0-9]/)
     repo_list         = %x[installadm list -p |grep -v '^-' |grep -v '^Service']
     temp_client_name  = ""
     temp_client_mac   = ""
     temp_service_name = ""
     repo_list.each do |line|
       line = line.chomp
-      if line.match(/[A-z|0-9]/)
-        if line.match(/^[A-z|0-9]/)
+      if line.match(/[a-z,A-Z,0-9]/)
+        if line.match(/^[a-z,A-Z,0-9]/)
           line = line.gsub(/\s+/,"")
           temp_service_name = line
         else
@@ -289,10 +289,10 @@ def unconfigure_ai_client(client_name,client_mac,service_name)
           if line.match(/mac=/)
             (temp_client_name,temp_client_mac) = line.split(/mac=/)
             if temp_client_name.match(/^#{client_name}/)
-              if !service_name.match(/[A-z|0-9]/)
+              if !service_name.match(/[a-z,A-Z,0-9]/)
                 service_name = temp_service_name
               end
-              if !client_mac.match(/[A-z|0-9]/)
+              if !client_mac.match(/[a-z,A-Z,0-9]/)
                 client_mac = temp_client_mac
               end
             end
@@ -301,7 +301,7 @@ def unconfigure_ai_client(client_name,client_mac,service_name)
       end
     end
   end
-  if client_name.match(/[A-z]/) and service_name.match(/[A-z]/) and client_mac.match(/[A-z]/)
+  if client_name.match(/[a-z,A-Z]/) and service_name.match(/[a-z,A-Z]/) and client_mac.match(/[a-z,A-Z]/)
     message = "Information:\tDeleting client profile "+client_name+" from "+service_name
     command = "installadm delete-profile -p #{client_name} -n #{service_name}"
     execute_command(message,command)

@@ -193,7 +193,7 @@ end
 # Configure Kickstart server
 
 def configure_ks_server(client_arch,publisher_host,publisher_port,service_name,iso_file)
-  if service_name.match(/[A-z]/)
+  if service_name.match(/[a-z,A-Z]/)
     if service_name.downcase.match(/centos/)
       search_string = "CentOS"
     end
@@ -299,7 +299,7 @@ def configure_linux_server(client_arch,publisher_host,publisher_port,service_nam
   iso_list = []
   check_fs_exists($client_base_dir)
   check_dhcpd_config(publisher_host)
-  if iso_file.match(/[A-z]/)
+  if iso_file.match(/[a-z,A-Z]/)
     if File.exist?(iso_file)
       if !iso_file.match(/CentOS|rhel|Fedora|SL|OracleLinux|ubuntu/)
         puts "Warning:\tISO "+iso_file+" does not appear to be a valid Linux distribution"
@@ -339,8 +339,8 @@ def configure_linux_server(client_arch,publisher_host,publisher_port,service_nam
       end
     end
   else
-    if service_name.match(/[A-z]/)
-      if !client_arch.match(/[A-z]/)
+    if service_name.match(/[a-z,A-Z]/)
+      if !client_arch.match(/[a-z,A-Z]/)
         iso_info    = service_name.split(/_/)
         client_arch = iso_info[-1]
       end

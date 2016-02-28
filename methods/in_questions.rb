@@ -25,7 +25,7 @@ def process_questions(service_name)
         end
         if answer != ""
           if answer != $q_struct[key].value
-            if $q_struct[key].valid.match(/[A-z|0-9]/)
+            if $q_struct[key].valid.match(/[a-z,A-Z,0-9]/)
               if $q_struct[key].valid.match(/#{answer}/)
                 correct = evaluate_answer(key,answer)
                 if correct == 1

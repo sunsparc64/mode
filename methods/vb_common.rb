@@ -33,7 +33,7 @@ end
 # Restore VirtualBox VM snapshot
 
 def restore_vbox_vm_snapshot(install_client,install_clone)
-  if install_clone.match(/[A-z]/)
+  if install_clone.match(/[a-z,A-Z]/)
     message = "Information:\tRestoring snapshot "+install_clone+" for "+install_client 
     command = "VBoxManage snapshot '#{install_client}' restore '#{install_clone}'"
   else
@@ -248,7 +248,7 @@ def clone_vbox_vm(install_client,new_name,install_mac,client_ip)
   if client_ip.match(/[0-9]/)
     add_hosts_entry(new_name,client_ip)
   end
-  if install_mac.match(/[0-9]|[A-z]/)
+  if install_mac.match(/[0-9,a-z,A-Z]/)
     change_vbox_vm_mac(new_name,install_mac)
   end
   return
@@ -260,7 +260,7 @@ def export_vbox_ova(install_client,ova_file)
   exists = check_vbox_vm_exists(install_client)
   if exists == "yes"
     stop_vbox_vm(install_client)
-    if !ova_file.match(/[A-z]|[0-9]/)
+    if !ova_file.match(/[0-9,a-z,A-Z]/)
       ova_file = "/tmp/"+install_client+".ova"
       puts "Warning:\tNo ouput file given"
       puts "Information:\tExporting VirtualBox VM "+install_client+" to "+ova_file
@@ -291,14 +291,14 @@ def import_vbox_ova(install_client,install_mac,client_ip,ova_file)
     ova_file = $iso_base_dir+"/"+ova_file
   end
   if File.exist?(ova_file)
-    if install_client.match(/[A-z]|[0-9]/)
+    if install_client.match(/[0-9,a-z,A-Z]/)
       install_dir  = get_vbox_vm_dir(install_client)
       message = "Information:\tImporting VirtualBox VM "+install_client+" from "+ova_file
       command = "VBoxManage import \"#{ova_file}\" --vsys 0 --vmname \"#{install_client}\" --unit 20 --disk \"#{install_dir}\""
       execute_command(message,command)
     else
       install_client = %x[VBoxManage import -n #{ova_file} |grep "Suggested VM name"].split(/\n/)[-1]
-      if !install_client.match(/[A-z]|[0-9]/)
+      if !install_client.match(/[0-9,a-z,A-Z]/)
         puts "Warning:\tCould not determine VM name for Virtual Appliance "+ova_file
         exit
       else
@@ -324,7 +324,7 @@ def import_vbox_ova(install_client,install_mac,client_ip,ova_file)
     vbox_nic_name = check_vbox_hostonly_network(if_name)
     add_nonbridged_network_to_vbox_vm(install_client,vbox_nic_name)
   end
-  if !install_mac.match(/[0-9]|[A-z]/)
+  if !install_mac.match(/[0-9,a-z,A-Z]/)
     install_mac = get_vbox_vm_mac(install_client)
   else
     change_vbox_vm_mac(install_client,install_mac)
@@ -405,7 +405,7 @@ def get_bridged_vbox_nic()
   message  = "Information:\tChecking Bridged interfaces"
   command  = "VBoxManage list bridgedifs"
   nic_list = execute_command(message,command)
-  if !nic_list.match(/[A-z]/)
+  if !nic_list.match(/[a-z,A-Z]/)
     nic_name = $default_net
   else
     nic_list=nic_list.split(/\n/)
@@ -510,7 +510,7 @@ def get_vbox_vm_dir(install_client)
   command          = "VBoxManage list systemproperties |grep 'Default machine folder' |cut -f2 -d':' |sed 's/^[         ]*//g'"
   vbox_vm_base_dir = execute_command(message,command)
   vbox_vm_base_dir = vbox_vm_base_dir.chomp
-  if !vbox_vm_base_dir.match(/[A-z]/)
+  if !vbox_vm_base_dir.match(/[a-z,A-Z]/)
     vbox_vm_base_dir=$home_dir+"/VirtualBox VMs"
   end
   vbox_vm_dir      = "#{vbox_vm_base_dir}/#{install_client}"

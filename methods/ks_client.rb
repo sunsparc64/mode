@@ -577,7 +577,7 @@ def output_ks_header(client_name,output_file)
   file=File.open(tmp_file, 'w')
   $q_order.each do |key|
     if $q_struct[key].type == "output"
-      if !$q_struct[key].parameter.match(/[A-z]/)
+      if !$q_struct[key].parameter.match(/[a-z,A-Z]/)
         output = $q_struct[key].value+"\n"
       else
         output = $q_struct[key].parameter+" "+$q_struct[key].value+"\n"
@@ -653,7 +653,7 @@ end
 # Check service service_name
 
 def check_ks_service_name(service_name)
-  if !service_name.match(/[A-z]/)
+  if !service_name.match(/[a-z,A-Z]/)
     puts "Warning:\tService name not given"
     exit
   end

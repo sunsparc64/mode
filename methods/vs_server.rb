@@ -154,7 +154,7 @@ end
 def configure_vs_server(install_arch,publisher_host,publisher_port,install_service,iso_file)
   search_string = "VMvisor"
   iso_list      = []
-  if iso_file.match(/[A-z]/)
+  if iso_file.match(/[a-z,A-Z]/)
     if File.exists?(iso_file)
       if !iso_file.match(/VM/)
         puts "Warning:\tISO "+iso_file+" does not appear to be VMware distribution"

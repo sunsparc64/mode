@@ -118,7 +118,7 @@ def list_parallels_vms(search_string)
   vm_list.each do |vm_name|
     vm_mac = get_parallels_vm_mac(vm_name)
     output = vm_name+" "+vm_mac
-    if search_string.match(/[A-z]/)
+    if search_string.match(/[a-z,A-Z]/)
       install_os = get_parallels_vm_os(vm_name)
       if install_os.match(/#{search_string}/)
         output_list.push(output)
@@ -153,7 +153,7 @@ def clone_parallels_vm(install_client,new_name,install_mac,client_ip)
   if client_ip.match(/[0-9]/)
     add_hosts_entry(new_name,client_ip)
   end
-  if install_mac.match(/[0-9]|[A-z]/)
+  if install_mac.match(/[0-9,a-z,A-Z]/)
     change_parallels_vm_mac(new_name,install_mac)
   end
   return

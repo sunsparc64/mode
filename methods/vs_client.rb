@@ -258,7 +258,7 @@ def populate_vs_firstboot_list(install_service,install_license,install_client)
   post_list.push("# rename local datastore to something more meaningful")
   post_list.push("vim-cmd hostsvc/datastore/rename datastore1 \"$(hostname -s)-local-storage-1\"")
   post_list.push("")
-  if install_license.match(/[A-z]/)
+  if install_license.match(/[a-z,A-Z]/)
     post_list.push("# assign license")
     post_list.push("vim-cmd vimsvc/license --set #{install_license}")
     post_list.push("")
@@ -341,7 +341,7 @@ def output_vs_header(output_file)
   file=File.open(output_file, 'w')
   $q_order.each do |key|
     if $q_struct[key].type == "output"
-      if !$q_struct[key].parameter.match(/[A-z]/)
+      if !$q_struct[key].parameter.match(/[a-z,A-Z]/)
         output=$q_struct[key].value+"\n"
       else
         output=$q_struct[key].parameter+" "+$q_struct[key].value+"\n"
@@ -371,7 +371,7 @@ end
 # Check service install_service
 
 def check_vs_install_service(install_service)
-  if !install_service.match(/[A-z]/)
+  if !install_service.match(/[a-z,A-Z]/)
     puts "Warning:\tService name not given"
     exit
   end

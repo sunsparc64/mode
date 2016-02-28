@@ -248,7 +248,7 @@ def configure_js_server(client_arch,publisher_host,publisher_port,service_name,i
   check_dhcpd_config(publisher_host)
   iso_list      = []
   search_string = "\\-ga\\-"
-  if iso_file.match(/[A-z]/)
+  if iso_file.match(/[a-z,A-Z]/)
     if File.exist?(iso_file)
       if !iso_file.match(/sol/)
         puts "Warning:\tISO "+iso_file+" does not appear to be a valid Solaris distribution"
