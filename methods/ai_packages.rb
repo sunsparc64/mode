@@ -132,12 +132,12 @@ def build_ai_pkg(p_struct,pkg_name,build_type,pkg_repo_dir)
     command="cd #{extract_dir} ; gcat #{source_file} |tar -xpf -"
     execute_command(message,command)
     compile_dir=extract_dir+"/"+pkg_name+"-"+pkg_version
-    if p_struct[pkg_name].type == "ruby"
+    if p_struct[pkg_name].type.match(/ruby/)
       message="Compling:\t"+pkg_name
       command="cd #{compile_dir} ; ./install.rb --destdir=#{install_dir} --full"
       execute_command(message,command)
     end
-    if build_type == "ips"
+    if build_type.match(/ips/)
       mog_file=create_mog_file(p_struct,pkg_name,spool_dir)
       client_arch=%x[uname -p]
       client_arch=client_arch.chomp()

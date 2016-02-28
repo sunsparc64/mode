@@ -143,7 +143,7 @@ end
 
 def clone_parallels_vm(install_client,new_name,install_mac,client_ip)
   exists = check_parallels_vm_exists(install_client)
-  if exists == "no"
+  if exists.match(/no/)
     puts "Warning:\tParallels VM "+install_client+" does not exist"
     exit
   end
@@ -230,7 +230,7 @@ def control_parallels_vm(install_client,install_status)
   current_status = get_parallels_vm_status(install_client)
   if !current_status.match(/#{install_status}/)
     message = "Information:\tSetting Parallels VM status for "+install_client+" to "+
-    if install_status == "stop"
+    if install_status.match(/stop/)
       command = "prlctl #{install_status} \"#{install_client}\" --kill"
     else
       command = "prlctl #{install_status} \"#{install_client}\""
@@ -380,11 +380,12 @@ end
 # Check Parallels is installed
 
 def check_parallels_is_installed()
+  install_status = "no"
   app_dir = "/Applications/Parallels Desktop.app"
-  if !File.directory?(app_dir)
-    puts "Warning:\tParallels not installed"
-    exit
+  if File.directory?(app_dir)
+    install_status = "yes"
   end
+  return install_status
 end
 
 # Boot Parallels VM
@@ -392,7 +393,7 @@ end
 def boot_parallels_vm(install_client)
   check_parallels_hostonly_network()
   exists = check_parallels_vm_exists(install_client)
-  if exists == "no"
+  if exists.match(/no/)
     puts "Warning:\tParallels VM "+install_client+" does not exist"
     exit
   end
@@ -515,7 +516,7 @@ end
 
 def check_parallels_vm_doesnt_exist(install_client)
   exists = check_parallels_vm_exists(install_client)
-  if exists == "yes"
+  if exists.match(/yes/)
     puts "Parallels VM "+install_client+" already exists"
     exit
   end
@@ -525,10 +526,11 @@ end
 # Check Parallels VM exists
 
 def check_parallels_vm_exists(install_client)
+  set_vmrun_bin()
   exists  = "no"
   vm_list = get_all_parallels_vms()
   vm_list.each do |vm_name|
-    if vm_name == install_client
+    if vm_name.match(/^#{install_client}$/)
       exists = "yes"
       return exists
     end
@@ -541,7 +543,7 @@ end
 def unconfigure_parallels_vm(install_client)
   check_parallels_is_installed()
   exists = check_parallels_vm_exists(install_client)
-  if exists == "no"
+  if exists.match(/no/)
     puts "Parallels VM "+install_client+" does not exist"
     exit
   end

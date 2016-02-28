@@ -8,6 +8,15 @@ def deploy_fusion_vm(install_server,install_datastore,install_server_admin,insta
   return
 end
 
+# Set Fusion dir
+
+def set_fusion_dir()
+  $fusion_dir=$home_dir+"/Documents/Virtual Machines.localized"
+  if !File.directory?($fusion_dir)
+    $fusion_dir=$home_dir+"/Documents/Virtual Machines"
+  end
+end
+
 # Show VM config
 
 def show_fusion_vm_config(install_client)
@@ -25,7 +34,7 @@ end
 
 def import_packer_fusion_vm(install_client,install_vm)
   (exists,images_dir) = check_packer_vm_image_exists(install_client,install_vm)
-  if exists == "no"
+  if exists.match(/no/)
     puts "Warning:\tPacker Fusion VM image for "+install_client+" does not exist"
     exit
   end
@@ -41,7 +50,7 @@ end
 
 def migrate_fusion_vm(install_client,install_server,install_serveradmin,install_serverpassword,install_servernetwork,install_datastore)
   exists = check_fusion_vm_exists(install_client)
-  if exists == "no"
+  if exists.match(/no/)
     puts "Warning:\tFusion VM "+install_client+" does not exist"
     exit
   end
@@ -71,7 +80,7 @@ end
 
 def delete_fusion_vm_snapshot(install_client,install_clone)
   clone_list = []
-  if install_clone == "*" or install_clone == "all"
+  if install_clone.match(/\*/) or install_clone.match(/all/)
     clone_list = get_fusion_vm_snapshots(install_client)
     clone_list = clone_list.split("\n")[1..-1]
   else
@@ -188,7 +197,7 @@ end
 
 def snapshot_fusion_vm(install_client,install_clone)
   exists = check_fusion_vm_exists(install_client)
-  if exists == "no"
+  if exists.match(/no/)
     puts "Warning:\tFusion VM "+install_client+" does not exist"
     exit
   end
@@ -257,7 +266,7 @@ end
 
 def export_fusion_ova(install_client,install_file)
   exists = check_fusion_vm_exists(install_client)
-  if exists == "yes"
+  if exists.match(/yes/)
     stop_vbox_vm(install_client)
     if !install_file.match(/[0-9,a-z,A-Z]/)
       install_file = "/tmp/"+install_client+".ova"
@@ -288,7 +297,7 @@ def import_fusion_ova(install_client,install_mac,install_ip,install_file)
     puts "Warning:\tWMware configuration file for client does not exist"
   end
   exists = check_fusion_vm_exists(install_client)
-  if exists == "no"
+  if exists.match(/no/)
     if !install_file.match(/\//)
       install_file = $iso_base_dir+"/"+install_file
     end
@@ -593,8 +602,8 @@ end
 # Boot VMware Fusion VM
 
 def boot_fusion_vm(install_client,install_type)
-  vm_list = get_available_fusion_vms()
-  if vm_list.to_s.match(/#{install_client}\.vmx/)
+  exists = check_fusion_vm_exists(install_client)
+  if exists.match(/yes/)
     fusion_vm_dir    = $fusion_dir+"/"+install_client+".vmwarevm"
     fusion_vmx_file  = fusion_vm_dir+"/"+install_client+".vmx"
     message          = "Starting:\tVM "+install_client
@@ -649,8 +658,8 @@ def halt_fusion_vm(install_client)
 end
 
 def stop_fusion_vm(install_client)
-  vm_list = get_running_fusion_vms()
-  if vm_list.to_s.match(/#{install_client}/)
+  exists = check_fusion_vm_exists(install_client)
+  if exists.match(/yes/)
     fusion_vm_dir   = $fusion_dir+"/"+install_client+".vmwarevm"
     fusion_vmx_file = fusion_vm_dir+"/"+install_client+".vmx"
     message = "Stopping:\tVirtual Box VM "+install_client
@@ -723,11 +732,18 @@ end
 # Check VMware Fusion VM exists
 
 def check_fusion_vm_exists(install_client)
+  set_vmrun_bin()
   fusion_vm_dir   = $fusion_dir+"/"+install_client+".vmwarevm"
   fusion_vmx_file = fusion_vm_dir+"/"+install_client+".vmx"
   if !File.exist?(fusion_vmx_file)
+    if $verbose_mode == 1
+      puts "Information:\tVMware Fusion VM "+install_client+" does not exist"
+    end
     exists = "no"
   else
+    if $verbose_mode == 1
+      puts "Information:\tVMware Fusion VM "+install_client+" exists"
+    end
     exists = "yes"
   end
   return exists
@@ -960,11 +976,13 @@ end
 # Check VMware Fusion is installed
 
 def check_fusion_is_installed()
+  install_status = "no"
   app_dir = "/Applications/VMware Fusion.app"
-  if !File.directory?(app_dir)
-    puts "Warning:\tVMware Fusion is not installed"
-    exit
+  if File.directory?(app_dir)
+    install_status = "yes"
+    set_fusion_dir()
   end
+  return install_status
 end
 
 # check VMware Fusion NAT
@@ -982,7 +1000,7 @@ end
 def unconfigure_fusion_vm(install_client)
   check_fusion_is_installed()
   exists = check_fusion_vm_exists(install_client)
-  if exists == "yes"
+  if exists.match(/yes/)
     stop_fusion_vm(install_client)
     fusion_vm_dir    = $fusion_dir+"/"+install_client+".vmwarevm"
     fusion_vmx_file  = fusion_vm_dir+"/"+install_client+".vmx"

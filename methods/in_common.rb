@@ -848,7 +848,7 @@ def get_linux_version_info(iso_file_name)
   end
   if linux_distro.match(/centos|ubuntu|sles|sl|oel|rhel/)
     if linux_distro.match(/sles/)
-      if iso_info[2] == "Server"
+      if iso_info[2].match(/Server/)
         iso_version = iso_info[1]+".0"
       else
         iso_version = iso_info[1]+"."+iso_info[2]
@@ -993,7 +993,7 @@ def check_dhcpd_config(publisher_host)
     message = "Creating DHCPd configuration file "+$dhcpd_file
     command = "cp #{tmp_file} #{$dhcpd_file}"
     execute_command(message,command)
-    if $os_name == "SunOS" and $os_rel == "5.11"
+    if $os_name.match(/SunOS/) and $os_rel.match(/5\.11/)
       message = "Setting\tDHCPd listening interface to "+$default_net
       command = "svccfg -s svc:/network/dhcp/server:ipv4 setprop config/listen_ifnames = astring: #{$default_net}"
       execute_command(message,command)
@@ -1414,7 +1414,7 @@ def remove_dhcp_client(client_name)
   file_info = IO.readlines($dhcpd_file)
   file_info.each do |line|
     if line.match(/^host #{client_name}/)
-      found=1
+      found = 1
     end
     if found == 0
       copy.push(line)
@@ -1568,7 +1568,7 @@ def destroy_zfs_fs(dir_name)
         $destroy_fs = gets.chomp
       end
     end
-    if $destroy_fs == "y"
+    if $destroy_fs.match(/y|Y/)
       if File.directory?(dir_name)
         message = "Warning:\tDestroying "+dir_name
         command = "zfs destroy -r #{zfs_name}"
@@ -1612,7 +1612,7 @@ def execute_command(message,command)
     if $verbose_mode == 1
       puts "Executing:\t"+command
     end
-    if $execute_host == "localhost"
+    if $execute_host.match(/localhost/)
       output = %x[#{command}]
     else
       Net::SSH.start(hostname, username, :password => password, :paranoid => false) do |ssh_session|

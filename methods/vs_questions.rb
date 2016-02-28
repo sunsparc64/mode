@@ -4,7 +4,7 @@
 # Construct ks network line
 
 def get_vs_network()
-  if $q_struct["bootproto"].value == "dhcp"
+  if $q_struct["bootproto"].value.match(/dhcp/)
     result = "--netdevice "+$q_struct["nic"].value+" --bootproto "+$q_struct["bootproto"].value
   else
     client_ip = $q_struct["ip"].value
@@ -18,7 +18,7 @@ end
 # Set network
 
 def set_vs_network()
-  if $q_struct["bootproto"].value == "dhcp"
+  if $q_struct["bootproto"].value.match(/dhcp/)
     $q_struct["ip"].ask = "no"
     $q_struct["ip"].type = ""
     $q_struct["hostname"].ask = "no"

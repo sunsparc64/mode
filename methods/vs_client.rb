@@ -340,7 +340,7 @@ def output_vs_header(output_file)
   end
   file=File.open(output_file, 'w')
   $q_order.each do |key|
-    if $q_struct[key].type == "output"
+    if $q_struct[key].type.match(/output/)
       if !$q_struct[key].parameter.match(/[a-z,A-Z]/)
         output=$q_struct[key].value+"\n"
       else

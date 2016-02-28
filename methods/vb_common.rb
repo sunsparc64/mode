@@ -4,7 +4,7 @@
 
 def import_packer_vbox_vm(install_client,install_vm)
   (exists,images_dir) = check_packer_vm_image_exists(install_client,install_vm)
-  if exists == "no"
+  if exists.match(/no/)
     puts "Warning:\tPacker VirtualBox VM image for "+install_client+" does not exist"
     exit
   end
@@ -54,7 +54,7 @@ def attach_file_to_vbox_vm(install_client,install_file,install_type)
     message = "Information:\tAttaching ISO "+install_file+" to VM "+install_client
     command = "VBoxManage storageattach \"#{install_client}\" --storagectl \"cdrom\" --port 0 --device 0 --type dvddrive --medium \"#{install_file}\""
     execute_command(message,command)
-    if install_type == "boot"
+    if install_type.match(/boot/)
       command = "VBoxManage modifyvm \"#{install_client}\" --boot1 dvd"
       execute_command(message,command)
     end
@@ -66,7 +66,7 @@ end
 
 def delete_vbox_vm_snapshot(install_client,install_clone)
   clone_list = []
-  if install_clone == "*" or install_clone == "all"
+  if install_clone.match(/\*/) or install_clone.match(/all/)
     clone_list = get_vbox_vm_snapshots(install_client)
     clone_list = clone_list.split("\n")
   else
@@ -114,7 +114,7 @@ end
 
 def snapshot_vbox_vm(install_client,install_clone)
   exists = check_vbox_vm_exists(install_client)
-  if exists == "no"
+  if exists.match(/no/)
     puts "Warning:\tVirtualBox VM "+install_client+" does not exist"
     exit
   end
@@ -240,7 +240,7 @@ end
 
 def clone_vbox_vm(install_client,new_name,install_mac,client_ip)
   exists = check_vbox_vm_exists(install_client)
-  if exists == "no"
+  if exists.match(/no/)
     puts "Warning:\tVirtualBox VM "+install_client+" does not exist"
     exit
   end
@@ -258,7 +258,7 @@ end
 
 def export_vbox_ova(install_client,ova_file)
   exists = check_vbox_vm_exists(install_client)
-  if exists == "yes"
+  if exists.match(/yes/)
     stop_vbox_vm(install_client)
     if !ova_file.match(/[0-9,a-z,A-Z]/)
       ova_file = "/tmp/"+install_client+".ova"
@@ -281,10 +281,10 @@ end
 
 def import_vbox_ova(install_client,install_mac,client_ip,ova_file)
   exists = check_vbox_vm_exists(install_client)
-  if exists == "no"
+  if exists.match(/no/)
     exists = check_vbox_vm_config_exists(install_client)
   end
-  if exists == "yes"
+  if exists.match(/yes/)
     delete_vbox_vm_config(install_client)
   end
   if !ova_file.match(/\//)
@@ -387,11 +387,14 @@ end
 # Check VirtualBox VM exists
 
 def check_vbox_vm_exists(install_client)
+  set_vmrun_bin()
   message   = "Information:\tChecking VM "+install_client+" exists"
   command   = "VBoxManage list vms |grep -v 'inaccessible'"
   host_list = execute_command(message,command)
   if !host_list.match(install_client)
-    puts "Information:\tVirtualBox VM "+install_client+" does not exist"
+    if $verbose_mode == 1
+      puts "Information:\tVirtualBox VM "+install_client+" does not exist"
+    end
     exists = "no"
   else
     exists = "yes"
@@ -911,7 +914,7 @@ end
 
 def boot_vbox_vm(install_client,install_type)
   exists = check_vbox_vm_exists(install_client)
-  if exists == "no"
+  if exists.match(/no/)
     puts "VirtualBox VM "+install_client+" does not exist"
     exit
   end
@@ -955,9 +958,12 @@ end
 # Stop VirtualBox VM
 
 def stop_vbox_vm(install_client)
-  message = "Stopping:\tVM "+install_client
-  command = "VBoxManage controlvm #{install_client} poweroff"
-  execute_command(message,command)
+  exists = check_vbox_vm_exists(install_client)
+  if exists.match(/yes/)
+    message = "Stopping:\tVM "+install_client
+    command = "VBoxManage controlvm #{install_client} poweroff"
+    execute_command(message,command)
+  end
   return
 end
 
@@ -1047,20 +1053,20 @@ end
 # Check VirtualBox is installed
 
 def check_vbox_is_installed()
+  install_status = "no"
   if $os_name.match(/Darwin/)
     app_dir = "/Applications/VirtualBox.app"
   else
     app_dir = "/usr/bin"
   end
-  if !File.directory?(app_dir)
-    puts "Warning:\tVirtualBox is not installed in "+app_dir
-    exit
-  else
+  if File.directory?(app_dir)
+    install_status = "yes"
     suppress_messages = %x[VBoxManage getextradata global GUI/SuppressMessages |awk '{print $2}'].chomp
     if !suppress_messages.match(/all/)
       %x[VBoxManage setextradata global GUI/SuppressMessages "all"]
     end
   end
+  return install_status
 end
 
 # Add CPU to Virtualbox VM
@@ -1112,7 +1118,7 @@ def configure_vbox_vm(install_client,install_mac,install_os,install_size,install
   else
     install_mac = get_vbox_vm_mac(install_client)
   end
-  if install_os == "ESXi"
+  if install_os.match(/ESXi/)
     configure_vmware_esxi_vbox_vm(install_client)
   end
   add_cpu_to_vbox_vm(install_client,install_cpu)
@@ -1135,9 +1141,9 @@ end
 def unconfigure_vbox_vm(install_client)
   check_vbox_is_installed()
   exists = check_vbox_vm_exists(install_client)
-  if exists == "no"
+  if exists.match(/no/)
     exists = check_vbox_vm_config_exists(install_client)
-    if exists == "yes"
+    if exists.match(/yes/)
       delete_vbox_vm_config(install_client)
     else
       puts "Warning:\tVirtualBox VM "+install_client+" does not exist"

@@ -619,3 +619,5 @@
 # More listing bug fixes
 # 3.0.9: Sun 28 Feb 2016 14:45:30 AEDT
 # Improved client listing code to show IP and MAC Address
+# 3.1.0: Sun 28 Feb 2016 17:44:03 AEDT
+# Added VM type detection for boot/stop like commands

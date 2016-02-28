@@ -1,6 +1,33 @@
 
 # Code for creating client VMs for testing (e.g. VirtualBox)
 
+# Handle VM install status
+
+def handle_vm_install_status(install_vm,install_status)
+  if install_status.match(/no/)
+    puts "Warning:\tVirtualisation application does not exist for "+install_vm
+    exit
+  end
+  return
+end
+
+# Try to get client VM type
+
+def get_client_vm_type(install_client)
+  install_vm = ""
+  $valid_vm_list.each do |test_vm|
+    exists = eval"[check_#{test_vm}_is_installed]"
+    if exists.to_s.match(/yes/)
+      exists = eval"[check_#{test_vm}_vm_exists(install_client)]"
+      if exists.to_s.match(/yes/)
+        install_vm = test_vm
+        return install_vm
+      end
+    end
+  end
+  return install_vm
+end
+
 # Get Guest OS type
 
 def get_guest_os(install_arch,install_method)

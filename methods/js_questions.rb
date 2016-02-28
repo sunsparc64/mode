@@ -142,7 +142,7 @@ end
 # Set mirror disk
 
 def set_js_mirror_disk()
-  if $q_struct["mirror_disk"].value == "no"
+  if $q_struct["mirror_disk"].value.match(/no/)
     $q_struct["mirror_disk_id"].ask  = "no"
     $q_struct["mirror_disk_id"].type = ""
   end
@@ -161,7 +161,7 @@ def get_js_zfs_layout()
   if $q_struct["system_model"].value.match(/vmware/)
     $q_struct["swap_size"].value = "auto"
   end
-  if $q_struct["mirror_disk"].value == "yes"
+  if $q_struct["mirror_disk"].value.match(/yes/)
     zfs_layout = $q_struct["rpool_name"].value+" "+$q_struct["disk_size"].value+" "+$q_struct["swap_size"].value+" "+$q_struct["dump_size"].value+" mirror "+$q_struct["root_disk_id"].value+" "+$q_struct["mirror_disk_id"].value
   else
     zfs_layout = $q_struct["rpool_name"].value+" "+$q_struct["disk_size"].value+" "+$q_struct["swap_size"].value+" "+$q_struct["dump_size"].value+" "+$q_struct["root_disk_id"].value
@@ -179,7 +179,7 @@ end
 # Get UFS filesys entries
 
 def get_js_ufs_filesys(fs_mount,fs_slice,fs_mirror,fs_size)
-  if $q_struct["mirror_disk"].value == "yes"
+  if $q_struct["mirror_disk"].value.match(/yes/)
     filesys_entry = q_strut["root_disk_id"].value+fs_slice+" "+fs_size+" "+fs_mount
   else
     filesys_entry = "mirror:"+fs_mirror+" "+$q_struct["root_disk_id"].value+fs_slice+" "+$q_struct["mirror_disk_id"].value+fs_slice+" "+fs_size+" "+fs_mount
@@ -451,7 +451,7 @@ def populate_js_machine_questions(client_model,client_karch,publisher_host,servi
   $q_struct[name] = config
   $q_order.push(name)
 
-  if os_version == "10"
+  if os_version.to_i == 10
     if Integer(os_update) >= 6
 
       name = "root_fs"
@@ -870,7 +870,7 @@ def populate_js_sysid_questions(client_name,client_ip,client_arch,client_model,o
   $q_struct[name] = config
   $q_order.push(name)
 
-  if os_version == "10"
+  if os_version.to_i == 10
     if Integer(os_update) >= 5
 
       name = "nfs4_domain"
@@ -902,7 +902,7 @@ def populate_js_sysid_questions(client_name,client_ip,client_arch,client_model,o
   $q_struct[name] = config
   $q_order.push(name)
 
-  if os_version == "10"
+  if os_version.to_i == 10
     if Integer(os_update) >= 10
 
       name = "auto_reg"

@@ -128,7 +128,7 @@ def standard_zone_post_install(client_name,client_rel)
       if field[0] != "root" and field[0] != "#{admin_username}"
         file.write(line)
       end
-      if field[0] == "root"
+      if field[0].match(/root/)
         field[1] = root_crypt
         copy = field.join(":")
         file.write(copy)

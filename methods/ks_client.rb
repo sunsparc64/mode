@@ -91,7 +91,7 @@ def configure_ks_pxe_client(client_name,client_ip,client_mac,client_arch,service
     client_network    = $q_struct["network_address"].value
     client_nameserver = $q_struct["nameserver"].value
     disable_dhcp      = $q_struct["disable_dhcp"].value
-    if disable_dhcp == "true"
+    if disable_dhcp.match(/true/)
       append_string = "  APPEND auto=true priority=critical preseed/url=#{ks_url} console-keymaps-at/keymap=us locale=en_US hostname=#{client_name} domain=#{client_domain} interface=#{client_nic} netcfg/get_ipaddress=#{client_ip} netcfg/get_netmask=#{client_netmask} netcfg/get_gateway=#{client_gateway} netcfg/get_nameservers=#{client_nameserver} netcfg/disable_dhcp=true initrd=#{initrd_file}"
     else
       append_string = "  APPEND `"
@@ -576,7 +576,7 @@ def output_ks_header(client_name,output_file)
   tmp_file = "/tmp/ks_"+client_name
   file=File.open(tmp_file, 'w')
   $q_order.each do |key|
-    if $q_struct[key].type == "output"
+    if $q_struct[key].type.match(/output/)
       if !$q_struct[key].parameter.match(/[a-z,A-Z]/)
         output = $q_struct[key].value+"\n"
       else

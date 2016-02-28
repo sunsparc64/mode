@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.0.9
+# Version:      3.1.0
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -409,7 +409,7 @@ def set_local_config()
       $dhcpd_file = "/etc/dhcp/dhcpd.conf"
     end
   end
-  if $os_name == "Darwin"
+  if $os_name.match(/Darwin/)
     $tftp_dir   = "/private/tftpboot"
     $dhcpd_file = "/usr/local/etc/dhcpd.conf"
   end
@@ -462,8 +462,8 @@ def check_local_config(install_mode)
       $default_apache_allow = $default_host.split(/\./)[0..2].join(".")
     end
   end
-  if install_mode == "server"
-    if $os_name == "Darwin"
+  if install_mode.match(/server/)
+    if $os_name.match(/Darwin/)
       $tftp_dir   = "/private/tftpboot"
       $dhcpd_file = "/usr/local/etc/dhcpd.conf"
     end
@@ -527,12 +527,9 @@ def check_local_config(install_mode)
       execute_command(message,command)
     end
   end
-  # Set location of VMware Fusion and VirtualBox VMs
+  # Set location of VMware Fusion
   if $os_name.match(/Darwin/)
-    $fusion_dir=$home_dir+"/Documents/Virtual Machines.localized"
-    if !File.directory?($fusion_dir)
-      $fusion_dir=$home_dir+"/Documents/Virtual Machines"
-    end
+    set_fusion_dir()
   end
   $backup_dir = $work_dir+"/backup"
   check_dir_exists($backup_dir)
@@ -1386,13 +1383,16 @@ if option["vm"]
   case install_vm
   when /parallels/
     check_local_config("client")
+    install_status = check_parallels_is_installed()
+    handle_vm_install_status(install_vm,install_status)
     install_vm   = "parallels"
     $use_sudo    = 0
     install_size = install_size.gsub(/G/,"000")
     $default_hostonly_ip = "192.168.2.254"
   when /virtualbox|vbox/
     check_local_config("client")
-    check_vbox_is_installed()
+    install_status = check_vbox_is_installed()
+    handle_vm_install_status(install_vm,install_status)
     install_vm   = "vbox"
     $use_sudo    = 0
     install_size = install_size.gsub(/G/,"000")
@@ -1400,6 +1400,8 @@ if option["vm"]
     $default_gateway_ip  = "192.168.3.254"
   when /vmware|fusion/
     check_local_config("client")
+    install_status = check_fusion_is_installed()
+    handle_vm_install_status(install_vm,install_status)
     check_promisc_mode()
     $use_sudo  = 0
     install_vm = "fusion"
@@ -1855,20 +1857,34 @@ if option["action"]
       end
     end
   when /^boot$|^stop$|^halt$|^suspend$|^resume$|^start$/
+    install_mode   = "client"
     install_action = install_action.gsub(/start/,"boot")
     if install_vm.match(/parallels|vbox/)
       install_action = install_action.gsub(/start/,"boot")
       install_action = install_action.gsub(/halt/,"stop")
     end
-    if install_client.match(/[A-z]/) and install_vm.match(/[A-z]/)
-      if install_action == "boot"
+    if install_client.match(/[a-z,A-Z]/) and install_vm.match(/[A-z]/)
+      if install_action.match(/boot/)
         eval"[#{install_action}_#{install_vm}_vm(install_client,install_type)]"
       else
         eval"[#{install_action}_#{install_vm}_vm(install_client)]"
       end
     else
-      if !install_vm.match(/[a-z]/)
-        print_valid_list("Warning:\tInvalid VM type",$valid_vm_list)
+      if install_client.match(/[a-z,A-Z]/) and !install_vm.match(/[a-z]/)
+        install_vm = get_client_vm_type(install_client)
+        check_local_config(install_mode)
+        if install_vm.match(/vbox|fusion|parallels/)
+          $use_sudo = 0
+        end
+        if install_vm.match(/[a-z]/)
+          if install_action.match(/boot/)
+            eval"[#{install_action}_#{install_vm}_vm(install_client,install_type)]"
+          else
+            eval"[#{install_action}_#{install_vm}_vm(install_client)]"
+          end
+        else
+          print_valid_list("Warning:\tInvalid VM type",$valid_vm_list)
+        end
       else
         if !install_client.match(/[a-z]/)
           puts "Warning:\tClient name not specified"
