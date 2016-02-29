@@ -277,7 +277,6 @@ def populate_ks_post_list(client_arch,service_name,publisher_host,client_name,cl
   resolv_conf = "/etc/resolv.conf"
   post_list.push("# Create #{resolv_conf}")
   post_list.push("")
-  post_list.push("echo 'nameserver #{publisher_host}' > #{resolv_conf}")
   post_list.push("echo 'nameserver #{$default_nameserver}' >> #{resolv_conf}")
   post_list.push("echo 'search local' >> #{resolv_conf}")
   post_list.push("")

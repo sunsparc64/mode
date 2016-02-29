@@ -263,7 +263,9 @@ def create_named_conf()
     file.write("\n")
     file.write("local.\tIN\tNS\t#{$default_hostname}.\n")
     file.write("#{$default_hostname}\tIN\tA\t#{$default_host}\n")
-    file.write("puppet\tIN\tA\t#{$default_host}")
+    if $default_options.match(/puppet/)
+      file.write("puppet\tIN\tA\t#{$default_host}")
+    end
     file.write("\n")
     file.close
     message = "Information:\tCreating named configuration file "+forward_file
@@ -286,7 +288,9 @@ def create_named_conf()
     file.write("\tIN\tNS\t#{$default_hostname}.local\n")
     file.write("\n")
     file.write("#{host_segment}\tIN\tPTR\t#{$default_hostname}.\n")
-    file.write("#{host_segment}\tIN\tPTR\tpuppet.\n")
+    if $default_options.match(/puppet/)
+      file.write("#{host_segment}\tIN\tPTR\tpuppet.\n")
+    end
     file.write("\n")
     file.close
     message = "Information:\tCreating named configuration file "+reverse_file
