@@ -603,7 +603,11 @@ end
 
 def list_clients(install_service)
   puts
-  puts "Available "+install_service+" Clients:"
+  if install_service.match(/[a-z,A-Z]/)
+    puts "Available "+install_service+" clients:"
+  else
+    puts "Available clients:"
+  end
   puts
   case install_service.downcase
   when /kickstart/
@@ -627,7 +631,7 @@ def list_clients(install_service)
             client_ip  = get_client_ip(client_name)
             client_mac = get_client_mac(client_name)
             if File.directory?(client_dir)
-              puts client_name+" [ service = "+service_name+", ip = "+client_ip+", mac = "+client_mac+" ] "
+              puts client_name+"\t[ service = "+service_name+", ip = "+client_ip+", mac = "+client_mac+" ] "
             end
           end
         end
@@ -1587,6 +1591,16 @@ end
 # Does not execute cerver/client import/create operations in test mode
 
 def execute_command(message,command)
+  if command.match(/prlctl/) and !$os_name.match(/Darwin/)
+    return
+  else
+    if command.match(/prlctl/)
+      parallels_test = %x[which prlctl].chomp
+      if !parallels_test.match(/prlctl/)
+        return
+      end
+    end
+  end
   output  = ""
   execute = 0
   if $verbose_mode == 1

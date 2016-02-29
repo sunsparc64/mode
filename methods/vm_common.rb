@@ -101,6 +101,31 @@ def create_vm(install_method,install_vm,install_client,install_mac,install_os,in
   return
 end
 
+# list VMs
+
+def list_vms(install_vm,install_type)
+  if !install_type
+    install_type = ""
+  end
+  if install_vm.match(/[a-z]/)
+    eval"[list_#{install_vm}_vms()]"
+  else
+    $valid_vm_list.each do |vm_type|
+      if vm_type.match(/parallels/)
+        parallels_test = %x[which prlctl].chomp
+        if parallels_test.match(/prlctl/)
+          eval"[list_#{vm_type}_vms(install_type)]"
+        end
+      else
+        eval"[list_#{vm_type}_vms(install_type)]"
+      end
+    end
+  end
+  return
+end
+
+# list VM
+
 def list_vm(install_vm,install_os,install_method)
   if !install_os.match(/[a-z]/) and !install_method.match(/[a-z]/)
     eval"[list_all_#{install_vm}_vms()]"

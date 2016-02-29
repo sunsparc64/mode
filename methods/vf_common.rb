@@ -138,7 +138,9 @@ def get_fusion_vm_vmx_file_value(install_client,install_search)
       vm_value = "File Not Readable"
     end
   else
-    puts "Warning:\tWMware configuration file \""+vmx_file+"\" not found for client"
+    if $verbose_mode == 1
+      puts "Warning:\tWMware configuration file \""+vmx_file+"\" not found for client"
+    end
   end
   return vm_value
 end
@@ -178,18 +180,26 @@ end
 # Get Fusion VM vmx file location
 
 def get_fusion_vm_vmx_file(install_client)
-  fusion_vm_dir    = $fusion_dir+"/"+install_client+".vmwarevm"
-  fusion_vmx_file  = Dir.entries(fusion_vm_dir).grep(/vmx$/)[0].chomp
-  fusion_vmx_file  = fusion_vm_dir+"/"+fusion_vmx_file
+  fusion_vm_dir = $fusion_dir+"/"+install_client+".vmwarevm"
+  if File.directory?(fusion_vm_dir)
+    fusion_vmx_file  = Dir.entries(fusion_vm_dir).grep(/vmx$/)[0].chomp
+  else
+    fusion_vmx_file = ""
+  end
+  fusion_vmx_file = fusion_vm_dir+"/"+fusion_vmx_file
   return fusion_vmx_file
 end
 
 # Get Fusion VM vmdk file location
 
 def get_fusion_vm_vmdk_file(install_client)
-  fusion_vm_dir     = $fusion_dir+"/"+install_client+".vmwarevm"
-  fusion_vmdk_file  = Dir.entries(fusion_vm_dir).grep(/vmdk$/)[0].chomp
-  fusion_vmdk_file  = fusion_vm_dir+"/"+fusion_vmdk_file
+  fusion_vm_dir = $fusion_dir+"/"+install_client+".vmwarevm"
+  if File.directory?(fusion_vm_dir)
+    fusion_vmdk_file = Dir.entries(fusion_vm_dir).grep(/vmdk$/)[0].chomp
+  else
+    fusion_vmdk_file = ""
+  end
+  fusion_vmdk_file = fusion_vm_dir+"/"+fusion_vmdk_file
   return fusion_vmdk_file
 end
 
@@ -784,15 +794,19 @@ def list_fusion_vms(search_string)
     install_mac = ""
     vm_list.each do |vmx_file|
       install_client = File.basename(vmx_file,".vmx")
-      install_mac    = get_fusion_vm_mac(install_client)
-      install_os     = get_fusion_vm_os(install_client)
-      output = install_client+" os="+install_os+" mac="+install_mac
-      if search_string.match(/[0-9,a-z,A-Z]/)
-        if output.match(/#{search_string}/)
-          puts output
+      if File.exist?(vmx_file)
+        install_mac    = get_fusion_vm_mac(install_client)
+        install_os     = get_fusion_vm_os(install_client)
+        if install_os.match(/[a-z,A-Z]/)
+          output = install_client+" os="+install_os+" mac="+install_mac
+          if search_string.match(/[0-9,a-z,A-Z]/)
+            if output.match(/#{search_string}/)
+              puts output
+            end
+          else
+            puts output
+          end
         end
-      else
-        puts output
       end
     end
     puts

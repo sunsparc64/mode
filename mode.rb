@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.1.3
+# Version:      3.1.4
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -922,8 +922,8 @@ end
 
 # Handle list switch
 
-if option["action"] == "list"
-  if !option["vm"] and !option["service"] and !option["method"] and !option["type"]
+if option["action"].match(/list/)
+  if !option["vm"] and !option["service"] and !option["method"] and !option["type"] and !option["mode"]
     puts "Warning:\tNo type or service given"
     exit
   end
@@ -1744,7 +1744,9 @@ if option["action"]
       exit
     end
     if install_mode.match(/client/)
+      check_local_config(install_mode)
       list_clients(install_service)
+      list_vms(install_vm,install_type)
       exit
     end
     if install_method.match(/[a-z]/) and !install_vm.match(/[a-z]/)
