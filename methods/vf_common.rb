@@ -177,6 +177,40 @@ def list_all_fusion_vms()
   return
 end
 
+# List available VMware Fusion VMs
+
+def list_fusion_vms(search_string)
+  output_list = []
+  install_os  = ""
+  install_mac = ""
+  file_list   = Dir.entries($fusion_dir)
+  file_list.each do |entry|
+    if entry.match(/vmwarevm/)
+      install_client = entry.gsub(/\.vmwarevm/,"")
+      install_mac    = get_fusion_vm_mac(install_client)
+      install_os     = get_fusion_vm_os(install_client)
+      output         = install_client+" os="+install_os+" mac="+install_mac
+      if search_string
+        if output.match(/#{search_string}/)
+          output_list.push(output)
+        end
+      else
+        output_list.push(output)
+      end
+    end
+  end
+  if output_list.length > 0
+    puts
+    puts "Available "+search_string+" VMs:"
+    puts
+    output_list.each do |output|
+      puts output
+    end
+    puts
+  end
+  return
+end
+
 # Get Fusion VM vmx file location
 
 def get_fusion_vm_vmx_file(install_client)
@@ -780,38 +814,6 @@ def get_available_fusion_vms()
     vm_list = %x[find "#{$fusion_dir}/" -name "*.vmx"].split("\n")
   end
   return vm_list
-end
-
-# List available VMware Fusion VMs
-
-def list_fusion_vms(search_string)
-  vm_list = get_available_fusion_vms()
-  if vm_list.length > 0
-    puts
-    puts "Available VMware Fusion VMs:"
-    puts
-    install_os  = ""
-    install_mac = ""
-    vm_list.each do |vmx_file|
-      install_client = File.basename(vmx_file,".vmx")
-      if File.exist?(vmx_file)
-        install_mac    = get_fusion_vm_mac(install_client)
-        install_os     = get_fusion_vm_os(install_client)
-        if install_os.match(/[a-z,A-Z]/)
-          output = install_client+" os="+install_os+" mac="+install_mac
-          if search_string.match(/[0-9,a-z,A-Z]/)
-            if output.match(/#{search_string}/)
-              puts output
-            end
-          else
-            puts output
-          end
-        end
-      end
-    end
-    puts
-  end
-  return
 end
 
 # Get VMware Fusion Guest OS name

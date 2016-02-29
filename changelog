@@ -629,3 +629,5 @@
 # Minor updates
 # 3.1.4: Mon 29 Feb 2016 15:35:22 AEDT
 # Improved listing of clients
+# 3.1.5: Mon 29 Feb 2016 19:46:35 AEDT
+# Fixed listing Fusion VMs
