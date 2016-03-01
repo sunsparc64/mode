@@ -382,6 +382,12 @@ def list_image_services()
   return
 end
 
+# List all image ISOs - needs code
+
+def list_image_isos()
+  return
+end
+
 # List all services
 
 def list_all_services()
