@@ -253,6 +253,7 @@ def populate_ks_post_list(client_arch,service_name,publisher_host,client_name,cl
   admin_home  = $q_struct["admin_home"].value
   admin_uid   = $q_struct["admin_uid"].value
   admin_gid   = $q_struct["admin_gid"].value
+  nic_name    = $q_struct["nic"].value
   epel_file   = "/etc/yum.repos.d/epel.repo"
   beta_file   = "/etc/yum.repos.d/public-yum-ol6-beta.repo"
   post_list.push("")
@@ -282,6 +283,12 @@ def populate_ks_post_list(client_arch,service_name,publisher_host,client_name,cl
   post_list.push("")
   post_list.push("route add default gw #{gateway_ip}")
   post_list.push("echo 'GATEWAY=#{gateway_ip}' > /etc/sysconfig/network")
+  if service_name.match(/rhel_6/)
+    post_list.push("echo 'NETWORKING=yes' >> /etc/sysconfig/network")
+    post_list.push("echo 'HOSTNAME=#{client_name}' >> /etc/sysconfig/network")
+    post_list.push("")
+    post_list.push("echo 'default via #{gateway_ip} dev #{nic_name}' > /etc/sysconfig/network-scripts/route-eth0")
+  end
   post_list.push("")
   if service_name.match(/centos|fedora|rhel|sl_|oel/)
     if service_name.match(/centos_5|fedora_18|rhel_5|sl_5|oel_5/)

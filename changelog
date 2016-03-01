@@ -631,3 +631,5 @@
 # Improved listing of clients
 # 3.1.5: Mon 29 Feb 2016 19:46:35 AEDT
 # Fixed listing Fusion VMs
+# 3.1.6: Tue  1 Mar 2016 14:40:30 AEDT
+# Fixed default route configuration for RHEL 6.x
