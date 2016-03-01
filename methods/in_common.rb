@@ -2103,7 +2103,11 @@ def mount_iso(iso_file)
     when /CentOS|SL/
       iso_test_dir = $iso_mount_dir+"/repodata"
     when /rhel|OracleLinux|Fedora/
-      iso_test_dir = $iso_mount_dir+"/Packages"
+      if iso_file.match(/rhel-server-5/)
+        iso_test_dir = $iso_mount_dir+"/Server"
+      else
+        iso_test_dir = $iso_mount_dir+"/Packages"
+      end
     when /VCSA/
       iso_test_dir = $iso_mount_dir+"/vcsa"
     when /VM/

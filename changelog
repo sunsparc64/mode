@@ -639,4 +639,6 @@
 # Fixed bug with packer methods file and re-enabled it
 # 3.1.9: Tue  1 Mar 2016 16:20:22 AEDT
 # Fixed bug with ZFS fs creation for repo directories
+# 3.2.0: Tue  1 Mar 2016 16:44:56 AEDT
+# Fixed ISO copy for RHEL 5.x repo creation
 
