@@ -198,11 +198,11 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
               :output_directory     => image_dir,
               :disk_size            => install_size,
               :iso_url              => iso_url,
-              :communicator_type    => "winrm"
+              :communicator_type    => "winrm",
               :floppy_files         => [
                 unattended_xml,
                 winrm_psh
-              ]
+              ],
               :winrm_host           => install_ip,
               :winrm_username       => ssh_username,
               :winrm_password       => ssh_password,

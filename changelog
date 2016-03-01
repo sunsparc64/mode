@@ -635,3 +635,8 @@
 # Fixed default route configuration for RHEL 6.x
 # 3.1.7: Tue  1 Mar 2016 15:21:39 AEDT
 # Fixed bug with listing ISOs
+# 3.1.8: Tue  1 Mar 2016 16:19:14 AEDT
+# Fixed bug with packer methods file and re-enabled it
+# 3.1.9: Tue  1 Mar 2016 16:20:22 AEDT
+# Fixed bug with ZFS fs creation for repo directories
+
