@@ -283,7 +283,7 @@ def populate_ks_post_list(client_arch,service_name,publisher_host,client_name,cl
   post_list.push("")
   post_list.push("route add default gw #{gateway_ip}")
   post_list.push("echo 'GATEWAY=#{gateway_ip}' > /etc/sysconfig/network")
-  if service_name.match(/rhel_6/)
+  if service_name.match(/rhel_[5,6]/)
     post_list.push("echo 'NETWORKING=yes' >> /etc/sysconfig/network")
     post_list.push("echo 'HOSTNAME=#{client_name}' >> /etc/sysconfig/network")
     post_list.push("")

@@ -645,4 +645,6 @@
 # Fixed reboot action for VMware Fusion VMs
 # 3.2.2: Wed  2 Mar 2016 12:32:31 AEDT
 # Fixed bugs with RHEL 5.x kickstart config creation
+# 3.2.3: Wed  2 Mar 2016 12:39:38 AEDT
+# Fixed default route configuration in RHEL 5 and 6 postinstall
 
