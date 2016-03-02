@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.2.0
+# Version:      3.2.1
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -215,8 +215,18 @@ $os_mach = %x[uname -m].chomp
 if $os_name.match(/SunOS|Darwin/)
   $os_info = %x[uname -a].chomp
   $os_rel  = %x[uname -r].chomp
-  $os_rev  = $os_rel.split(/\./)[1]
-  $os_ver  = $os_rel.split(/\./)[0]
+  if $os_name.match(/SunOS/)
+    $os_ver = $os_rel.split(/\./)[1]
+    $os_rev = $os_rel.split(/\./)[1]
+  else
+    $os_ver = $os_rel.split(/\./)[0]
+    if File.exist?("/et/release")
+      $os_rev = %x[cat /etc/release |grep Solaris |head -1].chomp
+      if $os_rev.match(/Oracle/)
+        $os_ver = $os_rev.split(/\s+/)[3].split(/\./)[1]
+      end
+    end
+  end
   if $os_rel.match(/5\.11/) and $os_name.match(/SunOS/)
     $os_update   = %x[uname -v].chomp
     $default_net = "net0"
@@ -1349,10 +1359,18 @@ else
   end
 end
 
-# If service is set, but method ind os isn't sn't try to set method from service name
+# If service is set, but method and os isn't given, try to set method from service name
 
 if option["service"] and !option["method"] and !option["os"]
   install_method = get_install_method_from_service(install_service)
+  option["method"] = install_method
+else
+  if option["method"] and option["os"]
+    if !option["method"].match(/[a-z,A-Z]/) and !option["os"].match(/[a-z,A-z]/)
+      install_method = get_install_method_from_service(install_service)
+      option["method"] = install_method
+    end
+  end
 end
 
 # Handle architecture switch
@@ -1915,6 +1933,9 @@ if option["action"]
     if install_service.match(/[a-z,A-Z,0-9]/)
       eval"[restart_#{install_service}()]"
     else
+      if !install_vm.match(/[a-z]/) and install_client.match(/[a-z]/)
+        install_vm = get_client_vm_type(install_client)
+      end
       if install_vm.match(/[a-z]/)
         if install_client.match(/[a-z,0-9]/)
           eval"[stop_#{install_vm}_vm(install_client)]"
@@ -1923,7 +1944,7 @@ if option["action"]
           puts "Warning:\tClient name not specified"
         end
       else
-        puts "Warning:\tService not specified"
+        puts "Warning:\tInstall service or VM type not specified"
         exit
       end
     end

@@ -32,14 +32,33 @@ def unconfigure_ks_repo(service_name)
   return
 end
 
+# Set ZFS mount point for filesystem
+
+def set_zfs_mount(repo_version_dir,netboot_repo_dir)
+  zfs_name = $default_zpool+repo_version_dir
+  message  = "Information:\tSetting "+zfs_name+" mount point to "+repo_version_dir
+  command  = "zfs set mountpoint=#{netboot_repo_dir} #{zfs_name}"
+  execute_command(message,command)
+  return
+end
+
 # Copy Linux ISO contents to repo
 
 def configure_ks_repo(service_name,iso_file,repo_version_dir)
   netboot_repo_dir = $tftp_dir+"/"+service_name
   if $os_name.match(/SunOS/)
-    check_fs_exists(repo_version_dir)
-    if !File.symlink?(netboot_repo_dir)
-      File.symlink(repo_version_dir,netboot_repo_dir)
+    if $os_ver.to_i < 11
+      check_fs_exists(repo_version_dir)
+      if !File.symlink?(netboot_repo_dir)
+        File.symlink(repo_version_dir,netboot_repo_dir)
+      end
+    else
+      check_fs_exists(repo_version_dir)
+      set_zfs_mount(repo_version_dir,netboot_repo_dir)
+      if !File.symlink?(repo_version_dir)
+        Dir.delete(repo_version_dir)
+        File.symlink(netboot_repo_dir,repo_version_dir)
+      end
     end
   end
   if $os_name.match(/Linux/)
@@ -48,7 +67,6 @@ def configure_ks_repo(service_name,iso_file,repo_version_dir)
       File.symlink(netboot_repo_dir,repo_version_dir)
     end
   end
-  check_fs_exists(repo_version_dir)
   if repo_version_dir.match(/sles/)
     check_dir = repo_version_dir+"/boot"
   else
@@ -105,7 +123,11 @@ def configure_ks_pxe_boot(service_name,iso_arch)
         end
       end
       if service_name.match(/oel|rhel|fedora/)
-        rpm_dir = $repo_base_dir+"/"+service_name+"/Packages"
+        if service_name.match(/rhel_5/)
+          rpm_dir = $repo_base_dir+"/"+service_name+"/Server"
+        else
+          rpm_dir = $repo_base_dir+"/"+service_name+"/Packages"
+        end
       end
       if File.directory?(rpm_dir)
         if !service_name.match(/sl_|fedora_19|rhel_6/)
@@ -224,7 +246,7 @@ def configure_ks_vmware_repo(service_name,client_arch)
     vmware_url   = vmware_url+"/rhel5/"+client_arch+"/"
     repodata_url = vmware_url+"repodata/"
   end
-  if service_name.match(/centos_6|rhel_6|sl_6|oel_6|rhel_7|fedora_[19,20]/)
+  if service_name.match(/centos_6|rhel_[6,7]|sl_6|oel_6|fedora_[19,20]/)
     vmware_url   = vmware_url+"/rhel6/"+client_arch+"/"
     repodata_url = vmware_url+"repodata/"
   end

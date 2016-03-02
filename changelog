@@ -641,4 +641,6 @@
 # Fixed bug with ZFS fs creation for repo directories
 # 3.2.0: Tue  1 Mar 2016 16:44:56 AEDT
 # Fixed ISO copy for RHEL 5.x repo creation
+# 3.2.1: Wed  2 Mar 2016 11:39:21 AEDT
+# Fixed reboot action for VMware Fusion VMs
 

@@ -311,7 +311,7 @@ end
 def export_fusion_ova(install_client,install_file)
   exists = check_fusion_vm_exists(install_client)
   if exists.match(/yes/)
-    stop_vbox_vm(install_client)
+    stop_fusion_vm(install_client)
     if !install_file.match(/[0-9,a-z,A-Z]/)
       install_file = "/tmp/"+install_client+".ova"
       puts "Warning:\tNo ouput file given"
@@ -652,9 +652,9 @@ def boot_fusion_vm(install_client,install_type)
     fusion_vmx_file  = fusion_vm_dir+"/"+install_client+".vmx"
     message          = "Starting:\tVM "+install_client
     if $text_mode == 1
-      command = "'#{$vmrun_bin}' -T fusion start '#{fusion_vmx_file}' nogui &"
+      command = "\"#{$vmrun_bin}\" -T fusion start \"#{fusion_vmx_file}\" nogui &"
     else
-      command = "'#{$vmrun_bin}' -T fusion start '#{fusion_vmx_file}' &"
+      command = "\"#{$vmrun_bin}\" -T fusion start \"#{fusion_vmx_file}\" &"
     end
     execute_command(message,command)
     if $serial_mode == 1
@@ -707,7 +707,7 @@ def stop_fusion_vm(install_client)
     fusion_vm_dir   = $fusion_dir+"/"+install_client+".vmwarevm"
     fusion_vmx_file = fusion_vm_dir+"/"+install_client+".vmx"
     message = "Stopping:\tVirtual Box VM "+install_client
-    command = "'#{$vmrun_bin}' -T fusion stop '#{fusion_vmx_file}'"
+    command = "\"#{$vmrun_bin}\" -T fusion stop \"#{fusion_vmx_file}\""
     execute_command(message,command)
   else
     if $verbose_mode == 1

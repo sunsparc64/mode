@@ -24,7 +24,11 @@ def get_ks_network(service_name)
     if service_name.match(/fedora_20/)
       result = "--bootproto="+$q_struct["bootproto"].value+" --ip="+$q_struct["ip"].value+" --netmask="+$q_struct["netmask"].value+" --gateway "+$q_struct["gateway"].value+" --nameserver="+$q_struct["nameserver"].value+" --hostname="+$q_struct["hostname"].value
     else
-      result = "--device="+$q_struct["nic"].value+" --bootproto="+$q_struct["bootproto"].value+" --ip="+$q_struct["ip"].value+" --netmask="+$q_struct["netmask"].value+" --gateway "+$q_struct["gateway"].value+" --nameserver="+$q_struct["nameserver"].value+" --hostname="+$q_struct["hostname"].value
+      if service_name.match(/rhel_5/)
+        result = "--device "+$q_struct["nic"].value+" --bootproto "+$q_struct["bootproto"].value+" --ip "+$q_struct["ip"].value+" --netmask "+$q_struct["netmask"].value+" --gateway "+$q_struct["gateway"].value+" --nameserver "+$q_struct["nameserver"].value+" --hostname "+$q_struct["hostname"].value
+      else
+        result = "--device="+$q_struct["nic"].value+" --bootproto="+$q_struct["bootproto"].value+" --ip="+$q_struct["ip"].value+" --netmask="+$q_struct["netmask"].value+" --gateway="+$q_struct["gateway"].value+" --nameserver "+$q_struct["nameserver"].value+" --hostname="+$q_struct["hostname"].value
+      end
     end
   end
   if $q_struct["service_name"].value.match(/oel/)
