@@ -1,5 +1,5 @@
 
-# Jupstart server code
+# Jumpstart server code
 
 # Configure NFS service
 

@@ -643,4 +643,6 @@
 # Fixed ISO copy for RHEL 5.x repo creation
 # 3.2.1: Wed  2 Mar 2016 11:39:21 AEDT
 # Fixed reboot action for VMware Fusion VMs
+# 3.2.2: Wed  2 Mar 2016 12:32:31 AEDT
+# Fixed bugs with RHEL 5.x kickstart config creation
 

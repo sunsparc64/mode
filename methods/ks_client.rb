@@ -103,11 +103,7 @@ def configure_ks_pxe_client(client_name,client_ip,client_mac,client_arch,service
       if service_name.match(/fedora_2[0-3]/)
         append_string = "  APPEND initrd=#{initrd_file} ks=#{ks_url} ip=#{client_ip} netmask=#{$default_netmask}"
       else
-        if service_name.match(/rhel_5/)
-          append_string = "  APPEND initrd=#{initrd_file} ks=#{ks_url} ksdevice=eth0 ip=#{client_ip} netmask=#{$default_netmask}"
-        else
-          append_string = "  APPEND initrd=#{initrd_file} ks=#{ks_url} ksdevice=bootif ip=#{client_ip} netmask=#{$default_netmask}"
-        end
+        append_string = "  APPEND initrd=#{initrd_file} ks=#{ks_url} ksdevice=bootif ip=#{client_ip} netmask=#{$default_netmask}"
       end
     end
   end
@@ -553,19 +549,23 @@ def populate_ks_pkg_list(service_name)
       pkg_list.push("xz-devel")
       pkg_list.push("libxslt-devel")
       pkg_list.push("libstdc++-devel")
-      pkg_list.push("perl-TermReadKey")
+      if !service_name.match(/rhel_5/)
+        pkg_list.push("perl-TermReadKey")
+        pkg_list.push("git")
+        pkg_list.push("perl-Git")
+      end
       pkg_list.push("gcc")
       pkg_list.push("gcc-c++")
-      pkg_list.push("git")
-      pkg_list.push("perl-Git")
       pkg_list.push("dhcp")
       pkg_list.push("xinetd")
       pkg_list.push("tftp-server")
     end
-    if !service_name.match(/rhel_6/)
+    if !service_name.match(/rhel_[5,6]/)
       pkg_list.push("libgnome-keyring")
     end
-    pkg_list.push("perl-Error")
+    if !service_name.match(/rhel_5/)
+      pkg_list.push("perl-Error")
+    end
     pkg_list.push("httpd")
     if service_name.match(/fedora_[19,20,21,22,23]/)
       pkg_list.push("net-tools")
