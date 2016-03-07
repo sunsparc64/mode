@@ -194,7 +194,7 @@ end
 def list_os_isos(install_os)
   case install_os
   when /linux/
-    search_string = "CentOS|OracleLinux|SUSE|SLES|SL|Fedora|ubuntu|debian"
+    search_string = "CentOS|OracleLinux|SUSE|SLES|SL|Fedora|ubuntu|debian|purity"
   when /sol/
     search_string = "sol"
   when /esx|vmware|vsphere/
@@ -259,6 +259,11 @@ def get_install_service_from_file(install_file)
     service_version = service_version+"_"+install_arch
     install_method  = "ps"
     install_release = install_file.split(/-/)[1]
+  when /purity/
+    service_name    = "purity"
+    service_version = install_file.split(/_/)[1]
+    install_method  = "ps"
+    install_arch    = "x86_64"
   when /vCenter-Server-Appliance|VCSA/
     service_name    = "vcsa"
     service_version = install_file.split(/-/)[3..4].join(".").gsub(/\./,"_").gsub(/_iso/,"")
@@ -342,7 +347,7 @@ def get_install_method_from_iso(install_file)
     install_method = "vs"
   when /CentOS|OracleLinux|^SL|Fedora|rhel/
     install_method = "ks"
-  when /ubuntu|debian/
+  when /ubuntu|debian|purity/
     install_method = "ps"
   when /SUSE|SLES/
     install_method = "ay"
@@ -448,6 +453,8 @@ def get_iso_list(install_os,install_method,install_release,install_arch)
     install_os = "ubuntu"
   when /debian/
     install_os = "debian"
+  when /purity/
+    install_os = "purity"
   when /fedora/
     install_os = "Fedora"
   when /scientific|sl/
@@ -471,7 +478,7 @@ def get_iso_list(install_os,install_method,install_release,install_arch)
   when /yast|ay/
     install_method = "SLES|openSUSE"
   when /preseed|ps/
-    install_method = "debian|ubuntu"
+    install_method = "debian|ubuntu|purity"
   end
   if install_release.match(/[0-9]/)
     case install_os
@@ -850,7 +857,11 @@ end
 
 def get_linux_version_info(iso_file_name)
   iso_info     = File.basename(iso_file_name)
-  iso_info     = iso_info.split(/-/)
+  if iso_file_name.match(/purity/)
+    iso_info     = iso_info.split(/_/)
+  else
+    iso_info     = iso_info.split(/-/)
+  end
   linux_distro = iso_info[0]
   linux_distro = linux_distro.downcase
   if linux_distro.match(/oraclelinux/)
@@ -912,8 +923,13 @@ def get_linux_version_info(iso_file_name)
       iso_version = iso_info[1]
       iso_arch    = iso_info[2]
     else
-      iso_version = iso_info[2]
-      iso_arch    = iso_info[3]
+      if linux_distro.match(/purity/)
+        iso_version = iso_info[1]
+        iso_arch    = "x86_64"
+      else
+        iso_version = iso_info[2]
+        iso_arch    = iso_info[3]
+      end
     end
   end
   return linux_distro,iso_version,iso_arch

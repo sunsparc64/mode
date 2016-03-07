@@ -3,7 +3,7 @@
 # List available Ubuntu ISOs
 
 def list_ps_isos()
-  search_string = "ubuntu"
+  search_string = "ubuntu|debian|purity"
   iso_list      = check_iso_base_dir(search_string)
   if iso_list.length > 0
     puts "Available Preseed (Ubuntu/Debian) ISOs:"

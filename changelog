@@ -647,4 +647,8 @@
 # Fixed bugs with RHEL 5.x kickstart config creation
 # 3.2.3: Wed  2 Mar 2016 12:39:38 AEDT
 # Fixed default route configuration in RHEL 5 and 6 postinstall
+# 3.2.4: Thu  3 Mar 2016 09:17:18 AEDT
+# Minor updates
+# 3.2.5: Mon  7 Mar 2016 14:50:55 AEDT
+# More minor updates
 

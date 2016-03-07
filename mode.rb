@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.2.3
+# Version:      3.2.5
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -179,8 +179,8 @@ $default_ext_network      = "192.168.1.0"
 $puppet_rpm_base_url      = "http://yum.puppetlabs.com"
 $centos_rpm_base_url      = "http://"+$local_centos_mirror+"/centos"
 $default_vm_utc           = "off"
-$valid_os_list            = [ 'sol', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL' ]
-$valid_linux_os_list      = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL' ]
+$valid_os_list            = [ 'sol', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL', 'purity' ]
+$valid_linux_os_list      = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL', 'purity' ]
 $valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
 $valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
 $valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image' ]
@@ -1554,11 +1554,15 @@ if option["os"]
     exit
   else
     if install_file.match(/[a-z,A-Z,0-9]/)
-      (install_service,test_os) = get_packer_install_service(install_file)
-      if !test_os.match(/#{install_os}/)
-        puts "Warning:\tSpecified OS does not match installation media OS"
-        puts "Information:\tSetting OS name to "+test_os
-        install_os = test_os
+      if install_file.match(/purity/)
+        install_os = "purity"
+      else
+        (install_service,test_os) = get_packer_install_service(install_file)
+        if !test_os.match(/#{install_os}/)
+          puts "Warning:\tSpecified OS does not match installation media OS"
+          puts "Information:\tSetting OS name to "+test_os
+          install_os = test_os
+        end
       end
     end
     case install_os
@@ -1568,6 +1572,11 @@ if option["os"]
       option["method"] = "ks"
     when /ubuntu|debian/
       option["method"] = "ps"
+    when /purity/
+      option["method"] = "ps"
+      if install_memory == $default_vm_mem
+        install_memory = "8192"
+      end
     when /suse|sles/
       option["method"] = "ay"
     when /sol/
@@ -1594,7 +1603,7 @@ if option["method"]
   when /jumpstart|js/
     info_examples  = "js"
     install_method = "js"
-  when /preseed|debian|ubuntu/
+  when /preseed|debian|ubuntu|purity/
     info_examples  = "ps"
     install_method = "ps"
   when /vsphere|esx|vmware|vs/
@@ -1784,8 +1793,8 @@ if option["action"]
       exit
     end
   when /delete|remove/
-    if install_client.match(/[a-z]/)
-      if !install_service.match(/[a-z]/)
+    if install_client.match(/[a-z]/) 
+      if !install_service.match(/[a-z]/) and !install_vm.match(/[a-z]/)
         if !install_vm.match(/[a-z]/)
           install_vm = get_client_vm_type(install_client)
           if install_vm.match(/vbox|fusion|parallels/)
