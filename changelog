@@ -651,4 +651,6 @@
 # Minor updates
 # 3.2.5: Mon  7 Mar 2016 14:50:55 AEDT
 # More minor updates
+# 3.2.6: Thu 10 Mar 2016 09:57:04 AEDT
+# Fixed issue with installing SLES 12.0
 

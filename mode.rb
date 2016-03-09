@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.2.5
+# Version:      3.2.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -38,6 +38,7 @@ begin
   require 'socket'
   require 'net/http'
   require 'net/scp'
+  require 'terminfo'
 rescue LoadError
 end
 
@@ -47,6 +48,7 @@ $script                   = $0
 $script_file              = Pathname.new($script).realpath
 $script_dir               = File.dirname($script_file)
 $wiki_dir                 = $script_dir+"/"+File.basename($script,".rb")+".wiki"
+$wiki_url                 = "https://github.com/lateralblast/mode.wiki.git"
 $verbose_mode             = 0
 $test_mode                = 0
 $download_mode            = 1
@@ -607,7 +609,6 @@ begin
     [ "--clone",          "-f", Getopt::REQUIRED ], # Clone name
     [ "--diskmode",       "-G", Getopt::REQUIRED ], # Disk mode (e.g. thin)
     [ "--help",           "-h", Getopt::BOOLEAN ],  # Display usage information
-    [ "--info",           "-H", Getopt::REQUIRED ], # Display usage information
     [ "--ip",             "-i", Getopt::REQUIRED ], # IP Address of client
     [ "--ipfamily",       "-I", Getopt::REQUIRED ], # IP family (e.g. IPv4 or IPv6)
     [ "--size",           "-j", Getopt::REQUIRED ], # VM disk size (if used with deploy action, this sets the size of the VM, e.g. tiny)
@@ -1757,6 +1758,7 @@ if option["action"]
     if install_type.match(/service/)
       if install_method.match(/[a-z]/)
         eval"[list_#{install_method}_services]"
+        puts
         exit
       else
         list_all_services()
@@ -1825,7 +1827,7 @@ if option["action"]
             end
           end
         else
-          set_local_config(install_mode)
+          set_local_config()
           remove_hosts_entry(install_client,install_ip)
           remove_dhcp_client(install_client)
           if option["yes"]

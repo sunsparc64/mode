@@ -843,7 +843,7 @@ end
 
 # Populate list of packages to remove
 
-def populate_ay_remove_packages()
+def populate_ay_remove_packages(service_name)
   remove_packages = []
   remove_packages.push("cups-autoconfig")
   remove_packages.push("cups-drivers")
@@ -855,6 +855,9 @@ def populate_ay_remove_packages()
   remove_packages.push("manufacturer-PPDs")
   remove_packages.push("pcmciautils")
   remove_packages.push("portmap")
+  if service_name.match(/sles_12/)
+    remove_packages.push("postfix")
+  end
   remove_packages.push("rsyslog")
   remove_packages.push("sendmail")
   remove_packages.push("susehelp_de")
@@ -1399,7 +1402,7 @@ def output_ay_client_profile(client_name,client_ip,client_mac,output_file,servic
   xml_output            = []
   hosts                 = populate_ay_hosts(client_name,client_ip)
   add_packages          = populate_ay_add_packages()
-  remove_packages       = populate_ay_remove_packages()
+  remove_packages       = populate_ay_remove_packages(service_name)
   patterns              = populate_ay_patterns(service_name)
   disabled_services     = populate_ay_disabled_services()
   disabled_http_modules = populate_ay_disabled_http_modules()

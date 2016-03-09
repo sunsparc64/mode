@@ -384,10 +384,21 @@ def list_vs_vbox_vms()
   return
 end
 
+# Get/set VBoxManage path
+
+def set_vboxmanage_bin()
+  $vboxmanage_bin = %x[which VBoxManage].chomp
+  if !$vboxmanage_bin.match(/VBoxManage/) or $vboxmanage_bin.match(/no VBoxManage/)
+    puts "Warning:\tCould not find VBoxManage"
+    exit
+  end
+  return
+end
+
 # Check VirtualBox VM exists
 
 def check_vbox_vm_exists(install_client)
-  set_vmrun_bin()
+  set_vboxmanage_bin()
   message   = "Information:\tChecking VM "+install_client+" exists"
   command   = "VBoxManage list vms |grep -v 'inaccessible'"
   host_list = execute_command(message,command)

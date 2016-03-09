@@ -97,14 +97,31 @@ end
 
 def print_md(md_file)
   md_file = $wiki_dir+"/"+md_file+".md"
-  puts md_file
-  if File.exist?(md_file)
-    md_info = File.readlines(md_file)
-  end
-  md_info.each do |line|
-    if !line.match(/\`\`\`/)
-      puts line
+  if File.directory?($wiki_dir) or File.symlink?($wiki_dir)
+    if File.exist?(md_file)
+      md_info = File.readlines(md_file)
+      if md_info
+        md_info.each do |line,index|
+          if !line.match(/\`\`\`/)
+            puts line
+          end
+        end
+      end
+    else
+      if $verbose_mode == 1
+        puts "Warning:\tFile: "+md_file+" contains no information"
+      end
     end
+  else
+    $verbose_mode = 1
+    puts "Warning:\tWiki directory '"+$wiki_dir+"' does not exist"
+    $use_sudo = 0
+    message   = "Attempting to clone Wiki dir from: '"+$wiki_url+"' to: '"+$wiki_dir
+    command   = "cd #{$script_dir} ; git clone #{$wiki_url}"
+    execute_command(message,command)
+    puts
+    ptint_md(md_file)
+    exit
   end
   return
 end
@@ -121,81 +138,36 @@ def print_examples(install_method,install_type,install_vm)
     print_md("ISOs")
     puts
   end
+  if examples.match(/all|server|dist|setup/)
+    print_md("Distribution-Server-Setup")
+    puts
+  end
   if examples.match(/vbox|all|virtualbox/)
     print_md("VirtualBox")
     puts
   end
   if examples.match(/fusion|all/)
-    printmd("VMwareFusion")
+    print_md("VMware-Fusion")
+    puts
+  end
+  if examples.match(/packer|all/)
+    print_md("Packer")
     puts
   end
   if examples.match(/server|ai|all/)
-    puts
-    puts "AI server related examples"
-    puts
-    puts "List AI services:"
-    puts
-    puts $script+" --action=list --method=ai"
-    puts
-    puts "Configure all AI services:"
-    puts
-    puts $script+" --action=add --method=ai"
-    puts
-    puts "Unconfigure AI service:"
-    puts
-    puts $script+" --action=delete --method=ai --service=sol_11_1"
+    print_md("AI-Server")
     puts
   end
   if examples.match(/server|ks|all/)
-    puts "Kickstart server related examples"
-    puts
-    puts "List Kickstart services:"
-    puts
-    puts $script+" --action=list --method=kickstart"
-    puts
-    puts "List Kickstart ISOs:"
-    puts
-    puts $script+" --action=list --method=kickstart --type=iso"
-    puts
-    puts "Configure all Kickstart services (Service names will be automatically created):"
-    puts
-    puts $script+" --action=add --method=kickstart"
-    puts
-    puts "Configure Kickstart service from ISO (Service name will be automatically created):"
-    puts
-    puts $script+" --action=add --method=iso --type=iso --file=/export/isos/Fedora-20-x86_64-DVD.iso"
-    puts $script+" --action=add --type=iso --file=/export/isos/Fedora-20-x86_64-DVD.iso"
-    puts $script+" --action=add --file=/export/isos/Fedora-20-x86_64-DVD.iso"
-    puts
-    puts "Unconfigure Kickstart service:"
-    puts
-    puts $script+" --action=delete --method=kickstart --service=centos_5_10_i386"
-    puts
-    puts "Delete Kickstart service:"
-    puts
-    puts $script+" -K -S -z centos_5_10_i386 -y"
+    print_md("Kickstart-Server")
     puts
   end
   if examples.match(/server|ay|all/)
-    puts "AutoYast server related examples:"
-    puts
-    puts "List Autoyast services:"
-    puts $script+" -Y -S -L"
-    puts "Configure Autoyast services:"
-    puts $script+" -Y -S"
-    puts "Configure Autoyast service (from ISO):"
-    puts $script+" -Y -S -f /export/isos/SLES-11-SP2-DVD-x86_64-GM-DVD1.iso"
+    print_md("AutoYast-Server")
     puts
   end
   if examples.match(/server|ps|all/)
-    puts "Preseed server related examples:"
-    puts
-    puts "List all Preseed services:"
-    puts $script+" -U -S -L"
-    puts "Configure all Preseed services:"
-    puts $script+" -U -S"
-    puts "Configure a Preseed service (from ISO):"
-    puts $script+" -U -S -f /export/isos/ubuntu-13.10-server-amd64.iso"
+    print_md("Preseed-Server")
     puts
   end
   if examples.match(/server|xb|ob|nb|all/)
@@ -212,27 +184,11 @@ def print_examples(install_method,install_type,install_vm)
     puts
   end
   if examples.match(/server|js|all/)
-    puts "Jumpstart server related examples:"
-    puts
-    puts "List Jumpstart services:"
-    puts $script+" -J -S -L"
-    puts "Configure Jumpstart services:"
-    puts $script+" -J -S"
-    puts "Unconfigure Jumpstart service:"
-    puts $script+" -J -S -z sol_10_11"
+    print_md("Jumpstart-Server")
     puts
   end
   if examples.match(/server|vs|all/)
-    puts "ESX/vSphere server related examples"
-    puts
-    puts "List vSphere ISOs:"
-    puts $script+" -E -S -I"
-    puts "List vSphere services:"
-    puts $script+" -E -S -L"
-    puts "Configure all vSphere services:"
-    puts $script+" -E -S"
-    puts "Configure vSphere service (from ISO):"
-    puts $script+" -E -S -f /export/isos/VMware-VMvisor-Installer-5.5.0.update01-1623387.x86_64.iso"
+    print_md("vSphere-Server")
     puts
   end
   if examples.match(/maint|all/)
@@ -310,51 +266,11 @@ def print_examples(install_method,install_type,install_vm)
     puts
   end
   if examples.match(/client|ks|all/)
-    puts "Kickstart client creation related examples:"
-    puts
-    puts "List Kickstart clients:"
-    puts $script+" -K -C -L"
-    puts "Create Kickstart client:"
-    puts $script+" -K -C -c centos510vm01 -e 00:50:56:34:4E:7A -a x86_64 -i 192.168.1.194 -n centos_5_10_x86_64"
-    puts "Create Kickstart client:"
-    puts $script+" -K -C -c centos65vm01 -e 00:50:56:34:4E:7B -a x86_64 -i 192.168.1.184 -n centos_6_5_x86_64"
-    puts "Create Kickstart client:"
-    puts $script+" -K -C -c sl64vm01 -e 00:50:56:34:4E:FB -a x86_64 -i 192.168.1.185 -n sl_6_4_x86_64"
-    puts "Create Kickstart client:"
-    puts $script+" -K -C -c oel65vm01 -e 00:50:56:34:4E:BB -a x86_64 -i 192.168.1.186 -n oel_6_5_x86_64"
-    puts "Create Kickstart client:"
-    puts $script+" -K -C -c rhel63vm01 -e 00:50:56:34:4E:AA -a x86_64 -i 192.168.1.187 -n rhel_6_3_x86_64"
-    puts "Create Kickstart client:"
-    puts $script+" -K -C -c rhel70vm01 -e 00:50:56:34:4E:AB -a x86_64 -i 192.168.1.188 -n rhel_7_0_x86_64"
-    puts "Create Kickstart client:"
-    puts $script+" -K -C -c fedora20vm01 -e 00:50:56:34:4E:AC -a x86_64 -i 192.168.1.189 -n fedora_20_x86_64"
-    puts
-    puts "Kickstart client modification examples:"
-    puts
-    puts "Configure Kickstart client PXE:"
-    puts $script+" -K -P -c centos510vm01 -e 00:50:56:34:4E:7A -i 192.168.1.194 -n centos_5_10_x86_64"
-    puts
-    puts "Kickstart client deletion related examples:"
-    puts
-    puts "Delete Kickstart client:"
-    puts $script+" -K -C -d centos510vm01"
-    puts "Delete Kickstart client:"
-    puts $script+" -K -C -d centos65vm01"
-    puts "Delete Kickstart client:"
-    puts $script+" -K -C -d sl64vm01"
-    puts "Delete Kickstart client:"
-    puts $script+" -K -C -d oel65vm01"
+    print_md("Kickstart-Client")
     puts
   end
   if examples.match(/client|ai|all/)
-    puts "AI client related examples:"
-    puts
-    puts "List AI clients:"
-    puts $script+" -A -C -L"
-    puts "Create AI client:"
-    puts $script+" -A -C -c sol11u01vm03 -e 00:50:56:26:92:d8 -a i386 -i 192.168.1.193"
-    puts "Delete AI client:"
-    puts $script+" -A -C -d sol11u01vm03"
+    print_md("AI-Client")
     puts
   end
   if examples.match(/client|xb|ob|nb|all/)
@@ -371,47 +287,23 @@ def print_examples(install_method,install_type,install_vm)
     puts
   end
   if examples.match(/client|ps|all/)
-    puts "Preseed client related examples:"
-    puts
-    puts "List Preseed clients:"
-    puts $script+" -U -C -L"
-    puts "Create Preseed client:"
-    puts $script+" -U -C -c ubuntu1310vm01 -e 08:00:27:BA:34:7C -a x86_64 -i 192.168.1.196 -n ubuntu_13_10_x86_64"
-    puts "Delete Preseed client:"
-    puts $script+" -U -C -d ubuntu1310vm01"
+    print_md("Preseed-Client")
     puts
   end
   if examples.match(/client|js|all/)
-    puts "Jumpstart client related examples:"
-    puts
-    puts "List Jumpstart clients:"
-    puts $script+" -J -C -L"
-    puts "Create Jumpstart client:"
-    puts $script+" -J -C -c sol10u11vm01 -e 00:0C:29:FA:0C:7F -a i386 -i 192.168.1.195 -n sol_10_11"
-    puts "Delete Jumpstart client:"
-    puts $script+" -J -C -d sol10u11vm01"
+    print_md("Jumpstart-Client")
     puts
   end
   if examples.match(/client|ay|all/)
-    puts "AutoYast client related examples:"
+    print_md("AutoYast-Client")
     puts
-    puts "List Autoyast clients:"
-    puts $script+" -Y -C -L"
-    puts "Create Autoyast client:"
-    puts $script+" -Y -C -c sles11sp2vm01 -e 08:00:27:BA:34:7D -a x86_64 -i 192.168.1.197 -n sles_11_2_x86_64"
-    puts "Delete Autoyast client:"
-    puts $script+" -Y -C -d sles11sp2vm01"
+  end
+  if examples.match(/client|vcsa|all/)
+    print_md("VCSA-Deployment")
     puts
   end
   if examples.match(/client|vs|all/)
-    puts "ESX/vSphere client related examples:"
-    puts
-    puts "List vSphere clients:"
-    puts $script+" -E -C -L"
-    puts "Create vSphere client:"
-    puts $script+" -E -C -c vmware55vm01 -e 08:00:27:61:B7:AD -i 192.168.1.195 -n vmware_5_5_0_x86_64"
-    puts "Delete vSphere client:"
-    puts $script+" -E -C -d vmware55vm01"
+    print_md("vSphere-Client")
     puts
   end
   exit
