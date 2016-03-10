@@ -28,7 +28,13 @@ end
 def unconfigure_ks_repo(service_name)
   remove_apache_alias(service_name)
   repo_version_dir = $repo_base_dir+"/"+service_name
-  destroy_zfs_fs(repo_version_dir)
+  if File.symlink?(repo_version_dir)
+    netboot_repo_dir = $tftp_dir+"/"+service_name
+    destroy_zfs_fs(netboot_repo_dir)
+    File.delete(repo_version_dir)
+  else
+    destroy_zfs_fs(repo_version_dir)
+  end
   return
 end
 

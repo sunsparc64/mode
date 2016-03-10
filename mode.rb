@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.2.6
+# Version:      3.2.7
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1902,7 +1902,15 @@ if option["action"]
           end
         end
       else
-        puts "Warning:\tClient or service name not specified"
+        if install_mode.match(/server/)
+          if install_method.match(/ai/)
+            configure_ai_server(client_arch,publisher_host,publisher_port,service_name,install_file)
+          else
+            puts "Warning:\tNo install method specified"
+          end
+        else
+          puts "Warning:\tClient or service name not specified"
+        end
       end
     end
   when /^boot$|^stop$|^halt$|^suspend$|^resume$|^start$/
