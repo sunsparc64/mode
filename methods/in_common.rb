@@ -1597,7 +1597,7 @@ def destroy_zfs_fs(dir_name)
     if $destroy_fs.match(/y|Y/)
       if File.directory?(dir_name)
         message = "Warning:\tDestroying "+dir_name
-        command = "zfs destroy -r #{zfs_name}"
+        command = "zfs destroy -r -f #{zfs_name}"
         output  = execute_command(message,command)
       end
     end

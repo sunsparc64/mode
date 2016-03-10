@@ -655,4 +655,6 @@
 # Fixed issue with installing SLES 12.0
 # 3.2.7: Thu 10 Mar 2016 11:08:08 AEDT
 # Updated unconfigure service routine to deal with filesystems rather than symlinks in tftpboot directory (e.g. /etc/netboot) 
+# 3.2.8: Thu 10 Mar 2016 11:50:37 AEDT
+# Fixed bug with Preseed client creation
 
