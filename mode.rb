@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.2.8
+# Version:      3.2.9
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1215,7 +1215,7 @@ if option["release"]
     puts "Warning:\tInvalid release number"
     exit
   end
-  if !install_release.match(/[0-9]/) or install_release.match(/[a-z,A-Z,0-9]/)
+  if !install_release.match(/[0-9]/) or install_release.match(/[a-z,A-Z]/)
     puts "Warning:\tInvalid release number"
     exit
   end
@@ -1301,8 +1301,10 @@ else
       install_memory = "4096"
     end
     if option["os"]
-      if option["os"].match(/sol/) and option["release"] == "11"
-        install_memory = "2048"
+      if option["os"].match(/sol/) 
+        if option["release"].to_i > 9
+          install_memory = "2048"
+        end
       end
     else
       if option["method"]
@@ -1576,7 +1578,7 @@ if option["os"]
     when /purity/
       option["method"] = "ps"
       if install_memory == $default_vm_mem
-        install_memory = "8192"
+        install_memory = (12*1024).to_s
       end
     when /suse|sles/
       option["method"] = "ay"
@@ -1876,6 +1878,9 @@ if option["action"]
                               install_network,install_license,install_mirror,install_size,install_type,install_locale,install_label,install_timezone)]"
           else
             check_local_config("server")
+            if !install_model.match(/[a-z]/)
+              install_model = "vm"
+            end
             eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,
                               install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)]"
           end

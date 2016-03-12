@@ -50,7 +50,7 @@ def configure_js_tftp_service(client_arch,service_name,repo_version_dir,os_versi
         output  = execute_command(message,command)
       end
       old_tftp_dir="/tftpboot"
-      if !File.symlink?(tftp_dir)
+      if !File.symlink?($tftp_dir)
         message = "Information:\tSymlinking directory "+old_tftp_dir+" to "+$tftp_dir
         command = "ln -s #{old_tftp_dir} #{$tftp_dir}"
         output  = execute_command(message,command)
@@ -94,14 +94,14 @@ end
 
 def copy_js_sparc_boot_images(repo_version_dir,os_version,os_update)
   boot_list=[]
-  tftp_dir="/tftpboot"
+  $tftp_dir="/tftpboot"
   boot_list.push("sun4u")
   if os_version == "10"
     boot_list.push("sun4v")
   end
   boot_list.each do |boot_arch|
     boot_file = repo_version_dir+"/Solaris_"+os_version+"/Tools/Boot/platform/"+boot_arch+"/inetboot"
-    tftp_file = tftp_dir+"/"+boot_arch+".inetboot.sol_"+os_version+"_"+os_update
+    tftp_file = $tftp_dir+"/"+boot_arch+".inetboot.sol_"+os_version+"_"+os_update
     if !File.exist?(boot_file)
       message = "Information:\tCopying boot image "+boot_file+" to "+tftp_file
       command = "cp #{boot_file} #{tftp_file}"
@@ -177,16 +177,18 @@ def fix_js_rm_client(repo_version_dir,os_version)
     message = "Information:\tArchiving remove install script "+rm_script+" to "+backup_file
     command = "cp #{rm_script} #{backup_file}"
     execute_command(message,command)
-    text = File.read(rm_script)
+    text = IO.readlines(rm_script)
     copy = []
-    text.each do |line|
-      if line.match(/ANS/) and line.match(/sed/) and !line.match(/\{/)
-        line=line.gsub(/#/,' #')
+    if text
+      text.each do |line|
+        if line.match(/ANS/) and line.match(/sed/) and !line.match(/\{/)
+          line=line.gsub(/#/,' #')
+        end
+        if line.match(/nslookup/) and !line.match(/sed/)
+          line="ANS=`nslookup ${K} | /bin/sed '/^;;/d' 2>&1`"
+        end
+        copy.push(line)
       end
-      if line.match(/nslookup/) and !line.match(/sed/)
-        line="ANS=`nslookup ${K} | /bin/sed '/^;;/d' 2>&1`"
-      end
-      copy.push(line)
     end
     File.open(rm_script,"w") {|file| file.puts copy}
   end
@@ -261,6 +263,9 @@ def configure_js_server(client_arch,publisher_host,publisher_port,service_name,i
     end
   else
     iso_list=check_iso_base_dir(search_string)
+  end
+  if iso_file.class == String
+    iso_list[0] = iso_file
   end
   iso_list.each do |iso_file_name|
     iso_file_name = iso_file_name.chomp

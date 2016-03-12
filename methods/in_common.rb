@@ -757,9 +757,16 @@ end
 
 def remove_nfs_export(export_dir)
   if $os_name.match(/SunOS/)
-    message = "Disabling:\tNFS share on "+export_dir
-    command = "zfs set sharenfs=off #{$default_zpool}#{export_dir}"
-    execute_command(message,command)
+    zfs_test = %x[zfs list |grep #{export_dir}].chomp
+    if zfs_test.match(/#{export_dir}/)
+      message = "Disabling:\tNFS share on "+export_dir
+      command = "zfs set sharenfs=off #{$default_zpool}#{export_dir}"
+      execute_command(message,command)
+    else
+      if $verbose_mode == 1
+        puts "Information:\tZFS filesystem #{$default_zpool}#{export_dir} does not exist"
+      end
+    end
   else
     dfs_file = "/etc/exports"
     message  = "Checking:\tCurrent NFS exports for "+export_dir

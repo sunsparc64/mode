@@ -6,7 +6,7 @@
 
 def get_js_system_karch()
   system_model = $q_struct["system_model"].value
-  if !system_model.match(/vmware|i386/)
+  if !system_model.match(/vm|i386/)
     if system_model.downcase.match(/^t/)
       system_karch = "sun4v"
     else
@@ -40,7 +40,7 @@ end
 def get_js_root_disk_id()
   root_disk_id = "c0t0d0"
   case $q_struct["system_model"].value.downcase
-  when /vmware/
+  when /vm/
     root_disk_id = "any"
   when /445|440|480|490|4x0|880|890|8x0|t5220|t5120|t5xx0|t5140|t5240|t5440/
     root_disk_id = "c1t0d0"
@@ -67,7 +67,7 @@ def get_js_mirror_disk_id()
     else
       mirror_target_id = Integer(mirror_target_id)+1
     end
-    mirror_disk_id = "c"+mirror_controller_id+"t"+mirror_target_id+"d"+mirror_disk_id
+    mirror_disk_id = "c"+mirror_controller_id.to_s+"t"+mirror_target_id.to_s+"d"+mirror_disk_id.to_s
   else
     mirror_disk_id = "any"
   end
@@ -79,7 +79,7 @@ end
 def get_js_disk_size()
   disk_size = "73g"
   case $q_struct["system_model"].value.downcase
-  when /vmware/
+  when /vm/
     disk_size = "auto"
   when /t5220|t5120|t5xx0|t5140|t5240|t5440|t6300|t6xx0|t6320|t6340/
     disk_size = "146g"
@@ -96,7 +96,7 @@ def get_js_memory_size()
   case $q_struct["system_model"].value.downcase
   when /280|250|450|220/
     memory_size = "2g"
-  when /100|120|x1|vmware/
+  when /100|120|x1|vm/
     memory_size = "1g"
   end
   return memory_size
@@ -158,7 +158,7 @@ end
 
 # Get fs layout
 def get_js_zfs_layout()
-  if $q_struct["system_model"].value.match(/vmware/)
+  if $q_struct["system_model"].value.match(/vm/)
     $q_struct["swap_size"].value = "auto"
   end
   if $q_struct["mirror_disk"].value.match(/yes/)
@@ -231,7 +231,7 @@ end
 # Get dump size
 
 def get_js_dump_size()
-  if $q_struct["system_model"].value.downcase.match(/vmware/)
+  if $q_struct["system_model"].value.downcase.match(/vm/)
     dump_size = "auto"
   else
     dump_size = $q_struct["memory_size"].value
@@ -275,6 +275,8 @@ def populate_js_machine_questions(client_model,client_karch,publisher_host,servi
   $q_struct[name] = config
   $q_order.push(name)
 
+  client_model = $q_struct["system_model"].value
+
   name = "root_disk_id"
   config = Js.new(
     type      = "",
@@ -288,7 +290,7 @@ def populate_js_machine_questions(client_model,client_karch,publisher_host,servi
   $q_struct[name] = config
   $q_order.push(name)
 
-  if client_model.downcase.match(/vmware/)
+  if client_model.downcase.match(/vm/)
     mirror_disk="no"
   else
     mirror_disk="yes"
@@ -308,28 +310,27 @@ def populate_js_machine_questions(client_model,client_karch,publisher_host,servi
   $q_order.push(name)
 
   name = "mirror_disk_id"
-  config = Js.new(
-    type      = "",
-    question  = "System Disk",
-    ask       = "yes",
-    parameter = "",
-    value     = "get_js_mirror_disk_id()",
-    valid     = "",
-    eval      = "no"
-    )
-  $q_struct[name] = config
-  $q_order.push(name)
-
-  name = "system_karch"
-  config = Js.new(
-    type      = "",
-    question  = "System Kernel Architecture",
-    ask       = "yes",
-    parameter = "",
-    value     = "get_js_system_karch()",
-    valid     = "",
-    eval      = "no"
-    )
+  if client_model.match(/[a-z]/)
+    config = Js.new(
+      type      = "",
+      question  = "System Disk",
+      ask       = "yes",
+      parameter = "",
+      value     = "get_js_mirror_disk_id()",
+      valid     = "",
+      eval      = "no"
+      )
+  else
+    config = Js.new(
+      type      = "",
+      question  = "System Disk",
+      ask       = "no",
+      parameter = "",
+      value     = "get_js_mirror_disk_id()",
+      valid     = "",
+      eval      = "no"
+      )
+  end
   $q_struct[name] = config
   $q_order.push(name)
 
@@ -487,7 +488,7 @@ def populate_js_machine_questions(client_model,client_karch,publisher_host,servi
 
   f_order.each do |fs_name|
 
-    if service_name.match(/sol_10/)
+    if service_name.match(/sol_10_0[6-9]|sol_10_[10,11]/) and $q_struct["root_fs"].value.match(/zfs/)
       fs_size = "auto"
     else
       fs_size = f_struct[fs_name].size
@@ -527,7 +528,7 @@ def populate_js_machine_questions(client_model,client_karch,publisher_host,servi
 
   end
 
-  if service_name.match(/sol_10/)
+  if service_name.match(/sol_10_0[6-9]|sol_10_[10,11]/) and $q_struct["root_fs"].value.match(/zfs/)
 
     name = "zfs_layout"
     config = Js.new(
@@ -697,17 +698,37 @@ def populate_js_sysid_questions(client_name,client_ip,client_arch,client_model,o
   $q_struct[name] = config
   $q_order.push(name)
 
-  name = "system_karch"
-  config = Js.new(
-    type      = "",
-    question  = "System Kernel Architecture",
-    ask       = "yes",
-    parameter = "",
-    value     = "get_js_system_karch()",
-    valid     = "",
-    eval      = "no"
-    )
-  $q_struct[name] = config
+  if !client_arch.match(/i386|sun4/)
+
+    name = "system_karch"
+    config = Js.new(
+      type      = "",
+      question  = "System Kernel Architecture",
+      ask       = "yes",
+      parameter = "",
+      value     = "get_js_system_karch()",
+      valid     = "",
+      eval      = "no"
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
+
+  else
+
+    name = "system_karch"
+    config = Js.new(
+      type      = "",
+      question  = "System Kernel Architecture",
+      ask       = "yes",
+      parameter = "",
+      value     = client_arch,
+      valid     = "",
+      eval      = "no"
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
+
+  end
 
   name = "nic_model"
   config = Js.new(

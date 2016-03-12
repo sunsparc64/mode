@@ -56,11 +56,13 @@ end
 # Get rules karch line
 
 def create_js_rules_file(client_name,client_karch,rules_file)
-  tmp_file = "/tmp/rule_"+client_name
-  client_karch = $q_struct["system_karch"].value
-  client_karch = client_karch.chomp
-  karch_line   = "karch "+client_karch+" - machine."+client_name+" -"
-  file         = File.open(tmp_file,"w")
+  tmp_file   = "/tmp/rule_"+client_name
+  if client_karch.match(/sun4/)
+    karch_line = "karch "+client_karch+" - machine."+client_name+" -"
+  else
+    karch_line = "any - - machine."+client_name+" -"
+  end
+  file       = File.open(tmp_file,"w")
   file.write("#{karch_line}\n")
   file.close
   message = "Information:\tCreating configuration file "+rules_file+" for "+client_name
@@ -110,11 +112,9 @@ def check_js_config(client_name,client_dir,repo_version_dir,os_version)
     output  = execute_command(message,command)
   end
   message   = "Information:\tChecking sum for rules file for "+client_name
-  command   = "cksum -o 2 #{rules_file} | awk '{print $1}'"
+  command   = "sum #{rules_file} | awk '{print $1}'"
   output    = execute_command(message,command)
-  if output.match(/ /)
-    rules_sum = output.chomp.split(/ /)[0]
-  end
+  rules_sum = output.chomp.split(/ /)[0]
   message   = "Information:\tCopying rules file"
   command   = "cd #{client_dir}; cp rules rules.ok"
   execute_command(message,command)
@@ -233,6 +233,22 @@ end
 
 def configure_js_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
                         install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)
+  if !install_arch.match(/i386|sparc/)
+    if install_file
+      if install_file.match(/i386/)
+        install_arch = "i386"
+      else
+        install_arch = "sparc"
+      end
+    end
+    if install_service
+      if install_service.match(/i386/)
+        install_arch = "i386"
+      else
+        install_arch = "sparc"
+      end
+    end
+  end
   if install_file.match(/flar/)
     if !File.exist?(image_file)
       puts "Warning:\tFlar file "+install_file+" does not exist"
@@ -245,7 +261,7 @@ def configure_js_client(install_client,install_arch,install_mac,install_ip,insta
     export_dir  = Pathname.new(install_file)
     export_dir  = export_dir.dirname.to_s
     add_apache_alias(export_dir)
-    if !service_name.match(/[a-z,A-Z]/)
+    if !install_service.match(/[a-z,A-Z]/)
       install_service = Pathname.new(install_file)
       install_service = install_service.basename.to_s.gsub(/\.flar/,"")
     end
@@ -253,7 +269,7 @@ def configure_js_client(install_client,install_arch,install_mac,install_ip,insta
     if !install_service.match(/i386|sparc/)
       install_service = install_service+"_"+install_arch
     end
-    if !install_service.match(/#{client_arch}/)
+    if !install_service.match(/#{install_arch}/)
       puts "Information:\tService "+install_service+" and Client architecture "+install_arch+" do not match"
      exit
     end
@@ -264,11 +280,6 @@ def configure_js_client(install_client,install_arch,install_mac,install_ip,insta
       list_js_services()
       exit
     end
-  end
-  if install_arch.match(/i386/)
-    install_karch = install_arch
-  else
-    install_karch = $q_struct["client_karch"].value
   end
   # Create clients directory
   clients_dir = $client_base_dir+"/"+install_service
@@ -286,11 +297,16 @@ def configure_js_client(install_client,install_arch,install_mac,install_ip,insta
   # Populate sysid questions and process them
   populate_js_sysid_questions(install_client,install_ip,install_arch,install_model,os_version,os_update)
   process_questions(install_service)
+  if install_arch.match(/i386/)
+    install_karch = install_arch
+  else
+    install_karch = $q_struct["client_karch"].value
+  end
   # Create sysid file
   sysid_file = client_dir+"/sysidcfg"
   create_js_sysid_file(install_client,sysid_file)
   # Populate machine questions
-  populate_js_machine_questions(install__model,install_karch,publisher_host,install_service,os_version,os_update,install_file)
+  populate_js_machine_questions(install_model,install_karch,publisher_host,install_service,os_version,os_update,install_file)
   process_questions(install_service)
   machine_file = client_dir+"/machine."+install_client
   create_js_machine_file(install_client,machine_file)
