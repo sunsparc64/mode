@@ -1,5 +1,90 @@
 # Linux specific functions
 
+# Process ISO file to get details
+
+def get_linux_version_info(iso_file_name)
+  iso_info     = File.basename(iso_file_name)
+  if iso_file_name.match(/purity/)
+    iso_info     = iso_info.split(/_/)
+  else
+    iso_info     = iso_info.split(/-/)
+  end
+  linux_distro = iso_info[0]
+  linux_distro = linux_distro.downcase
+  if linux_distro.match(/^sle$/)
+    linux_distro = "sles"
+  end
+  if linux_distro.match(/oraclelinux/)
+    linux_distro = "oel"
+  end
+  if linux_distro.match(/centos|ubuntu|sles|sl|oel|rhel/)
+    if linux_distro.match(/sles/)
+      if iso_info[2].match(/Server/)
+        iso_version = iso_info[1]+".0"
+      else
+        iso_version = iso_info[1]+"."+iso_info[2]
+        iso_version = iso_version.gsub(/SP/,"")
+      end
+    else
+      if linux_distro.match(/sl$/)
+        iso_version = iso_info[1].split(//).join(".")
+        if iso_version.length == 1
+          iso_version = iso_version+".0"
+        end
+      else
+        if linux_distro.match(/oel|rhel/)
+          if iso_file_name =~ /-rc-/
+            iso_version = iso_info[1..3].join(".")
+            iso_version = iso_version.gsub(/server/,"")
+          else
+            iso_version = iso_info[1..2].join(".")
+            iso_version = iso_version.gsub(/[a-z,A-Z]/,"")
+          end
+          iso_version = iso_version.gsub(/^\./,"")
+        else
+          iso_version = iso_info[1]
+        end
+      end
+    end
+    case iso_file_name
+    when /i[3-6]86/
+      iso_arch = "i386"
+    when /x86_64/
+      iso_arch = "x86_64"
+    else
+      if linux_distro.match(/centos|sl$/)
+        iso_arch = iso_info[2]
+      else
+        if linux_distro.match(/sles|oel/)
+          iso_arch = iso_info[4]
+        else
+          iso_arch = iso_info[3]
+          iso_arch = iso_arch.split(/\./)[0]
+          if iso_arch.match(/amd64/)
+            iso_arch = "x86_64"
+          else
+            iso_arch = "i386"
+          end
+        end
+      end
+    end
+  else
+    if linux_distro.match(/fedora/)
+      iso_version = iso_info[1]
+      iso_arch    = iso_info[2]
+    else
+      if linux_distro.match(/purity/)
+        iso_version = iso_info[1]
+        iso_arch    = "x86_64"
+      else
+        iso_version = iso_info[2]
+        iso_arch    = iso_info[3]
+      end
+    end
+  end
+  return linux_distro,iso_version,iso_arch
+end
+
 # List ISOs
 
 def list_linux_isos(search_string)

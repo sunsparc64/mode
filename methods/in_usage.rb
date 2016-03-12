@@ -138,6 +138,10 @@ def print_examples(install_method,install_type,install_vm)
     print_md("ISOs")
     puts
   end
+  if examples.match(/packer|all/)
+    print_md("Packer")
+    puts
+  end
   if examples.match(/all|server|dist|setup/)
     print_md("Distribution-Server-Setup")
     puts
@@ -150,20 +154,16 @@ def print_examples(install_method,install_type,install_vm)
     print_md("VMware-Fusion")
     puts
   end
-  if examples.match(/packer|all/)
-    print_md("Packer")
-    puts
-  end
   if examples.match(/server|ai|all/)
     print_md("AI-Server")
     puts
   end
-  if examples.match(/server|ks|all/)
-    print_md("Kickstart-Server")
-    puts
-  end
   if examples.match(/server|ay|all/)
     print_md("AutoYast-Server")
+    puts
+  end
+  if examples.match(/server|ks|all/)
+    print_md("Kickstart-Server")
     puts
   end
   if examples.match(/server|ps|all/)

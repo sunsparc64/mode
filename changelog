@@ -659,3 +659,5 @@
 # Fixed bug with Preseed client creation
 # 3.2.9: Sat 12 Mar 2016 13:30:51 AEDT
 # Fixed Solaris 10 Jumpstart on x86
+# 3.3.0: Sun 13 Mar 2016 09:08:07 AEDT
+# Added support for SLES 12 SP 1

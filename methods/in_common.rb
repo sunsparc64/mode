@@ -307,7 +307,7 @@ def get_install_service_from_file(install_file)
     service_version = install_file.split(/-/)[2..3].join(".").gsub(/\./,"_").gsub(/_iso/,"")
     install_method  = "ks"
     install_release = install_file.split(/-/)[2]
-  when /SLES/
+  when /SLE/
     service_name    = "sles"
     service_version = install_file.split(/-/)[1]
     service_arch    = install_file.split(/-/)[4]
@@ -349,7 +349,7 @@ def get_install_method_from_iso(install_file)
     install_method = "ks"
   when /ubuntu|debian|purity/
     install_method = "ps"
-  when /SUSE|SLES/
+  when /SUSE|SLE/
     install_method = "ay"
   when /sol-6|sol-7|sol-8|sol-9|sol-10/
     install_method = "js"
@@ -858,88 +858,6 @@ def check_apache_config()
     check_osx_service_is_enabled(service)
   end
   return
-end
-
-# Process ISO file to get details
-
-def get_linux_version_info(iso_file_name)
-  iso_info     = File.basename(iso_file_name)
-  if iso_file_name.match(/purity/)
-    iso_info     = iso_info.split(/_/)
-  else
-    iso_info     = iso_info.split(/-/)
-  end
-  linux_distro = iso_info[0]
-  linux_distro = linux_distro.downcase
-  if linux_distro.match(/oraclelinux/)
-    linux_distro = "oel"
-  end
-  if linux_distro.match(/centos|ubuntu|sles|sl|oel|rhel/)
-    if linux_distro.match(/sles/)
-      if iso_info[2].match(/Server/)
-        iso_version = iso_info[1]+".0"
-      else
-        iso_version = iso_info[1]+"."+iso_info[2]
-        iso_version = iso_version.gsub(/SP/,"")
-      end
-    else
-      if linux_distro.match(/sl$/)
-        iso_version = iso_info[1].split(//).join(".")
-        if iso_version.length == 1
-          iso_version = iso_version+".0"
-        end
-      else
-        if linux_distro.match(/oel|rhel/)
-          if iso_file_name =~ /-rc-/
-            iso_version = iso_info[1..3].join(".")
-            iso_version = iso_version.gsub(/server/,"")
-          else
-            iso_version = iso_info[1..2].join(".")
-            iso_version = iso_version.gsub(/[a-z,A-Z]/,"")
-          end
-          iso_version = iso_version.gsub(/^\./,"")
-        else
-          iso_version = iso_info[1]
-        end
-      end
-    end
-    case iso_file_name
-    when /i[3-6]86/
-      iso_arch = "i386"
-    when /x86_64/
-      iso_arch = "x86_64"
-    else
-      if linux_distro.match(/centos|sl$/)
-        iso_arch = iso_info[2]
-      else
-        if linux_distro.match(/sles|oel/)
-          iso_arch = iso_info[4]
-        else
-          iso_arch = iso_info[3]
-          iso_arch = iso_arch.split(/\./)[0]
-          if iso_arch.match(/amd64/)
-            iso_arch = "x86_64"
-          else
-            iso_arch = "i386"
-          end
-        end
-      end
-    end
-  else
-    if linux_distro.match(/fedora/)
-      iso_version = iso_info[1]
-      iso_arch    = iso_info[2]
-    else
-      if linux_distro.match(/purity/)
-        iso_version = iso_info[1]
-        iso_arch    = "x86_64"
-      else
-        iso_version = iso_info[2]
-        iso_arch    = iso_info[3]
-      end
-    end
-  end
-  return linux_distro,iso_version,iso_arch
 end
 
 # Check DHCPd config
@@ -2121,7 +2039,7 @@ def mount_iso(iso_file)
     end
   else
     case iso_file
-    when /SLES/
+    when /SLE/
       iso_test_dir = $iso_mount_dir+"/suse"
     when /CentOS|SL/
       iso_test_dir = $iso_mount_dir+"/repodata"
