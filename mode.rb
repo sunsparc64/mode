@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.3.3
+# Version:      3.3.4
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -201,6 +201,7 @@ $default_vcsa_size        = "tiny"
 $default_thindiskmode     = "true"
 $default_sshenable        = "true"
 $default_httpd_port       = "8888"
+$default_slice_size       = "8192"
 
 # Declare some package versions
 
@@ -1879,7 +1880,8 @@ if option["action"]
           else
             check_local_config("server")
             if !install_model.match(/[a-z]/)
-              install_model = "vm"
+              install_model       = "vmware"
+              $default_slice_size = "4192"
             end
             eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,
                               install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)]"

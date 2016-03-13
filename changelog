@@ -665,4 +665,6 @@
 # Fixed bugs with AutoYast
 # 3.3.2: Sun 13 Mar 2016 16:40:21 AEDT
 # Fixed deletion of ZFS filesystems
-
+# 3.3.3: Sun 13 Mar 2016 18:59:40 AEDT
+# Initial support for Solaris 9 Jumpstart Server
+# 3.3.4: Sun 13 Mar 2016 21:55:31 AEDT

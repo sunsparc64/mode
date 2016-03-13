@@ -105,6 +105,7 @@ end
 # Set Jumpstart filesystem
 
 def set_js_fs()
+  fs_name = ""
   if $q_struct["root_fs"].value.downcase.match(/zfs/)
     ["memory_size","disk_size","swap_size","root_metadb","mirror_metadb","metadb_size","metadb_count"].each do |key|
       $q_struct[key].ask  = "no"
@@ -179,15 +180,19 @@ end
 # Get UFS filesys entries
 
 def get_js_ufs_filesys(fs_mount,fs_slice,fs_mirror,fs_size)
-  if $q_struct["mirror_disk"].value.match(/yes/)
-    filesys_entry = q_strut["root_disk_id"].value+fs_slice+" "+fs_size+" "+fs_mount
+  if $q_struct["mirror_disk"].value.match(/no/)
+    if $q_struct["root_disk_id"].value.match(/any/)
+      filesys_entry = $q_struct["root_disk_id"].value+" "+fs_size+" "+fs_mount
+    else
+      filesys_entry = $q_struct["root_disk_id"].value+fs_slice+" "+fs_size+" "+fs_mount
+    end
   else
     filesys_entry = "mirror:"+fs_mirror+" "+$q_struct["root_disk_id"].value+fs_slice+" "+$q_struct["mirror_disk_id"].value+fs_slice+" "+fs_size+" "+fs_mount
   end
   return filesys_entry
 end
 
-def get_js_filesys(fsname)
+def get_js_filesys(fs_name)
   if !$q_struct["root_fs"].value.downcase.match(/zfs/)
     (f_struct,f_order) = populate_js_fs_list()
     f_order            = ""
@@ -204,8 +209,8 @@ end
 # Get metadb entry
 
 def get_js_metadb()
-  if !$q_struct["root_fs"].value.downcase.match(/zfs/)
-    metadb_entry = $q_struct["root_disk_id"].value+"s7 size "+$q_struct["metadb_size"]+" count "+$q_struct["metadb_count"].size
+  if !$q_struct["root_fs"].value.downcase.match(/zfs/) and !$q_struct["mirror_disk"].value.match(/no/)
+    metadb_entry = $q_struct["root_disk_id"].value+"s7 size "+$q_struct["metadb_size"].value+" count "+$q_struct["metadb_count"].value
   end
   return metadb_entry
 end
@@ -213,8 +218,8 @@ end
 # Get root metadb entry
 
 def get_js_root_metadb()
-  if !$q_struct["root_fs"].value.downcase.match(/zfs/)
-    metadb_entry = $q_struct["root_disk_id"].value+"s7 size "+$q_struct["metadb_size"]+" count "+$q_struct["metadb_count"].size
+  if !$q_struct["root_fs"].value.downcase.match(/zfs/) and !$q_struct["mirror_disk"].value.match(/no/)
+    metadb_entry = $q_struct["root_disk_id"].value+"s7 size "+$q_struct["metadb_size"].value+" count "+$q_struct["metadb_count"].value
   end
   return metadb_entry
 end
@@ -222,7 +227,7 @@ end
 # Get mirror metadb entry
 
 def get_js_mirror_metadb()
-  if !$q_struct["root_fs"].value.downcase.match(/zfs/)
+  if !$q_struct["root_fs"].value.downcase.match(/zfs/) and !$q_struct["mirror_disk"].value.match(/no/)
     metadb_entry = $q_struct["mirror_disk_id"].value+"s7"
   end
   return metadb_entry
@@ -511,7 +516,7 @@ def populate_js_machine_questions(client_model,client_karch,publisher_host,servi
 
     if !service_name.match(/sol_10/)
 
-      name = f_struct[fs_name].name+"_filesys"
+      name = f_struct[fs_name].name+"_fs"
       config = Js.new(
         type      = "output",
         question  = "UFS Root File System",
@@ -560,57 +565,61 @@ def populate_js_machine_questions(client_model,client_karch,publisher_host,servi
 
   end
 
-  name = "metadb_size"
-  config = Js.new(
-    type      = "",
-    question  = "Metadb Size",
-    ask       = "yes",
-    parameter = "",
-    value     = "16384",
-    valid     = "",
-    eval      = "no"
-    )
-  $q_struct[name] = config
-  $q_order.push(name)
+  if !$q_struct["mirror_disk"].value.match(/no/)
 
-  name = "metadb_count"
-  config = Js.new(
-    type      = "",
-    question  = "Metadb Count",
-    ask       = "yes",
-    parameter = "",
-    value     = "3",
-    valid     = "",
-    eval      = "no"
-    )
-  $q_struct[name] = config
-  $q_order.push(name)
+    name = "metadb_size"
+    config = Js.new(
+      type      = "",
+      question  = "Metadb Size",
+      ask       = "yes",
+      parameter = "",
+      value     = "16384",
+      valid     = "",
+      eval      = "no"
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
+  
+    name = "metadb_count"
+    config = Js.new(
+      type      = "",
+      question  = "Metadb Count",
+      ask       = "yes",
+      parameter = "",
+      value     = "3",
+      valid     = "",
+      eval      = "no"
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
 
-  name = "root_metadb"
-  config = Js.new(
-    type      = "output",
-    question  = "Root Disk Metadb",
-    ask       = "yes",
-    parameter = "metadb",
-    value     = "get_js_root_metadb()",
-    valid     = "",
-    eval      = "no"
-    )
-  $q_struct[name] = config
-  $q_order.push(name)
+    name = "root_metadb"
+    config = Js.new(
+      type      = "output",
+      question  = "Root Disk Metadb",
+      ask       = "yes",
+      parameter = "metadb",
+      value     = "get_js_root_metadb()",
+      valid     = "",
+      eval      = "no"
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
 
-  name = "mirror_metadb"
-  config = Js.new(
-    type      = "output",
-    question  = "Mirror Disk Metadb",
-    ask       = "yes",
-    parameter = "metadb",
-    value     = "get_js_mirror_metadb()",
-    valid     = "",
-    eval      = "no"
-    )
-  $q_struct[name] = config
-  $q_order.push(name)
+    name = "mirror_metadb"
+    config = Js.new(
+      type      = "output",
+      question  = "Mirror Disk Metadb",
+      ask       = "yes",
+      parameter = "metadb",
+      value     = "get_js_mirror_metadb()",
+      valid     = "",
+      eval      = "no"
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
+
+  end
 
   return
 end

@@ -20,7 +20,7 @@ def populate_js_fs_list()
     mount     = "/",
     slice     = "0",
     mirror    = "d10",
-    size      = "8192"
+    size      = $default_slice_size
     )
   f_struct[name] = config
   f_order.push(name)
@@ -31,7 +31,7 @@ def populate_js_fs_list()
     mount     = "/",
     slice     = "1",
     mirror    = "d20",
-    size      = "8192"
+    size      = $default_slice_size
     )
   f_struct[name] = config
   f_order.push(name)
@@ -42,7 +42,7 @@ def populate_js_fs_list()
     mount     = "/var",
     slice     = "3",
     mirror    = "d30",
-    size      = "8192"
+    size      = $default_slice_size
     )
   f_struct[name] = config
   f_order.push(name)
@@ -53,7 +53,7 @@ def populate_js_fs_list()
     mount     = "/opt",
     slice     = "4",
     mirror    = "d40",
-    size      = "4096"
+    size      = "1024"
     )
   f_struct[name] = config
   f_order.push(name)
