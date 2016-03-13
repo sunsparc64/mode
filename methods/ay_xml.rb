@@ -592,23 +592,48 @@ def populate_ay_groups(install_service)
   $g_order.push(group)
   $g_struct[group] = config
 
-  group  = "polkituser"
-  config = Group.new(
-    gid            = "106",
-    group_password = "!",
-    groupname      = group,
-    userlist       = ""
-    )
-  $g_order.push(group)
-  $g_struct[group] = config
+  if install_service.match(/sles_12_1/)
+
+    group  = "polkitd"
+    config = Group.new(
+      gid            = "496",
+      group_password = "x",
+      groupname      = group,
+      userlist       = ""
+      )
+    $g_order.push(group)
+    $g_struct[group] = config
+
+  else
+
+    group  = "polkituser"
+    config = Group.new(
+      gid            = "106",
+      group_password = "!",
+      groupname      = group,
+      userlist       = ""
+      )
+    $g_order.push(group)
+    $g_struct[group] = config
+
+  end
 
   group  = "pulse"
-  config = Group.new(
-    gid            = "100",
-    group_password = "!",
-    groupname      = group,
-    userlist       = ""
-    )
+  if install_service.match(/sles_12_1/)
+    config = Group.new(
+      gid            = "489",
+      group_password = "x",
+      groupname      = group,
+      userlist       = ""
+      )
+  else
+    config = Group.new(
+      gid            = "100",
+      group_password = "!",
+      groupname      = group,
+      userlist       = ""
+      )
+  end
   $g_order.push(group)
   $g_struct[group] = config
 
@@ -704,14 +729,14 @@ def populate_ay_groups(install_service)
   group  = "tape"
   if install_service.match(/sles_12_1/)
     config = Group.new(
-      gid            = "103",
+      gid            = "497",
       group_password = "x",
       groupname      = group,
       userlist       = ""
       )
   else
     config = Group.new(
-      gid            = "497",
+      gid            = "103",
       group_password = "!",
       groupname      = group,
       userlist       = ""
@@ -773,14 +798,14 @@ def populate_ay_groups(install_service)
   group  = "ntp"
   if install_service.match(/sles_12_1/)
     config = Group.new(
-      gid            = "107",
+      gid            = "492",
       group_password = "x",
       groupname      = group,
       userlist       = ""
       )
   else
     config = Group.new(
-      gid            = "492",
+      gid            = "107",
       group_password = "!",
       groupname      = group,
       userlist       = ""
@@ -1080,7 +1105,7 @@ end
 
 # Populate users
 
-def populate_ay_users()
+def populate_ay_users(install_service)
 
   $u_struct = {}
   $u_order  = []
@@ -1097,7 +1122,7 @@ def populate_ay_users()
     min           = "0",
     warn          = "7",
     shell         = $default_admin_shell,
-    uid           = "",
+    uid           = "1000",
     user_password = $q_struct["admin_crypt"].value,
     username      = $default_admin_user
     )
@@ -1116,7 +1141,7 @@ def populate_ay_users()
     min           = "",
     warn          = "",
     shell         = "/bin/bash",
-    uid           = "",
+    uid           = "12",
     user_password = "*",
     username      = user
     )
@@ -1127,7 +1152,7 @@ def populate_ay_users()
   config = User.new(
     fullname      = "bin",
     gid           = "1",
-    home          = "bin",
+    home          = "/bin",
     expire        = "",
     flag          = "",
     inact         = "",
@@ -1256,24 +1281,49 @@ def populate_ay_users()
   $u_struct[user]=config
   $u_order.push(user)
 
-  user   = "gdm"
-  config = User.new(
-    fullname      = "Gnome Display Manager daemon",
-    gid           = "111",
-    home          = "/var/lib/gdm",
-    expire        = "",
-    flag          = "",
-    inact         = "",
-    max           = "9999",
-    min           = "0",
-    warn          = "7",
-    shell         = "/bin/bash",
-    uid           = "107",
-    user_password = "*",
-    username      = user
-    )
-  $u_struct[user]=config
-  $u_order.push(user)
+  if install_service.match(/sles_12_1/)
+
+    user   = "gdm"
+    config = User.new(
+      fullname      = "Gnome Display Manager daemon",
+      gid           = "485",
+      home          = "/var/lib/gdm",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "",
+      min           = "",
+      warn          = "",
+      shell         = "/bin/false",
+      uid           = "486",
+      user_password = "!",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+  else
+
+    user   = "gdm"
+    config = User.new(
+      fullname      = "Gnome Display Manager daemon",
+      gid           = "111",
+      home          = "/var/lib/gdm",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "9999",
+      min           = "0",
+      warn          = "7",
+      shell         = "/bin/bash",
+      uid           = "107",
+      user_password = "*",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+  end
 
   user   = "at"
   config = User.new(
@@ -1314,7 +1364,6 @@ def populate_ay_users()
   $u_struct[user]=config
   $u_order.push(user)
 
-
   user   = "mail"
   config = User.new(
     fullname      = "Mailer daemon",
@@ -1334,6 +1383,199 @@ def populate_ay_users()
   $u_struct[user]=config
   $u_order.push(user)
 
+  if install_service.match(/sles_12_1/)
+
+    user   = "openslp"
+    config = User.new(
+      fullname      = "openslp daemon",
+      gid           = "2",
+      home          = "/var/lib/empty",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "",
+      min           = "",
+      warn          = "",
+      shell         = "/sbin/nologin",
+      uid           = "494",
+      user_password = "!",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+    user   = "usbmuxd"
+    config = User.new(
+      fullname      = "usbmuxd daemon",
+      gid           = "65534",
+      home          = "/var/lib/usbmuxd",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "",
+      min           = "",
+      warn          = "",
+      shell         = "/sbin/nologin",
+      uid           = "493",
+      user_password = "!",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+    user   = "statd"
+    config = User.new(
+      fullname      = "NFS statd daemon",
+      gid           = "65534",
+      home          = "/var/lib/nfs",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "",
+      min           = "",
+      warn          = "",
+      shell         = "/sbin/nologin",
+      uid           = "489",
+      user_password = "!",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+    user   = "scard"
+    config = User.new(
+      fullname      = "Smart Card Reader",
+      gid           = "487",
+      home          = "/var/run/pcscd",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "",
+      min           = "",
+      warn          = "",
+      shell         = "/usr/sbin/nologin",
+      uid           = "487",
+      user_password = "!",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+    user   = "vnc"
+    config = User.new(
+      fullname      = "user for VNC",
+      gid           = "491",
+      home          = "/var/lib/empty",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "",
+      min           = "",
+      warn          = "",
+      shell         = "/sbin/nologin",
+      uid           = "492",
+      user_password = "!",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+    user   = "sshd"
+    config = User.new(
+      fullname      = "SSH daemon",
+      gid           = "498",
+      home          = "/var/lib/sshd",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "",
+      min           = "",
+      warn          = "",
+      shell         = "/bin/false",
+      uid           = "498",
+      user_password = "!",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+    user   = "nscd"
+    config = User.new(
+      fullname      = "User for nscd",
+      gid           = "495",
+      home          = "/run/nscd",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "",
+      min           = "",
+      warn          = "",
+      shell         = "/sbin/nologin",
+      uid           = "496",
+      user_password = "!",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+    user   = "rtkit"
+    config = User.new(
+      fullname      = "RealtimeKit",
+      gid           = "490",
+      home          = "/proc",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "",
+      min           = "",
+      warn          = "",
+      shell         = "/bin/false",
+      uid           = "496",
+      user_password = "!",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+    user   = "ftpsecure"
+    config = User.new(
+      fullname      = "Secure FTP User",
+      gid           = "65534",
+      home          = "/var/lib/empty",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "",
+      min           = "",
+      warn          = "",
+      shell         = "/bin/false",
+      uid           = "488",
+      user_password = "!",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+    user   = "rpc"
+    config = User.new(
+      fullname      = "user for rpcbind",
+      gid           = "65534",
+      home          = "/var/lib/empty",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "",
+      min           = "",
+      warn          = "",
+      shell         = "/bin/false",
+      uid           = "495",
+      user_password = "!",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+  end
 
   user   = "daemon"
   config = User.new(
@@ -1394,24 +1636,49 @@ def populate_ay_users()
   $u_struct[user]=config
   $u_order.push(user)
 
-  user   = "messagebus"
-  config = User.new(
-    fullname      = "User for D-Bus",
-    gid           = "101",
-    home          = "/var/run/dbus",
-    expire        = "",
-    flag          = "",
-    inact         = "",
-    max           = "",
-    min           = "0",
-    warn          = "7",
-    shell         = "/bin/false",
-    uid           = "100",
-    user_password = "*",
-    username      = user
-    )
-  $u_struct[user]=config
-  $u_order.push(user)
+  if install_service.match(/sles_12_1/)
+
+    user   = "messagebus"
+    config = User.new(
+      fullname      = "User for D-Bus",
+      gid           = "499",
+      home          = "/var/run/dbus",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "",
+      min           = "",
+      warn          = "",
+      shell         = "/bin/false",
+      uid           = "499",
+      user_password = "!",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+  else
+
+    user   = "messagebus"
+    config = User.new(
+      fullname      = "User for D-Bus",
+      gid           = "101",
+      home          = "/var/run/dbus",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "",
+      min           = "0",
+      warn          = "7",
+      shell         = "/bin/false",
+      uid           = "100",
+      user_password = "*",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+  end
 
   user   = "haldaemon"
   config = User.new(
@@ -1489,24 +1756,49 @@ def populate_ay_users()
   $u_struct[user]=config
   $u_order.push(user)
 
-  user   = "polkituser"
-  config = User.new(
-    fullname      = "PolicyKit",
-    gid           = "106",
-    home          = "/var/run/PolicyKit",
-    expire        = "",
-    flag          = "",
-    inact         = "",
-    max           = "99999",
-    min           = "0",
-    warn          = "7",
-    shell         = "/bin/false",
-    uid           = "104",
-    user_password = "*",
-    username      = user
-    )
-  $u_struct[user]=config
-  $u_order.push(user)
+  if install_service.match(/sles_12_1/)
+
+    user   = "polkitd"
+    config = User.new(
+      fullname      = "User for polkitd",
+      gid           = "496",
+      home          = "/var/lib/polkitd",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "",
+      min           = "",
+      warn          = "",
+      shell         = "/sbin/nologin",
+      uid           = "497",
+      user_password = "*",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+  else
+
+    user   = "polkituser"
+    config = User.new(
+      fullname      = "PolicyKit",
+      gid           = "106",
+      home          = "/var/run/PolicyKit",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "99999",
+      min           = "0",
+      warn          = "7",
+      shell         = "/bin/false",
+      uid           = "104",
+      user_password = "*",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+  end
 
   user   = "news"
   config = User.new(
@@ -1527,24 +1819,49 @@ def populate_ay_users()
   $u_struct[user]=config
   $u_order.push(user)
 
-  user   = "pulse"
-  config = User.new(
-    fullname      = "PulseAudio daemon",
-    gid           = "100",
-    home          = "/var/lib/pulseaudio",
-    expire        = "",
-    flag          = "",
-    inact         = "",
-    max           = "99999",
-    min           = "0",
-    warn          = "7",
-    shell         = "/bin/false",
-    uid           = "105",
-    user_password = "*",
-    username      = user
-    )
-  $u_struct[user]=config
-  $u_order.push(user)
+  if install_service.match(/sles_12_1/)
+
+    user   = "pulse"
+    config = User.new(
+      fullname      = "PulseAudio daemon",
+      gid           = "489",
+      home          = "/var/lib/pulseaudio",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "",
+      min           = "",
+      warn          = "",
+      shell         = "/sbin/nologin",
+      uid           = "490",
+      user_password = "*",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+  else
+
+    user   = "pulse"
+    config = User.new(
+      fullname      = "PulseAudio daemon",
+      gid           = "100",
+      home          = "/var/lib/pulseaudio",
+      expire        = "",
+      flag          = "",
+      inact         = "",
+      max           = "99999",
+      min           = "0",
+      warn          = "7",
+      shell         = "/bin/false",
+      uid           = "105",
+      user_password = "*",
+      username      = user
+      )
+    $u_struct[user]=config
+    $u_order.push(user)
+
+  end
 
   return
 end
@@ -1626,7 +1943,7 @@ end
 # Output client profile file
 
 def output_ay_client_profile(client_name,client_ip,client_mac,output_file,service_name)
-  populate_ay_users()
+  populate_ay_users(service_name)
   populate_ay_groups(service_name)
   populate_ay_inetd()
   gateway               = get_ipv4_default_route(client_ip)
@@ -1669,6 +1986,9 @@ def output_ay_client_profile(client_name,client_ip,client_mac,output_file,servic
         xml.space_left_action("SYSLOG")
         xml.tcp_client_max_idle("0")
         xml.tcp_listen_queue("5")
+        if service_name.match(/sles_12_1/)
+          xml.tcp_max_per_addr("1")
+        end
       }
       xml.rules {
         xml.text!("# First rule - delete all\n")
@@ -1933,19 +2253,21 @@ def output_ay_client_profile(client_name,client_ip,client_mac,output_file,servic
         xml.halt("false", :"config:type" => "boolean")
         xml.confirm("false", :"config:type" => "boolean")
       }
-      xml.mouse {
-        xml.id("none")
-      }
-      xml.proposals(:"config:type" => "list")
-      xml.tag!("signature-handling") {
-        xml.accept_file_without_checksum("true", :"config:type" => "boolean")
-        xml.accept_non_trusted_gpg_key("true", :"config:type" => "boolean")
-        xml.accept_unknown_gpg_key("true", :"config:type" => "boolean")
-        xml.accept_unsigned_file("true", :"config:type" => "boolean")
-        xml.accept_verification_failed("false", :"config:type" => "boolean")
-        xml.import_gpg_key("true", :"config:type" => "boolean")
-      }
-      xml.storage()
+      if !service_name.match(/sles_12_1/)
+        xml.mouse {
+          xml.id("none")
+        }
+        xml.proposals(:"config:type" => "list")
+        xml.tag!("signature-handling") {
+          xml.accept_file_without_checksum("true", :"config:type" => "boolean")
+          xml.accept_non_trusted_gpg_key("true", :"config:type" => "boolean")
+          xml.accept_unknown_gpg_key("true", :"config:type" => "boolean")
+          xml.accept_unsigned_file("true", :"config:type" => "boolean")
+          xml.accept_verification_failed("false", :"config:type" => "boolean")
+          xml.import_gpg_key("true", :"config:type" => "boolean")
+        }
+        xml.storage()
+      end
     }
     xml.groups(:"config:type" => "list") {
       $g_order.each do |group|
@@ -1962,20 +2284,20 @@ def output_ay_client_profile(client_name,client_ip,client_mac,output_file,servic
         }
       end
     }
-    xml.host {
-      xml.hosts(:"config:type" => "list") {
-        hosts.each do |host|
-          xml.hosts_entry {
-            (host_address,name) = host.split(/,/)
-            xml.host_address(host_address)
-            xml.names(:"config:type" => "list") {
-              xml.name(name)
-            }
-          }
-        end
-      }
-    }
     if !service_name.match(/sles_12_1/)
+        xml.host {
+        xml.hosts(:"config:type" => "list") {
+          hosts.each do |host|
+            xml.hosts_entry {
+              (host_address,name) = host.split(/,/)
+              xml.host_address(host_address)
+              xml.names(:"config:type" => "list") {
+                xml.name(name)
+              }
+            }
+          end
+        }
+      }
       xml.tag!("http-server") {
         xml.Listen(:"config:type" => "list")
         xml.hosts(:"config:type" => "list")
@@ -2019,7 +2341,11 @@ def output_ay_client_profile(client_name,client_ip,client_mac,output_file,servic
     end
     xml.kdump {
       xml.add_crash_kernel("false", :"config:type" => "boolean")
-      xml.crash_kernel("128M-:64M")
+      if service_name.match(/sles_12_1/)
+        xml.crash_kernel("128M,high")
+      else
+        xml.crash_kernel("128M-:64M")
+      end
       xml.general {
         if !service_name.match(/sles_12_1/)
           xml.KDUMPTOOL_FLAGS
@@ -2092,7 +2418,11 @@ def output_ay_client_profile(client_name,client_ip,client_mac,output_file,servic
     }
     xml.language {
       xml.language($default_language)
-      xml.languages($default_language)
+      if service_name.match(/sles_12_1/)
+        xml.languages
+      else
+        xml.languages($default_language)
+      end
     }
     if !service_name.match(/sles_12_1/)
       xml.ldap {
@@ -2263,6 +2593,11 @@ def output_ay_client_profile(client_name,client_ip,client_mac,output_file,servic
         xml.start_yppasswdd("false", :"config:type" => "boolean")
         xml.start_ypxfrd("false", :"config:type" => "boolean")
       }
+      if service_name.match(/sles_12_1/)
+        if $default_timezone.match(/Victoria/)
+          $default_timezone = "Australia/Melbourne"
+        end
+      end
       xml.tag!("ntp-client") {
         xml.ntp_policy("auto")
         xml.peers(:"config:type" => "list") {
@@ -2412,30 +2747,28 @@ def output_ay_client_profile(client_name,client_ip,client_mac,output_file,servic
       }
       xml.proxy {
       }
-    end
-    xml.report {
-      xml.errors {
-        xml.log("true", :"config:type" => "boolean")
-        xml.show("false", :"config:type" => "boolean")
-        xml.timeout("0", :"config:type" => "integer")
+      xml.report {
+        xml.errors {
+          xml.log("true", :"config:type" => "boolean")
+          xml.show("false", :"config:type" => "boolean")
+          xml.timeout("0", :"config:type" => "integer")
+        }
+        xml.messages {
+          xml.log("true", :"config:type" => "boolean")
+          xml.show("true", :"config:type" => "boolean")
+          xml.timeout("0", :"config:type" => "integer")
+        }
+        xml.warnings {
+          xml.log("true", :"config:type" => "boolean")
+          xml.show("true", :"config:type" => "boolean")
+          xml.timeout("0", :"config:type" => "integer")
+        }
+        xml.yesno_messages {
+          xml.log("true", :"config:type" => "boolean")
+          xml.show("true", :"config:type" => "boolean")
+          xml.timeout("0", :"config:type" => "integer")
+        }
       }
-      xml.messages {
-        xml.log("true", :"config:type" => "boolean")
-        xml.show("true", :"config:type" => "boolean")
-        xml.timeout("0", :"config:type" => "integer")
-      }
-      xml.warnings {
-        xml.log("true", :"config:type" => "boolean")
-        xml.show("true", :"config:type" => "boolean")
-        xml.timeout("0", :"config:type" => "integer")
-      }
-      xml.yesno_messages {
-        xml.log("true", :"config:type" => "boolean")
-        xml.show("true", :"config:type" => "boolean")
-        xml.timeout("0", :"config:type" => "integer")
-      }
-    }
-    if !service_name.match(/sles_12_1/)
       xml.runlevel {
         xml.default("5")
         disabled_services.each do |name|
@@ -2576,9 +2909,16 @@ def output_ay_client_profile(client_name,client_ip,client_mac,output_file,servic
     xml.user_defaults {
       xml.expire
       xml.group("100")
-      xml.groups("video,dialout")
+      if service_name.match(/sles_12_1/)
+        xml.groups
+      else
+        xml.groups("video,dialout")
+      end
       xml.home("/home")
       xml.inactive("-1")
+      if service_name.match(/sles_12_1/)
+        xml.no_groups("true", :"config:type" => "boolean")
+      end
       xml.shell("/bin/bash")
       xml.skel("/etc/skel")
       xml.umask("022")
@@ -2608,6 +2948,11 @@ def output_ay_client_profile(client_name,client_ip,client_mac,output_file,servic
             end
             if $u_struct[user].max.match(/[a-z,0-9]/)
               xml.max($u_struct[user].max)
+            else
+              xml.max
+            end
+            if $u_struct[user].min.match(/[a-z,0-9]/)
+              xml.max($u_struct[user].min)
             else
               xml.min
             end
