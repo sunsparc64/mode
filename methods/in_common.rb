@@ -2036,7 +2036,11 @@ def mount_iso(iso_file)
   output = execute_command(message,command)
   if iso_file.match(/sol/)
     if iso_file.match(/\-ga\-/)
-      iso_test_dir = $iso_mount_dir+"/boot"
+      if iso_file.match(/sol\-10/)
+        iso_test_dir = $iso_mount_dir+"/boot"
+      else
+        iso_test_dir = $iso_mount_dir+"/installer"
+      end
     else
       iso_test_dir = $iso_mount_dir+"/repo"
     end
@@ -2064,7 +2068,7 @@ def mount_iso(iso_file)
       iso_test_dir = $iso_mount_dir+"/install"
     end
   end
-  if !File.directory?(iso_test_dir) and !iso_file.match(/DVD2\.iso|2of2\.iso|repo-full/)
+  if !File.directory?(iso_test_dir) and !File.exist?(iso_test_dir) and !iso_file.match(/DVD2\.iso|2of2\.iso|repo-full/)
     puts "Warning:\tISO did not mount, or this is not a repository ISO"
     puts "Warning:\t"+iso_test_dir+" does not exit"
     if $test_mode != 1

@@ -134,21 +134,27 @@ def configure_js_repo(iso_file,repo_version_dir,os_version,os_update)
   if !File.directory?(check_dir)
     if $os_name.match(/SunOS/)
       mount_iso(iso_file)
-      check_dir = $iso_mount_dir+"/boot"
+      if iso_file.match(/sol\-10/)
+        check_dir = $iso_mount_dir+"/boot"
+      else
+        check_dir = $iso_mount_dir+"/installer"
+      end
       if $verbose_mode == 1
         puts "Checking:\tDirectory "+check_dir+" exists"
       end
-      if File.directory?(check_dir)
+      if File.directory?(check_dir) or File.exist?(check_dir)
         iso_update = get_js_iso_update($iso_mount_dir,os_version)
-        puts iso_update
-        puts os_update
         if !iso_update.match(/#{os_update}/)
           puts "Warning:\tISO update version does not match ISO name"
           exit
         end
         message = "Information:\tCopying ISO file "+iso_file+" contents to "+repo_version_dir
         if $os_name.match(/SunOS/)
-          command = "cd /cdrom/Solaris_#{os_version}/Tools ; ./setup_install_server #{repo_version_dir}"
+          if iso_file.match(/sol\-10/)
+            command = "cd /cdrom/Solaris_#{os_version}/Tools ; ./setup_install_server #{repo_version_dir}"
+          else
+            command = "(cd /cdrom ; tar -cpf - . ) | (cd #{repo_version_dir} ; tar -xpf - )"
+          end
         else
           command = "(cd /cdrom ; tar -cpf - . ) | (cd #{repo_version_dir} ; tar -xpf - )"
         end

@@ -86,35 +86,40 @@ end
 # Get ISO/repo update info
 
 def get_js_iso_update(base_dir,os_version)
-  release_file = base_dir+"/Solaris_"+os_version+"/Product/SUNWsolnm/reloc/etc/release"
+  update  = ""
+  release = base_dir+"/Solaris_"+os_version+"/Product/SUNWsolnm/reloc/etc/release"
   message = "Checking:\tSolaris release"
-  command = "cat #{release_file} |head -1 |awk '{print $4}'"
+  command = "cat #{release} |head -1 |awk '{print $4}'"
   output  = execute_command(message,command)
-  case output
-  when /1\/06/
-    iso_update = "1"
-  when /6\/06/
-    iso_update = "2"
-  when /11\/06/
-    iso_update = "3"
-  when /8\/07/
-    iso_update = "4"
-  when /5\/08/
-    iso_update = "5"
-  when /10\/08/
-    iso_update = "6"
-  when /5\/09/
-    iso_update = "7"
-  when /10\/09/
-    iso_update = "8"
-  when /9\/10/
-    iso_update = "9"
-  when /8\/11/
-    iso_update = "10"
-  when /1\/13/
-    iso_update = "11"
+  if output.match(/_/)
+    update = output.split(/_/)[1].gsub(/[a-z]/,"")
+  else
+    case output
+    when /1\/06/
+      update = "1"
+    when /6\/06/
+      update = "2"
+    when /11\/06/
+      update = "3"
+    when /8\/07/
+      update = "4"
+    when /5\/08/
+      update = "5"
+    when /10\/08/
+      update = "6"
+    when /5\/09/
+      update = "7"
+    when /10\/09/
+      update = "8"
+    when /9\/10/
+      update = "9"
+    when /8\/11/
+      update = "10"
+    when /1\/13/
+      update = "11"
+    end
   end
-  return iso_update
+  return update
 end
 
 # List available ISOs
