@@ -1506,13 +1506,9 @@ end
 
 def destroy_zfs_fs(dir_name)
   output = ""
-  if dir_name.match(/ldoms|zones/)
-    zfs_name = $default_dpool+dir_name
-  else
-    zfs_name = $default_zpool+dir_name
-  end
-  zfs_list = %x[zfs list |grep -v NAME |awk '{print $1}' |grep "^#{zfs_name}$"]
-  if zfs_list.match(/#{zfs_name}/)
+  zfs_list = %x[zfs list |grep -v NAME |awk '{print $5}' |grep "^#{dir_name}$"].chomp
+  if zfs_list.match(/#{dir_name}/)
+    zfs_name = %x[zfs list |grep -v NAME |grep "#{dir_name}$" |awk '{print $1}'].chomp
     if $destroy_fs !~ /y|n/
       while $destroy_fs !~ /y|n/
         print "Destroy ZFS filesystem "+zfs_name+" [y/n]: "
@@ -1521,9 +1517,16 @@ def destroy_zfs_fs(dir_name)
     end
     if $destroy_fs.match(/y|Y/)
       if File.directory?(dir_name)
+        if dir_name.match(/netboot/)
+          service_name = "svc:/network/tftp/udp6:default"
+          disable_service(service_name)
+        end
         message = "Warning:\tDestroying "+dir_name
         command = "zfs destroy -r -f #{zfs_name}"
         output  = execute_command(message,command)
+        if dir_name.match(/netboot/)
+          enable_service(service_name)
+        end
       end
     end
   end

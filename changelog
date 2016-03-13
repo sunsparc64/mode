@@ -663,3 +663,6 @@
 # Added support for SLES 12 SP 1
 # 3.3.1: Sun 13 Mar 2016 14:56:31 AEDT
 # Fixed bugs with AutoYast
+# 3.3.2: Sun 13 Mar 2016 16:40:21 AEDT
+# Fixed deletion of ZFS filesystems
+
