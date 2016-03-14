@@ -49,7 +49,7 @@ def configure_ks_pxe_client(client_name,client_ip,client_mac,client_arch,service
     if service_name.match(/14_10|15/)
       ldlinux_link = $tftp_dir+"/ldlinux.c32"
       if !File.exist?(ldlinux_link) and !File.symlink?(ldlinux_link)
-        ldlinux_file = "/"+service_name+"/images/pxeboot/netboot/ldlinux.c32"
+        ldlinux_file = service_name+"/images/pxeboot/netboot/ldlinux.c32"
         message = "Information:\tCreating symlink for ldlinux.c32"
         command = "ln -s #{ldlinux_file} #{ldlinux_link}"
         execute_command(message,command)
