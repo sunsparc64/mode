@@ -122,6 +122,7 @@ end
 # Configure Jumpstart repo
 
 def configure_js_repo(iso_file,repo_version_dir,os_version,os_update)
+
   if $os_name.match(/SunOS|Linux/)
     check_fs_exists(repo_version_dir)
   else
@@ -153,6 +154,23 @@ def configure_js_repo(iso_file,repo_version_dir,os_version,os_update)
           if iso_file.match(/sol\-10/)
             command = "cd /cdrom/Solaris_#{os_version}/Tools ; ./setup_install_server #{repo_version_dir}"
           else
+            ufs_file = iso_file.gsub(/\-ga\-/,"-s0-")
+            if !File.exist?(ufs_file)
+              dd_message = "Extracting VTOC from #{iso_file}" 
+              dd_command = "dd if=#{iso_file} of=/tmp/vtoc bs=512 count=1"
+              execute_command(dd_message,dd_command)
+              dd_message = "Processing VTOC information for #{iso_file}"
+              dd_command = "od -D -j 452 -N 8 < /tmp/vtoc |head -1"
+              output     = execute_command(dd_message,dd_command)
+              (header,start_block,no_blocks) = output.split(/\s+/)
+              start_block = start_block.gsub(/^0/,"")
+              start_block = start_block.to_i*640
+              start_block = start_block.to_s
+              no_blocks   = no_blocks(/^0/,"")
+              dd_message = "Extracting UFS partition from #{iso_file} to #{ufs_file}"
+              dd_command = "dd if=#{iso_info} of=#{ufs_file} bs=512 skip=#{start_block} count=#{no_blocks}"
+              execute_command(dd_message,dd_command)
+            end
             command = "(cd /cdrom ; tar -cpf - . ) | (cd #{repo_version_dir} ; tar -xpf - )"
           end
         else
@@ -164,6 +182,20 @@ def configure_js_repo(iso_file,repo_version_dir,os_version,os_update)
         return
       end
       umount_iso()
+      if !iso_file.match(/sol\-10/)
+        check_dir = repo_version_dir+"/boot"
+        if !File.directory?(check_dir)
+          message = "Mounting UFS partition from #{ufs_file}"
+          command = "mount -F ufs -o ro #{ufs_file} /cdrom"
+          execute_command(message,command)
+          message = "Copying ISO file #{ufs_file} contents to #{repo_version_dir}"
+          command = "(cd /cdrom ; tar -cpf - . ) | (cd #{repo_version_dir} ; tar -xpf - )"
+          execute_command(message,command)
+          message = "Unmounting #{ufs_file} from /cdrom"
+          command = "umount /cdrom"
+          execute_command(message,command)
+        end
+      end
     else
       if !File.directory?(check_dir)
         check_osx_iso_mount(repo_version_dir,iso_file)

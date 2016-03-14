@@ -668,3 +668,6 @@
 # 3.3.3: Sun 13 Mar 2016 18:59:40 AEDT
 # Initial support for Solaris 9 Jumpstart Server
 # 3.3.4: Sun 13 Mar 2016 21:55:31 AEDT
+# Solaris client disksuite config fixes
+# 3.3.5: Mon 14 Mar 2016 14:18:18 AEDT
+# Added initial Solaris 9 ISO UFS copy code
