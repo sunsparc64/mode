@@ -671,3 +671,5 @@
 # Solaris client disksuite config fixes
 # 3.3.5: Mon 14 Mar 2016 14:18:18 AEDT
 # Added initial Solaris 9 ISO UFS copy code
+# 3.3.6: Mon 14 Mar 2016 17:34:46 AEDT
+# Several bug fixes

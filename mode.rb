@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.3.5
+# Version:      3.3.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1758,13 +1758,14 @@ if option["action"]
       list_packer_clients(install_vm)
       exit
     end
-    if install_type.match(/service/)
+    if install_type.match(/service/) or install_mode.match(/server/)
       if install_method.match(/[a-z]/)
         eval"[list_#{install_method}_services]"
         puts
         exit
       else
         list_all_services()
+        exit
       end
     end
     if install_type.match(/iso/)
@@ -1775,7 +1776,8 @@ if option["action"]
       end
       exit
     end
-    if install_mode.match(/client/)
+    if install_mode.match(/client/) or install_type.match(/client/)
+      install_mode = "client"
       check_local_config(install_mode)
       list_clients(install_service)
       list_vms(install_vm,install_type)
@@ -1904,7 +1906,7 @@ if option["action"]
             end
             if install_mac.match(/[0-9]|[a-f]|[A-F]/)
               install_service = ""
-              add_dhcp_client(install_client,client_mac,install_ip,install_arch,install_service)
+              add_dhcp_client(install_client,install_mac,install_ip,install_arch,install_service)
             end
           end
         end

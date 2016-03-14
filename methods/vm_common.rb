@@ -111,9 +111,15 @@ def list_vms(install_vm,install_type)
     eval"[list_#{install_vm}_vms()]"
   else
     $valid_vm_list.each do |vm_type|
-      if vm_type.match(/parallels/)
+      case vm_type
+      when /parallels/
         parallels_test = %x[which prlctl].chomp
-        if parallels_test.match(/prlctl/)
+        if parallels_test.match(/prlctl/) and !parallels_test.match(/no /)
+          eval"[list_#{vm_type}_vms(install_type)]"
+        end
+      when /vbox/
+        vbox_test = %x[which VBoxManage].chomp
+        if vbox_test.match(/VBoxManage/) and !vbox_test.match(/no /)
           eval"[list_#{vm_type}_vms(install_type)]"
         end
       else

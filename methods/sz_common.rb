@@ -68,6 +68,13 @@ def list_zones()
   return
 end
 
+# List zones
+
+def list_zone_vms(install_type)
+  list_zones()
+  return
+end
+
 # Print branded zone information
 
 def print_branded_zone_info()
