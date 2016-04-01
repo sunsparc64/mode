@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.3.6
+# Version:      3.3.7
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -607,7 +607,8 @@ begin
     [ "--mac",            "-e", Getopt::REQUIRED ], # MAC Address
     [ "--vm",             "-E", Getopt::REQUIRED ], # VM type
     [ "--file",           "-f", Getopt::REQUIRED ], # File, eg ISO
-    [ "--clone",          "-f", Getopt::REQUIRED ], # Clone name
+    [ "--clone",          "-F", Getopt::REQUIRED ], # Clone name
+    [ "--locale",         "-g", Getopt::REQUIRED ], # Locale (e.g. en_US)
     [ "--diskmode",       "-G", Getopt::REQUIRED ], # Disk mode (e.g. thin)
     [ "--help",           "-h", Getopt::BOOLEAN ],  # Display usage information
     [ "--ip",             "-i", Getopt::REQUIRED ], # IP Address of client
@@ -699,9 +700,9 @@ end
 # Get Locale / Language
 
 if option["locale"]
-  install_local = option["locale"]
+  install_locale = option["locale"]
 else
-  install_local = $default_locale
+  install_locale = $default_locale
 end
 
 # Handle vm switch
@@ -1008,7 +1009,7 @@ else
     option["os"]      = install_os
     option["method"]  = install_method
     option["release"] = install_release
-    optiont["arch"]   = install_arch
+    option["arch"]    = install_arch
     option["label"]   = install_label
   else
     install_os = ""
@@ -1578,8 +1579,11 @@ if option["os"]
       option["method"] = "ps"
     when /purity/
       option["method"] = "ps"
-      if install_memory == $default_vm_mem
-        install_memory = (12*1024).to_s
+      if install_memory.match(/#{$default_vm_mem}/)
+        $default_vm_mem  = "8192"
+        install_memory   = $default_vm_mem
+        $default_vm_vcpu = "2"
+        install_cpu      = $default_vm_vcpu
       end
     when /suse|sles/
       option["method"] = "ay"
@@ -1858,7 +1862,7 @@ if option["action"]
       build_packer_config(install_client,install_vm)
     end
   when /add|create/
-    if install_mode.match(/server/) or install_file.match(/[a-z,A-Z,0-9]/) or install_type.match(/service/) and !install_vm.match(/[a-z]/) and !install_type.match(/packer/)
+    if install_mode.match(/server/) or install_file.match(/[a-z,A-Z,0-9]/) or install_type.match(/service/) and !install_vm.match(/[a-z]/) and !install_type.match(/packer/) and !install_service.match(/packer/)
       check_local_config("server")
       eval"[configure_server(install_method,install_arch,publisher_host,publisher_port,install_service,install_file)]"
     else
@@ -1867,11 +1871,11 @@ if option["action"]
       end
       if install_client.match(/[a-z,0-9]/)
         if install_service.match(/[a-z,A-Z,0-9]/) or install_type.match(/packer/)
-          if !install_type.match(/packer/)
-            check_dhcpd_config(publisher_host)
-          end
           if !install_method.match(/[a-z]/)
             install_method = get_install_method(install_client,install_service)
+          end
+          if !install_type.match(/packer/) and install_mode.match(/server/)
+            check_dhcpd_config(publisher_host)
           end
           check_install_ip(install_ip)
           check_install_mac(install_mac)
@@ -1880,13 +1884,36 @@ if option["action"]
                               install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,
                               install_network,install_license,install_mirror,install_size,install_type,install_locale,install_label,install_timezone)]"
           else
-            check_local_config("server")
-            if !install_model.match(/[a-z]/)
-              install_model       = "vmware"
-              $default_slice_size = "4192"
+            if install_method.match(/server/)
+              check_local_config("server")
+              if !install_model.match(/[a-z]/)
+                install_model       = "vmware"
+                $default_slice_size = "4192"
+              end
+              eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,
+                                install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)]"
+            else
+              if install_vm.match(/fusion|vbox|parallels/)
+                create_vm(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount,install_ip)
+              end
+              if install_vm.match(/zone|lxc|gdom/)
+                eval"[configure_#{install_vm}(install_client,install_ip,install_mac,install_arch,install_os,install_rel,publisher_host,
+                                              install_file,install_service)]"
+              end
+              if install_vm.match(/cdom/)
+                configure_cdom(publisher_host)
+              end
+              if !install_vm.match(/[a-z]/)
+                if install_ip.match(/[0-9]/)
+                  check_local_config("client")
+                  add_hosts_entry(install_client,install_ip)
+                end
+                if install_mac.match(/[0-9]|[a-f]|[A-F]/)
+                  install_service = ""
+                  add_dhcp_client(install_client,install_mac,install_ip,install_arch,install_service)
+                end
+              end
             end
-            eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,
-                              install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)]"
           end
         else
           if install_vm.match(/fusion|vbox|parallels/)

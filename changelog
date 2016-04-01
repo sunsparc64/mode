@@ -673,3 +673,5 @@
 # Added initial Solaris 9 ISO UFS copy code
 # 3.3.6: Mon 14 Mar 2016 17:34:46 AEDT
 # Several bug fixes
+# 3.3.7: Fri  1 Apr 2016 14:48:55 AEDT
+# Fixed several Packer bugs

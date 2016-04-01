@@ -1038,7 +1038,7 @@ end
 # Create VMware Fusion VM vmx file
 
 def create_fusion_vm_vmx_file(install_client,install_mac,install_os,fusion_vmx_file,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
-  vmx_info = populate_fusion_vm_vmx_info(install_client,install_mac,install_os,install_memory,install_file,install_network,install_share,install_mount)
+  vmx_info = populate_fusion_vm_vmx_info(install_client,install_mac,install_os,install_memory,install_file,install_network,install_share,install_mount,install_cpu)
   file = File.open(fusion_vmx_file,"w")
   vmx_info.each do |vmx_line|
     (vmx_param,vmx_value) = vmx_line.split(/\,/)
@@ -1115,7 +1115,7 @@ end
 
 # Populate VMware Fusion VM vmx information
 
-def populate_fusion_vm_vmx_info(install_client,install_mac,install_os,install_memory,install_file,install_network,install_share,install_mount)
+def populate_fusion_vm_vmx_info(install_client,install_mac,install_os,install_memory,install_file,install_network,install_share,install_mount,install_cpu)
   version  = get_fusion_version()
   version  = version.split(".")[0]
   version  = version.to_i
@@ -1254,6 +1254,9 @@ def populate_fusion_vm_vmx_info(install_client,install_mac,install_os,install_me
     vmx_info.push("vhv.enable,TRUE")
     vmx_info.push("monitor_control.restrict_backdoor,TRUE")
     vmx_info.push("numvcpus,2")
+  end
+  if install_cpu.to_i > 1
+    vmx_info.push("numvcpus,#{install_cpu}")
   end
   vmx_info.push("isolation.tools.hgfs.disable,FALSE")
   vmx_info.push("hgfs.mapRootShare,TRUE")

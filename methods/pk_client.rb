@@ -351,13 +351,10 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :numvcpus                           => "#{install_cpu}",
             :"vhv.enable"                       => "TRUE",
             :"ethernet0.present"                => "TRUE",
-            :"ethernet0.startConnected"         => "TRUE",
+            :"ethernet0.connectionType"         => "#{install_network}",
             :"ethernet0.virtualDev"             => "e1000",
-            :"ethernet0.networkName"            => "VM Network",
             :"ethernet0.addressType"            => "static",
-            :"ethernet0.address"                => "#{install_mac}",
-            :"ethernet0.wakeOnPcktRcv"          => "FALSE",
-            :"ethernet0.connectionType"         => "#{install_network}"
+            :"ethernet0.address"                => "#{install_mac}"
           }
         ]
       }
@@ -451,15 +448,19 @@ def unconfigure_packer_client(install_client,install_vm)
   	if $verbose_mode == 1
   		puts "Information:\tDeleting directory "+image_dir
   	end
-  	Dir.delete(image_dir)
+    if image_dir.match(/[a-z]/)
+    	FileUtils.rm_rf(image_dir)
+    end
   end
 	return
 end
 
 # Create a packer config
 
-def configure_packer_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
-                            install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_size,install_type,install_locale,install_label)
+def configure_packer_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,
+                            install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,
+                            install_network,install_license,install_mirror,install_size,install_type,install_locale,install_label,install_timezone)
+                            
   if !$default_host.match(/[0-9,a-z,A-Z]/)
     $default_host = get_default_host()
   end
