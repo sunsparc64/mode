@@ -30,7 +30,7 @@ def populate_pe_questions(install_service,install_client,install_ip,install_mirr
   $q_struct[name] = config
   $q_order.push(name)
 
-  name = "admin_user"
+  name = "admin_username"
   config = Ks.new(
     type      = "string",
     question  = "Admin Username",
@@ -49,7 +49,7 @@ def populate_pe_questions(install_service,install_client,install_ip,install_mirr
     question  = "Admin Password",
     ask       = "yes",
     parameter = "",
-    value     = $default_admin_passwor,
+    value     = $default_admin_password,
     valid     = "",
     eval      = "no"
     )

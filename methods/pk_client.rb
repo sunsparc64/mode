@@ -86,7 +86,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   case install_service
   when /win|nt/
     shutdown_command = "shutdown -a; shutdown /s /t 1 /c \"Packer Shutdown\" /f /d p:4:1"
-    unattended_xml   = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/"+install_client+".xml"
+    unattended_xml   = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/Autounattend.xml"
     winrm_psh        = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/"+install_client+"_winrm.ps1"
   when /sles/
     ks_file      = install_client+"/"+install_client+".xml"
@@ -198,7 +198,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
               :output_directory     => image_dir,
               :disk_size            => install_size,
               :iso_url              => iso_url,
-              :communicator_type    => "winrm",
+              :communicator         => "winrm",
               :floppy_files         => [
                 unattended_xml,
                 winrm_psh
@@ -289,112 +289,240 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
         }
       end  
     else
-      json_data = {
-        :variables => {
-          :hostname => install_client
-        },
-        :builders => [
-          :name                 => install_client,
-          :vm_name              => install_client,
-          :type                 => install_type,
-          :guest_os_type        => install_guest,
-          :hard_drive_interface => $vbox_disk_type,
-          :output_directory     => image_dir,
-          :disk_size            => install_size,
-          :iso_url              => iso_url,
-          :ssh_host             => install_ip,
-          :ssh_username         => ssh_username,
-          :ssh_password         => ssh_password,
-          :ssh_wait_timeout     => ssh_wait_timeout,
-          :shutdown_command     => shutdown_command,
-          :iso_checksum         => install_checksum,
-          :iso_checksum_type    => install_checksum_type,
-          :http_directory       => packer_dir,
-          :http_port_min        => $default_httpd_port,
-          :http_port_max        => $default_httpd_port,
-          :boot_command         => boot_command,
-          :vboxmanage => [
-            [ "modifyvm", "{{.Name}}", "--memory", install_memory ],
-            [ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
-            [ "modifyvm", "{{.Name}}", "--macaddress", install_mac ],
+      if install_service.match(/win|nt/)
+        json_data = {
+          :variables => {
+            :hostname => install_client
+          },
+          :builders => [
+            :name                 => install_client,
+            :vm_name              => install_client,
+            :type                 => install_type,
+            :guest_os_type        => install_guest,
+            :hard_drive_interface => $vbox_disk_type,
+            :output_directory     => image_dir,
+            :disk_size            => install_size,
+            :iso_url              => iso_url,
+            :communicator         => "winrm",
+            :floppy_files         => [
+              unattended_xml,
+              winrm_psh
+            ],
+            :winrm_host           => install_ip,
+            :winrm_username       => ssh_username,
+            :winrm_password       => ssh_password,
+            :ssh_wait_timeout     => ssh_wait_timeout,
+            :shutdown_command     => shutdown_command,
+            :iso_checksum         => install_checksum,
+            :iso_checksum_type    => install_checksum_type,
+            :http_directory       => packer_dir,
+            :http_port_min        => $default_httpd_port,
+            :http_port_max        => $default_httpd_port,
+            :boot_command         => boot_command,
+            :vboxmanage => [
+              [ "modifyvm", "{{.Name}}", "--memory", install_memory ],
+              [ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
+              [ "modifyvm", "{{.Name}}", "--macaddress", install_mac ],
+            ]
           ]
-        ]
-      }
+        }
+      else
+        json_data = {
+          :variables => {
+            :hostname => install_client
+          },
+          :builders => [
+            :name                 => install_client,
+            :vm_name              => install_client,
+            :type                 => install_type,
+            :guest_os_type        => install_guest,
+            :hard_drive_interface => $vbox_disk_type,
+            :output_directory     => image_dir,
+            :disk_size            => install_size,
+            :iso_url              => iso_url,
+            :ssh_host             => install_ip,
+            :ssh_username         => ssh_username,
+            :ssh_password         => ssh_password,
+            :ssh_wait_timeout     => ssh_wait_timeout,
+            :shutdown_command     => shutdown_command,
+            :iso_checksum         => install_checksum,
+            :iso_checksum_type    => install_checksum_type,
+            :http_directory       => packer_dir,
+            :http_port_min        => $default_httpd_port,
+            :http_port_max        => $default_httpd_port,
+            :boot_command         => boot_command,
+            :vboxmanage => [
+              [ "modifyvm", "{{.Name}}", "--memory", install_memory ],
+              [ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
+              [ "modifyvm", "{{.Name}}", "--macaddress", install_mac ],
+            ]
+          ]
+        }
+      end
     end
   else
     if install_mac.match(/[0-9,a-z,A-Z]/)
-      json_data = {
-        :variables => {
-          :hostname => install_client
-        },
-        :builders => [
-          :name                 => install_client,
-          :vm_name              => install_client,
-          :type                 => install_type,
-          :guest_os_type        => install_guest,
-          :output_directory     => image_dir,
-          :disk_size            => install_size,
-          :iso_url              => iso_url,
-          :ssh_host             => install_ip,
-          :ssh_username         => ssh_username,
-          :ssh_password         => ssh_password,
-          :ssh_wait_timeout     => ssh_wait_timeout,
-          :shutdown_command     => shutdown_command,
-          :iso_checksum         => install_checksum,
-          :iso_checksum_type    => install_checksum_type,
-          :http_directory       => packer_dir,
-          :http_port_min        => $default_httpd_port,
-          :http_port_max        => $default_httpd_port,
-          :boot_command         => boot_command,
-          :vmx_data => {
-            :memsize                            => "#{install_memory}",
-            :numvcpus                           => "#{install_cpu}",
-            :"vhv.enable"                       => "TRUE",
-            :"ethernet0.present"                => "TRUE",
-            :"ethernet0.connectionType"         => "#{install_network}",
-            :"ethernet0.virtualDev"             => "e1000",
-            :"ethernet0.addressType"            => "static",
-            :"ethernet0.address"                => "#{install_mac}"
-          }
-        ]
-      }
+      if install_service.match(/win|nt/)
+        json_data = {
+          :variables => {
+            :hostname => install_client
+          },
+          :builders => [
+            :name                 => install_client,
+            :vm_name              => install_client,
+            :type                 => install_type,
+            :guest_os_type        => install_guest,
+            :output_directory     => image_dir,
+            :disk_size            => install_size,
+            :iso_url              => iso_url,
+            :communicator         => "winrm",
+            :floppy_files         => [
+              unattended_xml,
+              winrm_psh
+            ],
+            :winrm_host           => install_ip,
+            :winrm_username       => ssh_username,
+            :winrm_password       => ssh_password,
+            :ssh_wait_timeout     => ssh_wait_timeout,
+            :shutdown_command     => shutdown_command,
+            :iso_checksum         => install_checksum,
+            :iso_checksum_type    => install_checksum_type,
+            :http_directory       => packer_dir,
+            :http_port_min        => $default_httpd_port,
+            :http_port_max        => $default_httpd_port,
+            :boot_command         => boot_command,
+            :vmx_data => {
+              :memsize                            => "#{install_memory}",
+              :numvcpus                           => "#{install_cpu}",
+              :"vhv.enable"                       => "TRUE",
+              :"ethernet0.present"                => "TRUE",
+              :"ethernet0.connectionType"         => "#{install_network}",
+              :"ethernet0.virtualDev"             => "e1000",
+              :"ethernet0.addressType"            => "static",
+              :"ethernet0.address"                => "#{install_mac}"
+            }
+          ]
+        }
+      else
+        json_data = {
+          :variables => {
+            :hostname => install_client
+          },
+          :builders => [
+            :name                 => install_client,
+            :vm_name              => install_client,
+            :type                 => install_type,
+            :guest_os_type        => install_guest,
+            :output_directory     => image_dir,
+            :disk_size            => install_size,
+            :iso_url              => iso_url,
+            :ssh_host             => install_ip,
+            :ssh_username         => ssh_username,
+            :ssh_password         => ssh_password,
+            :ssh_wait_timeout     => ssh_wait_timeout,
+            :shutdown_command     => shutdown_command,
+            :iso_checksum         => install_checksum,
+            :iso_checksum_type    => install_checksum_type,
+            :http_directory       => packer_dir,
+            :http_port_min        => $default_httpd_port,
+            :http_port_max        => $default_httpd_port,
+            :boot_command         => boot_command,
+            :vmx_data => {
+              :memsize                            => "#{install_memory}",
+              :numvcpus                           => "#{install_cpu}",
+              :"vhv.enable"                       => "TRUE",
+              :"ethernet0.present"                => "TRUE",
+              :"ethernet0.connectionType"         => "#{install_network}",
+              :"ethernet0.virtualDev"             => "e1000",
+              :"ethernet0.addressType"            => "static",
+              :"ethernet0.address"                => "#{install_mac}"
+            }
+          ]
+        }
+      end
     else
-      json_data = {
-        :variables => {
-          :hostname => install_client
-        },
-        :builders => [
-          :name                 => install_client,
-          :vm_name              => install_client,
-          :type                 => install_type,
-          :guest_os_type        => install_guest,
-          :output_directory     => image_dir,
-          :disk_size            => install_size,
-          :iso_url              => iso_url,
-          :ssh_host             => install_ip,
-          :ssh_username         => ssh_username,
-          :ssh_password         => ssh_password,
-          :ssh_wait_timeout     => ssh_wait_timeout,
-          :shutdown_command     => shutdown_command,
-          :iso_checksum         => install_checksum,
-          :iso_checksum_type    => install_checksum_type,
-          :http_directory       => packer_dir,
-          :boot_command         => boot_command,
-          :vmx_data => {
-            :memsize                            => install_memory,
-            :numvcpus                           => install_cpu,
-            :"vhv.enable"                       => "TRUE",
-            :"ethernet0.present"                => "TRUE",
-            :"ethernet0.startConnected"         => "TRUE",
-            :"ethernet0.virtualDev"             => "e1000",
-            :"ethernet0.networkName"            => "VM Network",
-            :"ethernet0.addressType"            => "generated",
-            :"ethernet0.generatedAddressOffset" => "0",
-            :"ethernet0.wakeOnPcktRcv"          => "FALSE",
-            :"ethernet0.connectionType"         => install_network
-          }
-        ]
-      }
+      if install_service.match(/win|nt/)
+        json_data = {
+          :variables => {
+            :hostname => install_client
+          },
+          :builders => [
+            :name                 => install_client,
+            :vm_name              => install_client,
+            :type                 => install_type,
+            :guest_os_type        => install_guest,
+            :output_directory     => image_dir,
+            :disk_size            => install_size,
+            :iso_url              => iso_url,
+            :communicator         => "winrm",
+            :floppy_files         => [
+              unattended_xml,
+              winrm_psh
+            ],
+            :winrm_host           => install_ip,
+            :winrm_username       => ssh_username,
+            :winrm_password       => ssh_password,
+            :ssh_wait_timeout     => ssh_wait_timeout,
+            :shutdown_command     => shutdown_command,
+            :iso_checksum         => install_checksum,
+            :iso_checksum_type    => install_checksum_type,
+            :http_directory       => packer_dir,
+            :http_port_min        => $default_httpd_port,
+            :http_port_max        => $default_httpd_port,
+            :boot_command         => boot_command,
+            :vmx_data => {
+              :memsize                            => install_memory,
+              :numvcpus                           => install_cpu,
+              :"vhv.enable"                       => "TRUE",
+              :"ethernet0.present"                => "TRUE",
+              :"ethernet0.startConnected"         => "TRUE",
+              :"ethernet0.virtualDev"             => "e1000",
+              :"ethernet0.networkName"            => "VM Network",
+              :"ethernet0.addressType"            => "generated",
+              :"ethernet0.generatedAddressOffset" => "0",
+              :"ethernet0.wakeOnPcktRcv"          => "FALSE",
+              :"ethernet0.connectionType"         => install_network
+            }
+          ]
+        }
+      else
+        json_data = {
+          :variables => {
+            :hostname => install_client
+          },
+          :builders => [
+            :name                 => install_client,
+            :vm_name              => install_client,
+            :type                 => install_type,
+            :guest_os_type        => install_guest,
+            :output_directory     => image_dir,
+            :disk_size            => install_size,
+            :iso_url              => iso_url,
+            :ssh_host             => install_ip,
+            :ssh_username         => ssh_username,
+            :ssh_password         => ssh_password,
+            :ssh_wait_timeout     => ssh_wait_timeout,
+            :shutdown_command     => shutdown_command,
+            :iso_checksum         => install_checksum,
+            :iso_checksum_type    => install_checksum_type,
+            :http_directory       => packer_dir,
+            :boot_command         => boot_command,
+            :vmx_data => {
+              :memsize                            => install_memory,
+              :numvcpus                           => install_cpu,
+              :"vhv.enable"                       => "TRUE",
+              :"ethernet0.present"                => "TRUE",
+              :"ethernet0.startConnected"         => "TRUE",
+              :"ethernet0.virtualDev"             => "e1000",
+              :"ethernet0.networkName"            => "VM Network",
+              :"ethernet0.addressType"            => "generated",
+              :"ethernet0.generatedAddressOffset" => "0",
+              :"ethernet0.wakeOnPcktRcv"          => "FALSE",
+              :"ethernet0.connectionType"         => install_network
+            }
+          ]
+        }
+      end
     end
   end
   json_output = JSON.pretty_generate(json_data)
@@ -515,7 +643,7 @@ end
 
 # Create vSphere Packer client
 
-def create_packer_vs_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license)
+def create_packer_vs_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license,install_type)
   client_dir  = $client_base_dir+"/packer/"+install_vm+"/"+install_client
   output_file = client_dir+"/"+install_client+".cfg"
   check_dir_exists(client_dir)
@@ -551,14 +679,17 @@ end
 
 # Create Windows client
 
-def create_packer_pe_install_files(install_client,install_service,install_ip,install_vm,install_mac,install_type,install_locale,install_label,install_license,install_timezone)
+def create_packer_pe_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license,install_locale,install_label,install_timezone,install_mirror,install_mac,install_type)
   client_dir  = $client_base_dir+"/packer/"+install_vm+"/"+install_client
-  output_file = client_dir+"/"+install_client+".xml"
+  output_file = client_dir+"/Autounattend.xml"
   check_dir_exists(client_dir)
   delete_file(output_file)
   populate_pe_questions(install_service,install_client,install_ip,install_mirror,install_type,install_locale,install_license,install_timezone)
   process_questions(install_service)
   output_pe_client_profile(install_client,install_ip,install_mac,output_file,install_service,install_type,install_label,install_license)
+  winrm_psh = populate_winrm_psh()
+  output_file = client_dir+"/"+install_client+"_winrm.ps1"
+  output_winrm_psh(install_client,winrm_psh,output_file)
   return
 end
 
@@ -598,7 +729,7 @@ end
 
 def configure_packer_pe_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
                                install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone)
-  create_packer_pe_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license,install_locale,install_label,install_license,install_timezone)
+  create_packer_pe_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license,install_locale,install_label,install_timezone,install_mirror,install_mac,install_type)
   return
 end
 
@@ -606,7 +737,7 @@ end
 
 def configure_packer_vs_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
                                install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone)
-  create_packer_vs_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license)
+  create_packer_vs_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license,install_mac,install_type)
   return
 end
 
@@ -630,6 +761,6 @@ end
 
 def configure_packer_ps_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
                                install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone)
-  create_packer_ps_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_type)
+  create_packer_ps_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_mac,install_type)
   return
 end

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.4.0
+# Version:      3.4.1
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -637,7 +637,7 @@ begin
     [ "--serverpassword", "-Q", Getopt::REQUIRED ], # Admin password of server to deploy to
     [ "--release",        "-r", Getopt::REQUIRED ], # OS Release
     [ "--mirror",         "-R", Getopt::REQUIRED ], # Mirror / Repo
-    [ "--repo",           "-R", Getopt::REQUIRED ], # Set repository
+    [ "--repo",           "-r", Getopt::REQUIRED ], # Set repository
     [ "--copykeys",       "-s", Getopt::BOOLEAN ],  # Copy SSH Keys
     [ "--share",          "-S", Getopt::REQUIRED ], # Shared folder
     [ "--type",           "-t", Getopt::REQUIRED ], # Install type (e.g. ISO, client, OVA, Network)
@@ -1227,15 +1227,19 @@ end
 
 # Handle release switch
 
-if option["release"]
-  install_release = option["release"]
-  if option["vm"].match(/zone/) and $os_rel.match(/10/) and !install_release.match(/10/)
-    puts "Warning:\tInvalid release number"
-    exit
-  end
-  if !install_release.match(/[0-9]/) or install_release.match(/[a-z,A-Z]/)
-    puts "Warning:\tInvalid release number"
-    exit
+if option["release"] 
+  if option["type"].match(/packer/) and option["action"].match(/build|delete/)
+    install_release = ""
+  else
+    install_release = option["release"]
+    if option["vm"].match(/zone/) and $os_rel.match(/10/) and !install_release.match(/10/)
+      puts "Warning:\tInvalid release number: "+install_release
+      exit
+    end
+    if !install_release.match(/[0-9]/) or install_release.match(/[a-z,A-Z]/)
+      puts "Warning:\tInvalid release number: "+install_release
+      exit
+    end
   end
 else
   if option["vm"]

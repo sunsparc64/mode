@@ -242,6 +242,10 @@ def get_install_service_from_file(install_file)
   install_service = ""
   service_name    = ""
   service_version = ""
+  install_arch    = ""
+  install_release = ""
+  install_method  = ""
+  install_label   = ""
   if install_file.match(/amd64|x86_64/)
     install_arch = "x86_64"
   else
@@ -249,6 +253,7 @@ def get_install_service_from_file(install_file)
   end
   case install_file
   when /[0-9][0-9][0-9][0-9]|Win|Srv/
+    service_name = "windows"
     install_info = %x[head -1 "#{install_file}" |strings]
     if install_info.match(/X64/)
       install_arch = "x86_64"
@@ -273,10 +278,11 @@ def get_install_service_from_file(install_file)
       message = "Information:\tDeterming version of Windows from: "+wim_file
       command = "wiminfo \"#{wim_file}\" 1| grep ^Description"
       output  = execute_command(message,command)
-      install_release = output.split(/Description:/)[1].gsub(/^\s+|SERVER|Server/,"").downcase.gsub(/\s+/,"_")
       umount_iso()
+      service_version = output.split(/Description:/)[1].gsub(/^\s+|SERVER|Server/,"").downcase.gsub(/\s+/,"_").split(/_/)[1..-1].join("_")
     end
     install_service = install_release+"_"+install_arch
+    install_service = install_service.gsub(/__/,"_")
     install_method  = "pe"
   when /ubuntu/
     service_name    = "ubuntu"
