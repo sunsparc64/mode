@@ -556,7 +556,7 @@ def create_packer_pe_install_files(install_client,install_service,install_ip,ins
   output_file = client_dir+"/"+install_client+".xml"
   check_dir_exists(client_dir)
   delete_file(output_file)
-  populate_pe_questions(install_service,install_client,install_ip,install_type,install_locale,install_license,install_timezone)
+  populate_pe_questions(install_service,install_client,install_ip,install_mirror,install_type,install_locale,install_license,install_timezone)
   process_questions(install_service)
   output_pe_client_profile(install_client,install_ip,install_mac,output_file,install_service,install_type,install_label,install_license)
   return

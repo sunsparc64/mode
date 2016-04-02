@@ -22,14 +22,14 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
 				xml.DiskConfiguration {
 					xml.Disk(:"wcm:action" => "add") {
 						xml.CreatePartitions {
-							xml.CreatePartition (:"wcm:action" => "add") {
+							xml.CreatePartition(:"wcm:action" => "add") {
 								xml.Order("1")
 								xml.Size("#{bootsize}")
 								zml.Type("Primary")
 							}
 						}
 						xml.CreatePartitions {
-							xml.CreatePartition (:"wcm:action" => "add") {
+							xml.CreatePartition(:"wcm:action" => "add") {
 								xml.Extend("true")
 								xml.Order("2")
 								zml.Type("Primary")
@@ -88,15 +88,15 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
 				xml.IEHardenAdmin("false")
 				xml.IEHardenUser("false")
 			}
-			xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-OutOfBoxExperience", :processorArchitecture => "amd64", :publicKeyToken => "31bf3856ad364e35", :language="neutral", :versionScope => "nonSxS") {
+			xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-OutOfBoxExperience", :processorArchitecture => "amd64", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
 				xml.DoNotOpenInitialConfigurationTasksAtLogon("true")
 			}
-			xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-Security-SPP-UX", :processorArchitecture => "amd64", :publicKeyToken => "31bf3856ad364e35", :language="neutral", :versionScope => "nonSxS") {
+			xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-Security-SPP-UX", :processorArchitecture => "amd64", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
 				xml.SkipAutoActivation("true")
 			}
 		}
 		xml.settings(:pass => "oobeSystem") {
-			xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-Shell-Setup", :processorArchitecture => "amd64", :publicKeyToken => "31bf3856ad364e35", :language="neutral", :versionScope => "nonSxS") {
+			xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-Shell-Setup", :processorArchitecture => "amd64", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
 				xml.AutoLogon {
 					xml.Password {
 						xml.Value("#{$q_struct["admin_password"].value}")

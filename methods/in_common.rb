@@ -2055,12 +2055,29 @@ def mount_iso(iso_file)
     end
     disk_id = %x[#{command}]
     disk_id = disk_id.chomp
-    command = "sudo mount -t cd9660 "+disk_id+" "+$iso_mount_dir
+    command = "sudo mount -t cd9660 -o ro "+disk_id+" "+$iso_mount_dir
   end
   if $os_name.match(/Linux/)
     command = "mount -t iso9660 -o loop "+iso_file+" "+$iso_mount_dir
   end
   output = execute_command(message,command)
+  readme = $iso_mount_dir+"/README.TXT"
+  if File.exist?(readme)
+    text = IO.readlines(readme)
+    if text.grep(/UDF/)
+      umount_iso()
+      if $os_name.match(/Darwin/)
+        command = "sudo hdiutil attach -nomount \"#{iso_file}\" |head -1 |awk '{print $1}'"
+        if $verbose_mode == 1
+          puts "Executing:\t"+command
+        end
+        disk_id = %x[#{command}]
+        disk_id = disk_id.chomp
+        command = "sudo mount -t udf -o ro "+disk_id+" "+$iso_mount_dir
+        output  = execute_command(message,command)
+      end
+    end
+  end
   if iso_file.match(/sol/)
     if iso_file.match(/\-ga\-/)
       if iso_file.match(/sol\-10/)
