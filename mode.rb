@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.3.8
+# Version:      3.4.0
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -181,7 +181,7 @@ $default_ext_network      = "192.168.1.0"
 $puppet_rpm_base_url      = "http://yum.puppetlabs.com"
 $centos_rpm_base_url      = "http://"+$local_centos_mirror+"/centos"
 $default_vm_utc           = "off"
-$valid_os_list            = [ 'sol', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL', 'purity' ]
+$valid_os_list            = [ 'sol', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL', 'purity', 'win' ]
 $valid_linux_os_list      = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL', 'purity' ]
 $valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
 $valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
@@ -213,7 +213,7 @@ $vmapp_bin = ""
 $facter_version = "1.7.4"
 $hiera_version  = "1.3.1"
 $puppet_version = "3.4.2"
-$packer_version = "0.8.6"
+$packer_version = "0.10.0"
 
 # Set some global OS types
 
@@ -675,6 +675,14 @@ def print_changelog()
   return
 end
 
+# Set verbose mode
+
+if option["verbose"]
+  $verbose_mode = 1
+else
+  $verbose_mode = 0
+end
+
 # Print version
 
 if option["version"]
@@ -1006,6 +1014,7 @@ if option["os"]
   install_os = install_os.gsub(/^suse$/,"opensuse")
   install_os = install_os.gsub(/solaris/,"sol")
   install_os = install_os.gsub(/redhat/,"rhel")
+  install_os = install_os.gsub(/nt|windows/,"win")
   if !$valid_os_list.to_s.downcase.match(/#{install_os}/)
     print_valid_list("Warning:\tInvalid OS specified",$valid_os_list)
   end

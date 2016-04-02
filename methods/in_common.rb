@@ -248,11 +248,36 @@ def get_install_service_from_file(install_file)
     install_arch = "i386"
   end
   case install_file
-  when /^9600/
-    install_arch    = "x86_64"
-    install_service = "win_2012_2_"+install_arch
-    install_method  = ""
-    install_label   = "IR3_SSS_X64FREE_EN-US_DV9"
+  when /[0-9][0-9][0-9][0-9]|Win|Srv/
+    install_info = %x[head -1 "#{install_file}" |strings]
+    if install_info.match(/X64/)
+      install_arch = "x86_64"
+    else
+      install_arch = "i386"
+    end
+    install_label = %x[head -1 "#{install_file}" |strings |egrep '_CD|_DVD' |awk '{print $1}'].chomp
+    mount_iso(install_file)
+    wim_file = $iso_mount_dir+"/sources/install.wim"
+    if File.exist?(wim_file)
+      wiminfo_bin = %x[which wiminfo]
+      if !wiminfo_bin.match(/wiminfo/)
+        message = "Information:\tInstall wiminfo (wimlib)"
+        command = "brew install wimlib"
+        execute_command(message,command)
+        wiminfo_bin = %x[which wiminfo]
+        if !wiminfo_bin.match(/wiminfo/)
+          puts "Warning:\tCannnot find wiminfo (required to determine version of windows from ISO)"
+          exit
+        end
+      end
+      message = "Information:\tDeterming version of Windows from: "+wim_file
+      command = "wiminfo \"#{wim_file}\" 1| grep ^Description"
+      output  = execute_command(message,command)
+      install_release = output.split(/Description:/)[1].gsub(/^\s+|SERVER|Server/,"").downcase.gsub(/\s+/,"_")
+      umount_iso()
+    end
+    install_service = install_release+"_"+install_arch
+    install_method  = "pe"
   when /ubuntu/
     service_name    = "ubuntu"
     service_version = install_file.split(/-/)[1].gsub(/\./,"_").gsub(/_iso/,"")
@@ -325,7 +350,7 @@ def get_install_service_from_file(install_file)
       install_method  = "js"
       install_arch    = "i386"
     end
-    service_version = install_release+"_"+install_arch 
+    service_version = install_release+"_"+install_arch
   end
   install_os      = service_name
   install_service = service_name+"_"+service_version.gsub(/__/,"_")
@@ -355,6 +380,8 @@ def get_install_method_from_iso(install_file)
     install_method = "js"
   when /sol-11/
     install_method = "ai"
+  when /Win|WIN|srv/
+    install_method = "pe"
   end
   return install_method
 end
@@ -369,7 +396,7 @@ def configure_server(install_method,install_arch,publisher_host,publisher_port,i
     else
       install_method = get_install_method_from_iso(install_file)
     end
-  end    
+  end
   eval"[configure_#{install_method}_server(install_arch,publisher_host,publisher_port,install_service,install_file)]"
   return
 end
@@ -483,7 +510,7 @@ def get_iso_list(install_os,install_method,install_release,install_arch)
   if install_release.match(/[0-9]/)
     case install_os
     when "OracleLinux"
-      if install_release.match(/\./) 
+      if install_release.match(/\./)
         (major,minor)   = install_release.split(/\./)
         install_release = "-R"+major+"-U"+minor
       else
@@ -988,7 +1015,7 @@ def check_rhel_service(service)
     execute_command(message,command)
   end
   return
-end  
+end
 
 # Check service is enabled
 
@@ -1567,7 +1594,7 @@ def execute_command(message,command)
   end
   if execute == 1
     if $id != 0
-      if !command.match(/brew |hg|pip|VBoxManage|netstat/)
+      if !command.match(/brew |hg|pip|VBoxManage|netstat|df/)
         if $use_sudo != 0
           command = "sudo sh -c '"+command+"'"
         end
@@ -2010,7 +2037,7 @@ def mount_iso(iso_file)
   puts "Information:\tProcessing: "+iso_file
   output  = check_dir_exists($iso_mount_dir)
   message = "Checking:\tExisting mounts"
-  command = "df |awk '{print $1}' |grep '^#{$iso_mount_dir}$'"
+  command = "df |awk '{print $NF}' |grep '^#{$iso_mount_dir}$'"
   output  = execute_command(message,command)
   if output.match(/[a-z,A-Z]/)
     message = "Information:\tUnmounting: "+$iso_mount_dir
@@ -2022,7 +2049,7 @@ def mount_iso(iso_file)
     command = "mount -F hsfs "+iso_file+" "+$iso_mount_dir
   end
   if $os_name.match(/Darwin/)
-    command = "sudo hdiutil attach -nomount #{iso_file} |head -1 |awk '{print $1}'"
+    command = "sudo hdiutil attach -nomount \"#{iso_file}\" |head -1 |awk '{print $1}'"
     if $verbose_mode == 1
       puts "Executing:\t"+command
     end
@@ -2046,6 +2073,8 @@ def mount_iso(iso_file)
     end
   else
     case iso_file
+    when /Win|Srv|[0-9][0-9][0-9][0-9]/
+      iso_test_dir = $iso_mount_dir+"/sources"
     when /SLE/
       iso_test_dir = $iso_mount_dir+"/suse"
     when /CentOS|SL/
@@ -2159,7 +2188,7 @@ def copy_iso(iso_file,repo_version_dir)
       check_dir_exists(test_dir)
       message = "Copying:\t"+iso_repo_dir+" contents to "+repo_version_dir
       command = "rsync -a #{iso_repo_dir}/* #{repo_version_dir}"
-      if repo_version_dir.match(/sles_12/) 
+      if repo_version_dir.match(/sles_12/)
         if !iso_file.match(/2\.iso/)
           output  = execute_command(message,command)
         end
@@ -2190,7 +2219,7 @@ def umount_iso()
   else
     message = "Unmounting:\tISO mounted on "+$iso_mount_dir
     command = "umount #{$iso_mount_dir}"
-    execute_command(message,command)  
+    execute_command(message,command)
   end
   return
 end

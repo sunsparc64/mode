@@ -677,3 +677,7 @@
 # Fixed several Packer bugs
 # 3.3.8: Sat  2 Apr 2016 14:02:25 AEDT
 # Added code to start VMware Fusion if not started so network can be plumbed
+# 3.3.9: Sat  2 Apr 2016 16:08:57 AEDT
+# Fixed packer installation
+# 3.4.0: Sat  2 Apr 2016 21:10:50 AEDT
+# Added code to determine Windows version from ISO
