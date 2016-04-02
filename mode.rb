@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.3.7
+# Version:      3.3.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -202,6 +202,11 @@ $default_thindiskmode     = "true"
 $default_sshenable        = "true"
 $default_httpd_port       = "8888"
 $default_slice_size       = "8192"
+
+# VMware Fusion Global variables
+
+$vmrun_bin = ""
+$vmapp_bin = ""
 
 # Declare some package versions
 
@@ -554,7 +559,9 @@ def check_local_config(install_mode)
       message = "Fetching:\tTool rpm2cpio"
       command = "wget \"#{$rpm2cpio_url}\" -O #{$rpm2cpio_bin} ; chown #{$id} #{$rpm2cpio_bin} ; chmod +x #{$rpm2cpio_bin}"
       execute_command(message,command)
-      system("chmod +x #{$rpm2cpio_bin}")
+      if File.exist?($rpm2cpio_bin)
+        system("chmod +x #{$rpm2cpio_bin}")
+      end
     end
   end
   return
@@ -1303,7 +1310,7 @@ else
       install_memory = "4096"
     end
     if option["os"]
-      if option["os"].match(/sol/) 
+      if option["os"].match(/sol/)
         if option["release"].to_i > 9
           install_memory = "2048"
         end
@@ -1340,7 +1347,7 @@ end
 if option["publisher"] and option["mode"].match(/server/) and $os_name.match(/SunOS/)
   publisher_host = option["publisher"]
   if publisher_host.match(/:/)
-    (publisher_host,publisher_port) = publisher_host.split(/:/) 
+    (publisher_host,publisher_port) = publisher_host.split(/:/)
   else
     publisher_port = $default_ai_port
   end
@@ -1588,7 +1595,7 @@ if option["os"]
     when /suse|sles/
       option["method"] = "ay"
     when /sol/
-      if option["release"].to_i < 11 
+      if option["release"].to_i < 11
         option["method"] = "js"
       else
         option["method"] = "ai"
@@ -1804,7 +1811,7 @@ if option["action"]
       exit
     end
   when /delete|remove/
-    if install_client.match(/[a-z]/) 
+    if install_client.match(/[a-z]/)
       if !install_service.match(/[a-z]/) and !install_vm.match(/[a-z]/)
         if !install_vm.match(/[a-z]/)
           install_vm = get_client_vm_type(install_client)
@@ -2080,7 +2087,7 @@ if option["action"]
       install_file = handle_vcsa_ova(install_file,install_service)
       deploy_vcsa_vm(install_server,install_datastore,install_server_admin,install_server_password,install_server_network,install_client,
                      install_size,install_root_password,install_timeserver,install_admin_password,install_domainname,install_sitename,
-                     install_ipfamily,install_mode,install_ip,install_netmask,install_gateway,install_nameserver,install_service,install_file)      
+                     install_ipfamily,install_mode,install_ip,install_netmask,install_gateway,install_nameserver,install_service,install_file)
     else
       eval"[deploy_#{install_vm}_vm(install_server,install_datastore,install_server_admin,install_server_password,install_server_network,install_client,
                                     install_size,install_root_password,install_timeserver,install_admin_password,install_domainname,install_sitename,

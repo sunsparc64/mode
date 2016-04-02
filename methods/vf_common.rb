@@ -38,7 +38,7 @@ def import_packer_fusion_vm(install_client,install_vm)
     puts "Warning:\tPacker Fusion VM image for "+install_client+" does not exist"
     exit
   end
-  fusion_vm_dir,fusion_vmx_file,fusion_disk_file = check_fusion_vm_doesnt_exist(install_client) 
+  fusion_vm_dir,fusion_vmx_file,fusion_disk_file = check_fusion_vm_doesnt_exist(install_client)
   check_dir_exists(fusion_vm_dir)
   message = "Information:\tCopying Packer VM images from \""+images_dir+"\" to \""+fusion_vm_dir+"\""
   command = "cp '#{images_dir}'/* '#{fusion_vm_dir}'"
@@ -120,7 +120,7 @@ end
 
 def list_fusion_vm_snapshots(install_client)
   snapshot_list = get_fusion_vm_snapshots(install_client)
-  puts snapshot_list 
+  puts snapshot_list
   return
 end
 
@@ -266,6 +266,7 @@ end
 
 def set_vmrun_bin()
   $vmrun_bin = "/Applications/VMware Fusion.app/Contents/Library/vmrun"
+  $vmapp_bin = "/Applications/VMware Fusion.app/Contents/MacOS/VMware Fusion"
   if !File.exist?($vmrun_bin)
     puts "Warning:\tCould not find vmrun"
     exit
@@ -583,6 +584,10 @@ def check_fusion_hostonly_network(if_name)
     vmnet_test = 1
   end
   if dhcp_test == 1 or vmnet_test == 1
+    message = "Information:\tStarting VMware Fusion"
+    command = "open \"#{$vmapp_bin}\" --background"
+    execute_command(message,command)
+    sleep 3
     vmnet_cli = "/Applications/VMware Fusion.app/Contents/Library/vmnet-cli"
     temp_file = "/tmp/networking"
     File.open(temp_file,"w") {|file_data| file_data.puts copy}

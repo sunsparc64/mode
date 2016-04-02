@@ -500,7 +500,7 @@
 # 2.4.9: Fri 24 Jul 2015 14:02:00 AEST
 # Added initial support for remote command execution
 # 2.5.0: Fri 24 Jul 2015 14:59:43 AEST
-# Cleaned up ISO list functions 
+# Cleaned up ISO list functions
 # 2.5.1: Fri 24 Jul 2015 17:33:36 AEST
 # Added check for /etc/netboot and /tftpboot on Solaris
 # 2.5.2: Sat 25 Jul 2015 07:05:34 AEST
@@ -530,7 +530,7 @@
 # 2.6.4: Mon 27 Jul 2015 12:09:50 AEST
 # Documentation and code fixes
 # 2.6.5: Tue Jul 28 10:28:25 AEST 2015
-# Added support for distribution server on RHEL 7 
+# Added support for distribution server on RHEL 7
 # 2.6.6: Tue Jul 28 16:12:55 AEST 2015
 # Fixed issues with RHEL 7 as a distribution server
 # 2.6.7: Tue Jul 28 17:45:03 AEST 2015
@@ -590,7 +590,7 @@
 # 2.9.4: Wed  9 Dec 2015 12:39:30 AEDT
 # Added code to import VMware Fusion Packer VM image
 # 2.9.5: Wed  9 Dec 2015 13:03:54 AEDT
-# Improved VirtualBox VM old config file cleanup 
+# Improved VirtualBox VM old config file cleanup
 # 2.9.6: Wed  9 Dec 2015 13:39:26 AEDT
 # Added code to import VirtualBox Packer VM image
 # 2.9.7: Wed  9 Dec 2015 15:25:01 AEDT
@@ -654,7 +654,7 @@
 # 3.2.6: Thu 10 Mar 2016 09:57:04 AEDT
 # Fixed issue with installing SLES 12.0
 # 3.2.7: Thu 10 Mar 2016 11:08:08 AEDT
-# Updated unconfigure service routine to deal with filesystems rather than symlinks in tftpboot directory (e.g. /etc/netboot) 
+# Updated unconfigure service routine to deal with filesystems rather than symlinks in tftpboot directory (e.g. /etc/netboot)
 # 3.2.8: Thu 10 Mar 2016 11:50:37 AEDT
 # Fixed bug with Preseed client creation
 # 3.2.9: Sat 12 Mar 2016 13:30:51 AEDT
@@ -675,3 +675,5 @@
 # Several bug fixes
 # 3.3.7: Fri  1 Apr 2016 14:48:55 AEDT
 # Fixed several Packer bugs
+# 3.3.8: Sat  2 Apr 2016 14:02:25 AEDT
+# Added code to start VMware Fusion if not started so network can be plumbed
