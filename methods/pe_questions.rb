@@ -1,8 +1,34 @@
 # Preseed configuration questions for Windows
 
-def populate_pe_questions(install_service,install_client,install_ip,install_mirror,install_type,install_locale,install_license,install_timezone)
+def populate_pe_questions(install_service,install_client,install_ip,install_mirror,install_type,install_locale,install_license,install_timezone,install_arch,install_label)
   $q_struct = {}
   $q_order  = []
+
+  name = "install_label"
+  config = Ks.new(
+    type      = "string",
+    question  = "Installation Label",
+    ask       = "yes",
+    parameter = "",
+    value     = install_label,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
+  name = "cpu_arch"
+  config = Ks.new(
+    type      = "string",
+    question  = "CPU Architecture",
+    ask       = "yes",
+    parameter = "",
+    value     = install_arch.gsub(/x86_64/,"amd64"),
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
 
   name = "boot_disk_size"
   config = Ks.new(
@@ -23,7 +49,7 @@ def populate_pe_questions(install_service,install_client,install_ip,install_mirr
     question  = "Language",
     ask       = "yes",
     parameter = "",
-    value     = install_locale,
+    value     = install_locale.gsub(/_/,"-"),
     valid     = "",
     eval      = "no"
     )
@@ -36,7 +62,7 @@ def populate_pe_questions(install_service,install_client,install_ip,install_mirr
     question  = "Locale",
     ask       = "yes",
     parameter = "",
-    value     = install_locale,
+    value     = install_locale.gsub(/_/,"-"),
     valid     = "",
     eval      = "no"
     )

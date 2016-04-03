@@ -1229,7 +1229,7 @@ end
 
 # Handle release switch
 
-if option["release"] 
+if option["release"]
   if option["type"].match(/packer/) and option["action"].match(/build|delete/)
     install_release = ""
   else

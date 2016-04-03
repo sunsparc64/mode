@@ -605,7 +605,7 @@ def configure_packer_client(install_method,install_vm,install_os,install_client,
 		puts "Warning:\tPacker image for VirtualBox VM "+install_client+" already exists "
 		exit
 	end
-  (install_service,install_os,install_method,install_arch,install_label) = get_packer_install_service(install_file)
+  (install_service,install_os,install_method,install_release,install_arch,install_label) = get_packer_install_service(install_file)
 	install_guest = eval"[get_#{install_vm}_guest_os(install_method,install_arch)]"
 	eval"[configure_packer_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
         install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone)]"
@@ -679,12 +679,12 @@ end
 
 # Create Windows client
 
-def create_packer_pe_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license,install_locale,install_label,install_timezone,install_mirror,install_mac,install_type)
+def create_packer_pe_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license,install_locale,install_label,install_timezone,install_mirror,install_mac,install_type,install_arch)
   client_dir  = $client_base_dir+"/packer/"+install_vm+"/"+install_client
   output_file = client_dir+"/Autounattend.xml"
   check_dir_exists(client_dir)
   delete_file(output_file)
-  populate_pe_questions(install_service,install_client,install_ip,install_mirror,install_type,install_locale,install_license,install_timezone)
+  populate_pe_questions(install_service,install_client,install_ip,install_mirror,install_type,install_locale,install_license,install_timezone,install_arch,install_label)
   process_questions(install_service)
   output_pe_client_profile(install_client,install_ip,install_mac,output_file,install_service,install_type,install_label,install_license)
   winrm_psh = populate_winrm_psh()
@@ -729,7 +729,7 @@ end
 
 def configure_packer_pe_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
                                install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone)
-  create_packer_pe_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license,install_locale,install_label,install_timezone,install_mirror,install_mac,install_type)
+  create_packer_pe_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license,install_locale,install_label,install_timezone,install_mirror,install_mac,install_type,install_arch)
   return
 end
 

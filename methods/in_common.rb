@@ -260,7 +260,6 @@ def get_install_service_from_file(install_file)
     else
       install_arch = "i386"
     end
-    install_label = %x[head -1 "#{install_file}" |strings |egrep '_CD|_DVD' |awk '{print $1}'].chomp
     mount_iso(install_file)
     wim_file = $iso_mount_dir+"/sources/install.wim"
     if File.exist?(wim_file)
@@ -278,6 +277,7 @@ def get_install_service_from_file(install_file)
       message = "Information:\tDeterming version of Windows from: "+wim_file
       command = "wiminfo \"#{wim_file}\" 1| grep ^Description"
       output  = execute_command(message,command)
+      install_label = output.chomp.split(/\:/)[1].gsub(/^\s+/,"")
       umount_iso()
       service_version = output.split(/Description:/)[1].gsub(/^\s+|SERVER|Server/,"").downcase.gsub(/\s+/,"_").split(/_/)[1..-1].join("_")
     end
