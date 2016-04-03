@@ -127,6 +127,7 @@ $use_defaults             = 0
 $default_apache_allow     = ""
 $default_admin_name       = "Sys Admin"
 $default_admin_user       = "sysadmin"
+$default_organisation     = "Multi OS Deployment Server"
 $default_server_admin     = "root"
 $default_admin_group      = "wheel"
 $default_admin_home       = "/home/"+$default_admin_user
@@ -202,6 +203,7 @@ $default_thindiskmode     = "true"
 $default_sshenable        = "true"
 $default_httpd_port       = "8888"
 $default_slice_size       = "8192"
+$default_boot_disk_size   = "500"
 
 # VMware Fusion Global variables
 

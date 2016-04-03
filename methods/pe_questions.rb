@@ -4,6 +4,19 @@ def populate_pe_questions(install_service,install_client,install_ip,install_mirr
   $q_struct = {}
   $q_order  = []
 
+  name = "boot_disk_size"
+  config = Ks.new(
+    type      = "string",
+    question  = "Boot disk size",
+    ask       = "yes",
+    parameter = "",
+    value     = $default_boot_disk_size,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
   name = "language"
   config = Ks.new(
     type      = "string",
@@ -37,6 +50,19 @@ def populate_pe_questions(install_service,install_client,install_ip,install_mirr
     ask       = "yes",
     parameter = "",
     value     = $default_admin_user,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
+  name = "admin_fullname"
+  config = Ks.new(
+    type      = "string",
+    question  = "Admin Fullname",
+    ask       = "yes",
+    parameter = "",
+    value     = $default_admin_name,
     valid     = "",
     eval      = "no"
     )
