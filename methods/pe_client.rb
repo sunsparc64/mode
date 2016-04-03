@@ -1,14 +1,13 @@
 # Windows related code
 
 def output_pe_client_profile(install_client,install_ip,install_mac,output_file,install_service,install_type,install_label,install_license)
-	timezone   = $default_windows_timezone
-	bootsize   = $default_windows_bootsize
-	locale     = $default_windows_locale
-	xml_output = []
+	xml_output     = []
+	locale         = $q_struct["locale"].value
+	timezone       = $q_struct["timezone"].value
 	boot_disk_size = $q_struct["boot_disk_size"].value
 	admin_fullname = $q_struct["admin_fullname"].value
-	organisation   = $q_struct["organisation"].value	
-	xml = Builder::XmlMarkup.new(:target => xml_output, :indent => 2)	
+	organisation   = $q_struct["organisation"].value
+	xml = Builder::XmlMarkup.new(:target => xml_output, :indent => 2)
 	xml.instruct! :xml, :version => "1.0", :encoding => "UTF-8"
 	xml.unattend(:xmlns => "urn:schemas-microsoft-com:unattend") {
 		xml.settings(:pass => "windowsPE") {
@@ -115,7 +114,7 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
 				xml.FirstLogonCommands {
 					xml.SynchronousCommand(:"wcm:action" => "add") {
 						xml.CommandLine('C:\Windows\SysWOW64\cmd.exe /c powershell -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Force')
-					}	
+					}
 					xml.Description("Set Execution Policy 32 Bit")
 				}
 			}

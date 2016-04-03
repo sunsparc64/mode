@@ -287,7 +287,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             ]
           ]
         }
-      end  
+      end
     else
       if install_service.match(/win|nt/)
         json_data = {
@@ -588,7 +588,7 @@ end
 def configure_packer_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,
                             install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,
                             install_network,install_license,install_mirror,install_size,install_type,install_locale,install_label,install_timezone)
-                            
+
   if !$default_host.match(/[0-9,a-z,A-Z]/)
     $default_host = get_default_host()
   end

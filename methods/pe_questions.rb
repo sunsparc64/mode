@@ -30,6 +30,32 @@ def populate_pe_questions(install_service,install_client,install_ip,install_mirr
   $q_struct[name] = config
   $q_order.push(name)
 
+  name = "locale"
+  config = Ks.new(
+    type      = "string",
+    question  = "Locale",
+    ask       = "yes",
+    parameter = "",
+    value     = install_locale,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
+  name = "organisation"
+  config = Ks.new(
+    type      = "string",
+    question  = "Organisation",
+    ask       = "yes",
+    parameter = "",
+    value     = $default_organisation,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
   name = "timezone"
   config = Ks.new(
     type      = "string",
