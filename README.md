@@ -307,8 +307,8 @@ VM Client Services:
 
 - VMware Fusion or VirtualBox
 
-VirtualBox bridged networking on OS X has been severly broken for quite
-some time, therefore it is recommended to use VMware Fusion if available.
+Prior to VirtualBox 5.x, bridged networking on OS X has been severely broken,
+therefore it is recommended to use VirtualBox 5.x or VMware Fusion if available.
 
 If using OS X and a installation platform for Jumpstart it is recommended to
 use flar based installs as the performance of the OS X NFS is poor
