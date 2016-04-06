@@ -1,6 +1,18 @@
 
 # Code common to all services
 
+# Copy packages to local packages directory
+
+def download_pkg(remote_file)
+  local_file = File.basename(remote_file)
+  if !File.exist?(local_file)
+    message = "Information:\tFetching "+remote_file+" to "+local_file
+    command = "wget #{remote_file} -O #{local_file}"
+    execute_command(message,command)
+  end
+  return
+end
+
 # Get install type from file
 
 def get_install_type_from_file(install_file)
@@ -254,12 +266,6 @@ def get_install_service_from_file(install_file)
   case install_file
   when /[0-9][0-9][0-9][0-9]|Win|Srv/
     service_name = "windows"
-    install_info = %x[head -1 "#{install_file}" |strings]
-    if install_info.match(/X64/)
-      install_arch = "x86_64"
-    else
-      install_arch = "i386"
-    end
     mount_iso(install_file)
     wim_file = $iso_mount_dir+"/sources/install.wim"
     if File.exist?(wim_file)
@@ -278,8 +284,12 @@ def get_install_service_from_file(install_file)
       command = "wiminfo \"#{wim_file}\" 1| grep ^Description"
       output  = execute_command(message,command)
       install_label = output.chomp.split(/\:/)[1].gsub(/^\s+/,"")
-      umount_iso()
       service_version = output.split(/Description:/)[1].gsub(/^\s+|SERVER|Server/,"").downcase.gsub(/\s+/,"_").split(/_/)[1..-1].join("_")
+      message = "Information:\tDeterming architecture of Windows from: "+wim_file
+      command = "wiminfo \"#{wim_file}\" 1| grep ^Architecture"
+      output  = execute_command(message,command)
+      install_arch = output.chomp.split(/\:/)[1].gsub(/^\s+/,"")
+      umount_iso()
     end
     install_service = install_release+"_"+install_arch
     install_service = install_service.gsub(/__/,"_")

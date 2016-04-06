@@ -84,6 +84,7 @@ Features
 Packer support
 
 - Simplify creation of Packer images for VirtualBox and VMware Fusion
+- Currently supports Linux and Windows 2008 R2
 
 Linux Container Creation
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.4.1
+# Version:      3.4.2
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -145,6 +145,7 @@ $q_struct                 = {}
 $q_order                  = []
 $text_mode                = 1
 $backup_dir               = ""
+$openssh_win_url          = "http://www.mls-software.com/files/setupssh-7.2p2-1-v1.exe"
 $ovftool_tar_url          = "https://github.com/richardatlateralblast/ottar/blob/master/vmware-ovftools.tar.gz?raw=true"
 $ovftool_dmg_url          = "https://github.com/richardatlateralblast/ottar/blob/master/VMware-ovftool-4.1.0-2459827-mac.x64.dmg?raw=true"
 $ovftool_bin              = "/Applications/VMware OVF Tool/ovftool"
@@ -204,6 +205,7 @@ $default_sshenable        = "true"
 $default_httpd_port       = "8888"
 $default_slice_size       = "8192"
 $default_boot_disk_size   = "500"
+$default_install_shell    = "ssh"
 
 # VMware Fusion Global variables
 
@@ -653,6 +655,7 @@ begin
     [ "--locale",         "-x", Getopt::REQUIRED ], # Select language/language (e.g. en_US)
     [ "--console",        "-X", Getopt::REQUIRED ], # Select console type (e.g. text, serial, x11) (default is text)
     [ "--yes",            "-y", Getopt::BOOLEAN ],  # Answer yes to all questions (accept defaults)
+    [ "--shell",          "-z", Getopt::REQUIRED ], # Install shell (used for packer, e.g. winrm, ssh)
     [ "--enable",         "-Z", Getopt::REQUIRED ], # Mount point
     [ "--changelog",      "-1", Getopt::BOOLEAN ]   # Print changelog
   )
@@ -697,6 +700,24 @@ end
 if option["help"]
   print_usage()
   exit
+end
+
+# Handle install shell
+
+if option["shell"]
+  install_shell = install_shell
+else
+  if option["os"]
+    if option["os"].match(/win/)
+      $default_install_shell = "winrm"
+      option["shell"] = $default_install_shell
+      install_shell   = $default_install_shell
+    else
+      $default_install_shell = "ssh"
+      option["shell"] = $default_install_shell
+      install_shell   = $default_install_shell
+    end
+  end
 end
 
 # Print changelog
@@ -1022,7 +1043,9 @@ if option["os"]
   end
 else
   if install_type.match(/vcsa|packer/)
-    (install_service,install_os,install_method,install_release,install_arch,install_label) = get_install_service_from_file(install_file)
+    if !option["service"] or !option["os"] or !option["method"] or !option["release"] or !option["arch"] or !option["label"]
+      (install_service,install_os,install_method,install_release,install_arch,install_label) = get_install_service_from_file(install_file)
+    end
     option["service"] = install_service
     option["os"]      = install_os
     option["method"]  = install_method
@@ -1088,7 +1111,9 @@ if option["service"]
   end
 else
   if install_type.match(/vcsa|packer/)
-    (install_service,install_os,install_method,install_release,install_arch,install_label) = get_install_service_from_file(install_file)
+    if !install_service or !install_os or !intsall_method or !install_release or !install_arch or !install_file
+      (install_service,install_os,install_method,install_release,install_arch,install_label) = get_install_service_from_file(install_file)
+    end
   else
     install_service = ""
   end
@@ -1902,9 +1927,9 @@ if option["action"]
           check_install_ip(install_ip)
           check_install_mac(install_mac)
           if install_type.match(/packer/)
-            eval"[configure_#{install_type}_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,
-                              install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,
-                              install_network,install_license,install_mirror,install_size,install_type,install_locale,install_label,install_timezone)]"
+            eval"[configure_#{install_type}_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,install_ip,install_model,
+                              publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,
+                              install_size,install_type,install_locale,install_label,install_timezone,install_shell)]"
           else
             if install_method.match(/server/)
               check_local_config("server")

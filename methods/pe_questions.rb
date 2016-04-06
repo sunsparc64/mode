@@ -1,6 +1,10 @@
 # Preseed configuration questions for Windows
 
-def populate_pe_questions(install_service,install_client,install_ip,install_mirror,install_type,install_locale,install_license,install_timezone,install_arch,install_label)
+def populate_pe_questions(install_service,install_client,install_ip,install_mirror,install_type,install_locale,install_license,
+                          install_timezone,install_arch,install_label,install_shell)
+  if !install_shell.match(/[a-z]/)
+    install_shell = $default_install_shell
+  end
   $q_struct = {}
   $q_order  = []
 
@@ -141,6 +145,84 @@ def populate_pe_questions(install_service,install_client,install_ip,install_mirr
     ask       = "yes",
     parameter = "",
     value     = install_license,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
+  name = "ip_address"
+  config = Ks.new(
+    type      = "string",
+    question  = "IP Address",
+    ask       = "yes",
+    parameter = "",
+    value     = install_ip,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
+  name = "gateway_address"
+  config = Ks.new(
+    type      = "string",
+    question  = "Gateway Address",
+    ask       = "yes",
+    parameter = "",
+    value     = $default_gateway_ip,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
+  name = "network_cidr"
+  config = Ks.new(
+    type      = "string",
+    question  = "Network CIDR",
+    ask       = "yes",
+    parameter = "",
+    value     = $default_cidr,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
+  name = "nameserver_ip"
+  config = Ks.new(
+    type      = "string",
+    question  = "Nameserver IP Address",
+    ask       = "yes",
+    parameter = "",
+    value     = $default_nameserver,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
+  name = "search_domain"
+  config = Ks.new(
+    type      = "string",
+    question  = "Search Domain",
+    ask       = "yes",
+    parameter = "",
+    value     = $default_domainname,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
+  name = "install_shell"
+  config = Ks.new(
+    type      = "string",
+    question  = "Install Shell",
+    ask       = "yes",
+    parameter = "",
+    value     = install_shell,
     valid     = "",
     eval      = "no"
     )

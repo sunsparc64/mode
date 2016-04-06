@@ -683,3 +683,5 @@
 # Added code to determine Windows version from ISO
 # 3.4.1: Sun  3 Apr 2016 06:54:17 AEST
 # Initial support for Packer Windows VMs - Unattend.xml needs fixing
+# 3.4.2: Wed  6 Apr 2016 11:43:03 AEST
+# Working support for Windows 2008 R2 with Packer

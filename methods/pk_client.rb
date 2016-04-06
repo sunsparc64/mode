@@ -55,11 +55,12 @@ end
 
 # Configure Packer JSON file
 
-def create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu,install_network,install_mac,install_ip)
+def create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu,install_network,install_mac,install_ip,install_label)
   nic_command1 = ""
   nic_command2 = ""
   nic_config1  = ""
   nic_config1  = ""
+  communicator = "winrm"
   ks_ip        = $default_host
   if $default_vm_network.match(/hostonly/)
     if_name  = get_bridged_vbox_nic()
@@ -81,13 +82,18 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   (install_service,install_os,install_release,install_arch) = get_packer_install_service(install_file)
   ssh_username     = $q_struct["admin_username"].value
   ssh_password     = $q_struct["admin_password"].value
-  ssh_wait_timeout = "600s"
+  ssh_wait_timeout = "20m"
   shutdown_command = ""
   case install_service
   when /win|nt/
-    shutdown_command = "shutdown -a; shutdown /s /t 1 /c \"Packer Shutdown\" /f /d p:4:1"
+    shutdown_command = "shutdown /s /t 1 /c \"Packer Shutdown\" /f /d p:4:1"
     unattended_xml   = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/Autounattend.xml"
-    winrm_psh        = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/"+install_client+"_winrm.ps1"
+    post_install_psh = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/post_install.ps1"
+    if install_label.match(/2012/)
+      if install_memory.to_i < 2000
+        install_memory = "2048"
+      end
+    end
   when /sles/
     ks_file      = install_client+"/"+install_client+".xml"
     ks_url       = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
@@ -175,8 +181,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     vbox_nic_name = check_vbox_hostonly_network(if_name)
   end
 	iso_url    = "file://"+install_file
-	packer_dir = $client_base_dir+"/packer/"+install_vm
-  client_dir = packer_dir+"/"+install_client
+	packer_dir = $client_base_dir+"/packer"
+  client_dir = packer_dir+"/"+install_vm+"/"+install_client
   image_dir  = client_dir+"/images"
   json_file  = client_dir+"/"+install_client+".json"
   check_dir_exists(client_dir)
@@ -198,10 +204,10 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
               :output_directory     => image_dir,
               :disk_size            => install_size,
               :iso_url              => iso_url,
-              :communicator         => "winrm",
+              :communicator         => communicator,
               :floppy_files         => [
                 unattended_xml,
-                winrm_psh
+                post_install_psh
               ],
               :winrm_host           => install_ip,
               :winrm_username       => ssh_username,
@@ -306,7 +312,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :communicator         => "winrm",
             :floppy_files         => [
               unattended_xml,
-              winrm_psh
+              post_install_psh
             ],
             :winrm_host           => install_ip,
             :winrm_username       => ssh_username,
@@ -375,15 +381,22 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :output_directory     => image_dir,
             :disk_size            => install_size,
             :iso_url              => iso_url,
-            :communicator         => "winrm",
+            :communicator         => communicator,
             :floppy_files         => [
               unattended_xml,
-              winrm_psh
+              post_install_psh
             ],
+            :ssh_host             => install_ip,
+            :ssh_username         => ssh_username,
+            :ssh_password         => ssh_password,
+            :ssh_wait_timeout     => ssh_wait_timeout,
             :winrm_host           => install_ip,
             :winrm_username       => ssh_username,
             :winrm_password       => ssh_password,
-            :ssh_wait_timeout     => ssh_wait_timeout,
+            :winrm_timeout        => ssh_wait_timeout,
+            :winrm_use_ssl        => false,
+            :winrm_insecure       => true,
+            :winrm_port           => "5985",
             :shutdown_command     => shutdown_command,
             :iso_checksum         => install_checksum,
             :iso_checksum_type    => install_checksum_type,
@@ -454,15 +467,19 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :output_directory     => image_dir,
             :disk_size            => install_size,
             :iso_url              => iso_url,
-            :communicator         => "winrm",
+            :communicator         => communicator,
             :floppy_files         => [
               unattended_xml,
-              winrm_psh
+              post_install_psh
             ],
+            :ssh_host             => install_ip,
+            :ssh_username         => ssh_username,
+            :ssh_password         => ssh_password,
+            :ssh_wait_timeout     => ssh_wait_timeout,
             :winrm_host           => install_ip,
             :winrm_username       => ssh_username,
             :winrm_password       => ssh_password,
-            :ssh_wait_timeout     => ssh_wait_timeout,
+            :winrm_timeout        => ssh_wait_timeout,
             :shutdown_command     => shutdown_command,
             :iso_checksum         => install_checksum,
             :iso_checksum_type    => install_checksum_type,
@@ -533,7 +550,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   	system("cat #{json_file}")
   	puts
   end
-  return
+  return communicator
 end
 
 # Check if a packer image exists
@@ -585,9 +602,9 @@ end
 
 # Create a packer config
 
-def configure_packer_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,
-                            install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,
-                            install_network,install_license,install_mirror,install_size,install_type,install_locale,install_label,install_timezone)
+def configure_packer_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,install_ip,install_model,
+                            publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,
+                            install_mirror,install_size,install_type,install_locale,install_label,install_timezone,install_shell)
 
   if !$default_host.match(/[0-9,a-z,A-Z]/)
     $default_host = get_default_host()
@@ -607,9 +624,9 @@ def configure_packer_client(install_method,install_vm,install_os,install_client,
 	end
   (install_service,install_os,install_method,install_release,install_arch,install_label) = get_packer_install_service(install_file)
 	install_guest = eval"[get_#{install_vm}_guest_os(install_method,install_arch)]"
-	eval"[configure_packer_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
-        install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone)]"
-	create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu,install_network,install_mac,install_ip)
+	eval"[configure_packer_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,
+                           install_cpu,install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone,install_shell)]"
+	create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu,install_network,install_mac,install_ip,install_label)
 	#build_packer_config(install_client,install_vm)
 	return
 end
@@ -679,17 +696,30 @@ end
 
 # Create Windows client
 
-def create_packer_pe_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license,install_locale,install_label,install_timezone,install_mirror,install_mac,install_type,install_arch)
+def create_packer_pe_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license,install_locale,
+                                   install_label,install_timezone,install_mirror,install_mac,install_type,install_arch,install_shell)
   client_dir  = $client_base_dir+"/packer/"+install_vm+"/"+install_client
   output_file = client_dir+"/Autounattend.xml"
   check_dir_exists(client_dir)
   delete_file(output_file)
-  populate_pe_questions(install_service,install_client,install_ip,install_mirror,install_type,install_locale,install_license,install_timezone,install_arch,install_label)
+  populate_pe_questions(install_service,install_client,install_ip,install_mirror,install_type,install_locale,install_license,install_timezone,install_arch,install_label,install_shell)
   process_questions(install_service)
-  output_pe_client_profile(install_client,install_ip,install_mac,output_file,install_service,install_type,install_label,install_license)
-  winrm_psh = populate_winrm_psh()
-  output_file = client_dir+"/"+install_client+"_winrm.ps1"
-  output_winrm_psh(install_client,winrm_psh,output_file)
+  output_pe_client_profile(install_client,install_ip,install_mac,output_file,install_service,install_type,install_label,install_license,install_shell)
+  output_file = client_dir+"/post_install.ps1"
+  if File.exist?(output_file)
+    %x[rm #{output_file}]
+    %x[touch #{output_file}]
+  end
+  if install_shell.match(/ssh/)
+    download_pkg($openssh_win_url)
+    openssh_pkg = File.basename($openssh_win_url)
+    copy_pkg_to_packer_client(openssh_package,install_client,install_vm)
+    openssh_psh = populate_openssh_psh()
+    output_psh(install_client,openssh_psh,output_file)
+  else
+    winrm_psh   = populate_winrm_psh()
+    output_psh(install_client,winrm_psh,output_file)
+  end
   return
 end
 
@@ -725,42 +755,65 @@ def create_packer_ps_install_files(install_client,install_service,install_ip,ins
   return
 end
 
+# Copy package from package directory to packer client directory
+
+def copy_pkg_to_packer_client(pkg_name,install_client,install_vm)
+  client_dir = $client_base_dir+"/packer/"+install_vm+"/"+install_client
+  if !pkg_name.match(/$pkg_base_dir/)
+    source_pkg = $pkg_base_dir+"/"+pkg_name
+  else
+    source_pkg = pkg_name
+  end
+  if !File.exist?(source_pkg)
+    puts "Warning:\tPackage "+source_pkg+" does not exist"
+    exit
+  end
+  if !File.exist?(dest_pkg)
+    dest_pkg = client_dir+"/"+pkg_name
+    message  = "Information:\tCopying '"+source_pkg+"' to '"+dest_pkg+"'"
+    command  = "cp #{source_pkg} #{dest_pkg}"
+    execute_command(message,command)
+  end
+  return
+end
+
 # Configure Packer Windows client
 
-def configure_packer_pe_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
-                               install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone)
-  create_packer_pe_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license,install_locale,install_label,install_timezone,install_mirror,install_mac,install_type,install_arch)
+def configure_packer_pe_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,
+                               install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone,install_shell)
+  create_packer_pe_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license,install_locale,install_label,install_timezone,
+                                 install_mirror,install_mac,install_type,install_arch,install_shell)
   return
 end
 
 # Configure Packer vSphere client
 
-def configure_packer_vs_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
-                               install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone)
+def configure_packer_vs_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,
+                               install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone,install_shell)
   create_packer_vs_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license,install_mac,install_type)
   return
 end
 
 # Configure Packer Kickstart client
 
-def configure_packer_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
-                               install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone)
+def configure_packer_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,
+                               install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone,install_shell)
   create_packer_ks_install_files(install_arch,install_client,install_service,install_ip,publisher_host,install_vm,install_type)
   return
 end
 
 # Configure Packer AutoYast client
 
-def configure_packer_ay_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
-                               install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone)
+def configure_packer_ay_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,
+                               install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone,install_shell)
   create_packer_ay_install_files(install_client,install_service,install_ip,install_vm,install_mac,install_type)
   return
 end
 
 # Configure Packer Preseed client
 
-def configure_packer_ps_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
-                               install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone)
+def configure_packer_ps_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,
+                               install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone,install_shell)
   create_packer_ps_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_mac,install_type)
   return
 end
