@@ -254,7 +254,7 @@ Optional Gems (required for some additional functionality)
   - socket
   - net/http
   - net/scp
-- Packages (Linux)
+- Required Packages (Linux)
   - git
   - gcc
   - ruby-devel
@@ -279,6 +279,9 @@ Optional Gems (required for some additional functionality)
   - xinetd
   - tftp-server
   - dhcp
+  - winlib (for building Windows VMs with Packer)
+- Required packages (Mac OS X)
+  - winlib (for building Windows VMs with Packer)
 
 Kickstart, AutoYast, and Preseed Services:
 
@@ -308,8 +311,7 @@ VirtualBox bridged networking on OS X has been severly broken for quite
 some time, therefore it is recommended to use VMware Fusion if available.
 
 If using OS X and a installation platform for Jumpstart it is recommended to
-use flar based installs as the performance of the OS X NFS server being so
-utterly useless.
+use flar based installs as the performance of the OS X NFS is poor
 
 - Parallels
 
