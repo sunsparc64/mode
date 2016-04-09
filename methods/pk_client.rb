@@ -100,7 +100,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
       install_guest = "windows7srv-64"
     end
   when /sles/
-    ks_file      = install_client+"/"+install_client+".xml"
+    ks_file      = install_vm+"/"+install_client+"/"+install_client+".xml"
     ks_url       = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     boot_command = "<esc><enter><wait> linux text install=cd:/ textmode=1 insecure=1"+
                    " netdevice="+$q_struct["nic"].value+
@@ -114,7 +114,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    " domain="+$default_domainname+
                    "<enter><wait>"
   when /debian|ubuntu/
-    ks_file          = install_client+"/"+install_client+".cfg"
+    ks_file          = install_vm+"/"+install_client+"/"+install_client+".cfg"
     ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     if install_service.match(/ubuntu_[14,15]/)
       boot_header = "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"+
@@ -142,7 +142,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                        " initrd=/install/initrd.gz -- <wait><enter><wait>"
     shutdown_command = "echo 'shutdown -P now' > /tmp/shutdown.sh ; echo '#{$q_struct["admin_password"].value}'|sudo -S sh '/tmp/shutdown.sh'"
   when /vsphere|esx|vmware/
-    ks_file          = install_client+"/"+install_client+".cfg"
+    ks_file          = install_vm+"/"+install_client+"/"+install_client+".cfg"
     ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     boot_command     = "<enter><wait>O<wait> ks="+ks_url+" ksdevice=vmnic0 netdevice=vmnic0 ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<wait><enter><wait>"
     ssh_username     = "root"
@@ -150,11 +150,11 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     shutdown_command = "esxcli system maintenanceMode set -e true -t 0 ; esxcli system shutdown poweroff -d 10 -r 'Packer Shutdown' ; esxcli system maintenanceMode set -e false -t 0"
     ssh_wait_timeout = "1200s"
   when /fedora/
-    ks_file          = install_client+"/"+install_client+".cfg"
+    ks_file          = install_vm+"/"+install_client+"/"+install_client+".cfg"
     ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     boot_command     = "<tab><wait><bs><bs><bs><bs><bs><bs>=0 inst.text inst.method=cdrom inst.repo=cdrom:/dev/sr0 inst.sshd inst.ks="+ks_url+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<enter><wait>"
   else
-    ks_file       = install_client+"/"+install_client+".cfg"
+    ks_file       = install_vm+"/"+install_client+"/"+install_client+".cfg"
     ks_url        = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     boot_command  = "<esc><wait> linux text install ks="+ks_url+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<enter><wait>"
 	  install_guest = install_guest.join
