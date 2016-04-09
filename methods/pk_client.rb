@@ -154,9 +154,10 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     boot_command     = "<tab><wait><bs><bs><bs><bs><bs><bs>=0 inst.text inst.method=cdrom inst.repo=cdrom:/dev/sr0 inst.sshd inst.ks="+ks_url+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<enter><wait>"
   else
-    ks_file      = install_client+"/"+install_client+".cfg"
-    ks_url       = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
-    boot_command = "<esc><wait> linux text install ks="+ks_url+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<enter><wait>"
+    ks_file       = install_client+"/"+install_client+".cfg"
+    ks_url        = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
+    boot_command  = "<esc><wait> linux text install ks="+ks_url+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<enter><wait>"
+	  install_guest = install_guest.join
   end
 	$vbox_disk_type = $vbox_disk_type.gsub(/sas/,"scsi")
 	case install_vm
@@ -191,7 +192,6 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   image_dir  = client_dir+"/images"
   json_file  = client_dir+"/"+install_client+".json"
   check_dir_exists(client_dir)
-	#install_guest = install_guest.join
   if install_vm.match(/vbox/)
     if install_mac.match(/[0-9,a-z,A-Z]/)
       if $default_vm_network.match(/hostonly|bridged/)
