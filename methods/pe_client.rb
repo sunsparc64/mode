@@ -79,242 +79,242 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
   xml       = Builder::XmlMarkup.new(:target => xml_output, :indent => 2)
   xml.instruct! :xml, :version => "1.0", :encoding => "UTF-8"
   xml.unattend(:xmlns => "urn:schemas-microsoft-com:unattend") {
-    xml.servicing
-    xml.settings(:pass => "windowsPE") {
-      xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-Setup", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
-        xml.DiskConfiguration {
-          xml.Disk(:"wcm:action" => "add") {
-            if !install_label.match(/2008/)
-              xml.CreatePartitions {
-                xml.CreatePartition(:"wcm:action" => "add") {
-                  xml.Type("Primary")
-                  xml.Order("1")
-                  xml.Size("#{boot_disk_size}")
-                }
-              }
-              xml.CreatePartitions {
-                xml.CreatePartition(:"wcm:action" => "add") {
-                  xml.Type("Primary")
-                  xml.Order("2")
-                  xml.Extend("true")
-                }
-              }
-              xml.ModifyPartition {
-                xml.ModifyPartition(:"wcm:action" => "add") {
-                  xml.Active("true")
-                  xml.Format("NTFS")
-                  xml.Label("Boot")
-                  xml.Order("1")
-                  xml.PartitionID("1")
-                }
-              }
-              xml.ModifyPartition {
-                xml.ModifyPartition(:"wcm:action" => "add") {
-                  xml.Active("false")
-                  xml.Format("NTFS")
-                  xml.Label("Windows")
-                  xml.letter("C")
-                  xml.Order("2")
-                  xml.PartitionID("2")
-                }
-              }
-            else
-              xml.CreatePartitions {
-                xml.CreatePartition(:"wcm:action" => "add") {
-                  xml.Order("1")
-                  xml.Type("Primary")
-                  xml.Extend("true")
-                }
-              }
-              xml.ModifyPartitions {
-                xml.ModifyPartition(:"wcm:action" => "add") {
-                  xml.Active("false")
-                  xml.Format("NTFS")
-                  xml.Letter("C")
-                  xml.Order("1")
-                  xml.PartitionID("1")
-                  xml.Label("Windows")
-                }
-              }
-            end
-            xml.DiskID("0")
-            xml.WillWipeDisk("true")
-          }
-          if install_label.match(/2008/)
-            xml.WillShowUI("OnError")
-          end
-        }
-        xml.UserData {
-          xml.AcceptEula("true")
-          xml.FullName("#{admin_fullname}")
-          xml.Organization("#{organisation}")
-          xml.ProductKey {
-            xml.Key("#{install_license}")
-            xml.WillShowUI("Never")
-          }
-        }
-        xml.ImageInstall {
-          xml.OSImage {
-            xml.InstallTo {
-              xml.DiskID("0")
-              if install_label.match(/2008/)
-                xml.PartitionID("1")
-              else
-                xml.PartitionID("2")
-              end
-            }
-            xml.WillShowUI("OnError")
-            xml.InstallToAvailablePartition("false")
-            xml.InstallFrom {
-              xml.MetaData(:"wcm:action" => "add") {
-                xml.Key("/IMAGE/NAME")
-                xml.Value("#{install_label}")
-              }
-            }
-          }
-        }
-      }
-      xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-International-Core-WinPE", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
-        xml.SetupUILanguage {
-          xml.UILanguage("#{locale}")
-        }
-        xml.InputLocale("#{locale}")
-        xml.SystemLocale("#{locale}")
-        xml.UILanguage("#{locale}")
-        xml.UILanguageFallback("#{locale}")
-        xml.UserLocale("#{locale}")
-      }
-    }
-    xml.settings(:pass => "offlineServicing") {
-      xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-LUA-Settings", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
-        xml.EnableLUA("false")
-      }
-    }
-    xml.settings(:pass => "oobeSystem") {
-      xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-Shell-Setup", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
-        xml.UserAccounts {
-          xml.AdministratorPassword {
-            xml.Value("#{admin_username}")
-            xml.PlainText("true")
-          }
-          xml.LocalAccounts {
-            xml.LocalAccount(:"wcm:action" => "add") {
-              xml.Password {
-                xml.Value("#{admin_password}")
-                xml.PlainText("true")
-              }
-              xml.DisplayName("#{admin_fullname}")
-              xml.Description("#{admin_fullname} User")
-              xml.Group("administrators")
-              xml.Name("#{admin_username}")
-            }
-          }
-        }
-        xml.OOBE {
-          xml.HideEULAPage("true")
-          xml.HideWirelessSetupInOOBE("true")
-          xml.NetworkLocation("Home")
-          if install_label.match(/2012/)
-            xml.HideLocalAccountScreen("true")
-            xml.HideOEMRegistrationScreen("true")
-            xml.HideOnlineAccountScreens("true")
-            xml.ProtectYourPC("1")
-          end
-        }
-        xml.AutoLogon {
-          xml.Password {
-            xml.Value("#{admin_password}")
-            xml.PlainText("true")
-          }
-          xml.Username("#{admin_username}")
-          xml.Enabled("true")
-        }
-        xml.FirstLogonCommands {
-          post_list.each do |item|
-            (command,description,userinput) = item.split(/\,/)
-            xml.SynchronousCommand(:"wcm:action" => "add") {
-              xml.CommandLine("#{command}")
-              xml.Description("#{description}")
-              number = counter.to_s
-              xml.Order("#{number}")
-              counter = counter+1
-              if userinput.match(/true/)
-                xml.RequiresUserInput("true")
-              end
-            }
-          end
-        }
-      }
-    }
-    xml.settings(:pass => "specialize") {
-      if network_ip.match(/[0-9]/)
-        xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-TCPIP", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
-          xml.Interfaces {
-            xml.Interface(:"wcm:action" => "add") {
-              xml.Ipv4Settings {
-                xml.DhcpEnabled("false")
-              }
-              xml.Identifier("Local Area Connection")
-              xml.UnicastIpAddresses {
-                xml.IpAddress("#{network_ip}#{$default_cidr}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
-              }
-              xml.Routes {
-                xml.Route(:"wcm:action" => "add") {
-                  xml.Identifier("0")
-                  xml.Prefix("0.0.0.0/0")
-                  xml.Metric("20")
-                  xml.NextHopAddress("#{gateway_ip}")
-                }
-              }
-            }
-          }
-        }
-      end
-      if nameserver_ip.match(/[0-9]/)
-        xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-DNS-Client", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
-          xml.Interfaces {
-            xml.Interface(:"wcm:action" => "add") {
-              xml.DNSServerSearchOrder {
-                xml.IpAddress("#{nameserver_ip}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
-              }
-              xml.Identifier("Local Area Connection")
-              xml.EnableAdapterDomainNameRegistration("false")
-              xml.DNSDomain("#{search_domain}")
-              xml.DisableDynamicUpdate("false")
-            }
-          }
-          xml.UseDomainNameDevolution("false")
-          xml.DNSDomain("#{search_domain}")
-        }
-      end
-      xml.component(:name => "Microsoft-Windows-Shell-Setup", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
-        xml.OEMInformation {
-          xml.HelpCustomized("false")
-        }
-        xml.ComputerName("#{install_client}")
-        xml.TimeZone("#{timezone}")
-        xml.RegisteredOwner
-      }
-      xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-ServerManager-SvrMgrNc", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
-        xml.DoNotOpenServerManagerAtLogon("true")
-      }
-      xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-IE-ESC", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
-        xml.IEHardenAdmin("false")
-        xml.IEHardenUser("false")
-      }
-      xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-OutOfBoxExperience", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
-        xml.DoNotOpenInitialConfigurationTasksAtLogon("true")
-      }
-      xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-Security-SPP-UX", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
-        xml.SkipAutoActivation("true")
-      }
-    }
-    if install_label.match(/2008|2012/)
-      xml.tag!(:"cpi:offlineImage", :"xmlns:cpi" => "urn:schemas-microsoft-com:cpi", :"cpi:source" => "catalog:d:/sources/install_#{install_label.downcase}.clg")
-    else
-      xml.tag!(:"cpi:offlineImage", :"xmlns:cpi" => "urn:schemas-microsoft-com:cpi", :"cpi:source" => "wim:c:/wim/install.wim##{install_label}")
-    end
-  }
+		if install_label.match(/2012/)
+			xml.settings(:pass => "windowsPE") {
+				xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-International-Core-WinPE", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
+					xml.SetupUILanguage {
+						xml.UILanguage("#{locale}")
+					}
+					xml.InputLocale("#{locale}")
+					xml.SystemLocale("#{locale}")
+					xml.UILanguage("#{locale}")
+					xml.UILanguageFallback("#{locale}")
+					xml.UserLocale("#{locale}")
+				}
+	      xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-Setup", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
+	        xml.DiskConfiguration {
+	          xml.Disk(:"wcm:action" => "add") {
+	            xml.CreatePartitions {
+	              xml.CreatePartition(:"wcm:action" => "add") {
+	                xml.Type("Primary")
+									xml.Order("1")
+									xml.Size("#{boot_disk_size}")
+	              }
+	              xml.CreatePartition(:"wcm:action" => "add") {
+									xml.Order("2")
+	                xml.Type("Primary")
+									xml.Extend("true")
+								}
+	            }
+	            xml.ModifyPartitions {
+	              xml.ModifyPartition(:"wcm:action" => "add") {
+	                xml.Active("true")
+	                xml.Format("NTFS")
+	                xml.Label("boot")
+	                xml.Order("1")
+	                xml.PartitionID("1")
+	              }
+	              xml.ModifyPartition(:"wcm:action" => "add") {
+	                xml.Format("NTFS")
+	                xml.Label("Windows")
+	                xml.Letter("C")
+	                xml.Order("2")
+	                xml.PartitionID("2")
+	              }
+	            }
+	            xml.DiskID("0")
+	            xml.WillWipeDisk("true")
+	          }
+	        }
+				}
+			}
+		end
+		if install_label.match(/2008/)
+    	xml.servicing
+    	xml.settings(:pass => "windowsPE") {
+	      xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-Setup", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
+	        xml.DiskConfiguration {
+	          xml.Disk(:"wcm:action" => "add") {
+	            xml.CreatePartitions {
+	              xml.CreatePartition(:"wcm:action" => "add") {
+	                xml.Order("1")
+	                xml.Type("Primary")
+	                xml.Extend("true")
+	              }
+	            }
+	            xml.ModifyPartitions {
+	              xml.ModifyPartition(:"wcm:action" => "add") {
+	                xml.Active("false")
+	                xml.Format("NTFS")
+	                xml.Letter("C")
+	                xml.Order("1")
+	                xml.PartitionID("1")
+	                xml.Label("Windows")
+	              }
+	            }
+	            xml.DiskID("0")
+	            xml.WillWipeDisk("true")
+	          }
+	          xml.WillShowUI("OnError")
+	        }
+	      	xml.UserData {
+	          xml.AcceptEula("true")
+	          xml.FullName("#{admin_fullname}")
+	          xml.Organization("#{organisation}")
+	          xml.ProductKey {
+	            xml.Key("#{install_license}")
+	            xml.WillShowUI("Never")
+	          }
+	        }
+	        xml.ImageInstall {
+	          xml.OSImage {
+	            xml.InstallTo {
+	              xml.DiskID("0")
+	              xml.PartitionID("1")
+	            }
+	            xml.WillShowUI("OnError")
+	            xml.InstallToAvailablePartition("false")
+	            xml.InstallFrom {
+	              xml.MetaData(:"wcm:action" => "add") {
+	                xml.Key("/IMAGE/NAME")
+	                xml.Value("#{install_label}")
+	              }
+	            }
+	          }
+	        }
+	      }
+	    	xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-International-Core-WinPE", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
+	        xml.SetupUILanguage {
+	          xml.UILanguage("#{locale}")
+	        }
+	        xml.InputLocale("#{locale}")
+	        xml.SystemLocale("#{locale}")
+	        xml.UILanguage("#{locale}")
+	        xml.UILanguageFallback("#{locale}")
+	        xml.UserLocale("#{locale}")
+	      }
+	    }
+	  	xml.settings(:pass => "offlineServicing") {
+	      xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-LUA-Settings", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
+	        xml.EnableLUA("false")
+	      }
+	    }
+	    xml.settings(:pass => "oobeSystem") {
+	      xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-Shell-Setup", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
+	        xml.UserAccounts {
+	          xml.AdministratorPassword {
+	            xml.Value("#{admin_username}")
+	            xml.PlainText("true")
+	          }
+	          xml.LocalAccounts {
+	            xml.LocalAccount(:"wcm:action" => "add") {
+	              xml.Password {
+	                xml.Value("#{admin_password}")
+	                xml.PlainText("true")
+	              }
+	              xml.DisplayName("#{admin_fullname}")
+	              xml.Description("#{admin_fullname} User")
+	              xml.Group("administrators")
+	              xml.Name("#{admin_username}")
+	            }
+	          }
+	        }
+	        xml.OOBE {
+	          xml.HideEULAPage("true")
+	          xml.HideWirelessSetupInOOBE("true")
+	          xml.NetworkLocation("Home")
+	        }
+	        xml.AutoLogon {
+	          xml.Password {
+	            xml.Value("#{admin_password}")
+	            xml.PlainText("true")
+	          }
+	          xml.Username("#{admin_username}")
+	          xml.Enabled("true")
+	        }
+	        xml.FirstLogonCommands {
+	          post_list.each do |item|
+	            (command,description,userinput) = item.split(/\,/)
+	            xml.SynchronousCommand(:"wcm:action" => "add") {
+	              xml.CommandLine("#{command}")
+	              xml.Description("#{description}")
+	              number = counter.to_s
+	              xml.Order("#{number}")
+	              counter = counter+1
+	              if userinput.match(/true/)
+	                xml.RequiresUserInput("true")
+	              end
+	            }
+	          end
+	        }
+	      }
+	    }
+	  	xml.settings(:pass => "specialize") {
+	      if network_ip.match(/[0-9]/)
+	        xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-TCPIP", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
+	          xml.Interfaces {
+	            xml.Interface(:"wcm:action" => "add") {
+	              xml.Ipv4Settings {
+	                xml.DhcpEnabled("false")
+	              }
+	              xml.Identifier("Local Area Connection")
+	              xml.UnicastIpAddresses {
+	                xml.IpAddress("#{network_ip}#{$default_cidr}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
+	              }
+	              xml.Routes {
+	                xml.Route(:"wcm:action" => "add") {
+	                  xml.Identifier("0")
+	                  xml.Prefix("0.0.0.0/0")
+	                  xml.Metric("20")
+	                  xml.NextHopAddress("#{gateway_ip}")
+	                }
+	              }
+	            }
+	          }
+	        }
+	      end
+		    if nameserver_ip.match(/[0-9]/)
+		      xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-DNS-Client", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
+		        xml.Interfaces {
+		          xml.Interface(:"wcm:action" => "add") {
+		            xml.DNSServerSearchOrder {
+		              xml.IpAddress("#{nameserver_ip}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
+		            }
+		            xml.Identifier("Local Area Connection")
+		            xml.EnableAdapterDomainNameRegistration("false")
+		            xml.DNSDomain("#{search_domain}")
+		            xml.DisableDynamicUpdate("false")
+		          }
+		        }
+		        xml.UseDomainNameDevolution("false")
+		        xml.DNSDomain("#{search_domain}")
+		      }
+		    end
+		    xml.component(:name => "Microsoft-Windows-Shell-Setup", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
+		      xml.OEMInformation {
+		        xml.HelpCustomized("false")
+		      }
+		      xml.ComputerName("#{install_client}")
+		      xml.TimeZone("#{timezone}")
+		      xml.RegisteredOwner
+		    }
+		    xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-ServerManager-SvrMgrNc", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
+		      xml.DoNotOpenServerManagerAtLogon("true")
+		    }
+		    xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-IE-ESC", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
+		      xml.IEHardenAdmin("false")
+		      xml.IEHardenUser("false")
+		    }
+		    xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-OutOfBoxExperience", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
+		      xml.DoNotOpenInitialConfigurationTasksAtLogon("true")
+		    }
+		    xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-Security-SPP-UX", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
+		      xml.SkipAutoActivation("true")
+		    }
+		  }
+	    xml.tag!(:"cpi:offlineImage", :"xmlns:cpi" => "urn:schemas-microsoft-com:cpi", :"cpi:source" => "catalog:d:/sources/install_#{install_label.downcase}.clg")
+		end
+	}
   file = File.open(output_file,"w")
   xml_output.each do |item|
     file.write(item)
