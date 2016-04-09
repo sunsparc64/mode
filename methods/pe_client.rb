@@ -13,7 +13,11 @@ def populate_pe_post_list(admin_username,admin_password,install_label,install_sh
 		post_list.push("cmd.exe /c winrm quickconfig -q,winrm quickconfig -q,true")
 		post_list.push("cmd.exe /c winrm quickconfig -transport:http,winrm quickconfig -transport:http,true")
 		post_list.push("cmd.exe /c winrm set winrm/config @{MaxTimeoutms=\"1800000\"},Win RM MaxTimoutms,true")
-		post_list.push("cmd.exe /c winrm set winrm/config/winrs '@{MaxMemoryPerShellMB=\"0\"}',Win RM MaxMemoryPerShellMB,true")
+		if install_label.match(/2012/)
+			post_list.push("cmd.exe /c winrm set winrm/config/winrs '@{MaxMemoryPerShellMB=\"800\"}',Win RM MaxMemoryPerShellMB,true")
+		else
+			post_list.push("cmd.exe /c winrm set winrm/config/winrs '@{MaxMemoryPerShellMB=\"0\"}',Win RM MaxMemoryPerShellMB,true")
+		end
 		post_list.push("cmd.exe /c winrm set winrm/config/winrs '@{MaxProcessesPerShell=\"0\"}',Win RM MaxProcessesPerShell,true")
 		post_list.push("cmd.exe /c winrm set winrm/config/service @{AllowUnencrypted=\"true\"},Win RM AllowUnencrypted,true")
 		post_list.push("cmd.exe /c winrm set winrm/config/service/auth @{Basic=\"true\"},Win RM auth Basic,true")
@@ -41,26 +45,36 @@ end
 
 # Create Autounattend.xml
 def output_pe_client_profile(install_client,install_ip,install_mac,output_file,install_service,install_type,install_label,install_license,install_shell)
-	xml_output     = []
-	command				 = ""
-	description		 = ""
-	userinput			 = ""
-	counter        = 1
-	number         = ""
-	locale         = $q_struct["locale"].value
-	timezone       = $q_struct["timezone"].value
-	boot_disk_size = $q_struct["boot_disk_size"].value
-	admin_fullname = $q_struct["admin_fullname"].value
-	admin_username = $q_struct["admin_username"].value
-	admin_password = $q_struct["admin_password"].value
-	organisation   = $q_struct["organisation"].value
-	cpu_arch       = $q_struct["cpu_arch"].value
-	network_cidr   = $q_struct["network_cidr"].value
-	network_ip     = $q_struct["ip_address"].value
-	gateway_ip     = $q_struct["gateway_address"].value
-	nameserver_ip  = $q_struct["nameserver_ip"].value
-	search_domain  = $q_struct["search_domain"].value
-	install_license = "D2N9P-3P6X9-2R39C-7RTCD-MDVJX"
+	xml_output      = []
+	command				  = ""
+	description		  = ""
+	userinput			  = ""
+	counter         = 1
+	number          = ""
+	locale          = $q_struct["locale"].value
+	timezone        = $q_struct["timezone"].value
+	boot_disk_size  = $q_struct["boot_disk_size"].value
+	admin_fullname  = $q_struct["admin_fullname"].value
+	admin_username  = $q_struct["admin_username"].value
+	admin_password  = $q_struct["admin_password"].value
+	organisation    = $q_struct["organisation"].value
+	cpu_arch        = $q_struct["cpu_arch"].value
+	network_cidr    = $q_struct["network_cidr"].value
+	network_ip      = $q_struct["ip_address"].value
+	gateway_ip      = $q_struct["gateway_address"].value
+	nameserver_ip   = $q_struct["nameserver_ip"].value
+	search_domain   = $q_struct["search_domain"].value
+	install_license = $q_struct["license_key"].value
+	# Put in some Microsoft Eval Keys if no license specified
+	if install_label.downcase.match(/windows/)
+		if !install_license.match(/[0-9]/)
+			if install_label.match(/2008/)
+				install_license = "YC6KT-GKW9T-YTKYR-T4X34-R7VHC"
+			else
+				install_license = "D2N9P-3P6X9-2R39C-7RTCD-MDVJX"
+			end
+		end
+	end
 	post_list      = populate_pe_post_list(admin_username,admin_password,install_label,install_shell)
 	xml = Builder::XmlMarkup.new(:target => xml_output, :indent => 2)
 	xml.instruct! :xml, :version => "1.0", :encoding => "UTF-8"
@@ -70,19 +84,19 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
 			xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-Setup", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
 				xml.DiskConfiguration {
 					xml.Disk(:"wcm:action" => "add") {
-						if !install_label.match(/2008|2012/)
+						if !install_label.match(/2008/)
 							xml.CreatePartitions {
 								xml.CreatePartition(:"wcm:action" => "add") {
+									xml.Type("Primary")
 									xml.Order("1")
 									xml.Size("#{boot_disk_size}")
-									xml.Type("Primary")
 								}
 							}
 							xml.CreatePartitions {
 								xml.CreatePartition(:"wcm:action" => "add") {
-									xml.Extend("true")
-									xml.Order("2")
 									xml.Type("Primary")
+									xml.Order("2")
+									xml.Extend("true")
 								}
 							}
 							xml.ModifyPartition {
@@ -96,8 +110,10 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
 							}
 							xml.ModifyPartition {
 								xml.ModifyPartition(:"wcm:action" => "add") {
+									xml.Active("false")
 									xml.Format("NTFS")
-									xml.Label("System")
+									xml.Label("Windows")
+									xml.letter("C")
 									xml.Order("2")
 									xml.PartitionID("2")
 								}
@@ -124,7 +140,9 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
 						xml.DiskID("0")
 						xml.WillWipeDisk("true")
 					}
-					xml.WillShowUI("OnError")
+					if install_label.match(/2008/)
+						xml.WillShowUI("OnError")
+					end
 				}
 				xml.UserData {
 					xml.AcceptEula("true")
@@ -139,7 +157,7 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
 					xml.OSImage {
 						xml.InstallTo {
 							xml.DiskID("0")
-							if install_label.match(/2008|2012/)
+							if install_label.match(/2008/)
 								xml.PartitionID("1")
 							else
 								xml.PartitionID("2")

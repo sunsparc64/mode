@@ -204,7 +204,7 @@ $default_thindiskmode     = "true"
 $default_sshenable        = "true"
 $default_httpd_port       = "8888"
 $default_slice_size       = "8192"
-$default_boot_disk_size   = "500"
+$default_boot_disk_size   = "350"
 $default_install_shell    = "ssh"
 
 # VMware Fusion Global variables

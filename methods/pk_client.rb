@@ -61,6 +61,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   nic_config1  = ""
   nic_config1  = ""
   communicator = "winrm"
+  hw_version   = "11"
   ks_ip        = $default_host
   if $default_vm_network.match(/hostonly/)
     if_name  = get_bridged_vbox_nic()
@@ -90,9 +91,13 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     unattended_xml   = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/Autounattend.xml"
     post_install_psh = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/post_install.ps1"
     if install_label.match(/2012/)
+      install_guest = "windows8srv-64"
+      hw_version    = "12"
       if install_memory.to_i < 2000
         install_memory = "2048"
       end
+    else
+      install_guest = "windows7srv-64"
     end
   when /sles/
     ks_file      = install_client+"/"+install_client+".xml"
@@ -186,7 +191,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   image_dir  = client_dir+"/images"
   json_file  = client_dir+"/"+install_client+".json"
   check_dir_exists(client_dir)
-	install_guest = install_guest.join
+	#install_guest = install_guest.join
   if install_vm.match(/vbox/)
     if install_mac.match(/[0-9,a-z,A-Z]/)
       if $default_vm_network.match(/hostonly|bridged/)
@@ -382,10 +387,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :disk_size            => install_size,
             :iso_url              => iso_url,
             :communicator         => communicator,
-            :floppy_files         => [
-              unattended_xml,
-              post_install_psh
-            ],
+            :vnc_port_min         => "5900",
+            :vnc_port_max         => "5980",
             :ssh_host             => install_ip,
             :ssh_username         => ssh_username,
             :ssh_password         => ssh_password,
@@ -404,7 +407,14 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :http_port_min        => $default_httpd_port,
             :http_port_max        => $default_httpd_port,
             :boot_command         => boot_command,
+            :floppy_files         => [
+              unattended_xml,
+              post_install_psh
+            ],
             :vmx_data => {
+              :"virtualHW.version"                => "#{hw_version}",
+              :"RemoteDisplay.vnc.enabled"        => "false",
+              :"RemoteDisplay.vnc.port"           => "5900",
               :memsize                            => "#{install_memory}",
               :numvcpus                           => "#{install_cpu}",
               :"vhv.enable"                       => "TRUE",
@@ -412,7 +422,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
               :"ethernet0.connectionType"         => "#{install_network}",
               :"ethernet0.virtualDev"             => "e1000",
               :"ethernet0.addressType"            => "static",
-              :"ethernet0.address"                => "#{install_mac}"
+              :"ethernet0.address"                => "#{install_mac}",
+              :"scsi0.virtualDev"                 => "lsisas1068"
             }
           ]
         }
