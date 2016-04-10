@@ -728,8 +728,8 @@ def create_packer_pe_install_files(install_client,install_service,install_ip,pub
     openssh_psh = populate_openssh_psh()
     output_psh(install_client,openssh_psh,output_file)
   else
-    winrm_psh   = populate_winrm_psh()
-    output_psh(install_client,winrm_psh,output_file)
+    #winrm_psh   = populate_winrm_psh()
+    #output_psh(install_client,winrm_psh,output_file)
   end
   return
 end

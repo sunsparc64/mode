@@ -685,3 +685,5 @@
 # Initial support for Packer Windows VMs - Unattend.xml needs fixing
 # 3.4.2: Wed  6 Apr 2016 11:43:03 AEST
 # Working support for Windows 2008 R2 with Packer
+# 3.4.3: Sun 10 Apr 2016 11:45:00 AEST
+# Working support for Windows 2012 R2 with Packer

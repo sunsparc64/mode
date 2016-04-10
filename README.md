@@ -12,7 +12,7 @@ difficult for the original script. It also greatly increased the usability.
 Introduction
 ------------
 
-A Ruby script to configure server and client configuration for PXE/DHCP, BOOTP
+A Ruby script to configure server and client configuration for Packer, PXE/DHCP, BOOTP
 and HTTP based install services, eg:
 
 - Solaris 11 Automated Installer (AI) service
@@ -33,7 +33,7 @@ and HTTP based install services, eg:
 - Provide completely headless VM support
 - Simplify creation of Packer images
 - Deploy Virtual Center Server Appliance
-- Simplify creation and build of VMs with Packer
+- Simplify creation and build of VMs with Packer (Linux, Windows 2008 R2, and Windows 2012 R2)
 
 This script is a wrapper which sits on top of the exisitng tools. It changes
 defaults to be more suitable to customer environments, and sanity checks server
@@ -84,7 +84,7 @@ Features
 Packer support
 
 - Simplify creation of Packer images for VirtualBox and VMware Fusion
-- Currently supports Linux and Windows 2008 R2
+- Currently supports Linux, Windows 2008 R2, and Windows 2012 R2
 
 Linux Container Creation
 
