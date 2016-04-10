@@ -202,7 +202,10 @@ started section, but basically the process of deploying a VM is as follows:
 - Configure the VM installation template/configuration on the Deployment Server
 - Boot the VM on the host machine and let it PXE boot and install
 
-An example host-only network layout is as follows:
+By default the script uses a hostonly network, 130.194.2.0 for VMware Fusion, and
+130.194.3.0 for VirtualBox
+
+An example host-only network layout For VMware Fusion is as follows:
 
 ```
 __ External network __ External Interface (e.g. en0)
@@ -212,8 +215,8 @@ __ External network __ External Interface (e.g. en0)
                             VM Host
                                |
                                |
-                        Host-only Interface (e.g. vmnet1) __ Host-only network
-                        e.g. 192.168.2.1                     e.g. 192.168.2.0
+                        Host-only Interface (e.g. vmnet1) __   Host-only network
+                        e.g. 192.168.2.254                     e.g. 192.168.2.0
                                                                      |
                                                                      |
                                 _____________________________________|
@@ -223,6 +226,29 @@ __ External network __ External Interface (e.g. en0)
             |                   |                   |
   Deployment Server        Test Server 1
   e.g. 192.168.2.100     e.g 192.168.2.101                                     
+```
+
+An example host-only network for VirtualBox
+
+```
+__ External network __ External Interface (e.g. en0)
+   e.g. 192.168.1.0    e.g. 192.168.1.100 
+                               |
+                               |
+                            VM Host
+                               |
+                               |
+                        Host-only Interface (e.g. vboxnet0) __ Host-only network
+                        e.g. 192.168.3.254                     e.g. 192.168.3.0
+                                                                     |
+                                                                     |
+                                _____________________________________|
+                                |
+            ____________________|____________________
+            |                   |                   |
+            |                   |                   |
+  Deployment Server        Test Server 1
+  e.g. 192.168.3.100     e.g 192.168.3.101                                     
 ```
 
 Requirements
