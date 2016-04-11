@@ -706,12 +706,10 @@ end
 
 # Get NT VirtualBox Guest OS name
 
-def get_ai_vbox_guest_os(install_arch,install_release)
-  install_os = "windows"+install_release.gsub(/r2/,"")
+def get_pe_vbox_guest_os(install_arch)
+  install_os = "Windows2008"
   if install_arch.match(/64/)
     install_os = install_os+"_64"
-  else
-    install_os = install_os+"_32"
   end
   return install_os
 end

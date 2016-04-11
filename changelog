@@ -687,3 +687,5 @@
 # Working support for Windows 2008 R2 with Packer
 # 3.4.3: Sun 10 Apr 2016 11:45:00 AEST
 # Working support for Windows 2012 R2 with Packer
+# 3.4.4: Mon 11 Apr 2016 14:58:29 AEST
+# Initial Packer support for Windows with VirtualBox

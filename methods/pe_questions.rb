@@ -1,10 +1,20 @@
 # Preseed configuration questions for Windows
 
 def populate_pe_questions(install_service,install_client,install_ip,install_mirror,install_type,install_locale,install_license,
-                          install_timezone,install_arch,install_label,install_shell)
+                          install_timezone,install_arch,install_label,install_shell,install_vm)
   if !install_shell.match(/[a-z]/)
     install_shell = $default_install_shell
   end
+  if install_label.match(/2012/)
+    if install_vm.match(/fusion/)
+      network_name = "Ethernet0"
+    else
+      network_name = "Ethernet"
+    end
+  else
+    network_name = "Local Area Connection"
+  end
+
   $q_struct = {}
   $q_order  = []
 
@@ -223,6 +233,19 @@ def populate_pe_questions(install_service,install_client,install_ip,install_mirr
     ask       = "yes",
     parameter = "",
     value     = install_shell,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
+  name = "network_name"
+  config = Ks.new(
+    type      = "string",
+    question  = "Network Name",
+    ask       = "yes",
+    parameter = "",
+    value     = network_name,
     valid     = "",
     eval      = "no"
     )

@@ -38,6 +38,10 @@ def populate_pe_post_list(admin_username,admin_password,install_label,install_sh
   post_list.push("%SystemRoot%\\System32\\reg.exe ADD HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\ /v StartMenuAdminTools /t REG_DWORD /d 1 /f,Show Administrative Tools in Start Menu,false")
   post_list.push("%SystemRoot%\\System32\\reg.exe ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\ /v HibernateFileSizePercent /t REG_DWORD /d 0 /f,Zero Hibernation File,false")
   post_list.push("%SystemRoot%\\System32\\reg.exe ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\ /v HibernateEnabled /t REG_DWORD /d 0 /f,Zero Hibernation File,false")
+  if install_label.match(/2012/)
+    post_list.push("cmd.exe /c reg add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Network\\NewNetworkWindowOff\",Turn off Network Location Wizard,false")
+    post_list.push("%SystemRoot%\\System32\\reg.exe ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\Network\\NetworkLocationWizard\\ /t REG_DWORD /d 1 /f,Hide Network Wizard,false")
+  end
   post_list.push("cmd.exe /c net user #{admin_username} #{admin_password},Set #{admin_username} password,true")
   post_list.push("cmd.exe /c wmic useraccount where \"name='#{admin_username}'\" set PasswordExpires=FALSE,Disable password expiration for #{admin_username} user,false")
   return post_list
@@ -65,14 +69,13 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
   nameserver_ip   = $q_struct["nameserver_ip"].value
   search_domain   = $q_struct["search_domain"].value
   install_license = $q_struct["license_key"].value
+  network_name    = $q_struct["network_name"].value
   # Put in some Microsoft Eval Keys if no license specified
-  if install_label.downcase.match(/windows/)
-    if !install_license.match(/[0-9]/)
-      if install_label.match(/2008/)
-        install_license = "YC6KT-GKW9T-YTKYR-T4X34-R7VHC"
-      else
-        install_license = "D2N9P-3P6X9-2R39C-7RTCD-MDVJX"
-      end
+  if !install_license.match(/[0-9]/)
+    if install_label.match(/2008/)
+      install_license = "YC6KT-GKW9T-YTKYR-T4X34-R7VHC"
+    else
+      install_license = "D2N9P-3P6X9-2R39C-7RTCD-MDVJX"
     end
   end
   post_list = populate_pe_post_list(admin_username,admin_password,install_label,install_shell)
@@ -159,7 +162,7 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
                 xml.Ipv4Settings {
                   xml.DhcpEnabled("false")
                 }
-                xml.Identifier("Ethernet0")
+                xml.Identifier("#{network_name}")
                 xml.UnicastIpAddresses {
                   xml.IpAddress("#{network_ip}#{$default_cidr}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
                 }
@@ -182,7 +185,7 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
                 xml.DNSServerSearchOrder {
                   xml.IpAddress("#{nameserver_ip}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
                 }
-                xml.Identifier("Ethernet0")
+                xml.Identifier("#{network_name}")
                 xml.EnableAdapterDomainNameRegistration("false")
                 xml.DNSDomain("#{search_domain}")
                 xml.DisableDynamicUpdate("false")
@@ -236,8 +239,12 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
           }
           xml.OOBE {
             xml.HideEULAPage("true")
+            xml.HideLocalAccountScreen("true")
+            xml.HideOEMRegistrationScreen("true")
+            xml.HideOnlineAccountScreens("true")
             xml.HideWirelessSetupInOOBE("true")
             xml.NetworkLocation("Home")
+            xml.ProtectYourPC("1")
           }
           xml.AutoLogon {
             xml.Password {
@@ -399,7 +406,7 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
                 xml.Ipv4Settings {
                   xml.DhcpEnabled("false")
                 }
-                xml.Identifier("Local Area Connection")
+                xml.Identifier("#{network_name}")
                 xml.UnicastIpAddresses {
                   xml.IpAddress("#{network_ip}#{$default_cidr}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
                 }
@@ -422,7 +429,7 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
                 xml.DNSServerSearchOrder {
                   xml.IpAddress("#{nameserver_ip}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
                 }
-                xml.Identifier("Local Area Connection")
+                xml.Identifier("#{network_name}")
                 xml.EnableAdapterDomainNameRegistration("false")
                 xml.DNSDomain("#{search_domain}")
                 xml.DisableDynamicUpdate("false")
