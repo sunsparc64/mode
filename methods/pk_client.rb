@@ -192,6 +192,9 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     if install_guest.class == Array
   	  install_guest = install_guest.join
     end
+    if install_vm.match(/vbox/) and install_network.match(/hostonly|bridged/)
+      shutdown_command = "sudo 'shutdown -P now'"
+    end
   end
 	$vbox_disk_type = $vbox_disk_type.gsub(/sas/,"scsi")
 	case install_vm
@@ -250,7 +253,6 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :winrm_timeout        => ssh_wait_timeout,
             :winrm_use_ssl        => winrm_use_ssl,
             :winrm_insecure       => winrm_insecure,
-            :winrm_port           => winrm_port,
             :shutdown_timeout     => shutdown_timeout,
             :shutdown_command     => shutdown_command,
             :format               => output_format,
@@ -265,7 +267,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
               [ "modifyvm", "{{.Name}}", nic_command2, nic_config2 ],
               [ "modifyvm", "{{.Name}}", "--macaddress1", install_mac ],
               [ "modifyvm", "{{.Name}}", "--nic2", "nat" ],
-              [ "modifyvm", "{{.Name}}", "--natpf2", "winrm,tcp,127.0.0.1,55985,,5985" ],
+              [ "modifyvm", "{{.Name}}", "--natpf2", "winrm,tcp,127.0.0.1,55985,#{install_ip},5985" ],
             ]
           ]
         }
@@ -275,32 +277,34 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
         		:hostname => install_client
         	},
         	:builders => [
-        		:name 								=> install_client,
-        		:vm_name							=> install_client,
-        		:type 								=> install_type,
-        		:guest_os_type 				=> install_guest,
-        		:hard_drive_interface => $vbox_disk_type,
-        		:output_directory     => image_dir,
-        		:disk_size						=> install_size,
-        		:iso_url 							=> iso_url,
+            :name                 => install_client,
+            :vm_name              => install_client,
+            :type                 => install_type,
+            :guest_os_type        => install_guest,
+            :output_directory     => image_dir,
+            :disk_size            => install_size,
+            :iso_url              => iso_url,
             :ssh_host             => install_ip,
-            :ssh_port             => ssh_port,
-        		:ssh_username					=> ssh_username,
-        		:ssh_password       	=> ssh_password,
+            :ssh_port             => "2222",
+            :ssh_username         => ssh_username,
+            :ssh_password         => ssh_password,
             :ssh_wait_timeout     => ssh_wait_timeout,
             :shutdown_command     => shutdown_command,
-        		:iso_checksum 				=> install_checksum,
-        		:iso_checksum_type		=> install_checksum_type,
-        		:http_directory 			=> packer_dir,
+            :iso_checksum         => install_checksum,
+            :iso_checksum_type    => install_checksum_type,
+            :http_directory       => packer_dir,
             :http_port_min        => $default_httpd_port,
             :http_port_max        => $default_httpd_port,
-        		:boot_command      		=> boot_command,
+            :boot_command         => boot_command,
+            :format               => output_format,
       			:vboxmanage => [
       				[ "modifyvm", "{{.Name}}", "--memory", install_memory ],
       				[ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
               [ "modifyvm", "{{.Name}}", nic_command1, nic_config1 ],
               [ "modifyvm", "{{.Name}}", nic_command2, nic_config2 ],
               [ "modifyvm", "{{.Name}}", "--macaddress1", install_mac ],
+              [ "modifyvm", "{{.Name}}", "--nic2", "nat" ],
+              [ "modifyvm", "{{.Name}}", "--natpf2", "ssh,tcp,127.0.0.1,2222,#{install_ip},22" ],
       			]
       		]
         }
@@ -491,7 +495,6 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :winrm_timeout        => ssh_wait_timeout,
             :winrm_use_ssl        => winrm_use_ssl,
             :winrm_insecure       => winrm_insecure,
-            :winrm_port           => winrm_port,
             :shutdown_timeout     => shutdown_timeout,
             :shutdown_command     => shutdown_command,
             :floppy_files         => [

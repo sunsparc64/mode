@@ -695,3 +695,5 @@
 # Fixed Packer support for Windows with VMware Fusion in NAT mode
 # 3.4.7: Tue 12 Apr 2016 16:22:33 AEST
 # Fixed Packer support for Linux with VMware Fusion in NAT mode
+# 3.4.8: Tue 12 Apr 2016 17:23:03 AEST
+# Added Packer check for Linux with VirtualBox in NAT mode (hostonly or bridged does not appear to work currently with ssh)

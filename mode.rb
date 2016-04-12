@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.4.7
+# Version:      3.4.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -702,18 +702,26 @@ if option["help"]
   exit
 end
 
-# Handler Packer and VirtualBox not supporting hostonly or bridged network
+# Handle network switch
+
+if option["network"]
+  install_network = option["network"]
+  if $verbose_mode == 1
+    puts "Information:\tSetting network type to: "+install_network
+  end
+else
+  install_network   = $default_vm_network
+  option["network"] = install_network
+end
+
+# Handle Packer and VirtualBox not supporting hostonly or bridged network
 
 if option["network"]
   if !option["network"].match(/nat/)
     if option["vm"]
       if option["vm"].downcase.match(/virtualbox|vbox/)
-        if option["os"]
-          if option["os"].match(/win/)
-            puts "Warning:\tVirtualBox does not support Hostonly or Bridged network with Packer"
-            exit
-          end
-        end
+        puts "Warning:\tVirtualBox does not support Hostonly or Bridged network with Packer"
+        exit
       end
     end
   end
@@ -1206,18 +1214,6 @@ if option["share"]
   end
 else
   install_share = ""
-end
-
-
-# Handle network switch
-
-if option["network"]
-  install_network = option["network"]
-  if $verbose_mode == 1
-    puts "Information:\tSetting network type to: "+install_network
-  end
-else
-  install_network = $default_vm_network
 end
 
 # If given -y assume yes to all questions
