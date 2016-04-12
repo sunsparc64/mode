@@ -63,13 +63,16 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
   admin_password  = $q_struct["admin_password"].value
   organisation    = $q_struct["organisation"].value
   cpu_arch        = $q_struct["cpu_arch"].value
-  network_cidr    = $q_struct["network_cidr"].value
-  network_ip      = $q_struct["ip_address"].value
-  gateway_ip      = $q_struct["gateway_address"].value
-  nameserver_ip   = $q_struct["nameserver_ip"].value
-  search_domain   = $q_struct["search_domain"].value
   install_license = $q_struct["license_key"].value
-  network_name    = $q_struct["network_name"].value
+  install_network = $q_struct["network_type"].value
+  if install_network.match(/hostonly|bridged/)
+    network_name    = $q_struct["network_name"].value
+    network_cidr    = $q_struct["network_cidr"].value
+    network_ip      = $q_struct["ip_address"].value
+    gateway_ip      = $q_struct["gateway_address"].value
+    nameserver_ip   = $q_struct["nameserver_ip"].value
+    search_domain   = $q_struct["search_domain"].value
+  end
   # Put in some Microsoft Eval Keys if no license specified
   if !install_license.match(/[0-9]/)
     if install_label.match(/2008/)
@@ -155,45 +158,49 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
         }
       }
       xml.settings(:pass => "specialize") {
-        if network_ip.match(/[0-9]/)
-          xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-TCPIP", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
-            xml.Interfaces {
-              xml.Interface(:"wcm:action" => "add") {
-                xml.Ipv4Settings {
-                  xml.DhcpEnabled("false")
-                }
-                xml.Identifier("#{network_name}")
-                xml.UnicastIpAddresses {
-                  xml.IpAddress("#{network_ip}#{$default_cidr}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
-                }
-                xml.Routes {
-                  xml.Route(:"wcm:action" => "add") {
-                    xml.Identifier("0")
-                    xml.Prefix("0.0.0.0/0")
-                    xml.Metric("20")
-                    xml.NextHopAddress("#{gateway_ip}")
+        if install_network.match(/hostonly|bridged/)
+          if network_ip.match(/[0-9]/)
+            xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-TCPIP", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
+              xml.Interfaces {
+                xml.Interface(:"wcm:action" => "add") {
+                  xml.Ipv4Settings {
+                    xml.DhcpEnabled("false")
+                  }
+                  xml.Identifier("#{network_name}")
+                  xml.UnicastIpAddresses {
+                    xml.IpAddress("#{network_ip}#{$default_cidr}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
+                  }
+                  xml.Routes {
+                    xml.Route(:"wcm:action" => "add") {
+                      xml.Identifier("0")
+                      xml.Prefix("0.0.0.0/0")
+                      xml.Metric("20")
+                      xml.NextHopAddress("#{gateway_ip}")
+                    }
                   }
                 }
               }
             }
-          }
+          end
         end
-        if nameserver_ip.match(/[0-9]/)
-          xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-DNS-Client", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
-            xml.Interfaces {
-              xml.Interface(:"wcm:action" => "add") {
-                xml.DNSServerSearchOrder {
-                  xml.IpAddress("#{nameserver_ip}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
+        if install_network.match(/hostonly|bridged/)
+          if nameserver_ip.match(/[0-9]/)
+            xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-DNS-Client", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
+              xml.Interfaces {
+                xml.Interface(:"wcm:action" => "add") {
+                  xml.DNSServerSearchOrder {
+                    xml.IpAddress("#{nameserver_ip}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
+                  }
+                  xml.Identifier("#{network_name}")
+                  xml.EnableAdapterDomainNameRegistration("false")
+                  xml.DNSDomain("#{search_domain}")
+                  xml.DisableDynamicUpdate("false")
                 }
-                xml.Identifier("#{network_name}")
-                xml.EnableAdapterDomainNameRegistration("false")
-                xml.DNSDomain("#{search_domain}")
-                xml.DisableDynamicUpdate("false")
               }
+              xml.UseDomainNameDevolution("false")
+              xml.DNSDomain("#{search_domain}")
             }
-            xml.UseDomainNameDevolution("false")
-            xml.DNSDomain("#{search_domain}")
-          }
+          end
         end
         xml.component(:name => "Microsoft-Windows-Shell-Setup", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
           xml.OEMInformation {
@@ -399,45 +406,49 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
         }
       }
       xml.settings(:pass => "specialize") {
-        if network_ip.match(/[0-9]/)
-          xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-TCPIP", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
-            xml.Interfaces {
-              xml.Interface(:"wcm:action" => "add") {
-                xml.Ipv4Settings {
-                  xml.DhcpEnabled("false")
-                }
-                xml.Identifier("#{network_name}")
-                xml.UnicastIpAddresses {
-                  xml.IpAddress("#{network_ip}#{$default_cidr}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
-                }
-                xml.Routes {
-                  xml.Route(:"wcm:action" => "add") {
-                    xml.Identifier("0")
-                    xml.Prefix("0.0.0.0/0")
-                    xml.Metric("20")
-                    xml.NextHopAddress("#{gateway_ip}")
+        if install_network.match(/hostonly|bridged/)
+          if network_ip.match(/[0-9]/)
+            xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-TCPIP", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
+              xml.Interfaces {
+                xml.Interface(:"wcm:action" => "add") {
+                  xml.Ipv4Settings {
+                    xml.DhcpEnabled("false")
+                  }
+                  xml.Identifier("#{network_name}")
+                  xml.UnicastIpAddresses {
+                    xml.IpAddress("#{network_ip}#{$default_cidr}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
+                  }
+                  xml.Routes {
+                    xml.Route(:"wcm:action" => "add") {
+                      xml.Identifier("0")
+                      xml.Prefix("0.0.0.0/0")
+                      xml.Metric("20")
+                      xml.NextHopAddress("#{gateway_ip}")
+                    }
                   }
                 }
               }
             }
-          }
+          end
         end
-        if nameserver_ip.match(/[0-9]/)
-          xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-DNS-Client", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
-            xml.Interfaces {
-              xml.Interface(:"wcm:action" => "add") {
-                xml.DNSServerSearchOrder {
-                  xml.IpAddress("#{nameserver_ip}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
+        if install_network.match(/hostonly|bridged/)
+          if nameserver_ip.match(/[0-9]/)
+            xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-DNS-Client", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
+              xml.Interfaces {
+                xml.Interface(:"wcm:action" => "add") {
+                  xml.DNSServerSearchOrder {
+                    xml.IpAddress("#{nameserver_ip}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
+                  }
+                  xml.Identifier("#{network_name}")
+                  xml.EnableAdapterDomainNameRegistration("false")
+                  xml.DNSDomain("#{search_domain}")
+                  xml.DisableDynamicUpdate("false")
                 }
-                xml.Identifier("#{network_name}")
-                xml.EnableAdapterDomainNameRegistration("false")
-                xml.DNSDomain("#{search_domain}")
-                xml.DisableDynamicUpdate("false")
               }
+              xml.UseDomainNameDevolution("false")
+              xml.DNSDomain("#{search_domain}")
             }
-            xml.UseDomainNameDevolution("false")
-            xml.DNSDomain("#{search_domain}")
-          }
+          end
         end
         xml.component(:name => "Microsoft-Windows-Shell-Setup", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
           xml.OEMInformation {

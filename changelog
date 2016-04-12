@@ -689,3 +689,5 @@
 # Working support for Windows 2012 R2 with Packer
 # 3.4.4: Mon 11 Apr 2016 14:58:29 AEST
 # Initial Packer support for Windows with VirtualBox
+# 3.4.5: Tue 12 Apr 2016 11:25:11 AEST
+# Added Packer support for Windows with VirtualBox in NAT mode (hostonly or bridged does not appear to work currently with winrm)

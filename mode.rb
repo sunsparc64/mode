@@ -625,7 +625,7 @@ begin
     [ "--ip",             "-i", Getopt::REQUIRED ], # IP Address of client
     [ "--ipfamily",       "-I", Getopt::REQUIRED ], # IP family (e.g. IPv4 or IPv6)
     [ "--size",           "-j", Getopt::REQUIRED ], # VM disk size (if used with deploy action, this sets the size of the VM, e.g. tiny)
-    [ "--network",        "-k", Getopt::REQUIRED ], # Set network type (e.g. hostonly, bridget, nat)
+    [ "--network",        "-k", Getopt::REQUIRED ], # Set network type (e.g. hostonly, bridged, nat)
     [ "--servernetwork",  "-K", Getopt::REQUIRED ], # Server network (used when deploying to a remote server)
     [ "--publisher",      "-l", Getopt::REQUIRED ], # Publisher host
     [ "--license",        "-L", Getopt::REQUIRED ], # License key (e.g. ESX)
@@ -700,6 +700,23 @@ end
 if option["help"]
   print_usage()
   exit
+end
+
+# Handler Packer and VirtualBox not supporting hostonly or bridged network
+
+if option["network"]
+  if !option["network"].match(/nat/)
+    if option["vm"]
+      if option["vm"].downcase.match(/virtualbox|vbox/)
+        if option["os"]
+          if option["os"].match(/win/)
+            puts "Warning:\tVirtualBox does not support Hostonly or Bridged network with Packer"
+            exit
+          end
+        end
+      end
+    end
+  end
 end
 
 # Handle install shell
@@ -1924,8 +1941,10 @@ if option["action"]
           if !install_type.match(/packer/) and install_mode.match(/server/)
             check_dhcpd_config(publisher_host)
           end
-          check_install_ip(install_ip)
-          check_install_mac(install_mac)
+          if !install_network.match(/nat/)
+            check_install_ip(install_ip)
+            check_install_mac(install_mac)
+          end
           if install_type.match(/packer/)
             eval"[configure_#{install_type}_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,install_ip,install_model,
                               publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,
