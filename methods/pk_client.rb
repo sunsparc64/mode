@@ -527,7 +527,6 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :output_directory     => image_dir,
             :disk_size            => install_size,
             :iso_url              => iso_url,
-            :ssh_host             => install_ip,
             :ssh_username         => ssh_username,
             :ssh_password         => ssh_password,
             :ssh_wait_timeout     => ssh_wait_timeout,

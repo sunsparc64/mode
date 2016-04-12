@@ -691,3 +691,7 @@
 # Initial Packer support for Windows with VirtualBox
 # 3.4.5: Tue 12 Apr 2016 11:25:11 AEST
 # Added Packer support for Windows with VirtualBox in NAT mode (hostonly or bridged does not appear to work currently with winrm)
+# 3.4.6: Tue 12 Apr 2016 15:57:10 AEST
+# Fixed Packer support for Windows with VMware Fusion in NAT mode
+# 3.4.7: Tue 12 Apr 2016 16:22:33 AEST
+# Fixed Packer support for Linux with VMware Fusion in NAT mode
