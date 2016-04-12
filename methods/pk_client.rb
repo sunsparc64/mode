@@ -374,99 +374,186 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
       end
     end
   else
-    if install_service.match(/win|nt/)
-      json_data = {
-        :variables => {
-          :hostname => install_client
-        },
-        :builders => [
-          :name                 => install_client,
-          :vm_name              => install_client,
-          :type                 => install_type,
-          :guest_os_type        => install_guest,
-          :output_directory     => image_dir,
-          :disk_size            => install_size,
-          :iso_url              => iso_url,
-          :communicator         => communicator,
-          :vnc_port_min         => vnc_port_min,
-          :vnc_port_max         => vnc_port_max,
-          :ssh_host             => install_ip,
-          :ssh_username         => ssh_username,
-          :ssh_password         => ssh_password,
-          :ssh_wait_timeout     => ssh_wait_timeout,
-          :winrm_host           => install_ip,
-          :winrm_username       => ssh_username,
-          :winrm_password       => ssh_password,
-          :winrm_timeout        => ssh_wait_timeout,
-          :winrm_use_ssl        => winrm_use_ssl,
-          :winrm_insecure       => winrm_insecure,
-          :winrm_port           => winrm_port,
-          :shutdown_command     => shutdown_command,
-          :iso_checksum         => install_checksum,
-          :iso_checksum_type    => install_checksum_type,
-          :http_directory       => packer_dir,
-          :http_port_min        => $default_httpd_port,
-          :http_port_max        => $default_httpd_port,
-          :boot_command         => boot_command,
-          :floppy_files         => [
-            unattended_xml,
-            post_install_psh
-          ],
-          :vmx_data => {
-            :"virtualHW.version"                => hw_version,
-            :"RemoteDisplay.vnc.enabled"        => vnc_enabled,
-            :"RemoteDisplay.vnc.port"           => vnc_port_min,
-            :memsize                            => install_memory,
-            :numvcpus                           => install_cpu,
-            :"vhv.enable"                       => vhv_enabled,
-            :"ethernet0.present"                => ethernet_enabled,
-            :"ethernet0.connectionType"         => install_network,
-            :"ethernet0.virtualDev"             => ethernet_dev,
-            :"ethernet0.addressType"            => ethernet_type,
-            :"ethernet0.address"                => install_mac,
-            :"scsi0.virtualDev"                 => virtual_dev
-          }
-        ]
-      }
+    if $default_vm_network.match(/hostonly|bridged/)
+      if install_service.match(/win|nt/)
+        json_data = {
+          :variables => {
+            :hostname => install_client
+          },
+          :builders => [
+            :name                 => install_client,
+            :vm_name              => install_client,
+            :type                 => install_type,
+            :guest_os_type        => install_guest,
+            :output_directory     => image_dir,
+            :disk_size            => install_size,
+            :iso_url              => iso_url,
+            :communicator         => communicator,
+            :vnc_port_min         => vnc_port_min,
+            :vnc_port_max         => vnc_port_max,
+            :ssh_host             => install_ip,
+            :ssh_username         => ssh_username,
+            :ssh_password         => ssh_password,
+            :ssh_wait_timeout     => ssh_wait_timeout,
+            :winrm_host           => install_ip,
+            :winrm_username       => ssh_username,
+            :winrm_password       => ssh_password,
+            :winrm_timeout        => ssh_wait_timeout,
+            :winrm_use_ssl        => winrm_use_ssl,
+            :winrm_insecure       => winrm_insecure,
+            :winrm_port           => winrm_port,
+            :shutdown_command     => shutdown_command,
+            :iso_checksum         => install_checksum,
+            :iso_checksum_type    => install_checksum_type,
+            :http_directory       => packer_dir,
+            :http_port_min        => $default_httpd_port,
+            :http_port_max        => $default_httpd_port,
+            :boot_command         => boot_command,
+            :floppy_files         => [
+              unattended_xml,
+              post_install_psh
+            ],
+            :vmx_data => {
+              :"virtualHW.version"                => hw_version,
+              :"RemoteDisplay.vnc.enabled"        => vnc_enabled,
+              :"RemoteDisplay.vnc.port"           => vnc_port_min,
+              :memsize                            => install_memory,
+              :numvcpus                           => install_cpu,
+              :"vhv.enable"                       => vhv_enabled,
+              :"ethernet0.present"                => ethernet_enabled,
+              :"ethernet0.connectionType"         => install_network,
+              :"ethernet0.virtualDev"             => ethernet_dev,
+              :"ethernet0.addressType"            => ethernet_type,
+              :"ethernet0.address"                => install_mac,
+              :"scsi0.virtualDev"                 => virtual_dev
+            }
+          ]
+        }
+      else
+        json_data = {
+          :variables => {
+            :hostname => install_client
+          },
+          :builders => [
+            :name                 => install_client,
+            :vm_name              => install_client,
+            :type                 => install_type,
+            :guest_os_type        => install_guest,
+            :output_directory     => image_dir,
+            :disk_size            => install_size,
+            :iso_url              => iso_url,
+            :ssh_host             => install_ip,
+            :ssh_username         => ssh_username,
+            :ssh_password         => ssh_password,
+            :ssh_wait_timeout     => ssh_wait_timeout,
+            :shutdown_command     => shutdown_command,
+            :iso_checksum         => install_checksum,
+            :iso_checksum_type    => install_checksum_type,
+            :http_directory       => packer_dir,
+            :http_port_min        => $default_httpd_port,
+            :http_port_max        => $default_httpd_port,
+            :boot_command         => boot_command,
+            :vmx_data => {
+              :"virtualHW.version"                => hw_version,
+              :"RemoteDisplay.vnc.enabled"        => vnc_enabled,
+              :memsize                            => install_memory,
+              :numvcpus                           => install_cpu,
+              :"vhv.enable"                       => vhv_enabled,
+              :"ethernet0.present"                => ethernet_enabled,
+              :"ethernet0.connectionType"         => install_network,
+              :"ethernet0.virtualDev"             => ethernet_dev,
+              :"ethernet0.addressType"            => ethernet_type,
+              :"ethernet0.address"                => install_mac,
+              :"scsi0.virtualDev"                 => virtual_dev
+            }
+          ]
+        }
+      end
     else
-      json_data = {
-        :variables => {
-          :hostname => install_client
-        },
-        :builders => [
-          :name                 => install_client,
-          :vm_name              => install_client,
-          :type                 => install_type,
-          :guest_os_type        => install_guest,
-          :output_directory     => image_dir,
-          :disk_size            => install_size,
-          :iso_url              => iso_url,
-          :ssh_host             => install_ip,
-          :ssh_username         => ssh_username,
-          :ssh_password         => ssh_password,
-          :ssh_wait_timeout     => ssh_wait_timeout,
-          :shutdown_command     => shutdown_command,
-          :iso_checksum         => install_checksum,
-          :iso_checksum_type    => install_checksum_type,
-          :http_directory       => packer_dir,
-          :http_port_min        => $default_httpd_port,
-          :http_port_max        => $default_httpd_port,
-          :boot_command         => boot_command,
-          :vmx_data => {
-            :"virtualHW.version"                => hw_version,
-            :"RemoteDisplay.vnc.enabled"        => vnc_enabled,
-            :memsize                            => install_memory,
-            :numvcpus                           => install_cpu,
-            :"vhv.enable"                       => vhv_enabled,
-            :"ethernet0.present"                => ethernet_enabled,
-            :"ethernet0.connectionType"         => install_network,
-            :"ethernet0.virtualDev"             => ethernet_dev,
-            :"ethernet0.addressType"            => ethernet_type,
-            :"ethernet0.address"                => install_mac,
-            :"scsi0.virtualDev"                 => virtual_dev
-          }
-        ]
-      }
+      if install_service.match(/win|nt/)
+        json_data = {
+          :variables => {
+            :hostname => install_client
+          },
+          :builders => [
+            :type                 => install_type,
+            :vm_name              => install_client,
+            :output_directory     => image_dir,
+            :disk_size            => install_size,
+            :iso_url              => iso_url,
+            :iso_checksum         => install_checksum,
+            :iso_checksum_type    => install_checksum_type,
+            :guest_os_type        => install_guest,
+            :communicator         => communicator,
+            :winrm_port           => winrm_port,
+            :winrm_username       => ssh_username,
+            :winrm_password       => ssh_password,
+            :winrm_timeout        => ssh_wait_timeout,
+            :winrm_use_ssl        => winrm_use_ssl,
+            :winrm_insecure       => winrm_insecure,
+            :winrm_port           => winrm_port,
+            :shutdown_timeout     => shutdown_timeout,
+            :shutdown_command     => shutdown_command,
+            :floppy_files         => [
+              unattended_xml,
+              post_install_psh
+            ],
+            :vmx_data => {
+              :"virtualHW.version"                => hw_version,
+              :"RemoteDisplay.vnc.enabled"        => vnc_enabled,
+              :"RemoteDisplay.vnc.port"           => vnc_port_min,
+              :memsize                            => install_memory,
+              :numvcpus                           => install_cpu,
+              :"vhv.enable"                       => vhv_enabled,
+              :"ethernet0.present"                => ethernet_enabled,
+              :"ethernet0.connectionType"         => install_network,
+              :"ethernet0.virtualDev"             => ethernet_dev,
+              :"ethernet0.addressType"            => ethernet_type,
+              :"ethernet0.address"                => install_mac,
+              :"scsi0.virtualDev"                 => virtual_dev
+            }
+          ]
+        }
+      else
+        json_data = {
+          :variables => {
+            :hostname => install_client
+          },
+          :builders => [
+            :name                 => install_client,
+            :vm_name              => install_client,
+            :type                 => install_type,
+            :guest_os_type        => install_guest,
+            :output_directory     => image_dir,
+            :disk_size            => install_size,
+            :iso_url              => iso_url,
+            :ssh_host             => install_ip,
+            :ssh_username         => ssh_username,
+            :ssh_password         => ssh_password,
+            :ssh_wait_timeout     => ssh_wait_timeout,
+            :shutdown_command     => shutdown_command,
+            :iso_checksum         => install_checksum,
+            :iso_checksum_type    => install_checksum_type,
+            :http_directory       => packer_dir,
+            :http_port_min        => $default_httpd_port,
+            :http_port_max        => $default_httpd_port,
+            :boot_command         => boot_command,
+            :vmx_data => {
+              :"virtualHW.version"                => hw_version,
+              :"RemoteDisplay.vnc.enabled"        => vnc_enabled,
+              :memsize                            => install_memory,
+              :numvcpus                           => install_cpu,
+              :"vhv.enable"                       => vhv_enabled,
+              :"ethernet0.present"                => ethernet_enabled,
+              :"ethernet0.connectionType"         => install_network,
+              :"ethernet0.virtualDev"             => ethernet_dev,
+              :"ethernet0.addressType"            => ethernet_type,
+              :"ethernet0.address"                => install_mac,
+              :"scsi0.virtualDev"                 => virtual_dev
+            }
+          ]
+        }
+      end
     end
   end
   json_output = JSON.pretty_generate(json_data)
