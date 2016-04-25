@@ -332,6 +332,12 @@ def export_fusion_ova(install_client,install_file)
   return
 end
 
+# Import vmdk
+
+def import_fusion_vmdk(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount,install_ip)
+  create_vm(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount,install_ip)
+end
+
 # Import OVA
 
 def import_fusion_ova(install_client,install_mac,install_ip,install_file)

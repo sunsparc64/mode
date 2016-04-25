@@ -71,10 +71,10 @@ Usage
 Mode is designed to be used in a number of scenarios:
 
 - Testing vendor OS deployment technologies (e.g. Kickstart, Jumpstart etc)
-  - PXE boot
-  - Pre and post install scripts
+	- PXE boot
+	- Pre and post install scripts
 - A environment for quickly deploying VMs for testing purposes
-  - In a similar fashion to veewee or vagrant
+	- In a similar fashion to veewee or vagrant
 - An environment for quickly deploying servers in a Datacenter or testlab via cross-over cable
 
 
@@ -89,7 +89,7 @@ Packer support
 Linux Container Creation
 
 - Installs required packages and sets up network for public facing containers
-  that can be connected to via ssh (Currently Ubuntu support only)
+	that can be connected to via ssh (Currently Ubuntu support only)
 - Creates containers and sets up network (Currently Ubuntu support only)
 
 Oracle VM Server for SPARC
@@ -115,37 +115,37 @@ Solaris 11 AI
 
 - If a local repository exists it is used to configure installation services
 - If a local repository is not present it mounts the repository ISO and
-  configures it
+	configures it
 - Changes the default install service manifest to reboot servers after
-  installation
+	installation
 - Changes the default install service to use the local repository rather than
-  the default Oracle one
+	the default Oracle one
 - Changes the default grub configuration default to an autamated install rather
-  than an interactive one
+	than an interactive one
 - Disables the default range based DHCP configuration and adds clients on an
-  individual basis
-  - Reduces the chances of conflicts with existing DHCP services, and
-  - Resolves the issue of DHCP licenses running out
+	individual basis
+	- Reduces the chances of conflicts with existing DHCP services, and
+	- Resolves the issue of DHCP licenses running out
 - Creates an individual configuration profile for each client
-  - Configures network and other services
+	- Configures network and other services
 - Includes code to optionally create alternate package repository
-  - Automatically builds packages for facter, hiera, and puppet
-  - Adds packages to base installation manifest
+	- Automatically builds packages for facter, hiera, and puppet
+	- Adds packages to base installation manifest
 - Post installation script capability (work in progress)
 
 CentOS, Scientific Linux, Fedora, and RedHat Linux Kickstart
 
 - Creates an Apache directory and alias for a HTTP based installation
 - Creates PXE configuration that jumps straight into an installation and pulls
-  kickstart file from server
+	kickstart file from server
 - Includes code for optionally installing additional packages
-  - Automatically downloads Puppet packages
-  - Add packages to post installation
+	- Automatically downloads Puppet packages
+	- Add packages to post installation
 
 Ubuntu Linux Preseed
 
 - Adds required append statement to PXE configuration so install is fully
-  automated
+	automated
 - Currently only basic client support (auto partitions disk)
 
 OpenSuSE Linux and SLES (SuSE Enterprise Linux) AutoYast
@@ -156,7 +156,7 @@ Solaris 10 (and earlier) Jumpstart:
 
 - Automatically tries to determine boot and mirror disk ids based on model
 - Automatically tires to determine kernel architecture (e.g. sun4u / sun4v)
-  based on model
+	based on model
 - Ability to quickly deploy flar based installs by answering a few questions
 
 ESXi Kickstart:
@@ -167,11 +167,11 @@ ESXi Kickstart:
 All:
 
 - Asks a set of default questions to produce a consistent error checked profile
-  for each client
+	for each client
 - Makes sure clients are added and deleted correctly removing the chance of
-  installing the wrong thing to the wrong machine
+	installing the wrong thing to the wrong machine
 - Installs and configures (and uninstalls and unconfigures if needed) server
-  services (DHCP etc)
+	services (DHCP etc)
 - Post installation scripting to perform tasks such as patching and security
 
 Architecture
@@ -180,20 +180,20 @@ Architecture
 The architecture of modest is made up of the following layers:
 
 - Host machine
-  - Can be a laptop or a server
-  - Manages VMs (including Deployment Server)
-  - Provides hostonly or bridged networking for VMs
-  - Can provide boot services for external machines via cross-over cable or switch
-  - Can be used to provide installation media (ISOs) to deployment server via shared filesystem
+	- Can be a laptop or a server
+	- Manages VMs (including Deployment Server)
+	- Provides hostonly or bridged networking for VMs
+	- Can provide boot services for external machines via cross-over cable or switch
+	- Can be used to provide installation media (ISOs) to deployment server via shared filesystem
 - Deployment Server
-  - Manages OS installation media (ISOs) and repositories
-  - Manages PXE boot configurations
-    - The VMs on the host you wish an OS to be installed to
-    - External machines you may wish to install and OS to (e.g. Testlab or DC)
-  - Manages client VM configurations
-    - The VMs on the host you wish an OS to be installed to
-    - External machines you may wish to install and OS to (e.g. Testlab or DC)
-  - Manages post installation scripts
+	- Manages OS installation media (ISOs) and repositories
+	- Manages PXE boot configurations
+		- The VMs on the host you wish an OS to be installed to
+		- External machines you may wish to install and OS to (e.g. Testlab or DC)
+	- Manages client VM configurations
+		- The VMs on the host you wish an OS to be installed to
+		- External machines you may wish to install and OS to (e.g. Testlab or DC)
+	- Manages post installation scripts
 
 I'll go into more detail and an actual example of the process in the getting
 started section, but basically the process of deploying a VM is as follows:
@@ -209,46 +209,46 @@ An example host-only network layout For VMware Fusion is as follows:
 
 ```
 __ External network __ External Interface (e.g. en0)
-   e.g. 192.168.1.0    e.g. 192.168.1.100 
-                               |
-                               |
-                            VM Host
-                               |
-                               |
-                        Host-only Interface (e.g. vmnet1) __   Host-only network
-                        e.g. 192.168.2.254                     e.g. 192.168.2.0
-                                                                     |
-                                                                     |
-                                _____________________________________|
-                                |
-            ____________________|____________________
-            |                   |                   |
-            |                   |                   |
-  Deployment Server        Test Server 1
-  e.g. 192.168.2.100     e.g 192.168.2.101                                     
+	 e.g. 192.168.1.0    e.g. 192.168.1.100 
+															 |
+															 |
+														VM Host
+															 |
+															 |
+												Host-only Interface (e.g. vmnet1) __   Host-only network
+												e.g. 192.168.2.254                     e.g. 192.168.2.0
+																																		 |
+																																		 |
+																_____________________________________|
+																|
+						____________________|____________________
+						|                   |                   |
+						|                   |                   |
+	Deployment Server        Test Server 1
+	e.g. 192.168.2.100     e.g 192.168.2.101                                     
 ```
 
 An example host-only network for VirtualBox
 
 ```
 __ External network __ External Interface (e.g. en0)
-   e.g. 192.168.1.0    e.g. 192.168.1.100 
-                               |
-                               |
-                            VM Host
-                               |
-                               |
-                        Host-only Interface (e.g. vboxnet0) __ Host-only network
-                        e.g. 192.168.3.254                     e.g. 192.168.3.0
-                                                                     |
-                                                                     |
-                                _____________________________________|
-                                |
-            ____________________|____________________
-            |                   |                   |
-            |                   |                   |
-  Deployment Server        Test Server 1
-  e.g. 192.168.3.100     e.g 192.168.3.101                                     
+	 e.g. 192.168.1.0    e.g. 192.168.1.100 
+															 |
+															 |
+														VM Host
+															 |
+															 |
+												Host-only Interface (e.g. vboxnet0) __ Host-only network
+												e.g. 192.168.3.254                     e.g. 192.168.3.0
+																																		 |
+																																		 |
+																_____________________________________|
+																|
+						____________________|____________________
+						|                   |                   |
+						|                   |                   |
+	Deployment Server        Test Server 1
+	e.g. 192.168.3.100     e.g 192.168.3.101                                     
 ```
 
 Requirements
@@ -258,56 +258,56 @@ All:
 
 - Socat
 - Ruby
-  - Version 1.8 or greater
-    - Although it's been coded with 2.x I've avoided using 2.x features
+	- Version 1.8 or greater
+		- Although it's been coded with 2.x I've avoided using 2.x features
 - Packer (If using Packer)
 - Required Gems
-  - rubygems
-  - getopt/long
-  - builder
-  - socket
-  - parseconfig
-  - unix_crypt
-  - pathname
-  - netaddr
-  - ipaddr
-  - json
+	- rubygems
+	- getopt/long
+	- builder
+	- socket
+	- parseconfig
+	- unix_crypt
+	- pathname
+	- netaddr
+	- ipaddr
+	- json
 Optional Gems (required for some additional functionality)
-  - net/ssh
-  - nokogiri
-  - mechanize
-  - uri
-  - socket
-  - net/http
-  - net/scp
+	- net/ssh
+	- nokogiri
+	- mechanize
+	- uri
+	- socket
+	- net/http
+	- net/scp
 - Required Packages (Linux)
-  - git
-  - gcc
-  - ruby-devel
-  - xz-devel
-  - zlib-devel
-  - libxml2-devel
-  - libgpg-error-devel
-  - libgcrypt-devel
-  - libxslt-devel
-  - libstdc++-devel
-  - gcc-c++
-  - libgnome-keyring
-  - perl-Error
-  - perl-TermReadKey
-  - git
-  - Perl-git
-  - libapr
-  - libapr-util
-  - mail-cap
-  - httpd-tools
-  - httpd
-  - xinetd
-  - tftp-server
-  - dhcp
-  - winlib (for building Windows VMs with Packer)
+	- git
+	- gcc
+	- ruby-devel
+	- xz-devel
+	- zlib-devel
+	- libxml2-devel
+	- libgpg-error-devel
+	- libgcrypt-devel
+	- libxslt-devel
+	- libstdc++-devel
+	- gcc-c++
+	- libgnome-keyring
+	- perl-Error
+	- perl-TermReadKey
+	- git
+	- Perl-git
+	- libapr
+	- libapr-util
+	- mail-cap
+	- httpd-tools
+	- httpd
+	- xinetd
+	- tftp-server
+	- dhcp
+	- winlib (for building Windows VMs with Packer)
 - Required packages (Mac OS X)
-  - winlib (for building Windows VMs with Packer)
+	- winlib (for building Windows VMs with Packer)
 
 Kickstart, AutoYast, and Preseed Services:
 

@@ -183,7 +183,7 @@ $default_ext_network      = "192.168.1.0"
 $puppet_rpm_base_url      = "http://yum.puppetlabs.com"
 $centos_rpm_base_url      = "http://"+$local_centos_mirror+"/centos"
 $default_vm_utc           = "off"
-$valid_os_list            = [ 'sol', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL', 'purity', 'win' ]
+$valid_os_list            = [ 'sol', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL', 'Purity', 'Windows', 'JeOS' ]
 $valid_linux_os_list      = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL', 'purity' ]
 $valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
 $valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
@@ -2072,8 +2072,14 @@ if option["action"]
       end
     else
       if install_vm.match(/fusion|vbox/)
-        set_ovftool_bin()
-        eval"[import_#{install_vm}_ova(install_client,install_mac,install_ip,install_file)]"
+        if install_file.match(/ova/)
+          set_ovftool_bin()
+          eval"[import_#{install_vm}_ova(install_client,install_mac,install_ip,install_file)]"
+        else
+          if install_file.match(/vmdk/)
+            eval"[import_#{install_vm}_vmdk(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount,install_ip)]"
+          end
+        end
       end
     end
   when /export/
