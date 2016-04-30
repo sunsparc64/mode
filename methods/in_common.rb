@@ -1868,7 +1868,8 @@ def check_install_mac(install_mac)
   if !install_mac.match(/:/)
     if install_mac.length != 12
       puts "Warning:\tInvalid MAC address"
-      exit
+      install_mac = generate_mac_address()
+      puts "Information:\tGenerated new MAC address: "+install_mac
     else
       chars       = install_mac.split(//)
       install_mac = chars[0..1].join+":"+chars[2..3].join+":"+chars[4..5].join+":"+chars[6..7].join+":"+chars[8..9].join+":"+chars[10..11].join
@@ -1882,7 +1883,8 @@ def check_install_mac(install_mac)
   macs.each do |mac|
     if mac =~ /[G-Z]|[g-z]/ or mac.length != 2
       puts "Warning:\tInvalid MAC address"
-      exit
+      install_mac = generate_mac_address()
+      puts "Information:\tGenerated new MAC address: "+install_mac
     end
   end
   return install_mac

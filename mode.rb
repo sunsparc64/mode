@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.4.8
+# Version:      3.4.9
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1147,7 +1147,7 @@ end
 # Make sure a service (e.g. packer) or an install file (e.g. OVA) is specified for an import
 
 if install_action.match(/import/)
-  if !install_file.match(/[a-z,A-Z,0-9]/) and !install_service.match(/[a-z,A-Z,0-9]/)
+  if !install_file.match(/[a-z,A-Z,0-9]/) and !install_service.match(/[a-z,A-Z,0-9]/) and !install_type.match(/packer/)
     puts "Warning:\tNo install file or service specified"
     exit
   end
@@ -1268,7 +1268,7 @@ end
 # Handle release switch
 
 if option["release"]
-  if option["type"].match(/packer/) and option["action"].match(/build|delete/)
+  if option["type"].match(/packer/) and option["action"].match(/build|delete|import/)
     install_release = ""
   else
     install_release = option["release"]

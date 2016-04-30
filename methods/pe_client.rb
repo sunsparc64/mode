@@ -10,7 +10,7 @@ def populate_pe_post_list(admin_username,admin_password,install_label,install_sh
     post_list.push("cmd.exe /c winrm quickconfig -q,winrm quickconfig -q,true")
     post_list.push("cmd.exe /c winrm quickconfig -transport:http,winrm quickconfig -transport:http,true")
     post_list.push("cmd.exe /c winrm set winrm/config @{MaxTimeoutms=\"1800000\"},Win RM MaxTimoutms,true")
-    if install_label.match(/2012/)
+    if install_label.match(/2012|2016/)
       post_list.push("cmd.exe /c winrm set winrm/config/winrs '@{MaxMemoryPerShellMB=\"800\"}',Win RM MaxMemoryPerShellMB,true")
     else
       post_list.push("cmd.exe /c winrm set winrm/config/winrs '@{MaxMemoryPerShellMB=\"0\"}',Win RM MaxMemoryPerShellMB,true")
@@ -38,7 +38,7 @@ def populate_pe_post_list(admin_username,admin_password,install_label,install_sh
   post_list.push("%SystemRoot%\\System32\\reg.exe ADD HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\ /v StartMenuAdminTools /t REG_DWORD /d 1 /f,Show Administrative Tools in Start Menu,false")
   post_list.push("%SystemRoot%\\System32\\reg.exe ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\ /v HibernateFileSizePercent /t REG_DWORD /d 0 /f,Zero Hibernation File,false")
   post_list.push("%SystemRoot%\\System32\\reg.exe ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\ /v HibernateEnabled /t REG_DWORD /d 0 /f,Zero Hibernation File,false")
-  if install_label.match(/2012/)
+  if install_label.match(/2012|2016/)
     post_list.push("cmd.exe /c reg add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Network\\NewNetworkWindowOff\",Turn off Network Location Wizard,false")
     post_list.push("%SystemRoot%\\System32\\reg.exe ADD HKLM\\SYSTEM\\CurrentControlSet\\Control\\Network\\NetworkLocationWizard\\ /t REG_DWORD /d 1 /f,Hide Network Wizard,false")
   end
@@ -85,7 +85,7 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
   xml       = Builder::XmlMarkup.new(:target => xml_output, :indent => 2)
   xml.instruct! :xml, :version => "1.0", :encoding => "UTF-8"
   xml.unattend(:xmlns => "urn:schemas-microsoft-com:unattend") {
-    if install_label.match(/2012/)
+    if install_label.match(/2012|2016/)
       xml.settings(:pass => "windowsPE") {
         xml.component(:"xmlns:wcm" => "http://schemas.microsoft.com/WMIConfig/2002/State", :"xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance", :name => "Microsoft-Windows-International-Core-WinPE", :processorArchitecture => "#{cpu_arch}", :publicKeyToken => "31bf3856ad364e35", :language => "neutral", :versionScope => "nonSxS") {
           xml.SetupUILanguage {

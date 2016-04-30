@@ -5,7 +5,7 @@ def populate_pe_questions(install_service,install_client,install_ip,install_mirr
   if !install_shell.match(/[a-z]/)
     install_shell = $default_install_shell
   end
-  if install_label.match(/2012/)
+  if install_label.match(/2012|2016/)
     if install_vm.match(/fusion/)
       network_name = "Ethernet0"
     else
