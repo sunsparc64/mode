@@ -175,7 +175,7 @@ end
 # Configure Kickstart client
 
 def configure_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
-                        install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)
+                        install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type,install_vm)
   if !install_arch.match(/[a-z]/)
     if install_service.match(/i386/)
       install_arch = "i386"
@@ -216,11 +216,11 @@ def configure_ks_client(install_client,install_arch,install_mac,install_ip,insta
       output_ay_client_profile(install_client,install_ip,install_mac,output_file,install_service)
     else
       if install_service.match(/ubuntu|debian/)
-        populate_ps_questions(install_service,install_client,install_ip,install_mirror,install_type)
+        populate_ps_questions(install_service,install_client,install_ip,install_mirror,install_type,install_vm)
         process_questions(install_service)
         output_ps_header(install_client,output_file)
         output_file = client_dir+"/"+install_client+"_post.sh"
-        post_list   = populate_ps_post_list(install_client,install_service,install_type)
+        post_list   = populate_ps_post_list(install_client,install_service,install_type,install_vm)
         output_ks_post_list(install_client,post_list,output_file,install_service)
         output_file = client_dir+"/"+install_client+"_first_boot.sh"
         post_list   = populate_ps_first_boot_list()

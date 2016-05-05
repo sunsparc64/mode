@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.4.9
+# Version:      3.5.0
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -183,8 +183,8 @@ $default_ext_network      = "192.168.1.0"
 $puppet_rpm_base_url      = "http://yum.puppetlabs.com"
 $centos_rpm_base_url      = "http://"+$local_centos_mirror+"/centos"
 $default_vm_utc           = "off"
-$valid_os_list            = [ 'sol', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL', 'Purity', 'Windows', 'JeOS' ]
-$valid_linux_os_list      = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'ubuntu', 'debian', 'Fedora', 'rhel', 'SL', 'purity' ]
+$valid_os_list            = [ 'Solaris', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'Ubuntu', 'Debian', 'Fedora', 'RHEL', 'SL', 'Purity', 'Windows', 'JeOS' ]
+$valid_linux_os_list      = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'Ubuntu', 'Debian', 'Fedora', 'RHEL', 'SL', 'Purity' ]
 $valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
 $valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
 $valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image' ]
@@ -206,6 +206,7 @@ $default_httpd_port       = "8888"
 $default_slice_size       = "8192"
 $default_boot_disk_size   = "350"
 $default_install_shell    = "ssh"
+$default_ssh_wait_timeout = "20m"
 
 # VMware Fusion Global variables
 
@@ -1056,13 +1057,13 @@ end
 
 if option["os"]
   install_os = option["os"].downcase
+  install_os = install_os.gsub(/windows/,"win")
   install_os = install_os.gsub(/scientificlinux|scientific/,"sl")
   install_os = install_os.gsub(/oel/,"oraclelinux")
   install_os = install_os.gsub(/esx|esxi|vsphere/,"vmware")
   install_os = install_os.gsub(/^suse$/,"opensuse")
   install_os = install_os.gsub(/solaris/,"sol")
   install_os = install_os.gsub(/redhat/,"rhel")
-  install_os = install_os.gsub(/nt|windows/,"win")
   if !$valid_os_list.to_s.downcase.match(/#{install_os}/)
     print_valid_list("Warning:\tInvalid OS specified",$valid_os_list)
   end
@@ -1130,7 +1131,7 @@ if option["service"]
     if !option["mac"] and !option["action"].match(/build|list|import|delete/)
       puts "Warning:\tNo MAC Address given"
       puts "Information:\tGenerating MAC Address"
-      option["mac"] = generate_mac_address()
+      option["mac"] = generate_mac_address(install_vm)
       install_mac   = option["mac"]
     end
   end
@@ -1138,6 +1139,42 @@ else
   if install_type.match(/vcsa|packer/)
     if !install_service or !install_os or !intsall_method or !install_release or !install_arch or !install_file
       (install_service,install_os,install_method,install_release,install_arch,install_label) = get_install_service_from_file(install_file)
+    end
+    if install_type.match(/^packer$/)
+      check_packer_is_installed()
+      option["mode"]  = "client"
+      install_mode    = "client"
+      if !option["method"] and !option["os"] and !option["action"].match(/build|list|import|delete/)
+        puts "Warning:\tNo OS, or Install Method specified for build type "+install_service
+        exit
+      end
+      if !option["vm"] and !option["action"].match(/list/)
+        puts "Warning:\tNo VM type specified for build type "+install_service
+        exit
+      end
+      if !option["client"] and !option["action"].match(/list/)
+        puts "Warning:\tNo Client name specified for build type "+install_service
+        exit
+      end
+      if !option["file"] and !option["action"].match(/build|list|import|delete/)
+        puts "Warning:\tNo ISO file specified for build type "+install_service
+        exit
+      end
+      if !option["ip"] and !option["action"].match(/build|list|import|delete/)
+        puts "Warning:\tNo IP Address given "
+        exit
+      end
+      if !option["mac"] and !option["action"].match(/build|list|import|delete/)
+        puts "Warning:\tNo MAC Address given"
+        puts "Information:\tGenerating MAC Address"
+        if !option["vm"]
+          install_vm = "none"
+        else
+          install_vm = option["vm"]
+        end
+        option["mac"] = generate_mac_address(install_vm)
+        install_mac   = option["mac"]
+      end
     end
   else
     install_service = ""
@@ -1298,7 +1335,10 @@ end
 
 if option["mac"]
   install_mac = option["mac"]
-  install_mac = check_install_mac(install_mac)
+  if !option["vm"]
+    install_vm = "none"
+  end
+  install_mac = check_install_mac(install_mac,install_vm)
   if $verbose_mode == 1
      puts "Information:\tSetting client MAC address to: "+install_mac
   end
@@ -1531,7 +1571,7 @@ if option["vm"]
     puts "Information:\tSetting VM type to "+install_vm
   end
 else
-  install_vm = ""
+  install_vm = "none"
 end
 
 # Handle console switch
@@ -1803,7 +1843,7 @@ if option["action"]
   case install_action
   when /display|view|show|prop/
     if install_client.match(/[a-z,A-Z]/)
-      if install_vm.match(/[a-z]/)
+      if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
         eval"[show_#{install_vm}_vm_config(install_client)]"
       else
         get_client_config(install_client,install_service,install_method,install_type)
@@ -1847,7 +1887,7 @@ if option["action"]
       list_vms(install_vm,install_type)
       exit
     end
-    if install_method.match(/[a-z]/) and !install_vm.match(/[a-z]/)
+    if install_method.match(/[a-z]/) and install_vm.match(/none/) 
       eval"[list_#{install_method}_clients()]"
       exit
     end
@@ -1855,7 +1895,7 @@ if option["action"]
       list_ovas()
       exit
     end
-    if install_vm.match(/[a-z]/)
+    if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
       if install_type.match(/snapshot/)
         list_vm_snapshots(install_vm,install_os,install_method,install_client)
       else
@@ -1865,8 +1905,8 @@ if option["action"]
     end
   when /delete|remove/
     if install_client.match(/[a-z]/)
-      if !install_service.match(/[a-z]/) and !install_vm.match(/[a-z]/)
-        if !install_vm.match(/[a-z]/)
+      if !install_service.match(/[a-z]/) and install_vm.match(/none/) 
+        if install_vm.match(/none/)
           install_vm = get_client_vm_type(install_client)
           if install_vm.match(/vbox|fusion|parallels/)
             $use_sudo = 0
@@ -1922,7 +1962,7 @@ if option["action"]
       build_packer_config(install_client,install_vm)
     end
   when /add|create/
-    if install_mode.match(/server/) or install_file.match(/[a-z,A-Z,0-9]/) or install_type.match(/service/) and !install_vm.match(/[a-z]/) and !install_type.match(/packer/) and !install_service.match(/packer/)
+    if install_mode.match(/server/) or install_file.match(/[a-z,A-Z,0-9]/) or install_type.match(/service/) and install_vm.match(/none/) and !install_type.match(/packer/) and !install_service.match(/packer/)
       check_local_config("server")
       eval"[configure_server(install_method,install_arch,publisher_host,publisher_port,install_service,install_file)]"
     else
@@ -1939,7 +1979,7 @@ if option["action"]
           end
           if !install_network.match(/nat/)
             check_install_ip(install_ip)
-            check_install_mac(install_mac)
+            check_install_mac(install_mac,install_vm)
           end
           if install_type.match(/packer/)
             eval"[configure_#{install_type}_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,install_ip,install_model,
@@ -1953,7 +1993,7 @@ if option["action"]
                 $default_slice_size = "4192"
               end
               eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,
-                                install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)]"
+                                install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type,install_vm)]"
             else
               if install_vm.match(/fusion|vbox|parallels/)
                 create_vm(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount,install_ip)
@@ -1965,7 +2005,7 @@ if option["action"]
               if install_vm.match(/cdom/)
                 configure_cdom(publisher_host)
               end
-              if !install_vm.match(/[a-z]/)
+              if install_vm.match(/none/)
                 if install_ip.match(/[0-9]/)
                   check_local_config("client")
                   add_hosts_entry(install_client,install_ip)
@@ -1988,7 +2028,7 @@ if option["action"]
           if install_vm.match(/cdom/)
             configure_cdom(publisher_host)
           end
-          if !install_vm.match(/[a-z]/)
+          if install_vm.match(/none/)
             if install_ip.match(/[0-9]/)
               check_local_config("client")
               add_hosts_entry(install_client,install_ip)
@@ -2018,20 +2058,20 @@ if option["action"]
       install_action = install_action.gsub(/start/,"boot")
       install_action = install_action.gsub(/halt/,"stop")
     end
-    if install_client.match(/[a-z,0-9]/) and install_vm.match(/[a-z]/)
+    if install_client.match(/[a-z,0-9]/) and install_vm.match(/[a-z]/) and !install_vm.match(/none/)
       if install_action.match(/boot/)
         eval"[#{install_action}_#{install_vm}_vm(install_client,install_type)]"
       else
         eval"[#{install_action}_#{install_vm}_vm(install_client)]"
       end
     else
-      if install_client.match(/[a-z,0-9]/) and !install_vm.match(/[a-z]/)
+      if install_client.match(/[a-z,0-9]/) and install_vm.match(/none/)
         install_vm = get_client_vm_type(install_client)
         check_local_config(install_mode)
         if install_vm.match(/vbox|fusion|parallels/)
           $use_sudo = 0
         end
-        if install_vm.match(/[a-z]/)
+        if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
           if install_action.match(/boot/)
             eval"[#{install_action}_#{install_vm}_vm(install_client,install_type)]"
           else
@@ -2050,10 +2090,10 @@ if option["action"]
     if install_service.match(/[a-z,A-Z,0-9]/)
       eval"[restart_#{install_service}()]"
     else
-      if !install_vm.match(/[a-z]/) and install_client.match(/[a-z]/)
+      if install_vm.match(/none/) and install_client.match(/[a-z]/)
         install_vm = get_client_vm_type(install_client)
       end
-      if install_vm.match(/[a-z]/)
+      if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
         if install_client.match(/[a-z,0-9]/)
           eval"[stop_#{install_vm}_vm(install_client)]"
           eval"[boot_#{install_vm}_vm(install_client,install_type)]"
@@ -2093,7 +2133,7 @@ if option["action"]
       puts "Warning:\tClient name or clone name not specified"
     end
   when /running|stopped|suspended|paused/
-    if install_vm.match(/[a-z]/)
+    if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
       eval"[list_#{install_action}_#{install_vm}_vms]"
     end
   when /crypt/
@@ -2118,21 +2158,21 @@ if option["action"]
       puts "Warning:\tClient name not specified"
     end
   when /attach/
-    if install_vm.match(/[a-z]/)
+    if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
       eval"[attach_file_to_#{install_vm}_vm(install_client,install_file,install_type)]"
     end
   when /detach/
-    if install_vm.match(/[a-z]/) and install_client.match(/[a-z,0-9]/)
+    if install_vm.match(/[a-z]/) and install_client.match(/[a-z,0-9]/) and !install_vm.match(/none/)
       eval"[detach_file_from_#{install_vm}_vm(install_client,install_file,install_type)]"
     else
       puts "Warning:\tClient name or virtualisation platform not specified"
     end
   when /share/
-    if install_vm.match(/[a-z]/)
+    if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
       eval"[add_shared_folder_to_#{install_vm}_vm(install_client,install_share,install_mount)]"
     end
   when /^snapshot|clone/
-    if install_vm.match(/[a-z]/)
+    if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
       if install_client.match(/[a-z,0-9]/)
         eval"[snapshot_#{install_vm}_vm(install_client,install_clone)]"
       else
@@ -2155,7 +2195,7 @@ if option["action"]
                                     install_ipfamily,install_mode,install_ip,install_netmask,install_gateway,install_nameserver,install_service,install_file)]"
     end
   when /restore|revert/
-    if install_vm.match(/[a-z]/)
+    if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
       if install_client.match(/[a-z,0-9]/)
         eval"[restore_#{install_vm}_vm_snapshot(install_client,install_clone)]"
       else
@@ -2164,7 +2204,7 @@ if option["action"]
       end
     end
   when /console|serial/
-    if install_vm.match(/[a-z]/)
+    if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
       if install_client.match(/[a-z,0-9]/)
         connect_to_virtual_serial(install_client,install_vm)
       else

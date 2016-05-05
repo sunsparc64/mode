@@ -255,11 +255,25 @@ end
 # Get VMware version
 
 def get_fusion_version()
-  message = "Determining:\tVMware Version"
-  command = "defaults read \"/Applications/VMware Fusion.app/Contents/Info.plist\" CFBundleShortVersionString"
-  version = execute_command(message,command)
-  version = version.chomp
-  return version
+  hw_version = "12"
+  message    = "Determining:\tVMware Version"
+  command    = "defaults read \"/Applications/VMware Fusion.app/Contents/Info.plist\" CFBundleShortVersionString"
+  vf_version = execute_command(message,command)
+  vf_version = vf_version.chomp
+  vf_version = vf_version.split(".")[0]
+  vf_version = vf_version.to_i
+  if vf_version > 6
+    if vf_version > 7
+      if vf_version >= 8
+        hw_version = "12"
+      else
+        hw_version = "11"
+      end
+    end
+  else
+    hw_version = "10"
+  end
+  return hw_version
 end
 
 # Get/set vmrun path
@@ -391,7 +405,8 @@ def import_fusion_ova(install_client,install_mac,install_ip,install_file)
   else
     install_mac = get_fusion_vm_mac(install_client)
     if !install_mac
-      install_mac = generate_mac_address()
+      install_vm  = "fusion"
+      install_mac = generate_mac_address(install_vm)
     end
   end
   change_fusion_vm_network(install_client,$default_vm_network)
@@ -591,7 +606,7 @@ def check_fusion_hostonly_network(if_name)
   end
   if dhcp_test == 1 or vmnet_test == 1
     message = "Information:\tStarting VMware Fusion"
-    command = "open \"#{$vmapp_bin}\" --background"
+    command = "open \"#{$vmapp_bin}\""
     execute_command(message,command)
     sleep 3
     vmnet_cli = "/Applications/VMware Fusion.app/Contents/Library/vmnet-cli"
@@ -1112,7 +1127,8 @@ def configure_fusion_vm(install_client,install_mac,install_os,install_arch,insta
   (fusion_vm_dir,fusion_vmx_file,fusion_disk_file) = check_fusion_vm_doesnt_exist(install_client)
   check_dir_exists(fusion_vm_dir)
   if !install_mac.match(/[0-9]/)
-    install_mac = generate_mac_address()
+    install_vm  = "fusion"
+    install_mac = generate_mac_address(install_vm)
   end
   create_fusion_vm_vmx_file(install_client,install_mac,install_os,fusion_vmx_file,install_file,install_memory,install_cpu,install_network,install_share,install_mount)
   if !install_file.match(/ova$/)
@@ -1128,7 +1144,6 @@ end
 
 def populate_fusion_vm_vmx_info(install_client,install_mac,install_os,install_memory,install_file,install_network,install_share,install_mount,install_cpu)
   version  = get_fusion_version()
-  version  = version.split(".")[0]
   version  = version.to_i
   vmx_info = []
   vmx_info.push(".encoding,UTF-8")

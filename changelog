@@ -699,3 +699,5 @@
 # Added Packer check for Linux with VirtualBox in NAT mode (hostonly or bridged does not appear to work currently with ssh)
 # 3.4.9: Sun  1 May 2016 08:10:02 AEST
 # Added initial support for Windows 2016 and fixed packer image import
+# 3.5.0: Thu  5 May 2016 20:29:09 AEST
+# Added support for Ubuntu 16.04 and fixed a number of bugs

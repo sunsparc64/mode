@@ -61,7 +61,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   nic_config1      = ""
   nic_config1      = ""
   communicator     = "winrm"
-  hw_version       = "11"
+  hw_version       = "12"
   ks_ip            = $default_host
   winrm_use_ssl    = "false"
   winrm_insecure   = "true"
@@ -85,7 +85,10 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
 #    ssh_host_port_max = "55985"
     winrm_port        = "55985"
   end
-  if $default_vm_network.match(/hostonly/)
+  if install_vm.match(/fusion/)
+    hw_version  = get_fusion_version()
+  end
+  if $default_vm_network.match(/hostonly/) and install_vm.match(/vbox/)
     if_name  = get_bridged_vbox_nic()
     nic_name = check_vbox_hostonly_network(if_name)
     nic_command1 = "--nic1"
@@ -94,7 +97,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     nic_config2  = "#{nic_name}"
     ks_ip        = $default_gateway_ip
   end
-  if $default_vm_network.match(/bridged/)
+  if $default_vm_network.match(/bridged/) and install_vm.match(/vbox/)
     nic_name = get_bridged_vbox_nic()
     nic_command1 = "--nic1"
     nic_config1  = "bridged"
@@ -105,7 +108,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   (install_service,install_os,install_release,install_arch) = get_packer_install_service(install_file)
   ssh_username     = $q_struct["admin_username"].value
   ssh_password     = $q_struct["admin_password"].value
-  ssh_wait_timeout = "20m"
+  ssh_wait_timeout = $default_ssh_wait_timeout
   shutdown_command = ""
   if !install_mac.match(/[0-9]/)
     install_mac = generate_mac_address()
@@ -114,7 +117,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     install_guest = install_guest.join
   end
   case install_service
-  when /win|nt/
+  when /win/
     shutdown_command = "shutdown /s /t 1 /c \"Packer Shutdown\" /f /d p:4:1"
     unattended_xml   = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/Autounattend.xml"
     post_install_psh = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/post_install.ps1"
@@ -172,7 +175,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                        " netcfg/get_domain="+$q_struct["domain"].value+
                        " preseed/url="+ks_url+
                        " initrd=/install/initrd.gz -- <wait><enter><wait>"
-    shutdown_command = "echo 'shutdown -P now' > /tmp/shutdown.sh ; echo '#{$q_struct["admin_password"].value}'|sudo -S sh '/tmp/shutdown.sh'"
+    #shutdown_command = "echo 'shutdown -P now' > /tmp/shutdown.sh ; echo '#{$q_struct["admin_password"].value}'|sudo -S sh '/tmp/shutdown.sh'"
   when /vsphere|esx|vmware/
     ks_file          = install_vm+"/"+install_client+"/"+install_client+".cfg"
     ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
@@ -232,7 +235,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   check_dir_exists(client_dir)
   if install_vm.match(/vbox/)
     if $default_vm_network.match(/hostonly|bridged/)
-      if install_service.match(/win|nt/)
+      if install_service.match(/win/)
         json_data = {
           :variables => {
             :hostname => install_client
@@ -310,7 +313,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
         }
       end
     else
-      if install_service.match(/win|nt/)
+      if install_service.match(/win/)
         json_data = {
           :variables => {
             :hostname => install_client
@@ -379,7 +382,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     end
   else
     if $default_vm_network.match(/hostonly|bridged/)
-      if install_service.match(/win|nt/)
+      if install_service.match(/win/)
         json_data = {
           :variables => {
             :hostname => install_client
@@ -396,6 +399,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :vnc_port_min         => vnc_port_min,
             :vnc_port_max         => vnc_port_max,
             :ssh_host             => install_ip,
+            :ssh_port             => ssh_port,
             :ssh_username         => ssh_username,
             :ssh_password         => ssh_password,
             :ssh_wait_timeout     => ssh_wait_timeout,
@@ -447,6 +451,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :disk_size            => install_size,
             :iso_url              => iso_url,
             :ssh_host             => install_ip,
+            :ssh_port             => ssh_port,
             :ssh_username         => ssh_username,
             :ssh_password         => ssh_password,
             :ssh_wait_timeout     => ssh_wait_timeout,
@@ -474,7 +479,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
         }
       end
     else
-      if install_service.match(/win|nt/)
+      if install_service.match(/win/)
         json_data = {
           :variables => {
             :hostname => install_client
@@ -754,16 +759,16 @@ end
 
 # Create Preseed (Ubuntu and Debian) client
 
-def create_packer_ps_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_type)
+def create_packer_ps_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_mac,install_type)
   client_dir  = $client_base_dir+"/packer/"+install_vm+"/"+install_client
   output_file = client_dir+"/"+install_client+".cfg"
   check_dir_exists(client_dir)
   delete_file(output_file)
-  populate_ps_questions(install_service,install_client,install_ip,install_mirror,install_type)
+  populate_ps_questions(install_service,install_client,install_ip,install_mirror,install_type,install_vm)
   process_questions(install_service)
   output_ps_header(install_client,output_file)
   output_file = client_dir+"/"+install_client+"_post.sh"
-  post_list   = populate_ps_post_list(install_client,install_service,install_type)
+  post_list   = populate_ps_post_list(install_client,install_service,install_type,install_vm)
   output_ks_post_list(install_client,post_list,output_file,install_service)
   output_file = client_dir+"/"+install_client+"_first_boot.sh"
   post_list   = populate_ps_first_boot_list()

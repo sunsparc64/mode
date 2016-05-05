@@ -1,7 +1,7 @@
 
 # Preseed configuration questions for Ubuntu
 
-def populate_ps_questions(install_service,install_client,install_ip,install_mirror,install_type)
+def populate_ps_questions(install_service,install_client,install_ip,install_mirror,install_type,install_vm)
   $q_struct = {}
   $q_order  = []
 
@@ -783,12 +783,12 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
   $q_order.push(name)
 
   if install_type.match(/packer/)
-    script_url = "http://"+$default_gateway_ip+"/"+install_client+"/"+install_client+"_post.sh"
+    script_url = "http://"+$default_gateway_ip+":"+$default_httpd_port+"/"+install_vm+"/"+install_client+"/"+install_client+"_post.sh"
   else
     script_url = "http://"+$default_host+"/clients/"+install_service+"/"+install_client+"/"+install_client+"_post.sh"
   end
 
-  if !install_type.match(/packer/)
+#  if !install_type.match(/packer/)
 
     name = "late_command"
     config = Ks.new(
@@ -796,14 +796,14 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
       question  = "Post install commands",
       ask       = "yes",
       parameter = "preseed/late_command",
-      value     = "chroot /target sh -c \"/usr/bin/curl -o /tmp/postinstall #{script_url} && /bin/sh -x /tmp/postinstall\"",
+      value     = "in-target wget -O /tmp/postinstall #{script_url} ; in-target chmod 700 /tmp/postinstall ; in-target sh /tmp/postinstall",
       valid     = "",
       eval      = ""
       )
     $q_struct[name] = config
     $q_order.push(name)
 
-  end
+#  end
 
   return
 end

@@ -419,8 +419,12 @@ end
 
 # Generate MAC address
 
-def generate_mac_address()
-  install_mac = (1..6).map{"%0.2X"%rand(256)}.join(":")
+def generate_mac_address(install_vm)
+  if install_vm.match(/fusion/)
+    install_mac = "00:05:"+(1..4).map{"%0.2X"%rand(256)}.join(":")
+  else
+    install_mac = (1..6).map{"%0.2X"%rand(256)}.join(":")
+  end
   return install_mac
 end
 
@@ -1864,11 +1868,11 @@ end
 
 # Check client MAC
 
-def check_install_mac(install_mac)
+def check_install_mac(install_mac,install_vm)
   if !install_mac.match(/:/)
     if install_mac.length != 12
       puts "Warning:\tInvalid MAC address"
-      install_mac = generate_mac_address()
+      install_mac = generate_mac_address(install_vm)
       puts "Information:\tGenerated new MAC address: "+install_mac
     else
       chars       = install_mac.split(//)
@@ -1883,7 +1887,7 @@ def check_install_mac(install_mac)
   macs.each do |mac|
     if mac =~ /[G-Z]|[g-z]/ or mac.length != 2
       puts "Warning:\tInvalid MAC address"
-      install_mac = generate_mac_address()
+      install_mac = generate_mac_address(install_vm)
       puts "Information:\tGenerated new MAC address: "+install_mac
     end
   end

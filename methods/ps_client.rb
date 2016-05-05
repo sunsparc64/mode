@@ -136,27 +136,27 @@ end
 
 # Populate post commands
 
-def populate_ps_post_list(client_name,service_name,install_type)
+def populate_ps_post_list(client_name,service_name,install_type,install_vm)
   post_list  = []
   if install_type.match(/packer/)
-    script_url = "http://"+$default_gateway_ip+"/"+client_name+"/"+client_name+"_first_boot.sh"
+    script_url = "http://"+$default_gateway_ip+":"+$default_httpd_port+"/"+install_vm+"/"+client_name+"/"+client_name+"_first_boot.sh"
   else
     script_url = "http://"+$default_host+"/"+service_name+"/"+client_name+"_first_boot.sh"
   end
-  post_list.push("/usr/bin/curl -o /root/firstboot #{script_url}")
+  post_list.push("/usr/bin/wget -O /root/firstboot #{script_url}")
   first_boot = "/etc/init.d/firstboot"
   post_list.push("chmod +x /root/firstboot")
   post_list.push("echo '### BEGIN INIT INFO' > #{first_boot}")
-  post_list.push("echo '# Provides:        firstboot' > #{first_boot}")
-  post_list.push("echo '# Required-Start:  $networking' > #{first_boot}")
-  post_list.push("echo '# Required-Stop:   $networking' > #{first_boot}")
-  post_list.push("echo '# Default-Start:   2 3 4 5' > #{first_boot}")
-  post_list.push("echo '# Default-Stop:    0 1 6' > #{first_boot}")
-  post_list.push("echo '# Short-Description: A script that runs once' > #{first_boot}")
-  post_list.push("echo '# Description: A script that runs once' > #{first_boot}")
-  post_list.push("echo '### END INIT INFO' > #{first_boot}")
-  post_list.push("echo '' > #{first_boot}")
-  post_list.push("echo 'cd /root ; /usr/bin/nohup sh -x /root/firstboot &' > #{first_boot}")
+  post_list.push("echo '# Provides:        firstboot' >> #{first_boot}")
+  post_list.push("echo '# Required-Start:  $networking' >> #{first_boot}")
+  post_list.push("echo '# Required-Stop:   $networking' >> #{first_boot}")
+  post_list.push("echo '# Default-Start:   2 3 4 5' >> #{first_boot}")
+  post_list.push("echo '# Default-Stop:    0 1 6' >> #{first_boot}")
+  post_list.push("echo '# Short-Description: A script that runs once' >> #{first_boot}")
+  post_list.push("echo '# Description: A script that runs once' >> #{first_boot}")
+  post_list.push("echo '### END INIT INFO' >> #{first_boot}")
+  post_list.push("echo '' >> #{first_boot}")
+  post_list.push("echo 'cd /root ; /usr/bin/nohup sh -x /root/firstboot &' >> #{first_boot}")
   post_list.push("")
   post_list.push("chmod +x #{first_boot}")
   post_list.push("update-rc.d firstboot defaults")
