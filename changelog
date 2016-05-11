@@ -701,3 +701,5 @@
 # Added initial support for Windows 2016 and fixed packer image import
 # 3.5.0: Thu  5 May 2016 20:29:09 AEST
 # Added support for Ubuntu 16.04 and fixed a number of bugs
+# 3.5.1: Wed 11 May 2016 12:12:31 AEST
+# Various bug fixed for Packer and Ubuntu 

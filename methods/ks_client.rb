@@ -67,7 +67,7 @@ def configure_ks_pxe_client(client_name,client_ip,client_mac,client_arch,service
     initrd_file  = initrd_file.gsub(/^\//,"")
   end
   if service_name.match(/packer/)
-    host_info = $default_host+":"+$default_httpd_port
+    host_info = $default_gateway_ip+":"+$default_httpd_port
   else
     host_info = $default_host
   end

@@ -62,7 +62,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   nic_config1      = ""
   communicator     = "winrm"
   hw_version       = "12"
-  ks_ip            = $default_host
+  ks_ip            = $default_gateway_ip
   winrm_use_ssl    = "false"
   winrm_insecure   = "true"
   virtual_dev      = "lsisas1068"
