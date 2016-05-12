@@ -796,7 +796,7 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
       question  = "Post install commands",
       ask       = "yes",
       parameter = "preseed/late_command",
-      value     = "in-target wget -O /tmp/postinstall #{script_url} ; in-target chmod 700 /tmp/postinstall ; in-target sh /tmp/postinstall",
+      value     = "in-target wget -O /tmp/post_install.sh #{script_url} ; in-target chmod 700 /tmp/post_install.sh ; in-target sh /tmp/post_install.sh",
       valid     = "",
       eval      = ""
       )

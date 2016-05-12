@@ -703,3 +703,5 @@
 # Added support for Ubuntu 16.04 and fixed a number of bugs
 # 3.5.1: Wed 11 May 2016 12:12:31 AEST
 # Various bug fixed for Packer and Ubuntu 
+# 3.5.2: Thu May 12 14:26:39 AEST 2016
+# Various bug fixes for Ubuntu
