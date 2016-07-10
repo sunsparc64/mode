@@ -510,7 +510,7 @@ def populate_ks_pkg_list(service_name)
     if service_name.match(/centos_[6,7]|fedora_[18,19,20,21,22,23,24]|rhel_[6,7]|oel_[6,7]|sl_[6,7]/)
       if !service_name.match(/fedora_[23,24]/)
         pkg_list.push("redhat-lsb-core")
-        if !service_name.match(/rhel_6/)
+        if !service_name.match(/rhel_6|oel_6/)
           pkg_list.push("augeas")
         end
         pkg_list.push("tk")
@@ -566,7 +566,7 @@ def populate_ks_pkg_list(service_name)
       pkg_list.push("xinetd")
       pkg_list.push("tftp-server")
     end
-    if !service_name.match(/rhel_[5,6]/)
+    if !service_name.match(/rhel_[5,6]|oel_6/)
       pkg_list.push("libgnome-keyring")
     end
     if !service_name.match(/rhel_5/)

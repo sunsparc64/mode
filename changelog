@@ -707,3 +707,5 @@
 # Various bug fixes for Ubuntu
 # 3.5.3: Sun 10 Jul 2016 16:42:19 AEST
 # Added initial support for Fedora 24
+# 3.5.4: Sun 10 Jul 2016 20:09:36 AEST
+# Added support for OEL 6.8
