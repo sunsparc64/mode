@@ -705,3 +705,5 @@
 # Various bug fixed for Packer and Ubuntu 
 # 3.5.2: Thu May 12 14:26:39 AEST 2016
 # Various bug fixes for Ubuntu
+# 3.5.3: Sun 10 Jul 2016 16:42:19 AEST
+# Added initial support for Fedora 24

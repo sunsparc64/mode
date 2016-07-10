@@ -324,11 +324,17 @@ def get_install_service_from_file(install_file)
     install_release = install_file.split(/-/)[1]
   when /Fedora-Server/
     service_name    = "fedora"
-    service_version = install_file.split(/-/)[-1].gsub(/\./,"_").gsub(/_iso/,"_")
-    service_arch    = install_file.split(/-/)[-2].gsub(/\./,"_").gsub(/_iso/,"_")
+    if install_file.match(/DVD/)
+      service_version = install_file.split(/-/)[-1].gsub(/\./,"_").gsub(/_iso/,"_")
+      service_arch    = install_file.split(/-/)[-2].gsub(/\./,"_").gsub(/_iso/,"_")
+      install_release = install_file.split(/-/)[-1].gsub(/\.iso/,"")
+    else
+      service_version = install_file.split(/-/)[-2].gsub(/\./,"_").gsub(/_iso/,"_")
+      service_arch    = install_file.split(/-/)[-3].gsub(/\./,"_").gsub(/_iso/,"_")
+      install_release = install_file.split(/-/)[-2].gsub(/\.iso/,"")
+    end
     service_version = service_version+"_"+service_arch
     install_method  = "ks"
-    install_release = install_file.split(/-/)[-1].gsub(/\.iso/,"")
   when /OracleLinux/
     service_name    = "oel"
     service_version = install_file.split(/-/)[1..2].join(".").gsub(/\./,"_").gsub(/R|U/,"")
