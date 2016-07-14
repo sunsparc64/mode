@@ -110,7 +110,7 @@ def standard_zone_post_install(client_name,client_rel)
   if File.directory?(zone_dir)
     client_dir    = zone_dir+"/root"
     tmp_file      = "/tmp/zone_"+client_name
-    admin_username = $q_struct["admin_login"].value
+    admin_username = $q_struct["admin_username"].value
     admin_uid      = $q_struct["admin_uid"].value
     admin_gid      = $q_struct["admin_gid"].value
     admin_crypt    = $q_struct["admin_crypt"].value

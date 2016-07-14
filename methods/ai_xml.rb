@@ -14,7 +14,7 @@ def create_zone_profile_xml(output_file)
           xml.propval(:type => "astring", :value => $q_struct["root_expire"].value, :name => "expire")
         }
         xml.property_group(:name => "user_account", :type => "application") {
-          xml.propval(:type => "astring", :value => $q_struct["admin_login"].value, :name => "login")
+          xml.propval(:type => "astring", :value => $q_struct["admin_username"].value, :name => "login")
           xml.propval(:type => "astring", :value => $q_struct["admin_crypt"].value, :name => "password")
           xml.propval(:type => "astring", :value => $q_struct["admin_description"].value, :name => "description")
           xml.propval(:type => "astring", :value => $q_struct["admin_shell"].value, :name => "shell")
@@ -165,7 +165,7 @@ def create_ai_client_profile(output_file)
           xml.propval(:type => "astring", :value => $q_struct["root_expire"].value, :name => "expire")
         }
         xml.property_group(:name => "user_account") {
-          xml.propval(:type => "astring", :value => $q_struct["admin_login"].value, :name => "login")
+          xml.propval(:type => "astring", :value => $q_struct["admin_username"].value, :name => "login")
           xml.propval(:type => "astring", :value => $q_struct["admin_crypt"].value, :name => "password")
           xml.propval(:type => "astring", :value => $q_struct["admin_description"].value, :name => "description")
           xml.propval(:type => "astring", :value => $q_struct["admin_shell"].value, :name => "shell")

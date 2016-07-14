@@ -128,7 +128,7 @@ def populate_ai_client_profile_questions(client_ip,client_name)
   $q_struct[name]=config
   $q_order.push(name)
 
-  name="admin_login"
+  name="admin_username"
   config=Ai.new(
     question  = "Account login name",
     ask       = "yes",

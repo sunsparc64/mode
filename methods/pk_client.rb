@@ -134,6 +134,49 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
         install_guest = "windows7srv-64"
       end
     end
+  when /sol/
+    boot_command = "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "27<enter><wait>"+
+                   "3<enter><wait>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "1<enter><wait10>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   "<bs><bs><bs><bs><bs><bs><bs>"+install_client+"<f2><wait>"+
+                   "<tab><f2><wait>"+
+                   install_ip+"<tab><tab>"+
+                   $default_gateway_ip+"<f2><wait>"+
+                   "<f2><wait>"+
+                   $default_nameserver+"<f2><wait>"+
+                   $default_domainname+"<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   $q_struct["root_password"].value+"<tab>"+
+                   $q_struct["root_password"].value+"<tab>"+
+                   $q_struct["admin_username"].value+"<tab>"+
+                   $q_struct["admin_username"].value+"<tab>"+
+                   $q_struct["admin_password"].value+"<tab>"+
+                   $q_struct["admin_password"].value+"<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<f8>"
   when /sles/
     ks_file      = install_vm+"/"+install_client+"/"+install_client+".xml"
     ks_url       = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
@@ -647,7 +690,7 @@ def configure_packer_client(install_method,install_vm,install_os,install_client,
 	install_guest = eval"[get_#{install_vm}_guest_os(install_method,install_arch)]"
 	eval"[configure_packer_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,
                            install_cpu,install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone,install_shell)]"
-	create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu,install_network,install_mac,install_ip,install_label)
+  create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu,install_network,install_mac,install_ip,install_label)
 	#build_packer_config(install_client,install_vm)
 	return
 end
@@ -776,6 +819,20 @@ def create_packer_ps_install_files(install_client,install_service,install_ip,ins
   return
 end
 
+# Create AI client
+
+def create_packer_ai_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_mac,install_type)
+  client_dir  = $client_base_dir+"/packer/"+install_vm+"/"+install_client
+  output_file = client_dir+"/"+install_client+".cfg"
+  check_dir_exists(client_dir)
+  delete_file(output_file)
+  publisher_host = ""
+  publisher_port = ""
+  populate_ai_client_profile_questions(publisher_host,publisher_port)
+  process_questions(install_service)
+  return
+end
+
 # Copy package from package directory to packer client directory
 
 def copy_pkg_to_packer_client(pkg_name,install_client,install_vm)
@@ -836,5 +893,13 @@ end
 def configure_packer_ps_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,
                                install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone,install_shell)
   create_packer_ps_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_mac,install_type)
+  return
+end
+
+# Configure Packer AI client
+
+def configure_packer_ai_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,
+                               install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone,install_shell)
+  create_packer_ai_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_mac,install_type)
   return
 end

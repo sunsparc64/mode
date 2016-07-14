@@ -709,3 +709,5 @@
 # Added initial support for Fedora 24
 # 3.5.4: Sun 10 Jul 2016 20:09:36 AEST
 # Added support for OEL 6.8
+# 3.5.5: Fri 15 Jul 2016 09:49:02 AEST
+# Added initial support for Packer Solaris 11 x86 builds
