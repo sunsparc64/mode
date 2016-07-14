@@ -1299,7 +1299,8 @@ if option["type"]
     print_valid_list("Warning:\tInvalid install type",$valid_type_list)
   end
 else
-  install_type = ""
+  option["type"] = ""
+  install_type   = ""
 end
 
 # Handle release switch
