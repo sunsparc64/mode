@@ -218,6 +218,67 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<f8>"
+  when /sol_10/
+    boot_command = "<wait><enter><wait10><wait10>"+
+                   "4<wait10><wait10><wait10><wait10><wait10><wait10>"+
+                   "<f2><wait>"+
+                   "0<enter><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   install_client+"<f2><wait>"+
+                   install_ip+"<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait10>"+
+                   "<tab><space><f2><wait>"+
+                   $default_gateway_ip+"<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<tab><tab><space><f2><wait>"+
+                   $default_domainname+"<f2><wait>"+
+                   $default_nameserver+"<f2><wait>"+
+                   $default_domainname+"<f2><wait>"+
+                   "<f2><wait>"+
+                   "<tab><space><f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<tab><space><f2><wait>"+
+                   "<space><f2><wait>"+
+                   "<space><f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   $q_struct["root_password"].value+"<tab>"+
+                   $q_struct["root_password"].value+"<f2><wait>"+
+                   "<f2><wait>"+
+                   "<space><f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<down><down><down><down><down><right><space><f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<tab><space><f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"
   when /sles/
     ks_file      = install_vm+"/"+install_client+"/"+install_client+".xml"
     ks_url       = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
@@ -944,3 +1005,12 @@ def configure_packer_ai_client(install_client,install_arch,install_mac,install_i
   create_packer_ai_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_mac,install_type)
   return
 end
+
+# Configure Packer JS client
+
+def configure_packer_js_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,
+                               install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone,install_shell)
+  create_packer_ai_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_mac,install_type)
+  return
+end
+

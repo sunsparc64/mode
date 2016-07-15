@@ -717,3 +717,5 @@
 # Added support for Packer Solaris 11.1, 11.2, and 11.3 builds
 # 3.5.8: Fri 15 Jul 2016 22:51:00 AEST
 # Added support for Packer Solaris 11.0 builds
+# 3.5.9: Sat 16 Jul 2016 07:44:40 AEST
+# Added initial support for Packer Solaris 10 builds
