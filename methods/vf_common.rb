@@ -1190,7 +1190,7 @@ def populate_fusion_vm_vmx_info(install_client,install_mac,install_os,install_me
   vmx_info.push("ethernet0.virtualDev,e1000")
   vmx_info.push("ethernet0.wakeOnPcktRcv,FALSE")
   vmx_info.push("ethernet0.addressType,static")
-  vmx_info.push("ethernet0.linkStatePropagation.enable,TRUE")
+#  vmx_info.push("ethernet0.linkStatePropagation.enable,TRUE")
   vmx_info.push("usb.present,TRUE")
   vmx_info.push("ehci.present,TRUE")
   vmx_info.push("ehci.pciSlotNumber,35")

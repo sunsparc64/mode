@@ -152,7 +152,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    $default_gateway_ip+"<f2><wait>"+
                    "<f2><wait>"+
                    $default_nameserver+"<f2><wait>"+
-                   $default_domainname+"<f2><wait>"+
+                   "<f2><wait>"+
                    "<f2><wait>"+
                    "<f2><wait>"+
                    "<f2><wait>"+

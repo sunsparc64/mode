@@ -711,3 +711,5 @@
 # Added support for OEL 6.8
 # 3.5.5: Fri 15 Jul 2016 09:49:02 AEST
 # Added initial support for Packer Solaris 11 x86 builds
+# 3.5.6: Fri 15 Jul 2016 20:54:14 AEST
+# Added code to determine VM type for Packer builds if not specified
