@@ -373,6 +373,7 @@ def get_install_service_from_file(install_file)
       install_arch    = "i386"
     end
     service_version = install_release+"_"+install_arch
+    service_version = service_version.gsub(/\./,"_")
   end
   install_os      = service_name
   install_service = service_name+"_"+service_version.gsub(/__/,"_")

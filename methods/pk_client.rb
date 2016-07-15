@@ -134,7 +134,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
         install_guest = "windows7srv-64"
       end
     end
-  when /sol/
+  when /sol_11_[2,3]/
     boot_command = "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "27<enter><wait>"+
@@ -146,7 +146,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    "<f2><wait10>"+
                    "<f2><wait10>"+
                    "<f2><wait10>"+
-                   "<bs><bs><bs><bs><bs><bs><bs>"+install_client+"<f2><wait>"+
+                   "<bs><bs><bs><bs><bs><bs><bs>"+install_client+
+                   "<f2><wait>"+
                    "<tab><f2><wait>"+
                    install_ip+"<tab><tab>"+
                    $default_gateway_ip+"<f2><wait>"+
@@ -155,6 +156,46 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    "<f2><wait>"+
                    "<f2><wait>"+
                    "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   $q_struct["root_password"].value+"<tab>"+
+                   $q_struct["root_password"].value+"<tab>"+
+                   $q_struct["admin_username"].value+"<tab>"+
+                   $q_struct["admin_username"].value+"<tab>"+
+                   $q_struct["admin_password"].value+"<tab>"+
+                   $q_struct["admin_password"].value+"<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<f2><wait>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<f8>"
+  when /sol_11_1/
+    boot_command = "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "27<enter><wait>"+
+                   "3<enter><wait>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "1<enter><wait10>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   "<bs><bs><bs><bs><bs><bs><bs>"+install_client+
+                   "<tab><tab><f2><wait>"+
+                   install_ip+"<tab><tab>"+
+                   $default_gateway_ip+"<f2><wait>"+
+                   "<f2><wait>"+
+                   $default_nameserver+"<f2><wait>"+
                    "<f2><wait>"+
                    "<f2><wait>"+
                    "<f2><wait>"+
