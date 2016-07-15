@@ -178,7 +178,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<f8>"
-  when /sol_11_1/
+  when /sol_11_[0,1]/
     boot_command = "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "27<enter><wait>"+

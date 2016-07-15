@@ -715,3 +715,5 @@
 # Added code to determine VM type for Packer builds if not specified
 # 3.5.7: Fri 15 Jul 2016 21:58:02 AEST
 # Added support for Packer Solaris 11.1, 11.2, and 11.3 builds
+# 3.5.8: Fri 15 Jul 2016 22:51:00 AEST
+# Added support for Packer Solaris 11.0 builds

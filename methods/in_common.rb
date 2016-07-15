@@ -264,36 +264,6 @@ def get_install_service_from_file(install_file)
     install_arch = "i386"
   end
   case install_file
-  when /[0-9][0-9][0-9][0-9]|Win|Srv/
-    service_name = "windows"
-    mount_iso(install_file)
-    wim_file = $iso_mount_dir+"/sources/install.wim"
-    if File.exist?(wim_file)
-      wiminfo_bin = %x[which wiminfo]
-      if !wiminfo_bin.match(/wiminfo/)
-        message = "Information:\tInstall wiminfo (wimlib)"
-        command = "brew install wimlib"
-        execute_command(message,command)
-        wiminfo_bin = %x[which wiminfo]
-        if !wiminfo_bin.match(/wiminfo/)
-          puts "Warning:\tCannnot find wiminfo (required to determine version of windows from ISO)"
-          exit
-        end
-      end
-      message = "Information:\tDeterming version of Windows from: "+wim_file
-      command = "wiminfo \"#{wim_file}\" 1| grep ^Description"
-      output  = execute_command(message,command)
-      install_label   = output.chomp.split(/\:/)[1].gsub(/^\s+/,"").gsub(/CORE/,"")
-      service_version = output.split(/Description:/)[1].gsub(/^\s+|SERVER|Server/,"").downcase.gsub(/\s+/,"_").split(/_/)[1..-1].join("_")
-      message = "Information:\tDeterming architecture of Windows from: "+wim_file
-      command = "wiminfo \"#{wim_file}\" 1| grep ^Architecture"
-      output  = execute_command(message,command)
-      install_arch = output.chomp.split(/\:/)[1].gsub(/^\s+/,"")
-      umount_iso()
-    end
-    install_service = install_release+"_"+install_arch
-    install_service = install_service.gsub(/__/,"_")
-    install_method  = "pe"
   when /ubuntu/
     service_name    = "ubuntu"
     service_version = install_file.split(/-/)[1].gsub(/\./,"_").gsub(/_iso/,"")
@@ -365,6 +335,9 @@ def get_install_service_from_file(install_file)
     service_name    = "sol"
     install_release = install_file.split(/-/)[1].gsub(/_/,".")
     if install_release.to_i > 10
+      if install_file.match(/1111/)
+        install_release = "11.0"
+      end
       install_method  = "ai"
       install_arch    = "x86_64"
     else
@@ -374,6 +347,36 @@ def get_install_service_from_file(install_file)
     end
     service_version = install_release+"_"+install_arch
     service_version = service_version.gsub(/\./,"_")
+  when /[0-9][0-9][0-9][0-9]|Win|Srv/
+    service_name = "windows"
+    mount_iso(install_file)
+    wim_file = $iso_mount_dir+"/sources/install.wim"
+    if File.exist?(wim_file)
+      wiminfo_bin = %x[which wiminfo]
+      if !wiminfo_bin.match(/wiminfo/)
+        message = "Information:\tInstall wiminfo (wimlib)"
+        command = "brew install wimlib"
+        execute_command(message,command)
+        wiminfo_bin = %x[which wiminfo]
+        if !wiminfo_bin.match(/wiminfo/)
+          puts "Warning:\tCannnot find wiminfo (required to determine version of windows from ISO)"
+          exit
+        end
+      end
+      message = "Information:\tDeterming version of Windows from: "+wim_file
+      command = "wiminfo \"#{wim_file}\" 1| grep ^Description"
+      output  = execute_command(message,command)
+      install_label   = output.chomp.split(/\:/)[1].gsub(/^\s+/,"").gsub(/CORE/,"")
+      service_version = output.split(/Description:/)[1].gsub(/^\s+|SERVER|Server/,"").downcase.gsub(/\s+/,"_").split(/_/)[1..-1].join("_")
+      message = "Information:\tDeterming architecture of Windows from: "+wim_file
+      command = "wiminfo \"#{wim_file}\" 1| grep ^Architecture"
+      output  = execute_command(message,command)
+      install_arch = output.chomp.split(/\:/)[1].gsub(/^\s+/,"")
+      umount_iso()
+    end
+    install_service = install_release+"_"+install_arch
+    install_service = install_service.gsub(/__/,"_")
+    install_method  = "pe"
   end
   install_os      = service_name
   install_service = service_name+"_"+service_version.gsub(/__/,"_")
