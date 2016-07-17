@@ -107,11 +107,18 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   install_size     = install_size.gsub(/G/,"000")
   (install_service,install_os,install_release,install_arch) = get_packer_install_service(install_file)
   if install_service.match(/sol_10/)
-    ssh_username = $default_admin_user
-    ssh_password = $default_admin_password
+    ssh_username   = $default_admin_user
+    ssh_password   = $default_admin_password
+    admin_username = $default_admin_user
+    admin_password = $default_admin_password
   else
-    ssh_username = $q_struct["admin_username"].value
-    ssh_password = $q_struct["admin_password"].value
+    ssh_username   = $q_struct["admin_username"].value
+    ssh_password   = $q_struct["admin_password"].value
+    admin_username = $q_struct["admin_username"].value
+    admin_password = $q_struct["admin_password"].value
+  end
+  if !install_service.match(/win/)
+    root_password = $q_struct["root_password"].value
   end
   ssh_wait_timeout = $default_ssh_wait_timeout
   shutdown_command = ""
@@ -182,7 +189,18 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
-                   "<f8>"
+                   "<f8><wait10><wait10>"+
+                   "<enter><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   $q_struct["admin_username"].value+"<enter><wait>"+
+                   $q_struct["admin_password"].value+"<enter><wait>"+
+                   "echo '"+$q_struct["admin_password"].value+"' |sudo -Sv<enter><wait>"+
+                   "sudo sh -c \"echo '"+$q_struct["admin_username"].value+" ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers\"<enter><wait>"+
+                   "sudo sh -c \"/usr/gnu/bin/sed -i 's/^.*requiretty/#Defaults requiretty/' /etc/sudoers\"<enter><wait>"+
+                   "exit<enter><wait>"
   when /sol_11_[0,1]/
     boot_command = "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
@@ -222,7 +240,18 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
-                   "<f8>"
+                   "<f8><wait10><wait10>"+
+                   "<enter><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   $q_struct["admin_username"].value+"<enter><wait>"+
+                   $q_struct["admin_password"].value+"<enter><wait>"+
+                   "echo '"+$q_struct["admin_password"].value+"' |sudo -Sv<enter><wait>"+
+                   "sudo sh -c \"echo '"+$q_struct["admin_username"].value+" ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers\"<enter><wait>"+
+                   "sudo sh -c \"/usr/gnu/bin/sed -i 's/^.*requiretty/#Defaults requiretty/' /etc/sudoers\"<enter><wait>"+
+                   "exit<enter><wait>"
   when /sol_10/
     shutdown_command = "echo '/usr/sbin/poweroff' > shutdown.sh; pfexec bash -l shutdown.sh"
     shutdown_timeout = "20m"
@@ -945,12 +974,16 @@ end
 def build_packer_config(install_client,install_vm)
   exists = eval"[check_#{install_vm}_vm_exists(install_client)]"
   if exists.to_s.match(/yes/)
-    puts "Warning:\tVirtualBox VM "+install_client+" already exists "
+    puts "Warning:\t"+install_vm.upcase+" VM "+install_client+" already exists "
     exit
   end
   exists = check_packer_image_exists(install_client,install_vm)
   client_dir = $client_base_dir+"/packer/"+install_vm+"/"+install_client
   json_file  = client_dir+"/"+install_client+".json"
+  if !File.exist?(json_file)
+    puts "Warning:\tJSON configuration file \""+json_file+"\" for "+install_client+" does not exist"
+    exit
+  end
 	message    = "Information:\tBuilding Packer Image "+json_file
 	command    = "packer build "+json_file
 	execute_command(message,command)
