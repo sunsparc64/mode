@@ -33,7 +33,8 @@ and HTTP based install services, eg:
 - Provide completely headless VM support
 - Simplify creation of Packer images
 - Deploy Virtual Center Server Appliance
-- Simplify creation and build of VMs with Packer (Linux, Windows 2008 R2, and Windows 2012 R2)
+- Simplify creation and build of VMs with Packer 
+  - Linux, Solaris 10, Solaris 11, Windows 2008 R2, and Windows 2012 R2
 
 This script is a wrapper which sits on top of the exisitng tools. It changes
 defaults to be more suitable to customer environments, and sanity checks server
