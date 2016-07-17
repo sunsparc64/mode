@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.5.9
+# Version:      3.6.0
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -114,13 +114,13 @@ $default_domainname       = "lab.net"
 $default_search           = "local"
 $default_files            = "files"
 $default_hosts            = "files dns"
-$default_root_password    = "P@$$w0rd"
-$default_admin_password   = "P@$$w0rd"
+$default_root_password    = "P455w0rd"
+$default_admin_password   = "P455w0rd"
 $default_maas_admin       = "root"
 $default_maas_email       = $default_maas_admin+"@"+$default_host
 $default_mass_password    = $default_admin_password
 $default_server_admin     = "root"
-$default_server_password  = "P@$$w0rd"
+$default_server_password  = "P455w0rd"
 $use_alt_repo             = 0
 $destroy_fs               = "n"
 $use_defaults             = 0

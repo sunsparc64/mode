@@ -60,7 +60,11 @@ def create_js_rules_file(client_name,client_karch,rules_file)
   if client_karch.match(/sun4/)
     karch_line = "karch "+client_karch+" - machine."+client_name+" -"
   else
-    karch_line = "any - - machine."+client_name+" -"
+    if client_karch.match(/packer/)
+      karch_line = "any - - profile finish"
+    else
+      karch_line = "any - - machine."+client_name+" -"
+    end
   end
   file       = File.open(tmp_file,"w")
   file.write("#{karch_line}\n")
@@ -94,11 +98,7 @@ def list_js_clients()
   return
 end
 
-# Check Jumpstart config
-
-def check_js_config(client_name,client_dir,repo_version_dir,os_version)
-  file_name     = "check"
-  check_script  = repo_version_dir+"/Solaris_"+os_version+"/Misc/jumpstart_sample/"+file_name
+def create_rules_ok_file(client_name,client_dir)
   rules_file    = client_dir+"/rules"
   rules_ok_file = rules_file+".ok"
   if File.exist?(rules_ok_file)
@@ -106,13 +106,12 @@ def check_js_config(client_name,client_dir,repo_version_dir,os_version)
     command = "rm #{rules_ok_file}"
     output  = execute_command(message,command)
   end
-  if !File.exist?("#{client_dir}/check")
-    message = "Information:\tCopying check script "+check_script+" to "+client_dir
-    command = "cd #{client_dir} ; cp -p #{check_script} ."
-    output  = execute_command(message,command)
-  end
   message   = "Information:\tChecking sum for rules file for "+client_name
-  command   = "sum #{rules_file} | awk '{print $1}'"
+  if $os_name.match(/SunOS/)
+    command   = "sum #{rules_file} | awk '{print $1}'"
+  else
+    command   = "cksum -o 2 #{rules_file} | awk '{print $1}'"
+  end
   output    = execute_command(message,command)
   rules_sum = output.chomp.split(/ /)[0]
   message   = "Information:\tCopying rules file"
@@ -123,6 +122,69 @@ def check_js_config(client_name,client_dir,repo_version_dir,os_version)
   command   = "echo '#{output}' >> #{rules_ok_file}"
   execute_command(message,command)
   print_contents_of_file(rules_ok_file)
+  return
+end
+
+# Create finish script
+
+def create_js_finish_file(install_client,output_file)
+  passwd_crypt = get_password_crypt($default_admin_password) 
+  file_array   = []
+  file_array.push("#!/bin/sh")
+  file_array.push("")
+  file_array.push("ADMINUSER='#{$default_admin_user}'")
+  file_array.push("")
+  file_array.push("# Selecting host name")
+  file_array.push("echo '#{install_client}' > /a/etc/nodename")
+  file_array.push("")
+  file_array.push("# Allowing root SSH")
+  file_array.push("cat /a/etc/ssh/sshd_config | sed -e 's/PermitRootLogin\\ .*$/PermitRootLogin yes/g' > /tmp/sshd_config.$$")
+  file_array.push("cat /tmp/sshd_config.$$ > /a/etc/ssh/sshd_config")
+  file_array.push("")
+  file_array.push("# Allow simple passwords")
+  file_array.push("cat /a/etc/default/passwd | sed -e 's/^#NAMECHECK=.*$/NAMECHECK=NO/g' \\")
+  file_array.push("    -e 's/^#MINNONALPHA=.*$/MINNONALPHA=0/g' > /tmp/passwd.$$")
+  file_array.push("cat /tmp/passwd.$$ > /a/etc/default/passwd")
+  file_array.push("")
+  file_array.push("# Create user and group")
+  file_array.push("")
+  file_array.push("chroot /a /usr/sbin/groupadd ${ADMINUSER}")
+  file_array.push("chroot /a /usr/sbin/useradd -m -d /export/home/${ADMINUSER} -s /usr/bin/bash -g ${ADMINUSER} ${ADMINUSER}")
+  file_array.push("")
+  file_array.push("# Create password")
+  file_array.push("PASSWD=`perl -e 'print crypt($ARGV[0], substr(rand(data),2));' #{$default_admin_password}`")
+  file_array.push("cat /a/etc/shadow | sed -e 's#^'${ADMINUSER}':UP:#'${ADMINUSER}':'${PASSWD}'#g'  > /tmp/shadow.$$")
+  file_array.push("cat /tmp/shadow.$$ > /a/etc/shadow")
+  file_array.push("")
+  file_array.push("# Install 'Primary Administrator' profile")
+  file_array.push("")
+  file_array.push("cat /cdrom/Solaris_10/Product/SUNWwbcor/reloc/etc/security/auth_attr >> /a/etc/security/auth_attr")
+  file_array.push("cat /cdrom/Solaris_10/Product/SUNWwbcor/reloc/etc/security/exec_attr >> /a/etc/security/exec_attr")
+  file_array.push("cat /cdrom/Solaris_10/Product/SUNWwbcor/reloc/etc/security/prof_attr >> /a/etc/security/prof_attr")
+  file_array.push("")
+  file_array.push("# Assign it to admin")
+  file_array.push("chroot /a /usr/sbin/usermod -P'Primary Administrator' ${ADMINUSER}")
+  file = File.open(output_file,"w")
+  file_array.each do |line|
+    line = line+"\n"
+    file.write(line)
+  end
+  file.close()
+  print_contents_of_file(output_file)
+  return
+end
+
+# Check Jumpstart config
+
+def check_js_config(client_name,client_dir,repo_version_dir,os_version)
+  file_name     = "check"
+  check_script  = repo_version_dir+"/Solaris_"+os_version+"/Misc/jumpstart_sample/"+file_name
+  if !File.exist?("#{client_dir}/check")
+    message = "Information:\tCopying check script "+check_script+" to "+client_dir
+    command = "cd #{client_dir} ; cp -p #{check_script} ."
+    output  = execute_command(message,command)
+  end
+  create_rules_ok_file(client_name,client_dir)
   return
 end
 

@@ -719,3 +719,5 @@
 # Added support for Packer Solaris 11.0 builds
 # 3.5.9: Sat 16 Jul 2016 07:44:40 AEST
 # Added initial support for Packer Solaris 10 builds
+# 3.6.0: Sun 17 Jul 2016 17:29:29 AEST
+# Working Packer Solaris 10 builds for VMware Fusion

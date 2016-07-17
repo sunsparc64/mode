@@ -106,8 +106,13 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   end
   install_size     = install_size.gsub(/G/,"000")
   (install_service,install_os,install_release,install_arch) = get_packer_install_service(install_file)
-  ssh_username     = $q_struct["admin_username"].value
-  ssh_password     = $q_struct["admin_password"].value
+  if install_service.match(/sol_10/)
+    ssh_username = $default_admin_user
+    ssh_password = $default_admin_password
+  else
+    ssh_username = $q_struct["admin_username"].value
+    ssh_password = $q_struct["admin_password"].value
+  end
   ssh_wait_timeout = $default_ssh_wait_timeout
   shutdown_command = ""
   if !install_mac.match(/[0-9]/)
@@ -219,66 +224,18 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    "<wait10><wait10><wait10><wait10>"+
                    "<f8>"
   when /sol_10/
-    boot_command = "<wait><enter><wait10><wait10>"+
-                   "4<wait10><wait10><wait10><wait10><wait10><wait10>"+
-                   "<f2><wait>"+
-                   "0<enter><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   install_client+"<f2><wait>"+
-                   install_ip+"<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait10>"+
-                   "<tab><space><f2><wait>"+
-                   $default_gateway_ip+"<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<tab><tab><space><f2><wait>"+
-                   $default_domainname+"<f2><wait>"+
-                   $default_nameserver+"<f2><wait>"+
-                   $default_domainname+"<f2><wait>"+
-                   "<f2><wait>"+
-                   "<tab><space><f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<tab><space><f2><wait>"+
-                   "<space><f2><wait>"+
-                   "<space><f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   $q_struct["root_password"].value+"<tab>"+
-                   $q_struct["root_password"].value+"<f2><wait>"+
-                   "<f2><wait>"+
-                   "<space><f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<down><down><down><down><down><right><space><f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<tab><space><f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<wait10><wait10><wait10><wait10>"+
-                   "<wait10><wait10><wait10><wait10>"+
-                   "<wait10><wait10><wait10><wait10>"+
-                   "<wait10><wait10><wait10><wait10>"+
-                   "<wait10><wait10><wait10><wait10>"+
-                   "<wait10><wait10><wait10><wait10>"+
-                   "<wait10><wait10><wait10><wait10>"+
-                   "<wait10><wait10><wait10><wait10>"
+    shutdown_command = "echo '/usr/sbin/poweroff' > shutdown.sh; pfexec bash -l shutdown.sh"
+    shutdown_timeout = "20m"
+    sysidcfg    = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/sysidcfg"
+    rules       = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/rules"
+    rules_ok    = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/rules.ok"
+    profile     = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/profile"
+    finish      = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/finish"
+    boot_command = "e<wait>"+
+                   "e<wait>"+
+                   "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><wait>"+
+                   "- nowin install -B install_media=cdrom<enter><wait>"+
+                   "b<wait>"
   when /sles/
     ks_file      = install_vm+"/"+install_client+"/"+install_client+".xml"
     ks_url       = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
@@ -294,8 +251,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    " domain="+$default_domainname+
                    "<enter><wait>"
   when /debian|ubuntu/
-    ks_file          = install_vm+"/"+install_client+"/"+install_client+".cfg"
-    ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
+    ks_file = install_vm+"/"+install_client+"/"+install_client+".cfg"
+    ks_url  = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     if install_service.match(/ubuntu_[14,15]/)
       boot_header = "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"+
                     "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>"+
@@ -305,21 +262,21 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     else
       boot_header = "<esc><esc><enter><wait>"
     end
-    boot_command     = boot_header+
-                       "/install/vmlinuz debian-installer/language="+$q_struct["language"].value+
-                       " debian-installer/country="+$q_struct["country"].value+
-                       " keyboard-configuration/layoutcode="+$q_struct["layout"].value+
-                       " interface="+$q_struct["nic"].value+
-                       " netcfg/disable_autoconfig="+$q_struct["disable_autoconfig"].value+
-                       " netcfg/disable_dhcp="+$q_struct["disable_dhcp"].value+
-                       " hostname="+install_client+
-                       " netcfg/get_ipaddress="+install_ip+
-                       " netcfg/get_netmask="+$q_struct["netmask"].value+
-                       " netcfg/get_gateway="+$q_struct["gateway"].value+
-                       " netcfg/get_nameservers="+$q_struct["nameserver"].value+
-                       " netcfg/get_domain="+$q_struct["domain"].value+
-                       " preseed/url="+ks_url+
-                       " initrd=/install/initrd.gz -- <wait><enter><wait>"
+    boot_command = boot_header+
+                   "/install/vmlinuz debian-installer/language="+$q_struct["language"].value+
+                   " debian-installer/country="+$q_struct["country"].value+
+                   " keyboard-configuration/layoutcode="+$q_struct["layout"].value+
+                   " interface="+$q_struct["nic"].value+
+                   " netcfg/disable_autoconfig="+$q_struct["disable_autoconfig"].value+
+                   " netcfg/disable_dhcp="+$q_struct["disable_dhcp"].value+
+                   " hostname="+install_client+
+                   " netcfg/get_ipaddress="+install_ip+
+                   " netcfg/get_netmask="+$q_struct["netmask"].value+
+                   " netcfg/get_gateway="+$q_struct["gateway"].value+
+                   " netcfg/get_nameservers="+$q_struct["nameserver"].value+
+                   " netcfg/get_domain="+$q_struct["domain"].value+
+                   " preseed/url="+ks_url+
+                   " initrd=/install/initrd.gz -- <wait><enter><wait>"
     #shutdown_command = "echo 'shutdown -P now' > /tmp/shutdown.sh ; echo '#{$q_struct["admin_password"].value}'|sudo -S sh '/tmp/shutdown.sh'"
   when /vsphere|esx|vmware/
     ks_file          = install_vm+"/"+install_client+"/"+install_client+".cfg"
@@ -378,7 +335,193 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   image_dir  = client_dir+"/images"
   json_file  = client_dir+"/"+install_client+".json"
   check_dir_exists(client_dir)
-  if install_vm.match(/vbox/)
+  if install_service.match(/sol_10/)
+    if install_vm.match(/vbox/)
+      if $default_vm_network.match(/hostonly|bridged/)
+        json_data = {
+          :variables => {
+            :hostname => install_client
+          },
+          :builders => [
+            :name                 => install_client,
+            :vm_name              => install_client,
+            :type                 => install_type,
+            :guest_os_type        => install_guest,
+            :output_directory     => image_dir,
+            :disk_size            => install_size,
+            :iso_url              => iso_url,
+            :ssh_host             => install_ip,
+            :ssh_port             => "2222",
+            :ssh_username         => ssh_username,
+            :ssh_password         => ssh_password,
+            :ssh_wait_timeout     => ssh_wait_timeout,
+            :shutdown_command     => shutdown_command,
+            :shutdown_timeout     => shutdown_timeout,
+            :iso_checksum         => install_checksum,
+            :iso_checksum_type    => install_checksum_type,
+            :http_directory       => packer_dir,
+            :http_port_min        => $default_httpd_port,
+            :http_port_max        => $default_httpd_port,
+            :boot_command         => boot_command,
+            :format               => output_format,
+            :floppy_files         => [
+              sysidcfg,
+              rules,
+              rules_ok,
+              profile,
+              finish
+            ],
+            :vboxmanage => [
+              [ "modifyvm", "{{.Name}}", "--memory", install_memory ],
+              [ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
+              [ "modifyvm", "{{.Name}}", nic_command1, nic_config1 ],
+              [ "modifyvm", "{{.Name}}", nic_command2, nic_config2 ],
+              [ "modifyvm", "{{.Name}}", "--macaddress1", install_mac ],
+              [ "modifyvm", "{{.Name}}", "--nic2", "nat" ],
+              [ "modifyvm", "{{.Name}}", "--natpf2", "ssh,tcp,127.0.0.1,2222,#{install_ip},22" ],
+            ]
+          ]
+        }
+      else
+        json_data = {
+          :variables => {
+            :hostname => install_client
+          },
+          :builders => [
+            :name                 => install_client,
+            :vm_name              => install_client,
+            :type                 => install_type,
+            :guest_os_type        => install_guest,
+            :hard_drive_interface => $vbox_disk_type,
+            :output_directory     => image_dir,
+            :disk_size            => install_size,
+            :iso_url              => iso_url,
+            :ssh_host             => install_ip,
+            :ssh_username         => ssh_username,
+            :ssh_password         => ssh_password,
+            :ssh_wait_timeout     => ssh_wait_timeout,
+            :shutdown_command     => shutdown_command,
+            :shutdown_timeout     => shutdown_timeout,
+            :iso_checksum         => install_checksum,
+            :iso_checksum_type    => install_checksum_type,
+            :http_directory       => packer_dir,
+            :http_port_min        => $default_httpd_port,
+            :http_port_max        => $default_httpd_port,
+            :boot_command         => boot_command,
+            :floppy_files         => [
+              sysidcfg,
+              rules,
+              rules_ok,
+              profile,
+              finish
+            ],
+            :vboxmanage => [
+              [ "modifyvm", "{{.Name}}", "--memory", install_memory ],
+              [ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
+              [ "modifyvm", "{{.Name}}", "--macaddress1", install_mac ],
+            ]
+          ]
+        }
+      end
+    else
+      if $default_vm_network.match(/hostonly|bridged/)
+        json_data = {
+          :variables => {
+            :hostname => install_client
+          },
+          :builders => [
+            :name                 => install_client,
+            :vm_name              => install_client,
+            :type                 => install_type,
+            :guest_os_type        => install_guest,
+            :output_directory     => image_dir,
+            :disk_size            => install_size,
+            :iso_url              => iso_url,
+            :ssh_host             => install_ip,
+            :ssh_port             => ssh_port,
+            :ssh_username         => ssh_username,
+            :ssh_password         => ssh_password,
+            :ssh_wait_timeout     => ssh_wait_timeout,
+            :shutdown_command     => shutdown_command,
+            :shutdown_timeout     => shutdown_timeout,
+            :iso_checksum         => install_checksum,
+            :iso_checksum_type    => install_checksum_type,
+            :http_directory       => packer_dir,
+            :http_port_min        => $default_httpd_port,
+            :http_port_max        => $default_httpd_port,
+            :boot_command         => boot_command,
+            :floppy_files         => [
+              sysidcfg,
+              rules,
+              rules_ok,
+              profile,
+              finish
+            ],
+            :vmx_data => {
+              :"virtualHW.version"                => hw_version,
+              :"RemoteDisplay.vnc.enabled"        => vnc_enabled,
+              :memsize                            => install_memory,
+              :numvcpus                           => install_cpu,
+              :"vhv.enable"                       => vhv_enabled,
+              :"ethernet0.present"                => ethernet_enabled,
+              :"ethernet0.connectionType"         => install_network,
+              :"ethernet0.virtualDev"             => ethernet_dev,
+              :"ethernet0.addressType"            => ethernet_type,
+              :"ethernet0.address"                => install_mac,
+              :"scsi0.virtualDev"                 => virtual_dev
+            }
+          ]
+        }
+      else
+        json_data = {
+          :variables => {
+            :hostname => install_client
+          },
+          :builders => [
+            :name                 => install_client,
+            :vm_name              => install_client,
+            :type                 => install_type,
+            :guest_os_type        => install_guest,
+            :output_directory     => image_dir,
+            :disk_size            => install_size,
+            :iso_url              => iso_url,
+            :ssh_username         => ssh_username,
+            :ssh_password         => ssh_password,
+            :ssh_wait_timeout     => ssh_wait_timeout,
+            :shutdown_command     => shutdown_command,
+            :shutdown_timeout     => shutdown_timeout,
+            :iso_checksum         => install_checksum,
+            :iso_checksum_type    => install_checksum_type,
+            :http_directory       => packer_dir,
+            :http_port_min        => $default_httpd_port,
+            :http_port_max        => $default_httpd_port,
+            :boot_command         => boot_command,
+            :floppy_files         => [
+              sysidcfg,
+              rules,
+              rules_ok,
+              profile,
+              finish
+            ],
+            :vmx_data => {
+              :"virtualHW.version"                => hw_version,
+              :"RemoteDisplay.vnc.enabled"        => vnc_enabled,
+              :memsize                            => install_memory,
+              :numvcpus                           => install_cpu,
+              :"vhv.enable"                       => vhv_enabled,
+              :"ethernet0.present"                => ethernet_enabled,
+              :"ethernet0.connectionType"         => install_network,
+              :"ethernet0.virtualDev"             => ethernet_dev,
+              :"ethernet0.addressType"            => ethernet_type,
+              :"ethernet0.address"                => install_mac,
+              :"scsi0.virtualDev"                 => virtual_dev
+            }
+          ]
+        }
+      end
+    end
+  end
+  if install_vm.match(/vbox/) and !install_service.match(/sol_10/)
     if $default_vm_network.match(/hostonly|bridged/)
       if install_service.match(/win/)
         json_data = {
@@ -525,7 +668,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
         }
       end
     end
-  else
+  elsif !install_service.match(/sol_10/) 
     if $default_vm_network.match(/hostonly|bridged/)
       if install_service.match(/win/)
         json_data = {
@@ -921,6 +1064,37 @@ def create_packer_ps_install_files(install_client,install_service,install_ip,ins
   return
 end
 
+# Create JS client
+
+def create_packer_js_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_mac,install_type,install_arch,install_file)
+  client_dir  = $client_base_dir+"/packer/"+install_vm+"/"+install_client
+  output_file = client_dir+"/"+install_client+".cfg"
+  check_dir_exists(client_dir)
+  delete_file(output_file)
+  install_version = install_service.split(/_/)[1]
+  install_update  = install_service.split(/_/)[2]
+  install_model   = "vm"
+  populate_js_sysid_questions(install_client,install_ip,install_arch,install_model,install_version,install_update)
+  process_questions(install_service)
+  output_file = client_dir+"/sysidcfg"
+  create_js_sysid_file(install_client,output_file)
+  publisher_host = ""
+  install_karch  = "packer"
+  populate_js_machine_questions(install_model,install_karch,publisher_host,install_service,install_version,install_update,install_file)
+  process_questions(install_service)
+  output_file = client_dir+"/profile"
+  create_js_machine_file(install_client,output_file)
+  output_file   = client_dir+"/rules"
+  create_js_rules_file(install_client,install_karch,output_file)
+  create_rules_ok_file(install_client,client_dir)
+  output_file = client_dir+"/begin"
+  output_file = client_dir+"/profile"
+  output_file = client_dir+"/finish"
+  create_js_finish_file(install_client,output_file)
+  process_questions(install_service)
+  return
+end
+
 # Create AI client
 
 def create_packer_ai_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_mac,install_type)
@@ -1010,7 +1184,7 @@ end
 
 def configure_packer_js_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,install_file,install_memory,install_cpu,
                                install_network,install_license,install_mirror,install_vm,install_type,install_locale,install_label,install_timezone,install_shell)
-  create_packer_ai_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_mac,install_type)
+  create_packer_js_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_mac,install_type,install_arch,install_file)
   return
 end
 

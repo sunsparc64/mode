@@ -9,7 +9,7 @@ def process_questions(service_name)
     correct = 0
     if $q_struct[key].ask.match(/yes/)
       while correct != 1 do
-        if $q_struct[key].value.match(/^get/)
+        if $q_struct[key].value.match(/^get_/)
           new_value            = $q_struct[key].value
           new_value            = eval"[#{new_value}]"
           $q_struct[key].value = new_value.join
@@ -38,6 +38,10 @@ def process_questions(service_name)
                 $q_struct[key].value = answer
               end
             end
+          else
+            if correct == 1
+              $q_struct[key].value = answer
+            end
           end
         else
           answer = $q_struct[key].value
@@ -46,7 +50,7 @@ def process_questions(service_name)
         end
       end
     else
-      if $q_struct[key].value.match(/^get/)
+      if $q_struct[key].value.match(/^get_/)
         new_value            = $q_struct[key].value
         new_value            = eval"[#{new_value}]"
         $q_struct[key].value = new_value.join

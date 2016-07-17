@@ -108,8 +108,10 @@ def set_js_fs()
   fs_name = ""
   if $q_struct["root_fs"].value.downcase.match(/zfs/)
     ["memory_size","disk_size","swap_size","root_metadb","mirror_metadb","metadb_size","metadb_count"].each do |key|
-      $q_struct[key].ask  = "no"
-      $q_struct[key].type = ""
+      if $q_struct[key]
+        $q_struct[key].ask  = "no"
+        $q_struct[key].type = ""
+      end
     end
   else
     $q_struct["zfs_layout"].ask  = "no"
