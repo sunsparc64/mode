@@ -34,7 +34,9 @@ and HTTP based install services, eg:
 - Simplify creation of Packer images
 - Deploy Virtual Center Server Appliance
 - Simplify creation and build of VMs with Packer 
-  - Linux, Solaris 10, Solaris 11, Windows 2008 R2, and Windows 2012 R2
+  - Linux (RHEL, OEL, SuSE, Ubuntu, CentOS, Fedora, Scientific)
+  - Solaris 10 & 11
+  - Windows 2008 R2 & 2012 R2
 
 This script is a wrapper which sits on top of the exisitng tools. It changes
 defaults to be more suitable to customer environments, and sanity checks server
@@ -85,7 +87,9 @@ Features
 Packer support
 
 - Simplify creation of Packer images for VirtualBox and VMware Fusion
-- Currently supports Linux, Windows 2008 R2, and Windows 2012 R2
+- Currently supports Solaris 10, Solaris 11, 
+  Linux (RHEL, OEL, SuSE, Ubuntu, CentOS, Fedorac, Scientific), 
+  Windows 2008 R2, and Windows 2012 R2
 
 Linux Container Creation
 
