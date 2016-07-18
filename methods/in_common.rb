@@ -75,9 +75,7 @@ def check_osx_ovftool()
   ovftool_bin = "/Applications/VMware OVF Tool/ovftool"
   if !File.exist?(ovftool_bin)
     puts "Warning:\tOVF Tool not installed"
-    message = "Fetching "+$ovftool_dmg_url+" to "+ovftool_dmg
-    command = "wget #{$ovftool_dmg_url} -O #{ovftool_dmg}"
-    execute_command(message,command)
+    wget_file($ovftool_dmg_url,ovftool_dmg)
     puts "Information:\tInstalling OVF Tool"
     ovftool_dmg = $ovftool_dmg_url.split(/\?/)[0]
     ovftool_dmg = File.basename(ovftool_dmg)
@@ -1451,10 +1449,15 @@ end
 
 def wget_file(file_url,file_name)
   if $download_mode == 1
+    wget_test = %[which wget].chomp
+    if wget_test.match(/bin/)
+      command  = "wget #{file_url} -O #{file_name}"
+    else
+      command  = "curl -o #{file_name } #{file_url}"
+    end
     file_dir = File.dirname(file_name)
     check_dir_exists(file_dir)
     message  = "Fetching:\tURL "+file_url+" to "+file_name
-    command  = "wget #{file_url} -O #{file_name}"
     execute_command(message,command)
   end
   return

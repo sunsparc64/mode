@@ -14,9 +14,7 @@ def check_packer_is_installed()
 		end
 		tmp_file = "/tmp/"+packer_bin
 		if !File.exist?(tmp_file)
-			message = "Information:\tFetching Packer from "+packer_url
-			command = "wget -O #{tmp_file} #{packer_url}"
-			execute_command(message,command)
+			wget_file(packer_url,tmp_file)
 		end
 		if !File.directory?("/usr/local/bin") and !File.symlink?("/usr/local/bin")
 			message = "Information:\tCreating /usr/local/bin"

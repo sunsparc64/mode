@@ -149,38 +149,41 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   when /sol_11_[2,3]/
     boot_command = "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
                    "27<enter><wait>"+
                    "3<enter><wait>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
-                   "1<enter><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "1<enter><wait10><wait10>"+
                    "<f2><wait10>"+
                    "<f2><wait10>"+
                    "<f2><wait10>"+
                    "<f2><wait10>"+
-                   "<bs><bs><bs><bs><bs><bs><bs>"+install_client+
-                   "<f2><wait>"+
+                   "<bs><bs><bs><bs><bs><bs><bs>"+install_client+"<wait>"+
+                   "<f2><wait10>"+
                    "<tab><f2><wait>"+
-                   install_ip+"<tab><tab>"+
-                   $default_gateway_ip+"<f2><wait>"+
+                   install_ip+"<wait><tab><wait><tab>"+
+                   $default_gateway_ip+"<wait><f2><wait>"+
                    "<f2><wait>"+
-                   $default_nameserver+"<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   $q_struct["root_password"].value+"<tab>"+
-                   $q_struct["root_password"].value+"<tab>"+
-                   $q_struct["admin_username"].value+"<tab>"+
-                   $q_struct["admin_username"].value+"<tab>"+
-                   $q_struct["admin_password"].value+"<tab>"+
-                   $q_struct["admin_password"].value+"<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
+                   $default_nameserver+"<wait><f2><wait>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   $q_struct["root_password"].value+"<wait><tab><wait>"+
+                   $q_struct["root_password"].value+"<wait><tab><wait>"+
+                   $q_struct["admin_username"].value+"<wait><tab><wait>"+
+                   $q_struct["admin_username"].value+"<wait><tab><wait>"+
+                   $q_struct["admin_password"].value+"<wait><tab><wait>"+
+                   $q_struct["admin_password"].value+"<wait><f2><wait>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
@@ -204,34 +207,37 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   when /sol_11_[0,1]/
     boot_command = "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
                    "27<enter><wait>"+
                    "3<enter><wait>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
-                   "1<enter><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
+                   "1<enter><wait10><wait10>"+
                    "<f2><wait10>"+
                    "<f2><wait10>"+
                    "<f2><wait10>"+
                    "<f2><wait10>"+
-                   "<bs><bs><bs><bs><bs><bs><bs>"+install_client+
-                   "<tab><tab><f2><wait>"+
-                   install_ip+"<tab><tab>"+
-                   $default_gateway_ip+"<f2><wait>"+
+                   "<bs><bs><bs><bs><bs><bs><bs>"+install_client+"<wait>"+
+                   "<tab><tab><f2><wait10>"+
+                   install_ip+"<wait><tab><wait><tab>"+
+                   $default_gateway_ip+"<wait><f2><wait>"+
                    "<f2><wait>"+
-                   $default_nameserver+"<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   $q_struct["root_password"].value+"<tab>"+
-                   $q_struct["root_password"].value+"<tab>"+
-                   $q_struct["admin_username"].value+"<tab>"+
-                   $q_struct["admin_username"].value+"<tab>"+
-                   $q_struct["admin_password"].value+"<tab>"+
-                   $q_struct["admin_password"].value+"<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
-                   "<f2><wait>"+
+                   $default_nameserver+"<wait><f2><wait>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   $q_struct["root_password"].value+"<wait><tab><wait>"+
+                   $q_struct["root_password"].value+"<wait><tab><wait>"+
+                   $q_struct["admin_username"].value+"<wait><tab><wait>"+
+                   $q_struct["admin_username"].value+"<wait><tab><wait>"+
+                   $q_struct["admin_password"].value+"<wait><tab><wait>"+
+                   $q_struct["admin_password"].value+"<wait><f2><wait>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   "<f2><wait10>"+
+                   "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
@@ -938,12 +944,22 @@ def unconfigure_packer_client(install_client,install_vm)
 	return
 end
 
+# Kill off any existing packer processes for a client
+# some times dead packer processes are left running which stop the build process starting
+
+def kill_packer_processes(install_client)
+  puts "Information:\tMaking sure no existing Packer processes are running for "+install_client
+  %x[ps -ef |grep packer |grep "#{install_client}.json" |awk '{print $2}' |xargs kill]
+  return
+end
+
 # Create a packer config
 
 def configure_packer_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,install_ip,install_model,
                             publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,
                             install_mirror,install_size,install_type,install_locale,install_label,install_timezone,install_shell)
 
+  kill_packer_processes(install_client)
   if !$default_host.match(/[0-9,a-z,A-Z]/)
     $default_host = get_default_host()
   end
@@ -974,7 +990,7 @@ end
 def build_packer_config(install_client,install_vm)
   exists = eval"[check_#{install_vm}_vm_exists(install_client)]"
   if exists.to_s.match(/yes/)
-    puts "Warning:\t"+install_vm.upcase+" VM "+install_client+" already exists "
+    puts "Warning:\t"+install_vm.capitalize+" VM "+install_client+" already exists "
     exit
   end
   exists = check_packer_image_exists(install_client,install_vm)

@@ -457,7 +457,7 @@ end
 # List Solaris AI VMware Fusion VMs
 
 def list_ai_fusion_vms()
-  search_string = "solaris11"
+  search_string = "solaris10"
   list_fusion_vms(search_string)
   return
 end
@@ -852,7 +852,7 @@ end
 # Get VMware Fusion Guest OS name
 
 def get_ai_fusion_guest_os(install_arch)
-  install_os = "solaris11-64"
+  install_os = "solaris10-64"
   return install_os
 end
 

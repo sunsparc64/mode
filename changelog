@@ -725,3 +725,5 @@
 # Added sudo configuration to Packer Solaris 11 post install
 # 3.6.2: Mon 18 Jul 2016 11:46:26 AEST
 # Added code to attempt install gems if they are not installed
+# 3.6.3: Mon 18 Jul 2016 16:24:08 AEST
+# Various Packer tweaks

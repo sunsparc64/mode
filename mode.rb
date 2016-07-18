@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.6.2
+# Version:      3.6.3
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -66,6 +66,11 @@ begin
   require 'ipaddr'
 rescue LoadError
   install_gem("ipaddr")
+end
+begin
+  require 'fileutils'
+rescue LoadError
+  install_gem("fileutils")
 end
 
 begin
@@ -600,9 +605,7 @@ def check_local_config(install_mode)
   $rpm2cpio_bin=bin_dir+"/rpm2cpio"
   if !File.exist?($rpm2cpio_bin)
     if $download_mode == 1
-      message = "Fetching:\tTool rpm2cpio"
-      command = "wget \"#{$rpm2cpio_url}\" -O #{$rpm2cpio_bin} ; chown #{$id} #{$rpm2cpio_bin} ; chmod +x #{$rpm2cpio_bin}"
-      execute_command(message,command)
+      wget_file($rpm2cpio_url,$rpm2cpio_bin)
       if File.exist?($rpm2cpio_bin)
         system("chmod +x #{$rpm2cpio_bin}")
       end

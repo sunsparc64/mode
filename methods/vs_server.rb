@@ -81,9 +81,7 @@ def configure_vs_repo(iso_file,repo_version_dir,install_service)
   client_dir = $client_base_dir+"/"+install_service
   ovf_file   = client_dir+"/vmware-ovftools.tar.gz"
   if !File.exist(ovf_file)
-    message = "Information:\tFetching "+$ovftool_tar_url+" to "+ovf_file
-    command = "wget \"#{$ovftool_tar_url}\" -O #{ovf_file}"
-    execute_command(message,command)
+    wget_file($ovftool_tar_url,ovf_file)
     if $os_info.match(/RedHat/) and $os_ver.match(/^7|^6\.7/)
       message = "Information:\tFixing permission on "+ovf_file
       command = "chcon -R -t httpd_sys_rw_content_t #{ovf_file}"
