@@ -56,6 +56,8 @@ end
 # Configure Packer JSON file
 
 def create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu,install_network,install_mac,install_ip,install_label)
+  tools_upload_flavor = ""
+  tools_upload_path   = ""
   nic_command1     = ""
   nic_command2     = ""
   nic_config1      = ""
@@ -130,9 +132,10 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   end
   case install_service
   when /win/
-    shutdown_command = "shutdown /s /t 1 /c \"Packer Shutdown\" /f /d p:4:1"
-    unattended_xml   = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/Autounattend.xml"
-    post_install_psh = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/post_install.ps1"
+    tools_upload_flavor = "windows"
+    shutdown_command    = "shutdown /s /t 1 /c \"Packer Shutdown\" /f /d p:4:1"
+    unattended_xml      = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/Autounattend.xml"
+    post_install_psh    = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/post_install.ps1"
     if install_label.match(/2012/)
       if install_vm.match(/fusion/)
         install_guest = "windows8srv-64"
@@ -147,6 +150,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
       end
     end
   when /sol_11_[2,3]/
+    tools_upload_flavor = "solaris"
+    tools_upload_path   = "/export/home/"+$q_struct["admin_username"].value
     boot_command = "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
@@ -203,8 +208,12 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    "echo '"+$q_struct["admin_password"].value+"' |sudo -Sv<enter><wait>"+
                    "sudo sh -c \"echo '"+$q_struct["admin_username"].value+" ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers\"<enter><wait>"+
                    "sudo sh -c \"/usr/gnu/bin/sed -i 's/^.*requiretty/#Defaults requiretty/' /etc/sudoers\"<enter><wait>"+
+                   "sudo sh -c \"/usr/sbin/svcadm disable sendmail\"<enter><wait>"+
+                   "sudo sh -c \"/usr/sbin/svcadm disable asr-notify\"<enter><wait>"+
                    "exit<enter><wait>"
   when /sol_11_[0,1]/
+    tools_upload_flavor = "solaris"
+    tools_upload_path   = "/export/home/"+$q_struct["admin_username"].value
     boot_command = "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
@@ -257,10 +266,14 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    "echo '"+$q_struct["admin_password"].value+"' |sudo -Sv<enter><wait>"+
                    "sudo sh -c \"echo '"+$q_struct["admin_username"].value+" ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers\"<enter><wait>"+
                    "sudo sh -c \"/usr/gnu/bin/sed -i 's/^.*requiretty/#Defaults requiretty/' /etc/sudoers\"<enter><wait>"+
+                   "sudo sh -c \"/usr/sbin/svcadm disable sendmail\"<enter><wait>"+
+                   "sudo sh -c \"/usr/sbin/svcadm disable asr-notify\"<enter><wait>"+
                    "exit<enter><wait>"
   when /sol_10/
-    shutdown_command = "echo '/usr/sbin/poweroff' > shutdown.sh; pfexec bash -l shutdown.sh"
-    shutdown_timeout = "20m"
+    tools_upload_flavor = "solaris"
+    tools_upload_path   = "/export/home/"+$q_struct["admin_username"].value
+    shutdown_command    = "echo '/usr/sbin/poweroff' > shutdown.sh; pfexec bash -l shutdown.sh"
+    shutdown_timeout    = "20m"
     sysidcfg    = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/sysidcfg"
     rules       = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/rules"
     rules_ok    = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/rules.ok"
@@ -272,6 +285,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    "- nowin install -B install_media=cdrom<enter><wait>"+
                    "b<wait>"
   when /sles/
+    tools_upload_flavor = "linux"
+    tools_upload_path   = "/home/"+$q_struct["admin_username"].value
     ks_file      = install_vm+"/"+install_client+"/"+install_client+".xml"
     ks_url       = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     boot_command = "<esc><enter><wait> linux text install=cd:/ textmode=1 insecure=1"+
@@ -286,6 +301,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    " domain="+$default_domainname+
                    "<enter><wait>"
   when /debian|ubuntu/
+    tools_upload_flavor = "linux"
+    tools_upload_path   = "/home/"+$q_struct["admin_username"].value
     ks_file = install_vm+"/"+install_client+"/"+install_client+".cfg"
     ks_url  = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     if install_service.match(/ubuntu_[14,15]/)
@@ -322,6 +339,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     shutdown_command = "esxcli system maintenanceMode set -e true -t 0 ; esxcli system shutdown poweroff -d 10 -r 'Packer Shutdown' ; esxcli system maintenanceMode set -e false -t 0"
     ssh_wait_timeout = "1200s"
   when /fedora/
+    tools_upload_flavor = "linux"
+    tools_upload_path   = "/home/"+$q_struct["admin_username"].value
     ks_file          = install_vm+"/"+install_client+"/"+install_client+".cfg"
     ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     boot_command     = "<tab><wait><bs><bs><bs><bs><bs><bs>=0 inst.text inst.method=cdrom inst.repo=cdrom:/dev/sr0 inst.sshd inst.ks="+ks_url+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<enter><wait>"
@@ -485,6 +504,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :http_port_min        => $default_httpd_port,
             :http_port_max        => $default_httpd_port,
             :boot_command         => boot_command,
+            :tools_upload_flavor  => tools_upload_flavor,
+            :tools_upload_path    => tools_upload_path,
             :floppy_files         => [
               sysidcfg,
               rules,
@@ -531,6 +552,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :http_port_min        => $default_httpd_port,
             :http_port_max        => $default_httpd_port,
             :boot_command         => boot_command,
+            :tools_upload_flavor  => tools_upload_flavor,
+            :tools_upload_path    => tools_upload_path,
             :floppy_files         => [
               sysidcfg,
               rules,
@@ -740,6 +763,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :http_port_min        => $default_httpd_port,
             :http_port_max        => $default_httpd_port,
             :boot_command         => boot_command,
+            :tools_upload_flavor  => tools_upload_flavor,
+            :tools_upload_path    => tools_upload_path,
             :floppy_files         => [
               unattended_xml,
               post_install_psh
@@ -785,6 +810,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :http_port_min        => $default_httpd_port,
             :http_port_max        => $default_httpd_port,
             :boot_command         => boot_command,
+            :tools_upload_flavor  => tools_upload_flavor,
+            :tools_upload_path    => tools_upload_path,
             :vmx_data => {
               :"virtualHW.version"                => hw_version,
               :"RemoteDisplay.vnc.enabled"        => vnc_enabled,
@@ -825,6 +852,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :winrm_insecure       => winrm_insecure,
             :shutdown_timeout     => shutdown_timeout,
             :shutdown_command     => shutdown_command,
+            :tools_upload_flavor  => tools_upload_flavor,
+            :tools_upload_path    => tools_upload_path,
             :floppy_files         => [
               unattended_xml,
               post_install_psh
@@ -868,6 +897,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :http_port_min        => $default_httpd_port,
             :http_port_max        => $default_httpd_port,
             :boot_command         => boot_command,
+            :tools_upload_flavor  => tools_upload_flavor,
+            :tools_upload_path    => tools_upload_path,
             :vmx_data => {
               :"virtualHW.version"                => hw_version,
               :"RemoteDisplay.vnc.enabled"        => vnc_enabled,
