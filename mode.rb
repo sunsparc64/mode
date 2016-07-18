@@ -20,6 +20,12 @@
 # - Swapped Dir.home for ENV["HOME"] so ruby 2.x is not required
 
 require 'rubygems'
+require 'pathname'
+require 'ipaddr'
+require 'uri'
+require 'socket'
+require 'net/http'
+require 'terminfo'
 
 def install_gem(gem_name)
   puts "Information:\tInstalling #{gem_name}"
@@ -48,11 +54,6 @@ rescue LoadError
   install_gem("unix-crypt")
 end
 begin
-  require 'pathname'
-rescue LoadError
-  install_gem("pathname")
-end
-begin
   require 'netaddr'
 rescue LoadError
   install_gem("netaddr")
@@ -61,11 +62,6 @@ begin
   require 'json'
 rescue LoadError
   install_gem("json")
-end
-begin
-  require 'ipaddr'
-rescue LoadError
-  install_gem("ipaddr")
 end
 begin
   require 'fileutils'
@@ -77,11 +73,7 @@ begin
   require 'net/ssh'
   require 'nokogiri'
   require 'mechanize'
-  require 'uri'
-  require 'socket'
-  require 'net/http'
   require 'net/scp'
-  require 'terminfo'
 rescue LoadError
 end
 
