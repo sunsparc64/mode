@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.6.1
+# Version:      3.6.2
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -20,15 +20,53 @@
 # - Swapped Dir.home for ENV["HOME"] so ruby 2.x is not required
 
 require 'rubygems'
-require 'getopt/long'
-require 'builder'
-require 'parseconfig'
-require 'unix_crypt'
-require 'pathname'
-require 'netaddr'
-require 'json'
-require 'pathname'
-require 'ipaddr'
+
+def install_gem(gem_name)
+  puts "Information:\tInstalling #{gem_name}"
+  %x[gem install #{gem_name}]
+  Gem.clear_paths
+end
+
+begin
+  require 'getopt/long'
+rescue LoadError
+  install_gem("getopt")
+end
+begin
+  require 'builder'
+rescue LoadError
+  install_gem("builder")
+end
+begin
+  require 'parseconfig'
+rescue LoadError
+  install_gem("parseconfig")
+end
+begin
+  require 'unix_crypt'
+rescue LoadError
+  install_gem("unix-crypt")
+end
+begin
+  require 'pathname'
+rescue LoadError
+  install_gem("pathname")
+end
+begin
+  require 'netaddr'
+rescue LoadError
+  install_gem("netaddr")
+end
+begin
+  require 'json'
+rescue LoadError
+  install_gem("json")
+end
+begin
+  require 'ipaddr'
+rescue LoadError
+  install_gem("ipaddr")
+end
 
 begin
   require 'net/ssh'
@@ -307,6 +345,7 @@ end
 # Calculate CIDR
 
 def netmask_to_cidr(netmask)
+  require 'netaddr'
   cidr = NetAddr::CIDR.create('0.0.0.0/'+netmask).netmask
   return cidr
 end
