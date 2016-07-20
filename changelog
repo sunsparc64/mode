@@ -727,3 +727,5 @@
 # Added code to attempt install gems if they are not installed
 # 3.6.3: Mon 18 Jul 2016 16:24:08 AEST
 # Various Packer tweaks
+# 3.6.4: Thu 21 Jul 2016 02:01:14 AEST
+# Fixed bugs with ESXi support

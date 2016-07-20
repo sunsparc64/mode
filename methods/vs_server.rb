@@ -57,7 +57,8 @@ end
 def configure_vs_repo(iso_file,repo_version_dir,install_service)
   if $os_name.match(/SunOS/)
     check_fs_exists(repo_version_dir)
-    if !File.symlink?(netboot_repo_dir)
+    netboot_repo_dir = $tftp_dir+"/"+install_service
+    if !File.symlink?(repo_version_dir)
       File.symlink(repo_version_dir,netboot_repo_dir)
     end
   end
@@ -80,7 +81,7 @@ def configure_vs_repo(iso_file,repo_version_dir,install_service)
   end
   client_dir = $client_base_dir+"/"+install_service
   ovf_file   = client_dir+"/vmware-ovftools.tar.gz"
-  if !File.exist(ovf_file)
+  if !File.exist?(ovf_file)
     wget_file($ovftool_tar_url,ovf_file)
     if $os_info.match(/RedHat/) and $os_ver.match(/^7|^6\.7/)
       message = "Information:\tFixing permission on "+ovf_file

@@ -283,7 +283,7 @@ def get_install_service_from_file(install_file)
     service_name    = "vsphere"
     service_version = install_file.split(/-/)[4..5].join(".").gsub(/\./,"_").gsub(/_iso/,"")
     install_method  = "vs"
-    install_release = install_file.split(/-/)[3..4].gsub(/\.x86_64\.iso/,"")
+    install_release = install_file.split(/-/)[3..4].join.gsub(/\.x86_64\.iso/,"")
   when /CentOS/
     service_name    = "centos"
     service_version = install_file.split(/-/)[1..2].join(".").gsub(/\./,"_").gsub(/_iso/,"")
@@ -2125,6 +2125,8 @@ def mount_iso(iso_file)
     end
   else
     case iso_file
+    when /VM/
+      iso_test_dir = $iso_mount_dir+"/upgrade"
     when /Win|Srv|[0-9][0-9][0-9][0-9]/
       iso_test_dir = $iso_mount_dir+"/sources"
     when /SLE/
@@ -2139,8 +2141,6 @@ def mount_iso(iso_file)
       end
     when /VCSA/
       iso_test_dir = $iso_mount_dir+"/vcsa"
-    when /VM/
-      iso_test_dir = $iso_mount_dir+"/upgrade"
     when /install|FreeBSD/
       iso_test_dir = $iso_mount_dir+"/etc"
     when /coreos/

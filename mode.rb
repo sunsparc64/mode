@@ -25,7 +25,6 @@ require 'ipaddr'
 require 'uri'
 require 'socket'
 require 'net/http'
-require 'terminfo'
 
 def install_gem(gem_name)
   puts "Information:\tInstalling #{gem_name}"
@@ -74,6 +73,7 @@ begin
   require 'nokogiri'
   require 'mechanize'
   require 'net/scp'
+  require 'terminfo'
 rescue LoadError
 end
 
