@@ -729,3 +729,5 @@
 # Various Packer tweaks
 # 3.6.4: Thu 21 Jul 2016 02:01:14 AEST
 # Fixed bugs with ESXi support
+# 3.6.5: Fri 22 Jul 2016 07:57:03 AEST
+# Bug fixes

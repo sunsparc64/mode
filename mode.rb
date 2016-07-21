@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.6.3
+# Version:      3.6.5
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -2012,7 +2012,7 @@ if option["action"]
           if !install_method.match(/[a-z]/)
             install_method = get_install_method(install_client,install_service)
           end
-          if !install_type.match(/packer/) and install_mode.match(/server/)
+          if !install_type.match(/packer/)
             check_dhcpd_config(publisher_host)
           end
           if !install_network.match(/nat/)
@@ -2024,14 +2024,24 @@ if option["action"]
                               publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,
                               install_size,install_type,install_locale,install_label,install_timezone,install_shell)]"
           else
-            if install_method.match(/server/)
-              check_local_config("server")
-              if !install_model.match(/[a-z]/)
-                install_model       = "vmware"
-                $default_slice_size = "4192"
+            if install_vm.match(/none/)
+              if !install_method.match(/[a-z]/)
+                if install_ip.match(/[0-9]/)
+                  check_local_config("client")
+                  add_hosts_entry(install_client,install_ip)
+                end
+                if install_mac.match(/[0-9]|[a-f]|[A-F]/)
+                  install_service = ""
+                  add_dhcp_client(install_client,install_mac,install_ip,install_arch,install_service)
+                end
+              else
+                if !install_model.match(/[a-z]/)
+                  install_model       = "vmware"
+                  $default_slice_size = "4192"
+                end
+                eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,
+                                  install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type,install_vm)]"
               end
-              eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,
-                                install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type,install_vm)]"
             else
               if install_vm.match(/fusion|vbox|parallels/)
                 create_vm(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount,install_ip)
@@ -2042,16 +2052,6 @@ if option["action"]
               end
               if install_vm.match(/cdom/)
                 configure_cdom(publisher_host)
-              end
-              if install_vm.match(/none/)
-                if install_ip.match(/[0-9]/)
-                  check_local_config("client")
-                  add_hosts_entry(install_client,install_ip)
-                end
-                if install_mac.match(/[0-9]|[a-f]|[A-F]/)
-                  install_service = ""
-                  add_dhcp_client(install_client,install_mac,install_ip,install_arch,install_service)
-                end
               end
             end
           end

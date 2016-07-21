@@ -1417,6 +1417,10 @@ end
 def remove_dhcp_client(client_name)
   found     = 0
   copy      = []
+  if !File.exist?($dhcpd_file)
+    puts "Warning:\tFile "+$dhcpd_file+" does not exist"
+    exit
+  end
   file_info = IO.readlines($dhcpd_file)
   file_info.each do |line|
     if line.match(/^host #{client_name}/)

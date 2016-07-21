@@ -176,9 +176,9 @@ end
 # Configure VSphere client
 
 def configure_vs_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
-                        install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)
+                        install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type,install_vm)
   repo_version_dir=$repo_base_dir+"/"+install_service
-  if !File.directory?(repo_version_dir)
+  if !File.directory?(repo_version_dir) and !File.symlink?(repo_version_dir)
     puts "Information:\tWarning service "+install_service+" does not exist"
     puts
     list_vs_services()
