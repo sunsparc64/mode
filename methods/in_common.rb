@@ -2028,11 +2028,7 @@ def add_apache_alias(service_base_name)
       execute_command(message,command)
       output = File.open(tmp_file,"a")
       output.write("<Directory #{apache_alias_dir}>\n")
-      if service_base_name.match(/oel/)
-        output.write("Options Indexes FollowSymLinks\n")
-      else
-        output.write("Options Indexes\n")
-      end
+      output.write("Options Indexes FollowSymLinks\n")
       output.write("Allow from #{$default_apache_allow}\n")
       output.write("</Directory>\n")
       output.write("Alias /#{service_base_name} #{apache_alias_dir}\n")
