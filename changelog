@@ -735,3 +735,5 @@
 # More bug fixes
 # 3.6.7: Sun 24 Jul 2016 14:17:09 AEST
 # Fixed a bug with multiple vcpu entries being put in vmx file
+# 3.6.8: Sun 24 Jul 2016 18:20:58 AEST
+# Initial support for building ESXi under Packer

@@ -281,9 +281,10 @@ def get_install_service_from_file(install_file)
     install_arch    = "x86_64"
   when /VMvisor-Installer/
     service_name    = "vsphere"
-    service_version = install_file.split(/-/)[4..5].join(".").gsub(/\./,"_").gsub(/_iso/,"")
+    install_arch    = "x86_64"
+    service_version = install_file.split(/-/)[3].gsub(/\./,"_")+"_"+install_arch
     install_method  = "vs"
-    install_release = install_file.split(/-/)[3..4].join.gsub(/\.x86_64\.iso/,"")
+    install_release = install_file.split(/-/)[3].gsub(/update/,"")
   when /CentOS/
     service_name    = "centos"
     service_version = install_file.split(/-/)[1..2].join(".").gsub(/\./,"_").gsub(/_iso/,"")

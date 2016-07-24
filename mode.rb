@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.6.7
+# Version:      3.6.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -824,7 +824,12 @@ if install_action.match(/build/)
     end
   end
   if !option["vm"]
-    option["vm"] = get_client_vm_type(install_client)
+    if !option["client"]
+      puts "Warning:\tNo client name given"
+      exit
+    end
+    install_client = option["client"]
+    option["vm"] = get_client_vm_type_from_packer(install_client)
   end
   if !option["vm"].match(/[a-z]/)
     puts "Warning:\tVM type not specified"

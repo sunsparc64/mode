@@ -1,10 +1,28 @@
 # Packer client related commands
 
+# Get packer vm type
+
+def get_client_vm_type_from_packer(install_client)
+  packer_dir = $client_base_dir+"/packer"
+  install_vm = ""
+  [ "vbox", "fusion" ].each do |test_vm|
+    test_dir = packer_dir+"/"+test_vm+"/"+install_client
+    if File.directory?(test_dir)
+      return test_vm
+    end
+  end
+  return install_vm
+end
+
+# Get packer client directory
+
 def get_packer_client_dir(install_client,install_vm)
   packer_dir = $client_base_dir+"/packer"
   client_dir = packer_dir+"/"+install_vm+"/"+install_client
   return client_dir
 end
+
+# check if packer VM image exists
 
 def check_packer_vm_image_exists(install_client,install_vm)
   client_dir = get_packer_client_dir(install_client,install_vm)
@@ -114,10 +132,15 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     admin_username = $default_admin_user
     admin_password = $default_admin_password
   else
-    ssh_username   = $q_struct["admin_username"].value
-    ssh_password   = $q_struct["admin_password"].value
-    admin_username = $q_struct["admin_username"].value
-    admin_password = $q_struct["admin_password"].value
+    if install_service.match(/vsphere/)
+      ssh_username   = "root"
+      ssh_password   = $q_struct["root_password"].value
+    else
+      ssh_username   = $q_struct["admin_username"].value
+      ssh_password   = $q_struct["admin_password"].value
+      admin_username = $q_struct["admin_username"].value
+      admin_password = $q_struct["admin_password"].value
+    end
   end
   if !install_service.match(/win/)
     root_password = $q_struct["root_password"].value
@@ -1049,7 +1072,7 @@ end
 
 # Create vSphere Packer client
 
-def create_packer_vs_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license,install_type)
+def create_packer_vs_install_files(install_client,install_service,install_ip,publisher_host,install_vm,install_license,install_mac,install_type)
   client_dir  = $client_base_dir+"/packer/"+install_vm+"/"+install_client
   output_file = client_dir+"/"+install_client+".cfg"
   check_dir_exists(client_dir)
