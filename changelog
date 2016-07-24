@@ -733,3 +733,5 @@
 # Bug fixes
 # 3.6.6: Sun 24 Jul 2016 13:34:04 AEST
 # More bug fixes
+# 3.6.7: Sun 24 Jul 2016 14:17:09 AEST
+# Fixed a bug with multiple vcpu entries being put in vmx file
