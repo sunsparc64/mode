@@ -118,8 +118,8 @@ def list_vms(install_vm,install_type)
           eval"[list_#{vm_type}_vms(install_type)]"
         end
       when /vbox/
-        vbox_test = %x[which VBoxManage].chomp
-        if vbox_test.match(/VBoxManage/) and !vbox_test.match(/no /)
+        set_vboxmanage_bin()
+        if $vboxmanage_bin.match(/[a-z]/)
           eval"[list_#{vm_type}_vms(install_type)]"
         end
       else

@@ -428,7 +428,7 @@ end
 # Generate MAC address
 
 def generate_mac_address(install_vm)
-  if install_vm.match(/fusion/)
+  if install_vm.match(/fusion|vm/)
     install_mac = "00:05:"+(1..4).map{"%0.2X"%rand(256)}.join(":")
   else
     install_mac = (1..6).map{"%0.2X"%rand(256)}.join(":")
@@ -1641,7 +1641,13 @@ def execute_command(message,command)
       puts "Executing:\t"+command
     end
     if $execute_host.match(/localhost/)
-      output = %x[#{command}]
+      if command.match(/VBoxManage/)
+        if $vboxmanage_bin.match(/[a-z]/)
+          output = %x[#{command}]
+        end
+      else
+        output = %x[#{command}]
+      end
     else
       Net::SSH.start(hostname, username, :password => password, :paranoid => false) do |ssh_session|
         output = ssh_session.exec!(command)

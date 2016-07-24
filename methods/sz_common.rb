@@ -1,6 +1,21 @@
 
 # Solaris Zones support code
 
+# Check we are on Solaris 10 or later
+
+def check_zone_is_installed()
+  if $os_name.match(/SunOS/)
+    if $os_rel.split(/\./)[0].to_i > 10
+      exists = "yes"
+    else
+      exists = "no"
+    end
+  else
+    exists = "no"
+  end
+  return exists
+end
+
 # List zone services
 
 def list_zone_services()

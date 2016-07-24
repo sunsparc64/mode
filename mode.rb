@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.6.5
+# Version:      3.6.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1168,7 +1168,15 @@ if option["service"]
     if !option["mac"] and !option["action"].match(/build|list|import|delete/)
       puts "Warning:\tNo MAC Address given"
       puts "Information:\tGenerating MAC Address"
-      option["mac"] = generate_mac_address(install_vm)
+      if install_vm
+        if install_vm.match(/[a-z]/)
+          option["mac"] = generate_mac_address(install_vm)
+        else
+          option["mac"] = generate_mac_address(install_client)
+        end
+      else
+        option["mac"] = generate_mac_address(install_method)
+      end
       install_mac   = option["mac"]
     end
   end
@@ -2039,6 +2047,7 @@ if option["action"]
                   install_model       = "vmware"
                   $default_slice_size = "4192"
                 end
+                check_local_config("server")
                 eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,
                                   install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type,install_vm)]"
               end

@@ -177,16 +177,19 @@ end
 # List running VMs
 
 def list_running_vbox_vms()
-  vm_list = %x[VBoxManage list runningvms].split("\n")
-  puts
-  puts "Running VirtualBox VMs:"
-  puts
-  vm_list.each do |vm_name|
-    vm_name = vm_name.split(/"/)[1]
-    os_info = %x[VBoxManage showvminfo "#{vm_name}" |grep '^Guest OS' |cut -f2 -d:].chomp.gsub(/^\s+/,"")
-    puts vm_name+"\t"+os_info
+  set_vboxmanage_bin()
+  if $vboxmanage_bin.match(/[a-z]/)
+    vm_list = %x[VBoxManage list runningvms].split("\n")
+    puts
+    puts "Running VirtualBox VMs:"
+    puts
+    vm_list.each do |vm_name|
+      vm_name = vm_name.split(/"/)[1]
+      os_info = %x[VBoxManage showvminfo "#{vm_name}" |grep '^Guest OS' |cut -f2 -d:].chomp.gsub(/^\s+/,"")
+      puts vm_name+"\t"+os_info
+    end
+    puts
   end
-  puts
   return
 end
 
@@ -244,7 +247,9 @@ def clone_vbox_vm(install_client,new_name,install_mac,client_ip)
     puts "Warning:\tVirtualBox VM "+install_client+" does not exist"
     exit
   end
-  %x[VBoxManage clonevm #{install_client} --name #{new_name} --register]
+  message = "Information:\tCloning VM "+install_client+" to "+new_name
+  command = "VBoxManage clonevm #{install_client} --name #{new_name} --register"
+  execute_command(message,command)
   if client_ip.match(/[0-9]/)
     add_hosts_entry(new_name,client_ip)
   end
@@ -297,15 +302,18 @@ def import_vbox_ova(install_client,install_mac,client_ip,ova_file)
       command = "VBoxManage import \"#{ova_file}\" --vsys 0 --vmname \"#{install_client}\" --unit 20 --disk \"#{install_dir}\""
       execute_command(message,command)
     else
-      install_client = %x[VBoxManage import -n #{ova_file} |grep "Suggested VM name"].split(/\n/)[-1]
-      if !install_client.match(/[0-9,a-z,A-Z]/)
-        puts "Warning:\tCould not determine VM name for Virtual Appliance "+ova_file
-        exit
-      else
-        install_client = install_client.split(/Suggested VM name /)[1].chomp
-        message = "Information:\tImporting VirtualBox VM "+install_client+" from "+ova_file
-        command = "VBoxManage import \"#{ova_file}\""
-        execute_command(message,command)
+      set_vboxmanage_bin()
+      if $vboxmanage_bin.match(/[a-z]/)
+        install_client = %x[VBoxManage import -n #{ova_file} |grep "Suggested VM name"].split(/\n/)[-1]
+        if !install_client.match(/[0-9,a-z,A-Z]/)
+          puts "Warning:\tCould not determine VM name for Virtual Appliance "+ova_file
+          exit
+        else
+          install_client = install_client.split(/Suggested VM name /)[1].chomp
+          message = "Information:\tImporting VirtualBox VM "+install_client+" from "+ova_file
+          command = "VBoxManage import \"#{ova_file}\""
+          execute_command(message,command)
+        end
       end
     end
   else
@@ -387,10 +395,9 @@ end
 # Get/set VBoxManage path
 
 def set_vboxmanage_bin()
-  $vboxmanage_bin = %x[which VBoxManage].chomp
+  $vboxmanage_bin = %x[which VBoxManage 2>&1 > /dev/null].chomp
   if !$vboxmanage_bin.match(/VBoxManage/) or $vboxmanage_bin.match(/no VBoxManage/)
     puts "Warning:\tCould not find VBoxManage"
-    exit
   end
   return
 end
@@ -398,7 +405,6 @@ end
 # Check VirtualBox VM exists
 
 def check_vbox_vm_exists(install_client)
-  set_vboxmanage_bin()
   message   = "Information:\tChecking VM "+install_client+" exists"
   command   = "VBoxManage list vms |grep -v 'inaccessible'"
   host_list = execute_command(message,command)
@@ -943,7 +949,10 @@ def boot_vbox_vm(install_client,install_type)
     puts
     puts "socat UNIX-CONNECT:/tmp/#{install_client} STDIO,raw,echo=0,escape=0x11,icanon=0"
     puts
-    %x[VBoxManage startvm #{install_client} --type headless ; sleep 1]
+    set_vboxmanage_bin()
+    if $vboxmanage_bin.match(/[a-z]/)
+      %x[VBoxManage startvm #{install_client} --type headless ; sleep 1]
+    end
   else
     command = "VBoxManage startvm #{install_client}"
     execute_command(message,command)
@@ -1069,10 +1078,13 @@ def check_vbox_is_installed()
     app_dir = "/usr/bin"
   end
   if File.directory?(app_dir)
-    install_status = "yes"
-    suppress_messages = %x[VBoxManage getextradata global GUI/SuppressMessages |awk '{print $2}'].chomp
-    if !suppress_messages.match(/all/)
-      %x[VBoxManage setextradata global GUI/SuppressMessages "all"]
+    set_vboxmanage_bin()
+    if $vboxmanage_bin.match(/[a-z]/)
+      install_status = "yes"
+      suppress_messages = %x[VBoxManage getextradata global GUI/SuppressMessages |awk '{print $2}'].chomp
+      if !suppress_messages.match(/all/)
+        %x[VBoxManage setextradata global GUI/SuppressMessages "all"]
+      end
     end
   end
   return install_status
