@@ -756,7 +756,6 @@ if option["network"]
     if option["vm"]
       if option["vm"].downcase.match(/virtualbox|vbox/)
         puts "Warning:\tVirtualBox does not support Hostonly or Bridged network with Packer"
-        exit
       end
     end
   end

@@ -395,7 +395,7 @@ end
 # Get/set VBoxManage path
 
 def set_vboxmanage_bin()
-  $vboxmanage_bin = %x[which VBoxManage 2>&1 > /dev/null].chomp
+  $vboxmanage_bin = %x[which VBoxManage].chomp
   if !$vboxmanage_bin.match(/VBoxManage/) or $vboxmanage_bin.match(/no VBoxManage/)
     puts "Warning:\tCould not find VBoxManage"
   end

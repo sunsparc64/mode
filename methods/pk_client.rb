@@ -94,6 +94,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   boot_wait        = "2m"
   shutdown_timeout = "1h"
   ssh_port         = "22"
+  hwvirtex         = "off"
 #  if install_vm.match(/fusion/)
     vnc_port_min = "5900"
     vnc_port_max = "5980"
@@ -354,6 +355,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    " initrd=/install/initrd.gz -- <wait><enter><wait>"
     #shutdown_command = "echo 'shutdown -P now' > /tmp/shutdown.sh ; echo '#{$q_struct["admin_password"].value}'|sudo -S sh '/tmp/shutdown.sh'"
   when /vsphere|esx|vmware/
+    hwvirtex         = "on"
     ks_file          = install_vm+"/"+install_client+"/"+install_client+".cfg"
     ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     boot_command     = "<enter><wait>O<wait> ks="+ks_url+" ksdevice=vmnic0 netdevice=vmnic0 ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<wait><enter><wait>"
@@ -449,6 +451,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             ],
             :vboxmanage => [
               [ "modifyvm", "{{.Name}}", "--memory", install_memory ],
+              [ "modifyvm", "{{.Name}}", "--hwvirtex", hwvirtex ],
               [ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
               [ "modifyvm", "{{.Name}}", nic_command1, nic_config1 ],
               [ "modifyvm", "{{.Name}}", nic_command2, nic_config2 ],
@@ -493,6 +496,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             ],
             :vboxmanage => [
               [ "modifyvm", "{{.Name}}", "--memory", install_memory ],
+              [ "modifyvm", "{{.Name}}", "--hwvirtex", hwvirtex ],
               [ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
               [ "modifyvm", "{{.Name}}", "--macaddress1", install_mac ],
             ]
@@ -619,6 +623,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             ],
             :vboxmanage => [
               [ "modifyvm", "{{.Name}}", "--memory", install_memory ],
+              [ "modifyvm", "{{.Name}}", "--hwvirtex", hwvirtex ],
               [ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
               [ "modifyvm", "{{.Name}}", nic_command1, nic_config1 ],
               [ "modifyvm", "{{.Name}}", nic_command2, nic_config2 ],
@@ -656,6 +661,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :format               => output_format,
       			:vboxmanage => [
       				[ "modifyvm", "{{.Name}}", "--memory", install_memory ],
+              [ "modifyvm", "{{.Name}}", "--hwvirtex", hwvirtex ],
       				[ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
               [ "modifyvm", "{{.Name}}", nic_command1, nic_config1 ],
               [ "modifyvm", "{{.Name}}", nic_command2, nic_config2 ],
@@ -694,6 +700,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             ],
             :vboxmanage => [
               [ "modifyvm", "{{.Name}}", "--memory", install_memory ],
+              [ "modifyvm", "{{.Name}}", "--hwvirtex", hwvirtex ],
               [ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
               [ "modifyvm", "{{.Name}}", "--macaddress1", install_mac ],
               [ "modifyvm", "{{.Name}}", "--natpf1", "guestwinrm,tcp,,55985,,5985" ],
@@ -727,6 +734,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :boot_command         => boot_command,
             :vboxmanage => [
               [ "modifyvm", "{{.Name}}", "--memory", install_memory ],
+              [ "modifyvm", "{{.Name}}", "--hwvirtex", hwvirtex ],
               [ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
               [ "modifyvm", "{{.Name}}", "--macaddress1", install_mac ],
             ]
