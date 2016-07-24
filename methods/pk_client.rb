@@ -358,8 +358,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     boot_command     = "<enter><wait>O<wait> ks="+ks_url+" ksdevice=vmnic0 netdevice=vmnic0 ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway_ip+"<wait><enter><wait>"
     ssh_username     = "root"
-    ssh_password     = $default_root_password
-    shutdown_command = "esxcli system maintenanceMode set -e true -t 0 ; esxcli system shutdown poweroff -d 10 -r 'Packer Shutdown' ; esxcli system maintenanceMode set -e false -t 0"
+    shutdown_command = "/bin/halt"
     ssh_wait_timeout = "1200s"
   when /fedora/
     tools_upload_flavor = "linux"
@@ -529,13 +528,6 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :boot_command         => boot_command,
             :tools_upload_flavor  => tools_upload_flavor,
             :tools_upload_path    => tools_upload_path,
-            :floppy_files         => [
-              sysidcfg,
-              rules,
-              rules_ok,
-              profile,
-              finish
-            ],
             :vmx_data => {
               :"virtualHW.version"                => hw_version,
               :"RemoteDisplay.vnc.enabled"        => vnc_enabled,
@@ -577,13 +569,6 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :boot_command         => boot_command,
             :tools_upload_flavor  => tools_upload_flavor,
             :tools_upload_path    => tools_upload_path,
-            :floppy_files         => [
-              sysidcfg,
-              rules,
-              rules_ok,
-              profile,
-              finish
-            ],
             :vmx_data => {
               :"virtualHW.version"                => hw_version,
               :"RemoteDisplay.vnc.enabled"        => vnc_enabled,

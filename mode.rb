@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.6.8
+# Version:      3.6.9
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1052,6 +1052,23 @@ end
 
 if option["action"]
   install_action = option["action"]
+  if install_action.match(/delete/) and !option["service"]
+    if !option["vm"] and !option["type"]
+      if option["client"]
+        install_client = option["client"]
+        option["vm"]   = get_client_vm_type_from_packer(install_client)
+      end
+    else
+      if option["type"] and !option["vm"]
+        if option["type"].match(/packer/)
+          if option["client"]
+            install_client = option["client"]
+            option["vm"]   = get_client_vm_type_from_packer(install_client)
+          end
+        end
+      end
+    end
+  end
   if install_action.match(/migrate|deploy/)
     if install_action.match(/deploy/)
       if option["type"]
