@@ -37,6 +37,7 @@ and HTTP based install services, eg:
   - Linux (RHEL, OEL, SuSE, Ubuntu, CentOS, Fedora, Scientific)
   - Solaris 10 & 11
   - Windows 2008 R2 & 2012 R2
+  - ESXi
 
 This script is a wrapper which sits on top of the exisitng tools. It changes
 defaults to be more suitable to customer environments, and sanity checks server
@@ -90,6 +91,7 @@ Packer support
 - Currently supports Solaris 10, Solaris 11, 
   Linux (RHEL, OEL, SuSE, Ubuntu, CentOS, Fedorac, Scientific), 
   Windows 2008 R2, and Windows 2012 R2
+  ESXi
 
 Linux Container Creation
 
