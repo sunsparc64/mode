@@ -739,3 +739,5 @@
 # Initial support for building ESXi under Packer
 # 3.6.9: Mon 25 Jul 2016 11:35:32 AEST
 # VirtualBox bug fixes
+# 3.7.0: Mon 25 Jul 2016 19:54:29 AEST
+# Packer VirtualBox improvements

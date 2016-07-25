@@ -94,6 +94,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   ssh_port         = "22"
   hwvirtex         = "off"
   audio            = "none"
+  mouse            = "ps2"
+  ssh_pty          = "true"
 #  if install_vm.match(/fusion/)
     vnc_port_min = "5900"
     vnc_port_max = "5980"
@@ -376,6 +378,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     if install_guest.class == Array
   	  install_guest = install_guest.join
     end
+    #shutdown_command = "echo '#{$q_struct["admin_password"].value}' |sudo -S /sbin/halt -h -p"
     #if install_vm.match(/vbox/) and install_network.match(/hostonly|bridged/)
     #  shutdown_command = "sudo 'shutdown -P now'"
     #end
@@ -436,6 +439,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :ssh_wait_timeout     => ssh_wait_timeout,
             :shutdown_command     => shutdown_command,
             :shutdown_timeout     => shutdown_timeout,
+            :ssh_pty              => ssh_pty,
             :iso_checksum         => install_checksum,
             :iso_checksum_type    => install_checksum_type,
             :http_directory       => packer_dir,
@@ -453,6 +457,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :vboxmanage => [
               [ "modifyvm", "{{.Name}}", "--memory", install_memory ],
               [ "modifyvm", "{{.Name}}", "--audio", audio ],
+              [ "modifyvm", "{{.Name}}", "--mouse", mouse ],
               [ "modifyvm", "{{.Name}}", "--hwvirtex", hwvirtex ],
               [ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
               [ "modifyvm", "{{.Name}}", nic_command1, nic_config1 ],
@@ -478,6 +483,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :ssh_host             => install_ip,
             :ssh_username         => ssh_username,
             :ssh_password         => ssh_password,
+            :ssh_pty              => ssh_pty,
             :ssh_wait_timeout     => ssh_wait_timeout,
             :shutdown_command     => shutdown_command,
             :shutdown_timeout     => shutdown_timeout,
@@ -497,6 +503,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :vboxmanage => [
               [ "modifyvm", "{{.Name}}", "--memory", install_memory ],
               [ "modifyvm", "{{.Name}}", "--audio", audio ],
+              [ "modifyvm", "{{.Name}}", "--mouse", mouse ],
               [ "modifyvm", "{{.Name}}", "--hwvirtex", hwvirtex ],
               [ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
               [ "modifyvm", "{{.Name}}", "--macaddress1", install_mac ],
@@ -525,6 +532,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :ssh_wait_timeout     => ssh_wait_timeout,
             :shutdown_command     => shutdown_command,
             :shutdown_timeout     => shutdown_timeout,
+            :ssh_pty              => ssh_pty,
             :iso_checksum         => install_checksum,
             :iso_checksum_type    => install_checksum_type,
             :http_directory       => packer_dir,
@@ -566,6 +574,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :ssh_wait_timeout     => ssh_wait_timeout,
             :shutdown_command     => shutdown_command,
             :shutdown_timeout     => shutdown_timeout,
+            :ssh_pty              => ssh_pty,
             :iso_checksum         => install_checksum,
             :iso_checksum_type    => install_checksum_type,
             :http_directory       => packer_dir,
@@ -625,6 +634,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :vboxmanage => [
               [ "modifyvm", "{{.Name}}", "--memory", install_memory ],
               [ "modifyvm", "{{.Name}}", "--audio", audio ],
+              [ "modifyvm", "{{.Name}}", "--mouse", mouse ],
               [ "modifyvm", "{{.Name}}", "--hwvirtex", hwvirtex ],
               [ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
               [ "modifyvm", "{{.Name}}", nic_command1, nic_config1 ],
@@ -651,6 +661,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :ssh_username         => ssh_username,
             :ssh_password         => ssh_password,
             :ssh_wait_timeout     => ssh_wait_timeout,
+            :ssh_pty              => ssh_pty,
             :shutdown_timeout     => shutdown_timeout,
             :shutdown_command     => shutdown_command,
             :iso_checksum         => install_checksum,
@@ -663,6 +674,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
       			:vboxmanage => [
       				[ "modifyvm", "{{.Name}}", "--memory", install_memory ],
               [ "modifyvm", "{{.Name}}", "--audio", audio ],
+              [ "modifyvm", "{{.Name}}", "--mouse", mouse ],
               [ "modifyvm", "{{.Name}}", "--hwvirtex", hwvirtex ],
       				[ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
               [ "modifyvm", "{{.Name}}", nic_command1, nic_config1 ],
@@ -701,6 +713,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :vboxmanage => [
               [ "modifyvm", "{{.Name}}", "--memory", install_memory ],
               [ "modifyvm", "{{.Name}}", "--audio", audio ],
+              [ "modifyvm", "{{.Name}}", "--mouse", mouse ],
               [ "modifyvm", "{{.Name}}", "--hwvirtex", hwvirtex ],
               [ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
               [ "modifyvm", "{{.Name}}", "--macaddress1", install_mac ],
@@ -728,6 +741,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :ssh_wait_timeout     => ssh_wait_timeout,
             :shutdown_timeout     => shutdown_timeout,
             :shutdown_command     => shutdown_command,
+            :ssh_pty              => ssh_pty,
             :iso_checksum         => install_checksum,
             :iso_checksum_type    => install_checksum_type,
             :http_directory       => packer_dir,
@@ -737,6 +751,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :vboxmanage => [
               [ "modifyvm", "{{.Name}}", "--memory", install_memory ],
               [ "modifyvm", "{{.Name}}", "--audio", audio ],
+              [ "modifyvm", "{{.Name}}", "--mouse", mouse ],
               [ "modifyvm", "{{.Name}}", "--hwvirtex", hwvirtex ],
               [ "modifyvm", "{{.Name}}", "--cpus", install_cpu ],
               [ "modifyvm", "{{.Name}}", "--macaddress1", install_mac ],
@@ -768,6 +783,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :ssh_username         => ssh_username,
             :ssh_password         => ssh_password,
             :ssh_wait_timeout     => ssh_wait_timeout,
+            :ssh_pty              => ssh_pty,
             :winrm_host           => install_ip,
             :winrm_username       => ssh_username,
             :winrm_password       => ssh_password,
@@ -825,6 +841,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :ssh_wait_timeout     => ssh_wait_timeout,
             :shutdown_timeout     => shutdown_timeout,
             :shutdown_command     => shutdown_command,
+            :ssh_pty              => ssh_pty,
             :iso_checksum         => install_checksum,
             :iso_checksum_type    => install_checksum_type,
             :http_directory       => packer_dir,
@@ -873,6 +890,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :winrm_insecure       => winrm_insecure,
             :shutdown_timeout     => shutdown_timeout,
             :shutdown_command     => shutdown_command,
+            :ssh_pty              => ssh_pty,
             :tools_upload_flavor  => tools_upload_flavor,
             :tools_upload_path    => tools_upload_path,
             :floppy_files         => [
@@ -911,6 +929,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :ssh_username         => ssh_username,
             :ssh_password         => ssh_password,
             :ssh_wait_timeout     => ssh_wait_timeout,
+            :ssh_pty              => ssh_pty,
             :shutdown_timeout     => shutdown_timeout,
             :shutdown_command     => shutdown_command,
             :iso_checksum         => install_checksum,
