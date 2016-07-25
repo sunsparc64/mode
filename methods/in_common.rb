@@ -429,7 +429,7 @@ end
 # Generate MAC address
 
 def generate_mac_address(install_vm)
-  if install_vm.match(/fusion|vm/)
+  if install_vm.match(/fusion|vm|vbox/)
     install_mac = "00:05:"+(1..4).map{"%0.2X"%rand(256)}.join(":")
   else
     install_mac = (1..6).map{"%0.2X"%rand(256)}.join(":")

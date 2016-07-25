@@ -2049,6 +2049,21 @@ if option["action"]
             check_install_mac(install_mac,install_vm)
           end
           if install_type.match(/packer/)
+            if $yes_to_all == 1
+              if install_vm.match(/none/)
+                install_vm = get_client_vm_type(install_client)
+                if install_vm.match(/vbox|fusion|parallels/)
+                  $use_sudo = 0
+                  delete_vm(install_vm,install_client)
+                  eval"[unconfigure_#{install_type}_client(install_client,install_vm)]"
+                end
+              else
+                $use_sudo = 0
+                delete_vm(install_vm,install_client)
+                eval"[unconfigure_#{install_type}_client(install_client,install_vm)]"
+              end
+          else
+            end
             eval"[configure_#{install_type}_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,install_ip,install_model,
                               publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,
                               install_size,install_type,install_locale,install_label,install_timezone,install_shell)]"

@@ -467,7 +467,8 @@ end
 def check_fusion_vm_mac(install_mac)
   if install_mac.gsub(/:/,"").match(/^08/)
     puts "Warning:\tInvalid MAC address: "+install_mac
-    install_mac = generate_mac_address()
+    install_vm  = "fusion"
+    install_mac = generate_mac_address(install_vm)
     puts "Information:\tGenerated new MAC address: "+install_mac
   end
   return install_mac

@@ -1,5 +1,12 @@
 # VirtualBox VM support code
 
+def fix_vbox_mouse_integration()
+  message = "Information:\tDisabling VirtualBox Mouse Integration Message"
+  command = "VBoxManage setextradata global GUI/SuppressMessages remindAboutMouseIntegrationOff"
+  execute_command(message,command)
+  return
+end
+
 # Import Packer VirtualBox image
 
 def import_packer_vbox_vm(install_client,install_vm)
@@ -928,6 +935,7 @@ end
 # Boot VirtualBox VM
 
 def boot_vbox_vm(install_client,install_type)
+  fix_vbox_mouse_integration()
   exists = check_vbox_vm_exists(install_client)
   if exists.match(/no/)
     puts "VirtualBox VM "+install_client+" does not exist"
