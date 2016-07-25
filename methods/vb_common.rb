@@ -2,7 +2,7 @@
 
 def fix_vbox_mouse_integration()
   message = "Information:\tDisabling VirtualBox Mouse Integration Message"
-  command = "VBoxManage setextradata global GUI/SuppressMessages remindAboutAutoCapture,confirmInputCapture,remindAboutMouseIntegrationOn,remindAboutWrongColorDepth,confirmGoingFullscreen,remindAboutMouseIntegrationOff"
+  command = "VBoxManage setextradata global GUI/SuppressMessages remindAboutAutoCapture,confirmInputCapture,remindAboutMouseIntegrationOn,remindAboutWrongColorDepth,confirmGoingFullscreen,remindAboutMouseIntegrationOff,remindAboutMouseIntegration"
   execute_command(message,command)
   return
 end
