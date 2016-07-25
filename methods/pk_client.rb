@@ -376,9 +376,9 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     if install_guest.class == Array
   	  install_guest = install_guest.join
     end
-    if install_vm.match(/vbox/) and install_network.match(/hostonly|bridged/)
-      shutdown_command = "sudo 'shutdown -P now'"
-    end
+    #if install_vm.match(/vbox/) and install_network.match(/hostonly|bridged/)
+    #  shutdown_command = "sudo 'shutdown -P now'"
+    #end
   end
 	$vbox_disk_type = $vbox_disk_type.gsub(/sas/,"scsi")
 	case install_vm
@@ -430,7 +430,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :disk_size            => install_size,
             :iso_url              => iso_url,
             :ssh_host             => install_ip,
-            :ssh_port             => "2222",
+            :ssh_port             => ssh_port,
             :ssh_username         => ssh_username,
             :ssh_password         => ssh_password,
             :ssh_wait_timeout     => ssh_wait_timeout,
@@ -458,8 +458,6 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
               [ "modifyvm", "{{.Name}}", nic_command1, nic_config1 ],
               [ "modifyvm", "{{.Name}}", nic_command2, nic_config2 ],
               [ "modifyvm", "{{.Name}}", "--macaddress1", install_mac ],
-              [ "modifyvm", "{{.Name}}", "--nic2", "nat" ],
-              [ "modifyvm", "{{.Name}}", "--natpf2", "ssh,tcp,127.0.0.1,2222,#{install_ip},22" ],
             ]
           ]
         }
@@ -632,8 +630,6 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
               [ "modifyvm", "{{.Name}}", nic_command1, nic_config1 ],
               [ "modifyvm", "{{.Name}}", nic_command2, nic_config2 ],
               [ "modifyvm", "{{.Name}}", "--macaddress1", install_mac ],
-              [ "modifyvm", "{{.Name}}", "--nic2", "nat" ],
-              [ "modifyvm", "{{.Name}}", "--natpf2", "winrm,tcp,127.0.0.1,55985,#{install_ip},5985" ],
             ]
           ]
         }
@@ -651,7 +647,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :disk_size            => install_size,
             :iso_url              => iso_url,
             :ssh_host             => install_ip,
-            :ssh_port             => "2222",
+            :ssh_port             => ssh_port,
             :ssh_username         => ssh_username,
             :ssh_password         => ssh_password,
             :ssh_wait_timeout     => ssh_wait_timeout,
@@ -672,8 +668,6 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
               [ "modifyvm", "{{.Name}}", nic_command1, nic_config1 ],
               [ "modifyvm", "{{.Name}}", nic_command2, nic_config2 ],
               [ "modifyvm", "{{.Name}}", "--macaddress1", install_mac ],
-              [ "modifyvm", "{{.Name}}", "--nic2", "nat" ],
-              [ "modifyvm", "{{.Name}}", "--natpf2", "ssh,tcp,127.0.0.1,2222,#{install_ip},22" ],
       			]
       		]
         }

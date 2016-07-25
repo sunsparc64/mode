@@ -2,7 +2,7 @@
 
 def fix_vbox_mouse_integration()
   message = "Information:\tDisabling VirtualBox Mouse Integration Message"
-  command = "VBoxManage setextradata global GUI/SuppressMessages remindAboutMouseIntegrationOff"
+  command = "VBoxManage setextradata global GUI/SuppressMessages remindAboutAutoCapture,confirmInputCapture,remindAboutMouseIntegrationOn,remindAboutWrongColorDepth,confirmGoingFullscreen,remindAboutMouseIntegrationOff"
   execute_command(message,command)
   return
 end
@@ -935,7 +935,6 @@ end
 # Boot VirtualBox VM
 
 def boot_vbox_vm(install_client,install_type)
-  fix_vbox_mouse_integration()
   exists = check_vbox_vm_exists(install_client)
   if exists.match(/no/)
     puts "VirtualBox VM "+install_client+" does not exist"
@@ -1089,10 +1088,7 @@ def check_vbox_is_installed()
     set_vboxmanage_bin()
     if $vboxmanage_bin.match(/[a-z]/)
       install_status = "yes"
-      suppress_messages = %x[VBoxManage getextradata global GUI/SuppressMessages |awk '{print $2}'].chomp
-      if !suppress_messages.match(/all/)
-        %x[VBoxManage setextradata global GUI/SuppressMessages "all"]
-      end
+      fix_vbox_mouse_integration()
     end
   end
   return install_status
@@ -1176,7 +1172,7 @@ def unconfigure_vbox_vm(install_client)
       delete_vbox_vm_config(install_client)
     else
       puts "Warning:\tVirtualBox VM "+install_client+" does not exist"
-      exit
+      return
     end
   end
   stop_vbox_vm(install_client)
