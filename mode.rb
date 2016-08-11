@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.7.0
+# Version:      3.7.1
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1502,6 +1502,28 @@ else
   end
 end
 
+# Get ISO file if given
+
+if option["file"]
+  install_file = option["file"]
+  if install_vm == "vbox" and install_file == "tools"
+    install_file = $vbox_additions_iso
+  end
+  if !File.exist?(install_file)
+    puts "Warning:\tFile doesn't exist: "+install_file
+    exit
+  end
+  if !install_type.match(/[a-z]/)
+    install_type = get_install_type_from_file(install_file)
+    if $verbose_mode == 1
+      puts "Information:\tSetting install type to: "+install_type
+    end
+  end
+else
+  option["file"] = ""
+  install_file   = ""
+end
+
 # Get/set publisher port (Used for configuring AI server)
 
 if option["publisher"] and option["mode"].match(/server/) and $os_name.match(/SunOS/)
@@ -1514,9 +1536,16 @@ if option["publisher"] and option["mode"].match(/server/) and $os_name.match(/Su
   puts "Information:\tSetting publisher host to: "+publisher_host
   puts "Information:\tSetting publisher port to: "+publisher_port
 else
-  if option["mode"] == "server" and $os_name == "SunOS"
-    publisher_host = $default_host
-    publisher_port = $default_ai_port
+  if option["mode"] == "server" or option["file"].match(/repo/)
+    if $os_name == "SunOS"
+      check_local_config("server")
+      publisher_host = $default_host
+      publisher_port = $default_ai_port
+      if $verbose_mode == 1
+        puts "Information:\tSetting publisher host to: "+publisher_host
+        puts "Information:\tSetting publisher port to: "+publisher_port
+      end
+    end
   else
     if !option["vm"]
       if option["action"].match(/create/)
@@ -1680,27 +1709,6 @@ if option["vm"] or option["method"]
   if $verbose_mode == 1 and option["method"]
     puts "Information:\tSetting model to: "+install_model
   end
-end
-
-# Get ISO file if given
-
-if option["file"]
-  install_file = option["file"]
-  if install_vm == "vbox" and install_file == "tools"
-    install_file = $vbox_additions_iso
-  end
-  if !File.exist?(install_file)
-    puts "Warning:\tFile doesn't exist: "+install_file
-    exit
-  end
-  if !install_type.match(/[a-z]/)
-    install_type = get_install_type_from_file(install_file)
-    if $verbose_mode == 1
-      puts "Information:\tSetting install type to: "+install_type
-    end
-  end
-else
-  install_file = ""
 end
 
 # Handle repository switch

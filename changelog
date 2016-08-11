@@ -741,3 +741,5 @@
 # VirtualBox bug fixes
 # 3.7.0: Mon 25 Jul 2016 19:54:29 AEST
 # Packer VirtualBox improvements
+# 3.7.1: Thu 11 Aug 2016 15:43:44 AEST
+# Fixed bugs with Solaris 11 AI Server code

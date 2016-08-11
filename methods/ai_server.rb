@@ -41,7 +41,7 @@ def unconfigure_ai_server(service_name)
     remove_apache_proxy(service_name)
     repo_version_dir = $repo_base_dir+"/"+service_base_name
     test_dir = repo_version_dir+"/publisher"
-    if File.directory?(test_dir)
+    if File.directory?(test_dir) and $yes_to_all == 1
       destroy_zfs_fs(repo_version_dir)
     end
   else
@@ -244,7 +244,7 @@ def fix_server_dhcpd_range(publisher_host)
   dhcpd_range = publisher_host.split(/\./)[0..2]
   dhcpd_range = dhcpd_range.join(".")
   backup_file(dhcp_file)
-  text        = File.read(dhcp_file)
+  text        = File.readlines(dhcp_file)
   text.each do |line|
     if line.match(/range #{dhcpd_range}/) and !line.match(/^#/)
       line = "#"+line
@@ -298,7 +298,7 @@ def configure_ai_server(client_arch,publisher_host,publisher_port,service_name,f
   end
   iso_list.each do |iso_file|
     if File.exist?(iso_file)
-      if !iso_file.match(/repo-full/)
+      if !iso_file.match(/repo/)
         puts "Warning:\tISO "+iso_file+" does not appear to be a valid Solaris distribution"
         exit
       end
