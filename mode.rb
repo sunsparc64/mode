@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.7.6
+# Version:      3.7.7
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -661,7 +661,7 @@ begin
     [ "--locale",         "-g", Getopt::REQUIRED ], # Locale (e.g. en_US)
     [ "--diskmode",       "-G", Getopt::REQUIRED ], # Disk mode (e.g. thin)
     [ "--help",           "-h", Getopt::BOOLEAN ],  # Display usage information
-    [ "--param"],         "-H", Getopt::REQUIRED ], # Set a parameter of a VM
+    [ "--param",          "-H", Getopt::REQUIRED ], # Set a parameter of a VM
     [ "--ip",             "-i", Getopt::REQUIRED ], # IP Address of client
     [ "--ipfamily",       "-I", Getopt::REQUIRED ], # IP family (e.g. IPv4 or IPv6)
     [ "--size",           "-j", Getopt::REQUIRED ], # VM disk size (if used with deploy action, this sets the size of the VM, e.g. tiny)
@@ -743,19 +743,32 @@ if option["help"]
   exit
 end
 
+# Handle action
+
+if option["action"]
+  install_action = option["action"]
+else
+  option["action"] = ""
+  install_action   = ""
+end
+
 # Handle values and parameters
 
 if option["param"]
-  if !option["value"]
-    puts "Warning:\tSetting a parameter requires a value"
-    exit
-  else
-    if !option["value"].match(/[A-Z]|[a-z]|[0-9]/)
+  if !install_action.match(/get/)
+    if !option["value"]
       puts "Warning:\tSetting a parameter requires a value"
       exit
     else
-      install_param = option["param"]
+      if !option["value"].match(/[A-Z]|[a-z]|[0-9]/)
+        puts "Warning:\tSetting a parameter requires a value"
+        exit
+      else
+        install_param = option["param"]
+      end
     end
+  else
+    install_param = option["param"]
   end
 else
   option["param"] = ""
@@ -2060,6 +2073,10 @@ if option["action"]
     print_version()
   when /info|usage|help/
     print_examples(install_method,install_type,install_vm)
+  when /show/
+    if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
+      eval"[show_#{install_vm}_vm(install_client)]"
+    end
   when /list/
     if install_type.match(/packer/)
       list_packer_clients(install_vm)
@@ -2427,7 +2444,11 @@ if option["action"]
     end
   when /set/
     if install_vm.match(/[a-z]/)
-      eval"[set_#{install_vm}_value(install_client,install_param,install_value)"]
+      eval"[set_#{install_vm}_value(install_client,install_param,install_value)]"
+    end
+  when /get/
+    if install_vm.match(/[a-z]/)
+      eval"[get_#{install_vm}_value(install_client,install_param)]"
     end
   when /console|serial/
     if install_vm.match(/[a-z]/) and !install_vm.match(/none/)

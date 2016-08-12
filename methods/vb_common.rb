@@ -27,6 +27,44 @@ def import_packer_vbox_vm(install_client,install_vm)
   return
 end
 
+# Show Fusion VM config
+
+def show_vbox_vm(install_client)
+  exists = check_vbox_vm_exists(install_client)
+  if exists.match(/yes/)
+    %x[VBoxManage showvminfo '#{install_client}']
+  else
+    puts "Warning:\tVirtualBox VM "+install_client+" does not exist"
+    exit
+  end
+  return
+end
+
+# Set VirtualBox VM Parameter
+
+def set_vbox_value(install_client,install_param,install_value)
+  exists = check_vbox_vm_exists(install_client)
+  if exists.match(/yes/)
+    %x[VBoxManage modifyvm '#{install_client}' --#{install_param} #{install_value}]
+  else
+    puts "Warning:\tVirtualBox VM "+install_client+" does not exist"
+    exit
+  end
+  return
+end
+
+# Get VirtualBox VM Parameter
+
+def set_vbox_value(install_client,install_param)
+  exists = check_vbox_vm_exists(install_client)
+  if exists.match(/yes/)
+    %x[VBoxManage showvminfo '#{install_client}' | grep '#{install_param}']
+  else
+    puts "Warning:\tVirtualBox VM "+install_client+" does not exist"
+    exit
+  end
+  return
+end
 
 # Add shared folder to VM
 

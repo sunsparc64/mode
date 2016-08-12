@@ -224,6 +224,55 @@ def get_fusion_vm_vmx_file(install_client)
   return fusion_vmx_file
 end
 
+# Show Fusion VM config
+
+def show_fusion_vm(install_client)
+  exists = check_fusion_vm_exists(install_client)
+  if exists.match(/yes/)
+    fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
+    if File.exist?(fusion_vmx_file)
+      %x[cat "#{fusion_vmx_file}"]
+    end
+  else
+    puts "Warning:\tFusion VM "+install_client+" does not exist"
+    exit
+  end
+  return
+end
+
+# Set Fusion VM value
+
+def set_fusion_value(install_client,install_param,install_value)
+  exists = check_fusion_vm_exists(install_client)
+  fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
+  if exists.match(/yes/)
+    message = "Information:\tSetting Parameter "+install_param+" for "+install_client+" to "+install_value
+    command = "'#{$vmrun_bin}' writeVariable '#{fusion_vmx_file}' runtimeConfig '#{install_param}' '#{install_value}'"
+    execute_command(message,command)
+  else
+    puts "Warning:\tFusion VM "+install_client+" does not exist"
+    exit
+  end
+  return
+end
+
+# Set Fusion VM value
+
+def get_fusion_value(install_client,install_param)
+  exists = check_fusion_vm_exists(install_client)
+  fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
+  if exists.match(/yes/)
+    message = "Information:\tGetting Parameter "+install_param+" for "+install_client
+    command = "'#{$vmrun_bin}' readVariable '#{fusion_vmx_file}' runtimeConfig '#{install_param}'"
+    output  = execute_command(message,command)
+    puts output
+  else
+    puts "Warning:\tFusion VM "+install_client+" does not exist"
+    exit
+  end
+  return
+end
+
 # Get Fusion VM vmdk file location
 
 def get_fusion_vm_vmdk_file(install_client)
