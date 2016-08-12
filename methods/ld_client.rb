@@ -181,27 +181,38 @@ end
 
 # Configure Guest domain
 
-def configure_gdom(client_name,client_ip,client_mac,client_arch,client_os,client_rel,publisher_host)
+def configure_gdom(install_client,install_ip,install_mac,install_arch,install_os,install_release,publisher_host,install_file,install_service)
   service_name = ""
-  check_gdom_doesnt_exist(client_name)
+  check_dpool()
+  check_gdom_doesnt_exist(install_client)
   if !File.directory?($ldom_base_dir)
     check_fs_exists($ldom_base_dir)
     message = "Information:\tSetting mount point for "+$ldom_base_dir
-    command = "zfs set #{$default_zpool}#{$ldom_base_dir} mountpoint=#{$ldom_base_dir}"
+    command = "zfs set mountpoint=#{$ldom_base_dir} #{$default_zpool}#{$ldom_base_dir}"
     execute_command(message,command)
   end
-  gdom_dir = $ldom_base_dir+"/"+client_name
+  gdom_dir = $ldom_base_dir+"/"+install_client
   if !File.directory?(gdom_dir)
     check_fs_exists(gdom_dir)
     message = "Information:\tSetting mount point for "+gdom_dir
-    command = "zfs set #{$default_zpool}#{gdom_dir} mountpoint=#{gdom_dir}"
+    command = "zfs set mountpoint=#{gdom_dir} #{$default_zpool}#{gdom_dir}"
     execute_command(message,command)
   end
-  populate_gdom_questions(client_name)
-  process_questions(service_name)
-  create_gdom_disk(client_name)
-  create_gdom(client_name)
-  bind_gdom(client_name)
+  populate_gdom_questions(install_client)
+  process_questions(install_service)
+  create_gdom_disk(install_client)
+  create_gdom(install_client)
+  bind_gdom(install_client)
+  return
+end
+
+def configure_gdom_client(install_client,install_ip,install_mac,install_arch,install_os,install_release,publisher_host,install_file,install_service)
+  configure_gdom(install_client,install_ip,install_mac,install_arch,install_os,install_release,publisher_host,install_file,install_service)
+  return
+end
+
+def configure_ldom_client(install_client,install_ip,install_mac,install_arch,install_os,install_release,publisher_host,install_file,install_service)
+  configure_gdom(install_client,install_ip,install_mac,install_arch,install_os,install_release,publisher_host,install_file,install_service)
   return
 end
 

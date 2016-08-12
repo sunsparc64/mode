@@ -1,6 +1,18 @@
 
 # Code common to all services
 
+# Check default dpool
+
+def check_dpool()
+  message = "Information:\tChecking for alternate pool for LDoms"
+  command = "zfs list |grep '^dpool'"
+  output  = execute_command(message,command)
+  if !output.match(/dpool/)
+    $default_dpool = "rpool"
+  end
+  return
+end
+
 # Copy packages to local packages directory
 
 def download_pkg(remote_file)
@@ -1420,21 +1432,21 @@ def remove_dhcp_client(client_name)
   copy      = []
   if !File.exist?($dhcpd_file)
     puts "Warning:\tFile "+$dhcpd_file+" does not exist"
-    exit
+  else
+    file_info = IO.readlines($dhcpd_file)
+    file_info.each do |line|
+      if line.match(/^host #{client_name}/)
+        found = 1
+      end
+      if found == 0
+        copy.push(line)
+      end
+      if found == 1 and line.match(/\}/)
+        found=0
+      end
+    end
+    File.open($dhcpd_file,"w") {|file| file.puts copy}
   end
-  file_info = IO.readlines($dhcpd_file)
-  file_info.each do |line|
-    if line.match(/^host #{client_name}/)
-      found = 1
-    end
-    if found == 0
-      copy.push(line)
-    end
-    if found == 1 and line.match(/\}/)
-      found=0
-    end
-  end
-  File.open($dhcpd_file,"w") {|file| file.puts copy}
   return
 end
 

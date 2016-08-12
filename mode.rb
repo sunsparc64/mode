@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.7.3
+# Version:      3.7.4
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -527,6 +527,7 @@ def check_local_config(install_mode)
       $dhcpd_file = "/usr/local/etc/dhcpd.conf"
     end
     if $os_name.match(/SunOS/) and $os_rel.match(/11/)
+      check_dpool()
       check_tftpd()
       check_local_publisher()
       install_sol11_pkg("pkg:/system/boot/network")
@@ -541,6 +542,9 @@ def check_local_config(install_mode)
       puts "Information:\tSetting apache allow range to "+$default_apache_allow
     end
     if $os_name.match(/SunOS/)
+      if $os_name.match(/SunOS/) and $os_rel.match(/11/)
+        check_dpool()
+      end
       if $default_options.match(/puppet/)
         check_sol_puppet()
       end
@@ -805,7 +809,7 @@ end
 if option["network"]
   install_network = option["network"]
   if $verbose_mode == 1
-    puts "Information:\tSetting network type to: "+install_network
+    puts "Information:\tSetting network type to "+install_network
   end
 else
   install_network   = $default_vm_network
@@ -941,7 +945,7 @@ end
 if option["rootpassword"]
   install_root_password = option["rootpassword"]
   if $verbose_mode == 1
-    puts "Information:\tSetting password to: "+install_root_password
+    puts "Information:\tSetting password to "+install_root_password
   end
 else
   install_root_password = $default_root_password
@@ -954,7 +958,7 @@ end
 if option["adminpassword"]
   install_admin_password = option["adminpassword"]
   if $verbose_mode == 1
-    puts "Information:\tSetting password to: "+install_admin_password
+    puts "Information:\tSetting password to "+install_admin_password
   end
 else
   install_admin_password = $default_admin_password
@@ -1223,7 +1227,7 @@ end
 if option["service"]
   install_service = option["service"].downcase
   if $verbose_mode == 1
-    puts "Information:\tSetting install service to: "+install_service
+    puts "Information:\tSetting install service to "+install_service
   end
   if install_type.match(/^packer$/)
     check_packer_is_installed()
@@ -1402,7 +1406,7 @@ if option["client"]
   install_client = option["client"]
   check_hostname(install_client)
   if $verbose_mode == 1
-    puts "Setting:\tClient name to: "+install_client
+    puts "Setting:\tClient name to "+install_client
   end
 else
   install_client = ""
@@ -1458,7 +1462,7 @@ else
   end
 end
 if $verbose_mode == 1 and option["release"]
-  puts "Information:\tSetting Operating System version to: "+install_release
+  puts "Information:\tSetting Operating System version to "+install_release
 end
 
 # Get MAC address if given
@@ -1470,7 +1474,7 @@ if option["mac"]
   end
   install_mac = check_install_mac(install_mac,install_vm)
   if $verbose_mode == 1
-     puts "Information:\tSetting client MAC address to: "+install_mac
+     puts "Information:\tSetting client MAC address to "+install_mac
   end
 else
   install_mac = ""
@@ -1486,7 +1490,7 @@ if option["size"]
     end
   end
   if $verbose_mode == 1
-    puts "Information:\tSetting disk size to: "+install_size
+    puts "Information:\tSetting disk size to "+install_size
   end
 else
   if install_type.match(/vcsa/)
@@ -1503,8 +1507,12 @@ if !option["os"]
     if option["action"]
       if option["action"].match(/add|create/)
         if !option["method"]
-          puts "Warning:\tNo OS or install method specified when creating VM"
-          exit
+          if !option["vm"].match(/ldom|cdom|gdom/)
+            puts "Warning:\tNo OS or install method specified when creating VM"
+            exit
+          else
+            option["os"] = ""
+          end
         else
           option["os"] = ""
         end
@@ -1579,7 +1587,7 @@ if option["file"]
   if !install_type.match(/[a-z]/)
     install_type = get_install_type_from_file(install_file)
     if $verbose_mode == 1
-      puts "Information:\tSetting install type to: "+install_type
+      puts "Information:\tSetting install type to "+install_type
     end
   end
 else
@@ -1596,8 +1604,8 @@ if option["publisher"] and option["mode"].match(/server/) and $os_name.match(/Su
   else
     publisher_port = $default_ai_port
   end
-  puts "Information:\tSetting publisher host to: "+publisher_host
-  puts "Information:\tSetting publisher port to: "+publisher_port
+  puts "Information:\tSetting publisher host to "+publisher_host
+  puts "Information:\tSetting publisher port to "+publisher_port
 else
   if option["mode"] == "server" or option["file"].match(/repo/)
     if $os_name == "SunOS"
@@ -1605,8 +1613,8 @@ else
       publisher_host = $default_host
       publisher_port = $default_ai_port
       if $verbose_mode == 1
-        puts "Information:\tSetting publisher host to: "+publisher_host
-        puts "Information:\tSetting publisher port to: "+publisher_port
+        puts "Information:\tSetting publisher host to "+publisher_host
+        puts "Information:\tSetting publisher port to "+publisher_port
       end
     end
   else
@@ -1654,7 +1662,7 @@ if option["arch"]
     print_valid_list("Warning:\tInvalid architecture specified",$valid_arch_list)
   end
   if $verbose_mode == 1
-    puts "Information:\tSetting architecture to: "+install_arch
+    puts "Information:\tSetting architecture to "+install_arch
   end
 else
   install_arch = ""
@@ -1669,7 +1677,7 @@ if option["vm"]
     $default_vm_network = option["network"]
   end
   if $verbose_mode == 1
-    puts "Information:\tSetting VM network to: "+$default_vm_network
+    puts "Information:\tSetting VM network to "+$default_vm_network
   end
   case install_vm
   when /parallels/
@@ -1708,6 +1716,10 @@ if option["vm"]
     end
   when /ldom|cdom|gdom/
     if $os_arch.downcase.match(/sparc/) and $os_name.match(/SunOS/)
+      if !option["release"]
+        option["release"] = $os_rel
+        install_release   = $os_rel
+      end
       if $os_rel.match(/10|11/)
         if install_mode.match(/client/)
           install_vm = "gdom"
@@ -1754,7 +1766,7 @@ else
   $text_mode      = 0
 end
 if $verbose_mode == 1
-  puts "Information:\tSetting console mode to: "+install_console
+  puts "Information:\tSetting console mode to "+install_console
 end
 
 # Get/set system model
@@ -1770,7 +1782,7 @@ if option["vm"] or option["method"]
     end
   end
   if $verbose_mode == 1 and option["method"]
-    puts "Information:\tSetting model to: "+install_model
+    puts "Information:\tSetting model to "+install_model
   end
 end
 
@@ -1878,7 +1890,7 @@ end
 if option["clone"]
   install_clone = option["clone"]
   if $verbose_mode == 1 and option["clone"]
-    puts "Information:\tSetting clone name to: "+install_clone
+    puts "Information:\tSetting clone name to "+install_clone
   end
 else
   if option["action"] == "snapshot"
@@ -1888,7 +1900,7 @@ else
     install_clone = ""
   end
   if $verbose_mode == 1 and option["clone"]
-    puts "Information:\tSetting clone name to: "+install_clone
+    puts "Information:\tSetting clone name to "+install_clone
   end
 end
 
@@ -1953,7 +1965,7 @@ end
 if option["admin"]
   $default_admin_user = options["admin"]
   if $verbose_mode == 1
-    puts "Information:\tSetting admin user to: "+$default_admin_user
+    puts "Information:\tSetting admin user to "+$default_admin_user
   end
 end
 
@@ -2074,11 +2086,15 @@ if option["action"]
             end
           end
         else
-          set_local_config()
-          remove_hosts_entry(install_client,install_ip)
-          remove_dhcp_client(install_client)
-          if option["yes"]
-            delete_client_dir(install_client)
+          if install_vm.match(/ldom|gdom/)
+            unconfigure_gdom(install_client)
+          else
+            set_local_config()
+            remove_hosts_entry(install_client,install_ip)
+            remove_dhcp_client(install_client)
+            if option["yes"]
+              delete_client_dir(install_client)
+            end
           end
         end
       end
@@ -2100,6 +2116,10 @@ if option["action"]
       build_packer_config(install_client,install_vm)
     end
   when /add|create/
+    if install_vm.match(/none/) and !install_method.match(/[a-z]/) and !install_type.match(/[a-z]/) and !install_mode.match(/server/)
+      puts "Warning:\tNo VM, Method or given"
+      exit
+    end
     if install_mode.match(/server/) or install_file.match(/[a-z,A-Z,0-9]/) or install_type.match(/service/) and install_vm.match(/none/) and !install_type.match(/packer/) and !install_service.match(/packer/)
       check_local_config("server")
       eval"[configure_server(install_method,install_arch,publisher_host,publisher_port,install_service,install_file)]"
@@ -2163,7 +2183,7 @@ if option["action"]
                 create_vm(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount,install_ip)
               end
               if install_vm.match(/zone|lxc|gdom/)
-                eval"[configure_#{install_vm}(install_client,install_ip,install_mac,install_arch,install_os,install_rel,publisher_host,
+                eval"[configure_#{install_vm}(install_client,install_ip,install_mac,install_arch,install_os,install_release,publisher_host,
                                               install_file,install_service)]"
               end
               if install_vm.match(/cdom/)
@@ -2176,7 +2196,7 @@ if option["action"]
             create_vm(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount,install_ip)
           end
           if install_vm.match(/zone|lxc|gdom/)
-            eval"[configure_#{install_vm}(install_client,install_ip,install_mac,install_arch,install_os,install_rel,publisher_host,
+            eval"[configure_#{install_vm}(install_client,install_ip,install_mac,install_arch,install_os,install_release,publisher_host,
                                           install_file,install_service)]"
           end
           if install_vm.match(/cdom/)

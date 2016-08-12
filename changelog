@@ -747,3 +747,5 @@
 # Fixed bugs with Control Domain creation and Solaris 11 package/gem install scripts
 # 3.7.3: Fri 12 Aug 2016 15:03:44 AEST
 # More Control Domain code fixes
+# 3.7.4: Fri 12 Aug 2016 16:18:35 AEST
+# Guest LDom code fixes
