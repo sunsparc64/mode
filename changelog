@@ -753,4 +753,6 @@
 # Fixed code to stop/start Guest Domains
 # 3.7.6: Fri 12 Aug 2016 20:23:41 AEST
 # Added initial code to set values of parameters
+# 3.7.7: Fri 12 Aug 2016 23:00:01 AEST
+# Added code to show VM configuration and get parameters
 
