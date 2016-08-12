@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.7.4
+# Version:      3.7.5
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -761,7 +761,7 @@ if option["method"]
           puts "Information:\tSetting vm to gdom"
         end
       else
-        if option["method"].match(/ldeom/)
+        if option["method"].match(/ldom/)
           if option["client"]
             option["method"] = "gdom"
             option["vm"]     = "gdom"
@@ -774,6 +774,26 @@ if option["method"]
           else
             puts "Warning:\tCould not determine whether to run in server of client mode"
             exit
+          end
+        end
+      end
+    end
+  else
+    if option["mode"].match(/client/)
+      if !option["vm"]
+        if option["method"]
+          if option["method"].match(/ldom|gdom/)
+            option["vm"] = "gdom"
+          end
+        end
+      end
+    else
+      if option["mode"].match(/server/)
+        if !option["vm"]
+          if option["method"]
+            if option["method"].match(/ldom|cdom/)
+              option["vm"] = "cdom"
+            end
           end
         end
       end

@@ -2,9 +2,9 @@
 
 # Get Guest domain MAC
 
-def get_gdom_mac(client_name)
-  message    = "Information:\tGetting guest domain "+client_name+" MAC address"
-  command    = "ldm list-bindings #{client_name} |grep '#{$default_gdom_vnet}' |awk '{print $5}'"
+def get_gdom_mac(install_client)
+  message    = "Information:\tGetting guest domain "+install_client+" MAC address"
+  command    = "ldm list-bindings #{install_client} |grep '#{$default_gdom_vnet}' |awk '{print $5}'"
   output     = execute_command(message,command)
   client_mac = output.chomp
   return client_mac
@@ -13,7 +13,9 @@ end
 # List available LDoms
 
 def list_gdoms()
+  puts
   puts "Available Guest Domains:"
+  puts
   message   = ""
   command   = "ldm list |grep -v NAME |grep -v primary |awk '{print $1}'"
   output    = execute_command(message,command)
@@ -22,6 +24,7 @@ def list_gdoms()
     gdom_mac = get_gdom_mac(gdom_name)
     puts gdom_name+" "+gdom_mac
   end
+  puts
   return
 end
 
@@ -30,16 +33,21 @@ def list_gdom_vms()
   return
 end
 
+def list_all_gdom_vms()
+  list_gdoms()
+  return
+end
+
 # Create Guest domain disk
 
-def create_gdom_disk(client_name)
+def create_gdom_disk(install_client)
   client_disk = $q_struct["gdom_disk"].value
   disk_size   = $q_struct["gdom_size"].value
   disk_size   = disk_size.downcase
-  vds_disk    = client_name+"_vdisk0"
+  vds_disk    = install_client+"_vdisk0"
   if !client_disk.match(/\/dev/)
     if !File.exists?(client_disk)
-      message = "Information:\tCreating guest domain disk "+client_disk+" for client "+client_name
+      message = "Information:\tCreating guest domain disk "+client_disk+" for client "+install_client
       command = "mkfile -n #{disk_size} #{client_disk}"
       output = execute_command(message,command)
     end
@@ -47,7 +55,7 @@ def create_gdom_disk(client_name)
   message = "Information:\tChecking Virtual Disk Server device doesn't already exist"
   command = "ldm list-services |grep 'primary-vds0' |grep '#{vds_disk}'"
   output = execute_command(message,command)
-  if !output.match(/#{client_name}/)
+  if !output.match(/#{install_client}/)
     message = "Information:\tAdding disk device to Virtual Disk Server"
     command = "ldm add-vdsdev #{client_disk} #{vds_disk}@primary-vds0"
     output = execute_command(message,command)
@@ -57,12 +65,12 @@ end
 
 # Check Guest domain doesn't exist
 
-def check_gdom_doesnt_exist(client_name)
-  message = "Information:\tChecking guest domain "+client_name+" doesn't exist"
-  command = "ldm list |grep #{client_name}"
+def check_gdom_doesnt_exist(install_client)
+  message = "Information:\tChecking guest domain "+install_client+" doesn't exist"
+  command = "ldm list |grep #{install_client}"
   output  = execute_command(message,command)
-  if output.match(/#{client_name}/)
-    puts "Warning:\tGuest domain "+client_name+" already exists"
+  if output.match(/#{install_client}/)
+    puts "Warning:\tGuest domain "+install_client+" already exists"
     exit
   end
   return
@@ -70,12 +78,12 @@ end
 
 # Check Guest domain doesn't exist
 
-def check_gdom_exists(client_name)
-  message = "Information:\tChecking guest domain "+client_name+" exist"
-  command = "ldm list |grep #{client_name}"
+def check_gdom_exists(install_client)
+  message = "Information:\tChecking guest domain "+install_client+" exist"
+  command = "ldm list |grep #{install_client}"
   output  = execute_command(message,command)
-  if !output.match(/#{client_name}/)
-    puts "Warning:\tGuest domain "+client_name+" doesn't exist"
+  if !output.match(/#{install_client}/)
+    puts "Warning:\tGuest domain "+install_client+" doesn't exist"
     exit
   end
   return
@@ -83,63 +91,63 @@ end
 
 # Start Guest domain
 
-def start_gdom(client_name)
-  message = "Information:\tStarting guest domain "+client_name
-  command = "ldm start-domain #{client_name}"
+def start_gdom(install_client)
+  message = "Information:\tStarting guest domain "+install_client
+  command = "ldm start-domain #{install_client}"
   execute_command(message,command)
   return
 end
 
 # Stop Guest domain
 
-def stop_gdom(client_name)
-  message = "Information:\tStopping guest domain "+client_name
-  command = "ldm stop-domain #{client_name}"
+def stop_gdom(install_client)
+  message = "Information:\tStopping guest domain "+install_client
+  command = "ldm stop-domain #{install_client}"
   execute_command(message,command)
   return
 end
 
 # Bind Guest domain
 
-def bind_gdom(client_name)
-  message = "Information:\tBinding guest domain "+client_name
-  command = "ldm bind-domain #{client_name}"
+def bind_gdom(install_client)
+  message = "Information:\tBinding guest domain "+install_client
+  command = "ldm bind-domain #{install_client}"
   execute_command(message,command)
   return
 end
 
 # Unbind Guest domain
 
-def unbind_gdom(client_name)
-  message = "Information:\tUnbinding guest domain "+client_name
-  command = "ldm unbind-domain #{client_name}"
+def unbind_gdom(install_client)
+  message = "Information:\tUnbinding guest domain "+install_client
+  command = "ldm unbind-domain #{install_client}"
   execute_command(message,command)
   return
 end
 
 # Remove Guest domain
 
-def remove_gdom(client_name)
-  message = "Information:\tRemoving guest domain "+client_name
-  command = "ldm remove-domain #{client_name}"
+def remove_gdom(install_client)
+  message = "Information:\tRemoving guest domain "+install_client
+  command = "ldm remove-domain #{install_client}"
   execute_command(message,command)
   return
 end
 
 # Remove Guest domain disk
 
-def remove_gdom_disk(client_name)
-  vds_disk = client_name+"_vdisk0"
+def remove_gdom_disk(install_client)
+  vds_disk = install_client+"_vdisk0"
   message = "Information:\tRemoving disk "+vds_disk+" from Virtual Disk Server"
-  command = "ldm remove-vdisk #{vds_disk} #{client_name}"
+  command = "ldm remove-vdisk #{vds_disk} #{install_client}"
   execute_command(message,command)
   return
 end
 
 # Delete Guest domain disk
 
-def delete_gdom_disk(client_name)
-  gdom_dir    = $ldom_base_dir+"/"+client_name
+def delete_gdom_disk(install_client)
+  gdom_dir    = $ldom_base_dir+"/"+install_client
   client_disk = gdom_dir+"/vdisk0"
   message = "Information:\tRemoving disk "+client_disk
   command = "rm #{client_disk}"
@@ -149,32 +157,32 @@ end
 
 # Delete Guest domain directory
 
-def delete_gdom_dir(client_name)
-  gdom_dir    = $ldom_base_dir+"/"+client_name
+def delete_gdom_dir(install_client)
+  gdom_dir    = $ldom_base_dir+"/"+install_client
   destroy_zfs_fs(gdom_dir)
   return
 end
 
 # Create Guest domain
 
-def create_gdom(client_name)
+def create_gdom(install_client)
   memory   = $q_struct["gdom_memory"].value
   vcpu     = $q_struct["gdom_vcpu"].value
-  vds_disk = client_name+"_vdisk0"
-  message = "Information:\tCreating guest domain "+client_name
-  command = "ldm add-domain #{client_name}"
+  vds_disk = install_client+"_vdisk0"
+  message = "Information:\tCreating guest domain "+install_client
+  command = "ldm add-domain #{install_client}"
   execute_command(message,command)
-  message = "Information:\tAdding vCPUs to Guest domain "+client_name
-  command = "ldm add-vcpu #{vcpu} #{client_name}"
+  message = "Information:\tAdding vCPUs to Guest domain "+install_client
+  command = "ldm add-vcpu #{vcpu} #{install_client}"
   execute_command(message,command)
-  message = "Information:\tAdding memory to Guest domain "+client_name
-  command = "ldm add-memory #{memory} #{client_name}"
+  message = "Information:\tAdding memory to Guest domain "+install_client
+  command = "ldm add-memory #{memory} #{install_client}"
   execute_command(message,command)
-  message = "Information:\tAdding network to Guest domain "+client_name
-  command = "ldm add-vnet #{$default_gdom_vnet} primary-vsw0 #{client_name}"
+  message = "Information:\tAdding network to Guest domain "+install_client
+  command = "ldm add-vnet #{$default_gdom_vnet} primary-vsw0 #{install_client}"
   execute_command(message,command)
-  message = "Information:\tAdding isk to Guest domain "+client_name
-  command = "ldm add-vdisk vdisk0 #{vds_disk}@primary-vds0 #{client_name}"
+  message = "Information:\tAdding isk to Guest domain "+install_client
+  command = "ldm add-vdisk vdisk0 #{vds_disk}@primary-vds0 #{install_client}"
   execute_command(message,command)
   return
 end
@@ -218,13 +226,29 @@ end
 
 # Unconfigure Guest domain
 
-def unconfigure_gdom(client_name)
-  check_gdom_exists(client_name)
-  stop_gdom(client_name)
-  unbind_gdom(client_name)
-  remove_gdom_disk(client_name)
-  remove_gdom(client_name)
-  delete_gdom_disk(client_name)
-  delete_gdom_dir(client_name)
+def unconfigure_gdom(install_client)
+  check_gdom_exists(install_client)
+  stop_gdom(install_client)
+  unbind_gdom(install_client)
+  remove_gdom_disk(install_client)
+  remove_gdom(install_client)
+  delete_gdom_disk(install_client)
+  delete_gdom_dir(install_client)
+  return
+end
+
+# Boot Guest Domain
+
+def boot_gdom_vm(install_client,install_type)
+  check_gdom_exists(install_client) 
+  start_gdom(install_client)
+  return
+end
+
+# Stop Guest Domain
+
+def stop_gdom_vm(install_client)
+  check_gdom_exists(install_client) 
+  stop_gdom(install_client)
   return
 end
