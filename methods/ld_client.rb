@@ -25,6 +25,11 @@ def list_gdoms()
   return
 end
 
+def list_gdom_vms()
+  list_gdoms()
+  return
+end
+
 # Create Guest domain disk
 
 def create_gdom_disk(client_name)

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.7.2
+# Version:      3.7.3
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -743,19 +743,57 @@ if option["method"]
   if !option["mode"]
     if install["method"].match(/cdom/)
       option["mode"] = "server"
-      puts "Information:\tSetting mode to server"
+      option["vm"]   = "cdom"
+      if $verbose_mode == 1
+        puts "Information:\tSetting mode to server"
+        puts "Information:\tSetting vm to cdrom"
+      end
     else
       if option["method"].match(/gdom/) 
         option["mode"] = "client"
-        puts "Information:\tSetting mode to client"
-      else
-        if option["client"]
-          option["method"] = "gdom"
-          option["mode"]   = "client"
+        opyion["vm"]   = "gdom"
+        if $verbose_mode == 1
           puts "Information:\tSetting mode to client"
-        else
-          puts "Warning:\tCould not determine whether to run in server of client mode"
-          exit
+          puts "Information:\tSetting vm to gdom"
+        end
+      else
+        if option["method"].match(/ldeom/)
+          if option["client"]
+            option["method"] = "gdom"
+            option["vm"]     = "gdom"
+            option["mode"]   = "client"
+            if $verbose_mode == 1
+              puts "Information:\tSetting mode to client"
+              puts "Information:\tSetting method to gdom"
+              puts "Information:\tSetting vm to gdom"
+            end
+          else
+            puts "Warning:\tCould not determine whether to run in server of client mode"
+            exit
+          end
+        end
+      end
+    end
+  end
+else
+  if option["mode"]
+    if option["vm"]
+      if option["vm"].match(/ldom/)
+        if option["mode"].match(/client/)
+          option["vm"]     = "gdom"
+          option["method"] = "gdom"
+          if $verbose_mode == 1
+            puts "Information:\tSetting method to gdom"
+            puts "Information:\tSetting vm to gdom"
+          end
+        end
+        if option["mode"].match(/server/)
+          option["vm"]     = "cdom"
+          option["method"] = "cdom"
+          if $verbose_mode == 1
+            puts "Information:\tSetting method to cdom"
+            puts "Information:\tSetting vm to cdom"
+          end
         end
       end
     end

@@ -1,5 +1,25 @@
 # Control Domain related code
 
+# List CDom services
+
+def list_cdom_services()
+  message = "Information:\tListing Control Domain Services"
+  command = "ldm list |grep ^primary |awk '{print $1}'"
+  output  = execute_command(message,command)
+  if output.match(/primary/)
+    puts
+    puts "Available Control Domains:"
+    puts
+    puts output
+    puts
+  else
+    puts
+    puts "No Control Domains exist"
+    puts
+  end
+  return
+end
+
 # Check LDoms installed
 
 def check_cdom_install()
