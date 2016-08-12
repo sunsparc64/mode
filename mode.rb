@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.7.1
+# Version:      3.7.2
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -222,10 +222,10 @@ $valid_os_list            = [ 'Solaris', 'VMware-VMvisor', 'CentOS', 'OracleLinu
 $valid_linux_os_list      = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'Ubuntu', 'Debian', 'Fedora', 'RHEL', 'SL', 'Purity' ]
 $valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
 $valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
-$valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image' ]
+$valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image', 'ldom', 'cdom', 'gdom' ]
 $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer' ]
 $valid_mode_list          = [ 'client', 'server', 'osx' ]
-$valid_vm_list            = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'gdom', 'parallels' ]
+$valid_vm_list            = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'ldom', 'gdom', 'parallels' ]
 $execute_host             = "localhost"
 $default_options          = ""
 $do_checksums             = 0
@@ -735,6 +735,31 @@ end
 if option["help"]
   print_usage()
   exit
+end
+
+# Handle LDoms
+
+if option["method"]
+  if !option["mode"]
+    if install["method"].match(/cdom/)
+      option["mode"] = "server"
+      puts "Information:\tSetting mode to server"
+    else
+      if option["method"].match(/gdom/) 
+        option["mode"] = "client"
+        puts "Information:\tSetting mode to client"
+      else
+        if option["client"]
+          option["method"] = "gdom"
+          option["mode"]   = "client"
+          puts "Information:\tSetting mode to client"
+        else
+          puts "Warning:\tCould not determine whether to run in server of client mode"
+          exit
+        end
+      end
+    end
+  end
 end
 
 # Handle network switch

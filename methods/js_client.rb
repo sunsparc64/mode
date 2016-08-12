@@ -294,7 +294,7 @@ end
 # Configure client
 
 def configure_js_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
-                        install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)
+                        install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type,install_vm)
   if !install_arch.match(/i386|sparc/)
     if install_file
       if install_file.match(/i386/)

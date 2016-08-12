@@ -1,9 +1,8 @@
 #!/usr/bin/bash
 
-gem install getopt
-gem install builder
-gem install parseconfig
-gem install unix-crypt
-gem install netaddr
-gem install json
-gem install fileutils
+gems=(getopt builder netaddr parseconfig unix-crypt netaddr json fileutils)
+
+for gem in "${gems[@]}"; do
+  echo "Installing Gem $gem"
+  gem install $gem
+done

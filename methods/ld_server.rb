@@ -130,3 +130,32 @@ def configure_cdom(publisher_host)
   return
 end
 
+# Configure LDom Server (calls configure_cdom)
+
+def configure_ldom_server(install_arch,publisher_host,publisher_port,install_service,install_file)
+  configure_cdom(publisher_host)
+  return
+end
+
+def configure_cdom_server(install_arch,publisher_host,publisher_port,install_service,install_file)
+  configure_cdom(publisher_host)
+  return
+end
+
+# Unconfigure LDom Server
+
+def unconfigure_cdom()
+  puts "Warning:\tCurrently unconfiguring the Control Domain must be done manually"
+  exit
+  return
+end
+
+def unconfigure_ldom_server()
+  unconfigure_cdom()
+  return
+end
+
+def unconfigure_gdom_server()
+  unconfigure_cdom()
+  return
+end

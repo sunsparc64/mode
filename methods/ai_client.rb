@@ -247,7 +247,7 @@ end
 # Main code to actually add a client
 
 def configure_ai_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
-                        install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)
+                        install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type,install_vm)
   # Populate questions for AI profile
   if !install_service.match(/i386|sparc/)
     install_service = install_service+"_"+install_arch
@@ -262,7 +262,7 @@ def configure_ai_client(install_client,install_arch,install_mac,install_ip,insta
   output_file = $work_dir+"/"+install_client+"_ai_profile.xml"
   create_ai_client_profile(output_file)
   puts "Configuring:\tClient "+install_client+" with MAC address "+install_mac
-  import_ai_client_profile(output_file,install_client,install__mac,install_service)
+  import_ai_client_profile(output_file,install_client,install_mac,install_service)
   create_ai_client(install_client,install_arch,install_mac,install_service,install_ip)
   if $os_name.match(/SunOS/) and $os_rel.match(/11/)
     clear_solaris_dhcpd()
