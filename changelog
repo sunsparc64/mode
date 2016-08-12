@@ -744,4 +744,4 @@
 # 3.7.1: Thu 11 Aug 2016 15:43:44 AEST
 # Fixed bugs with Solaris 11 AI Server code
 # 3.7.2: Fri 12 Aug 2016 14:14:40 AEST
-# Fixed bugs with Control Domain creation
+# Fixed bugs with Control Domain creation and Solaris 11 package/gem install scripts
