@@ -604,22 +604,26 @@ end
 # Connect to virtual serial port
 
 def connect_to_virtual_serial(install_client,install_vm)
-  puts
-  puts "Connecting to serial port of "+install_client
-  puts
-  puts "To disconnect from this session use CTRL-Q"
-  puts
-  puts "If you wish to re-connect to the serial console of this machine,"
-  puts "run the following command:"
-  puts
-  puts $script+" --action=console --vm="+install_vm+" --client="+install_client
-  puts
-  puts "or:"
-  puts
-  puts "socat UNIX-CONNECT:/tmp/"+install_client+" STDIO,raw,echo=0,escape=0x11,icanon=0"
-  puts
-  puts
-  system("socat UNIX-CONNECT:/tmp/#{install_client} STDIO,raw,echo=0,escape=0x11,icanon=0")
+  if install_vm.match(/ldom|gdom/)
+    connect_to_gdom_console(install_client)
+  else
+    puts
+    puts "Connecting to serial port of "+install_client
+    puts
+    puts "To disconnect from this session use CTRL-Q"
+    puts
+    puts "If you wish to re-connect to the serial console of this machine,"
+    puts "run the following command:"
+    puts
+    puts $script+" --action=console --vm="+install_vm+" --client="+install_client
+    puts
+    puts "or:"
+    puts
+    puts "socat UNIX-CONNECT:/tmp/"+install_client+" STDIO,raw,echo=0,escape=0x11,icanon=0"
+    puts
+    puts
+    system("socat UNIX-CONNECT:/tmp/#{install_client} STDIO,raw,echo=0,escape=0x11,icanon=0")
+  end
   return
 end
 

@@ -1,5 +1,31 @@
 # Guest Domain support code
 
+# Check Guest Domain is running
+
+def check_gdom_is_running(install_client)
+  message = "Information:\tChecking Guest Domain "+install_client+" is running"
+  command = "ldm list-bindings #{install_client} |grep '^#{install_client}'"
+  output  = execute_command(message,command)
+  if !output.match(/active/)
+    puts "Warning:\tGuest Domain "+install_client+" is not running"
+    exit
+  end
+  return
+end
+
+# Check Guest Domain isn't running
+
+def check_gdom_isnt_running(install_client)
+  message = "Information:\tChecking Guest Domain "+install_client+" is running"
+  command = "ldm list-bindings #{install_client} |grep '^#{install_client}'"
+  output  = execute_command(message,command)
+  if output.match(/active/)
+    puts "Warning:\tGuest Domain "+install_client+" is already running"
+    exit
+  end
+  return
+end
+
 # Get Guest domain MAC
 
 def get_gdom_mac(install_client)
@@ -241,6 +267,7 @@ end
 
 def boot_gdom_vm(install_client,install_type)
   check_gdom_exists(install_client) 
+  check_gdom_isnt_running(install_client)
   start_gdom(install_client)
   return
 end
@@ -249,6 +276,47 @@ end
 
 def stop_gdom_vm(install_client)
   check_gdom_exists(install_client) 
+  check_gdom_is_running(install_client)
   stop_gdom(install_client)
   return
 end
+
+# Get Guest Domain Console Port
+
+def get_gdom_console_port(install_client)
+  message  = "Information:\tDetermining Virtual Console Port for Guest Domain "+install_client
+  command  = "ldm list-bindings #{install_client} |grep vcc |awk '{print $3}'"
+  vcc_port = execute_command(message,command)
+  return vcc_port
+end
+
+
+# Connect to Guest Domain Console
+
+def connect_to_gdom_console(install_client)
+  check_cdom_vntsd()
+  check_gdom_exists(install_client)
+  check_gdom_is_running(install_client)
+  vcc_port = get_gdom_console_port(install_client)
+  vcc_port = vcc_port.chomp
+  puts
+  puts "To connect to console of Guest Domain "+install_client+" type the following command: "
+  puts
+  puts "telnet localhost "+vcc_port
+  puts
+  return
+end
+
+# Set Guest Domain value
+
+def set_gdom_value(instal_client,install_param,install_value)
+  check_gdom_exists(install_client)
+  message = "Information:\tSetting "+install_param+" for Guest Domain "+install_client+" to "+install_value
+  if install_param.match(/autoboot|auto-boot/)
+    install_param = "auto-boot\?"
+  end
+  command = "ldm set-variable #{install_param}=#{install_value} #{install_client}"
+  execute_command(message,command)
+  return
+end
+

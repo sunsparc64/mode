@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.7.5
+# Version:      3.7.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -661,9 +661,11 @@ begin
     [ "--locale",         "-g", Getopt::REQUIRED ], # Locale (e.g. en_US)
     [ "--diskmode",       "-G", Getopt::REQUIRED ], # Disk mode (e.g. thin)
     [ "--help",           "-h", Getopt::BOOLEAN ],  # Display usage information
+    [ "--param"],         "-H", Getopt::REQUIRED ], # Set a parameter of a VM
     [ "--ip",             "-i", Getopt::REQUIRED ], # IP Address of client
     [ "--ipfamily",       "-I", Getopt::REQUIRED ], # IP family (e.g. IPv4 or IPv6)
     [ "--size",           "-j", Getopt::REQUIRED ], # VM disk size (if used with deploy action, this sets the size of the VM, e.g. tiny)
+    [ "--value",          "-J", Getopt::REQUIRED ], # Set the value of a parameter
     [ "--network",        "-k", Getopt::REQUIRED ], # Set network type (e.g. hostonly, bridged, nat)
     [ "--servernetwork",  "-K", Getopt::REQUIRED ], # Server network (used when deploying to a remote server)
     [ "--publisher",      "-l", Getopt::REQUIRED ], # Publisher host
@@ -739,6 +741,37 @@ end
 if option["help"]
   print_usage()
   exit
+end
+
+# Handle values and parameters
+
+if option["param"]
+  if !option["value"]
+    puts "Warning:\tSetting a parameter requires a value"
+    exit
+  else
+    if !option["value"].match(/[A-Z]|[a-z]|[0-9]/)
+      puts "Warning:\tSetting a parameter requires a value"
+      exit
+    else
+      install_param = option["param"]
+    end
+  end
+else
+  option["param"] = ""
+  install_param   = ""
+end
+
+if option["value"]
+  if !option["param"].match(/[A-Z]|[a-z]|[0-9]/)
+    puts "Warning:\tSetting a value requires a parameter"
+    exit
+  else
+    install_value = option["value"]
+  end
+else
+  option["value"] = ""
+  install_value   = option["value"]
 end
 
 # Handle LDoms
@@ -2333,11 +2366,6 @@ if option["action"]
   when /crypt/
     install_crypt = get_password_crypt(install_root_password)
     puts install_crypt
-  when /serial|console/
-    if !install_client.match(/[a-z,0-9]/)
-      puts "Warning:\tClient name not specified"
-    end
-    connect_to_virtual_serial(install_client)
   when /post/
     eval"[execute_#{install_vm}_post(install_client)]"
   when /change|modify/
@@ -2396,6 +2424,10 @@ if option["action"]
         puts "Warning:\tClient name not specified"
         exit
       end
+    end
+  when /set/
+    if install_vm.match(/[a-z]/)
+      eval"[set_#{install_vm}_value(install_client,install_param,install_value)"]
     end
   when /console|serial/
     if install_vm.match(/[a-z]/) and !install_vm.match(/none/)

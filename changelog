@@ -751,3 +751,6 @@
 # Guest LDom code fixes
 # 3.7.5: Fri 12 Aug 2016 16:57:09 AEST
 # Fixed code to stop/start Guest Domains
+# 3.7.6: Fri 12 Aug 2016 20:23:41 AEST
+# Added initial code to set values of parameters
+
