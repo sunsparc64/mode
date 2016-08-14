@@ -624,6 +624,23 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
     $q_struct[name] = config
     $q_order.push(name)
 
+  else
+
+    pkg_list = [ "openssh-server" ]
+  
+    name = "additional_packages"
+    config = Ks.new(
+      type      = "string",
+      question  = "Additional packages",
+      ask       = "yes",
+      parameter = "pkgsel/include",
+      value     = pkg_list.join(" "),
+      valid     = "",
+      eval      = "no"
+      )
+    $q_struct[name] = config
+    $q_order.push(name)
+
   end
 
   name = "root_login"

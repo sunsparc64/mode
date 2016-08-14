@@ -74,28 +74,28 @@ end
 # Configure Packer JSON file
 
 def create_packer_json(install_method,install_client,install_vm,install_arch,install_file,install_guest,install_size,install_memory,install_cpu,install_network,install_mac,install_ip,install_label)
-  nic_command1     = ""
-  nic_command2     = ""
-  nic_config1      = ""
-  nic_config1      = ""
-  communicator     = "winrm"
-  hw_version       = "12"
-  ks_ip            = $default_gateway_ip
-  winrm_use_ssl    = "false"
-  winrm_insecure   = "true"
-  virtual_dev      = "lsisas1068"
-  ethernet_type    = "static"
-  ethernet_dev     = "e1000"
-  vnc_enabled      = "true"
-  vhv_enabled      = "TRUE"
-  ethernet_enabled = "TRUE"
-  boot_wait        = "2m"
-  shutdown_timeout = "1h"
-  ssh_port         = "22"
-  hwvirtex         = "off"
-  audio            = "none"
-  mouse            = "ps2"
-  ssh_pty          = "true"
+  nic_command1      = ""
+  nic_command2      = ""
+  nic_config1       = ""
+  nic_config1       = ""
+  communicator      = "winrm"
+  hw_version        = "12"
+  ks_ip             = $default_gateway_ip
+  winrm_use_ssl     = "false"
+  winrm_insecure    = "true"
+  virtual_dev       = "lsisas1068"
+  ethernet_type     = "static"
+  ethernet_dev      = "e1000"
+  vnc_enabled       = "true"
+  vhv_enabled       = "TRUE"
+  ethernet_enabled  = "TRUE"
+  boot_wait         = "2m"
+  shutdown_timeout  = "1h"
+  ssh_port          = "22"
+  hwvirtex          = "off"
+  audio             = "none"
+  mouse             = "ps2"
+  ssh_pty           = "true"
 #  if install_vm.match(/fusion/)
     vnc_port_min = "5900"
     vnc_port_max = "5980"
@@ -328,7 +328,11 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    " domain="+$default_domainname+
                    "<enter><wait>"
   when /debian|ubuntu/
-    tools_upload_flavor = "linux"
+    if install_service.match(/ubuntu_16/)
+      tools_upload_flavor = ""
+    else
+      tools_upload_flavor = "linux"
+    end
     tools_upload_path   = "/home/"+$q_struct["admin_username"].value
     ks_file = install_vm+"/"+install_client+"/"+install_client+".cfg"
     ks_url  = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
@@ -356,7 +360,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    " netcfg/get_domain="+$q_struct["domain"].value+
                    " preseed/url="+ks_url+
                    " initrd=/install/initrd.gz -- <wait><enter><wait>"
-    #shutdown_command = "echo 'shutdown -P now' > /tmp/shutdown.sh ; echo '#{$q_struct["admin_password"].value}'|sudo -S sh '/tmp/shutdown.sh'"
+    shutdown_command = "echo 'shutdown -P now' > /tmp/shutdown.sh ; echo '#{$q_struct["admin_password"].value}'|sudo -S sh '/tmp/shutdown.sh'"
   when /vsphere|esx|vmware/
     hwvirtex         = "on"
     ks_file          = install_vm+"/"+install_client+"/"+install_client+".cfg"

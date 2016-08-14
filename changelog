@@ -755,4 +755,5 @@
 # Added initial code to set values of parameters
 # 3.7.7: Fri 12 Aug 2016 23:00:01 AEST
 # Added code to show VM configuration and get parameters
-
+# 3.7.8: Mon 15 Aug 2016 08:38:09 AEST
+# Fixed issues with Ubuntu 16.04 and Packer
