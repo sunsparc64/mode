@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.7.8
+# Version:      3.7.9
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1384,8 +1384,25 @@ end
 
 if install_action.match(/import/)
   if !install_file.match(/[a-z,A-Z,0-9]/) and !install_service.match(/[a-z,A-Z,0-9]/) and !install_type.match(/packer/)
-    puts "Warning:\tNo install file or service specified"
-    exit
+    install_client = option["client"]
+    vm_types       = [ "fusion", "vbox" ]
+    exists         = []
+    vm_exists      = ""
+    vm_type        = ""
+    vm_types.each do |vm_type|
+      exists = check_packer_vm_image_exists(install_client,vm_type)
+      if exists[0].match(/yes/)
+        option["type"] = "packer"
+        install_type   = "packer"
+        option["vm"]   = vm_type
+        install_vm     = vm_type
+        vm_exists      = "yes"
+      end
+    end
+    if !vm_exists.match(/yes/)
+      puts "Warning:\tNo install file, type or service specified"
+      exit
+    end
   end
 end
 
