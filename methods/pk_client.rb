@@ -182,39 +182,39 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     boot_command = "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
-                   "27<enter><wait>"+
-                   "3<enter><wait>"+
+                   "<wait>27<enter><wait>"+
+                   "<wait>3<enter><wait>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
-                   "1<enter><wait10><wait10>"+
-                   "<f2><wait10>"+
-                   "<f2><wait10>"+
-                   "<f2><wait10>"+
-                   "<f2><wait10>"+
-                   "<bs><bs><bs><bs><bs><bs><bs>"+install_client+"<wait>"+
-                   "<f2><wait10>"+
-                   "<tab><f2><wait>"+
+                   "<wait>1<enter><wait10><wait10>"+
+                   "<wait><f2><wait10>"+
+                   "<wait><f2><wait10>"+
+                   "<wait><f2><wait10>"+
+                   "<wait><f2><wait10>"+
+                   "<wait><bs><bs><bs><bs><bs><bs><bs>"+install_client+"<wait>"+
+                   "<wait><f2><wait10>"+
+                   "<wait><tab><f2><wait>"+
                    install_ip+"<wait><tab><wait><tab>"+
                    $default_gateway_ip+"<wait><f2><wait>"+
-                   "<f2><wait>"+
+                   "<wait><f2><wait>"+
                    $default_nameserver+"<wait><f2><wait>"+
-                   "<f2><wait10>"+
-                   "<f2><wait10>"+
-                   "<f2><wait10>"+
-                   "<f2><wait10>"+
-                   "<f2><wait10>"+
-                   "<f2><wait10>"+
-                   "<f2><wait10>"+
+                   "<wait><f2><wait10>"+
+                   "<wait><f2><wait10>"+
+                   "<wait><f2><wait10>"+
+                   "<wait><f2><wait10>"+
+                   "<wait><f2><wait10>"+
+                   "<wait><f2><wait10>"+
+                   "<wait><f2><wait10>"+
                    $q_struct["root_password"].value+"<wait><tab><wait>"+
                    $q_struct["root_password"].value+"<wait><tab><wait>"+
                    $q_struct["admin_username"].value+"<wait><tab><wait>"+
                    $q_struct["admin_username"].value+"<wait><tab><wait>"+
                    $q_struct["admin_password"].value+"<wait><tab><wait>"+
                    $q_struct["admin_password"].value+"<wait><f2><wait>"+
-                   "<f2><wait10>"+
-                   "<f2><wait10>"+
-                   "<f2><wait10>"+
+                   "<wait><f2><wait10>"+
+                   "<wait><f2><wait10>"+
+                   "<wait><f2><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
@@ -224,7 +224,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
-                   "<f8><wait10><wait10>"+
+                   "<wait><f8><wait10><wait10>"+
                    "<enter><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+

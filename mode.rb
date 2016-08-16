@@ -791,7 +791,7 @@ end
 
 if option["method"]
   if !option["mode"]
-    if install["method"].match(/cdom/)
+    if option["method"].match(/cdom/)
       option["mode"] = "server"
       option["vm"]   = "cdom"
       if $verbose_mode == 1
@@ -2219,7 +2219,7 @@ if option["action"]
           if !install_method.match(/[a-z]/)
             install_method = get_install_method(install_client,install_service)
           end
-          if !install_type.match(/packer/)
+          if !install_type.match(/packer/) and install_vm.match(/none/)
             check_dhcpd_config(publisher_host)
           end
           if !install_network.match(/nat/)
@@ -2240,7 +2240,6 @@ if option["action"]
                 delete_vm(install_vm,install_client)
                 eval"[unconfigure_#{install_type}_client(install_client,install_vm)]"
               end
-          else
             end
             eval"[configure_#{install_type}_client(install_method,install_vm,install_os,install_client,install_arch,install_mac,install_ip,install_model,
                               publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,
@@ -2262,6 +2261,9 @@ if option["action"]
                   $default_slice_size = "4192"
                 end
                 check_local_config("server")
+                if !install_mac.match(/[0-9]/)
+                  install_mac = generate_mac_address(install_vm)
+                end
                 eval"[configure_#{install_method}_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,
                                   install_service,install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type,install_vm)]"
               end

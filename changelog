@@ -757,3 +757,5 @@
 # Added code to show VM configuration and get parameters
 # 3.7.8: Mon 15 Aug 2016 08:38:09 AEST
 # Fixed issues with Ubuntu 16.04 and Packer
+# 3.7.9: Tue 16 Aug 2016 15:58:06 AEST
+# Minor bug fixes
