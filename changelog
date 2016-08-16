@@ -761,3 +761,5 @@
 # Minor bug fixes
 # 3.8.0: Tue 16 Aug 2016 18:01:42 AEST
 # Added check for platform when listing LDom services
+# 3.8.1: Tue 16 Aug 2016 20:10:42 AEST
+# Migrated common code in mode.rb into common.rb
