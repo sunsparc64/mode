@@ -3,20 +3,53 @@
 # List CDom services
 
 def list_cdom_services()
-  message = "Information:\tListing Control Domain Services"
-  command = "ldm list |grep ^primary |awk '{print $1}'"
-  output  = execute_command(message,command)
-  if output.match(/primary/)
-    puts
-    puts "Available Control Domains:"
-    puts
-    puts output
-    puts
+  if $os_info.match(/SunOS/)
+    if $os_rel.match(/10|11/)
+      if $os_info.match(/sun4v/)
+        message = "Information:\tListing Control Domain Services"
+        command = "ldm list |grep ^primary |awk '{print $1}'"
+        output  = execute_command(message,command)
+        if output.match(/primary/)
+          puts
+          puts "Available Control Domains:"
+          puts
+          puts output
+          puts
+        else
+          puts
+          puts "No Control Domains exist"
+          puts
+        end
+      else
+      if $verbose_mode == 1
+          puts
+          puts "Warning:\tThis service is only available on the Sun4v platform"
+          puts
+        end
+      end
+    else
+      if $verbose_mode == 1
+        puts
+        puts "Warning:\tThis service is only available on Solaris 10 or later"
+        puts
+      end
+    end
   else
-    puts
-    puts "No Control Domains exist"
-    puts
+    if $verbose_mode == 1
+      puts
+      puts "Warning:\tThis service is only available on Solaris"
+      puts
+    end
   end
+  return
+end
+
+def list_ldom_services()
+  list_cdom_services()
+  return
+end
+
+def list_gdom_services()
   return
 end
 

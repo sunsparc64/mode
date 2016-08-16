@@ -759,3 +759,5 @@
 # Fixed issues with Ubuntu 16.04 and Packer
 # 3.7.9: Tue 16 Aug 2016 15:58:06 AEST
 # Minor bug fixes
+# 3.8.0: Tue 16 Aug 2016 18:01:42 AEST
+# Added check for platform when listing LDom services
