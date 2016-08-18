@@ -156,57 +156,61 @@ end
 # List all Fusion VMs
 
 def list_all_fusion_vms()
-  handle_output("") 
-  handle_output("VMware Fusion VMs:")
-  handle_output("")
-  install_os  = ""
-  install_mac = ""
-  file_list   = Dir.entries($fusion_dir)
-  file_list.each do |entry|
-    if entry.match(/vmwarevm/)
-      install_client = entry.gsub(/\.vmwarevm/,"")
-      install_os     = get_fusion_vm_os(install_client)
-      install_mac    = get_fusion_vm_mac(install_client)
-      if !install_os
-        install_os = "unknown"
-      end
-      handle_output("#{install_client} os=#{install_os} mac=#{install_mac}")
-    end
-  end
-  handle_output("")
+  search_string = "all"
+  list_fusion_vms(search_string)
   return
 end
 
 # List available VMware Fusion VMs
 
 def list_fusion_vms(search_string)
-  output_list = []
   install_os  = ""
   install_mac = ""
   file_list   = Dir.entries($fusion_dir)
-  file_list.each do |entry|
-    if entry.match(/vmwarevm/)
-      install_client = entry.gsub(/\.vmwarevm/,"")
-      install_mac    = get_fusion_vm_mac(install_client)
-      install_os     = get_fusion_vm_os(install_client)
-      output         = install_client+" os="+install_os+" mac="+install_mac
-      if search_string
-        if output.match(/#{search_string}/)
-          output_list.push(output)
+  if search_string == "all"
+    type_string = "Fusion"
+  else
+    type_string = search_string+" Fusion"
+  end
+  if file_list.length > 0
+    if $output_format.match(/html/)
+      handle_output("<h1>Available #{type_string} VMs</h1>")
+      handle_output("<table>")
+      handle_output("<tr>")
+      handle_output("<thVM</th>")
+      handle_output("<th>OS</th>")
+      handle_output("<th>MAC</th>")
+      handle_output("</tr>")
+    else
+      handle_output("") 
+      handle_output("Available #{type_string} VMs:")
+      handle_output("") 
+    end
+    file_list.each do |entry|
+      if entry.match(/vmwarevm/)
+        if search_string == "all" or entry.match(/#{search_string}/)
+
+          install_client = entry.gsub(/\.vmwarevm/,"")
+          install_mac    = get_fusion_vm_mac(install_client)
+          install_os     = get_fusion_vm_os(install_client)
+          if $output_format.match(/html/)
+            handle_output("<tr>")
+            handle_output("<td>#{install_client}</td>")
+            handle_output("<td>#{install_os}</td>")
+            handle_output("<td>#{install_mac}</td>")
+            handle_output("</tr>")
+          else
+            output = install_client+" os="+install_os+" mac="+install_mac
+            handle_output(output)
+          end
         end
-      else
-        output_list.push(output)
       end
     end
-  end
-  if output_list.length > 0
-    handle_output("") 
-    handle_output("Available #{search_string} VMs:")
-    handle_output("") 
-    output_list.each do |output|
-      handle_output(output)
+    if $output_format.match(/html/)
+      handle_output("</table>")
+    else
+      handle_output("")
     end
-    handle_output("")
   end
   return
 end

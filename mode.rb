@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.8.7
+# Version:      3.8.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -121,63 +121,65 @@ end
 
 # Process options
 
+include Getopt
+
 begin
-  option = Getopt::Long.getopts(
-    [ "--action",         "-a", Getopt::REQUIRED ], # Action (e.g. boot, stop, create, delete, list, etc)
-    [ "--arch",           "-A", Getopt::REQUIRED ], # Architecture of client or VM (e.g. x86_64)
-    [ "--domainname",     "-b", Getopt::REQUIRED ], # Set domain (Used with deploy for VCSA)
-    [ "--memory",         "-B", Getopt::REQUIRED ], # VM memory size
-    [ "--client",         "-c", Getopt::REQUIRED ], # Client name
-    [ "--mode",           "-C", Getopt::REQUIRED ], # Set mode to client or server
-    [ "--datastore",      "-d", Getopt::REQUIRED ], # Datastore to deploy to on remote server
-    [ "--nameserver",     "-d", Getopt::REQUIRED ], # Delete client or VM
-    [ "--server",         "-D", Getopt::REQUIRED ], # Server name/IP (allow execution of commands on a remote host, or deploy to)
-    [ "--mac",            "-e", Getopt::REQUIRED ], # MAC Address
-    [ "--vm",             "-E", Getopt::REQUIRED ], # VM type
-    [ "--file",           "-f", Getopt::REQUIRED ], # File, eg ISO
-    [ "--clone",          "-F", Getopt::REQUIRED ], # Clone name
-    [ "--locale",         "-g", Getopt::REQUIRED ], # Locale (e.g. en_US)
-    [ "--diskmode",       "-G", Getopt::REQUIRED ], # Disk mode (e.g. thin)
-    [ "--help",           "-h", Getopt::BOOLEAN ],  # Display usage information
-    [ "--param",          "-H", Getopt::REQUIRED ], # Set a parameter of a VM
-    [ "--ip",             "-i", Getopt::REQUIRED ], # IP Address of client
-    [ "--ipfamily",       "-I", Getopt::REQUIRED ], # IP family (e.g. IPv4 or IPv6)
-    [ "--size",           "-j", Getopt::REQUIRED ], # VM disk size (if used with deploy action, this sets the size of the VM, e.g. tiny)
-    [ "--value",          "-J", Getopt::REQUIRED ], # Set the value of a parameter
-    [ "--network",        "-k", Getopt::REQUIRED ], # Set network type (e.g. hostonly, bridged, nat)
-    [ "--servernetwork",  "-K", Getopt::REQUIRED ], # Server network (used when deploying to a remote server)
-    [ "--publisher",      "-l", Getopt::REQUIRED ], # Publisher host
-    [ "--license",        "-L", Getopt::REQUIRED ], # License key (e.g. ESX)
-    [ "--method",         "-m", Getopt::REQUIRED ], # Install method (e.g. Kickstart)
-    [ "--mount",          "-M", Getopt::REQUIRED ], # Mount point
-    [ "--service",        "-n", Getopt::REQUIRED ], # Service name
-    [ "--timeserver",     "-N", Getopt::REQUIRED ], # Set NTP server IP / Address
-    [ "--os",             "-o", Getopt::REQUIRED ], # OS type
-    [ "--format",         "-O", Getopt::REQUIRED ], # Output format
-    [ "--post",           "-p", Getopt::REQUIRED ], # Post install configuration
-    [ "--publisher",      "-P", Getopt::REQUIRED ], # Set publisher information (Solaris AI)
-    [ "--adminpassword",  "-q", Getopt::REQUIRED ], # Client admin password
-    [ "--ssopassword",    "-q", Getopt::REQUIRED ], # SSO password
-    [ "--serverpassword", "-Q", Getopt::REQUIRED ], # Admin password of server to deploy to
-    [ "--release",        "-r", Getopt::REQUIRED ], # OS Release
-    [ "--mirror",         "-R", Getopt::REQUIRED ], # Mirror / Repo
-    [ "--repo",           "-r", Getopt::REQUIRED ], # Set repository
-    [ "--copykeys",       "-s", Getopt::BOOLEAN ],  # Copy SSH Keys
-    [ "--share",          "-S", Getopt::REQUIRED ], # Shared folder
-    [ "--type",           "-t", Getopt::REQUIRED ], # Install type (e.g. ISO, client, OVA, Network)
-    [ "--model",          "-T", Getopt::REQUIRED ], # Model
-    [ "--admin",          "-u", Getopt::REQUIRED ], # Admin username for client VM to be created
-    [ "--serveradmin",    "-U", Getopt::REQUIRED ], # Admin username for server to deploy to
-    [ "--verbose",        "-v", Getopt::BOOLEAN ],  # Verbose mode
-    [ "--version",        "-V", Getopt::BOOLEAN ],  # Display version information
-    [ "--test",           "-w", Getopt::BOOLEAN ],  # Test mode
-    [ "--rootpassword",   "-W", Getopt::REQUIRED ], # Client root password
-    [ "--locale",         "-x", Getopt::REQUIRED ], # Select language/language (e.g. en_US)
-    [ "--console",        "-X", Getopt::REQUIRED ], # Select console type (e.g. text, serial, x11) (default is text)
-    [ "--yes",            "-y", Getopt::BOOLEAN ],  # Answer yes to all questions (accept defaults)
-    [ "--shell",          "-z", Getopt::REQUIRED ], # Install shell (used for packer, e.g. winrm, ssh)
-    [ "--enable",         "-Z", Getopt::REQUIRED ], # Mount point
-    [ "--changelog",      "-1", Getopt::BOOLEAN ]   # Print changelog
+  option = Long.getopts(
+    [ "--action",         "-a", REQUIRED ], # Action (e.g. boot, stop, create, delete, list, etc)
+    [ "--arch",           "-A", REQUIRED ], # Architecture of client or VM (e.g. x86_64)
+    [ "--domainname",     "-b", REQUIRED ], # Set domain (Used with deploy for VCSA)
+    [ "--memory",         "-B", REQUIRED ], # VM memory size
+    [ "--client",         "-c", REQUIRED ], # Client name
+    [ "--mode",           "-C", REQUIRED ], # Set mode to client or server
+    [ "--datastore",      "-d", REQUIRED ], # Datastore to deploy to on remote server
+    [ "--nameserver",     "-d", REQUIRED ], # Delete client or VM
+    [ "--server",         "-D", REQUIRED ], # Server name/IP (allow execution of commands on a remote host, or deploy to)
+    [ "--mac",            "-e", REQUIRED ], # MAC Address
+    [ "--vm",             "-E", REQUIRED ], # VM type
+    [ "--file",           "-f", REQUIRED ], # File, eg ISO
+    [ "--clone",          "-F", REQUIRED ], # Clone name
+    [ "--locale",         "-g", REQUIRED ], # Locale (e.g. en_US)
+    [ "--diskmode",       "-G", REQUIRED ], # Disk mode (e.g. thin)
+    [ "--help",           "-h", BOOLEAN ],  # Display usage information
+    [ "--param",          "-H", REQUIRED ], # Set a parameter of a VM
+    [ "--ip",             "-i", REQUIRED ], # IP Address of client
+    [ "--ipfamily",       "-I", REQUIRED ], # IP family (e.g. IPv4 or IPv6)
+    [ "--size",           "-j", REQUIRED ], # VM disk size (if used with deploy action, this sets the size of the VM, e.g. tiny)
+    [ "--value",          "-J", REQUIRED ], # Set the value of a parameter
+    [ "--network",        "-k", REQUIRED ], # Set network type (e.g. hostonly, bridged, nat)
+    [ "--servernetwork",  "-K", REQUIRED ], # Server network (used when deploying to a remote server)
+    [ "--publisher",      "-l", REQUIRED ], # Publisher host
+    [ "--license",        "-L", REQUIRED ], # License key (e.g. ESX)
+    [ "--method",         "-m", REQUIRED ], # Install method (e.g. Kickstart)
+    [ "--mount",          "-M", REQUIRED ], # Mount point
+    [ "--service",        "-n", REQUIRED ], # Service name
+    [ "--timeserver",     "-N", REQUIRED ], # Set NTP server IP / Address
+    [ "--os",             "-o", REQUIRED ], # OS type
+    [ "--format",         "-O", REQUIRED ], # Output format
+    [ "--post",           "-p", REQUIRED ], # Post install configuration
+    [ "--publisher",      "-P", REQUIRED ], # Set publisher information (Solaris AI)
+    [ "--adminpassword",  "-q", REQUIRED ], # Client admin password
+    [ "--ssopassword",    "-q", REQUIRED ], # SSO password
+    [ "--serverpassword", "-Q", REQUIRED ], # Admin password of server to deploy to
+    [ "--release",        "-r", REQUIRED ], # OS Release
+    [ "--mirror",         "-R", REQUIRED ], # Mirror / Repo
+    [ "--repo",           "-r", REQUIRED ], # Set repository
+    [ "--copykeys",       "-s", BOOLEAN ],  # Copy SSH Keys
+    [ "--share",          "-S", REQUIRED ], # Shared folder
+    [ "--type",           "-t", REQUIRED ], # Install type (e.g. ISO, client, OVA, Network)
+    [ "--model",          "-T", REQUIRED ], # Model
+    [ "--admin",          "-u", REQUIRED ], # Admin username for client VM to be created
+    [ "--serveradmin",    "-U", REQUIRED ], # Admin username for server to deploy to
+    [ "--verbose",        "-v", BOOLEAN ],  # Verbose mode
+    [ "--version",        "-V", BOOLEAN ],  # Display version information
+    [ "--test",           "-w", BOOLEAN ],  # Test mode
+    [ "--rootpassword",   "-W", REQUIRED ], # Client root password
+    [ "--locale",         "-x", REQUIRED ], # Select language/language (e.g. en_US)
+    [ "--console",        "-X", REQUIRED ], # Select console type (e.g. text, serial, x11) (default is text)
+    [ "--yes",            "-y", BOOLEAN ],  # Answer yes to all questions (accept defaults)
+    [ "--shell",          "-z", REQUIRED ], # Install shell (used for packer, e.g. winrm, ssh)
+    [ "--enable",         "-Z", REQUIRED ], # Mount point
+    [ "--changelog",      "-1", BOOLEAN ]   # Print changelog
   )
 rescue
   print_usage()
@@ -346,7 +348,19 @@ else
         end
       end
     end
+  else
+    option["method"] = ""
+    install_method   = ""
   end
+end
+
+# Handle type option
+
+if option["type"]
+  install_type = option["type"]
+else
+  option["type"] = ""
+  install_type   = ""
 end
 
 # Handle network switch
@@ -367,7 +381,9 @@ if option["network"]
   if !option["network"].match(/nat/)
     if option["vm"]
       if option["vm"].downcase.match(/virtualbox|vbox/)
-        handle_output("Warning:\tVirtualBox does not support Hostonly or Bridged network with Packer")
+        if option["type"].match(/packer/) or option["method"].match(/packer/)
+          handle_output("Warning:\tVirtualBox does not support Hostonly or Bridged network with Packer")
+        end
       end
     end
   end

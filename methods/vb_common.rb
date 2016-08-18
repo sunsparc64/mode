@@ -205,17 +205,8 @@ end
 # List all VMs
 
 def list_all_vbox_vms()
-  vm_list = get_available_vbox_vms()
-  handle_output("") 
-  handle_output("VirtualBox VMs")
-  handle_output("") 
-  vm_list.each do |line|
-    install_client = line.split(/"/)[1]
-    install_os     = get_vbox_vm_os(install_client)
-    install_mac    = get_vbox_vm_mac(install_client)
-    handle_output("#{install_client} os=#{install_os} mac=#{install_mac}")
-  end
-  handle_output("") 
+  search_string = "all"
+  list_vbox_vms(search_string)
   return
 end
 
@@ -543,27 +534,48 @@ end
 def list_vbox_vms(search_string)
   output_list = []
   vm_list     = get_available_vbox_vms()
-  vm_list.each do |line|
-    install_client = line.split(/"/)[1]
-    install_mac    = get_vbox_vm_mac(install_client)
-    install_os     = get_vbox_vm_os(install_client)
-    output         = install_client+" os="+install_os+" mac="+install_mac
-    if search_string
-      if output.match(/#{search_string}/)
-        output_list.push(output)
-      end
-    else
-      output_list.push(output)
-    end
+  if search_string == "all"
+    type_string = "VirtualBox"
+  else
+    type_string = search_string+" VirtualBox"
   end
-  if output_list.length > 0
-    handle_output("") 
-    handle_output("Available #{search_string} VMs:")
-    handle_output("") 
-    output_list.each do |output|
-      handle_output(output)
+  if vm_list.length > 0
+    if $output_format.match(/html/)
+      handle_output("<h1>Available #{type_string} VMs</h1>")
+      handle_output("<table>")
+      handle_output("<tr>")
+      handle_output("<thVM</th>")
+      handle_output("<th>OS</th>")
+      handle_output("<th>MAC</th>")
+      handle_output("</tr>")
+    else
+      handle_output("") 
+      handle_output("Available #{type_string} VMs:")
+      handle_output("") 
     end
-    handle_output("") 
+    vm_list.each do |line|
+      line = line.chomp
+      install_client = line.split(/"/)[1]
+      install_mac    = get_vbox_vm_mac(install_client)
+      install_os     = get_vbox_vm_os(install_client)
+      if search_string == "all" or line.match(/#{search_string}/)
+        if $output_format.match(/html/)
+          handle_output("<tr>")
+          handle_output("<td>#{install_client}</td>") 
+          handle_output("<td>#{install_mac}</td>") 
+          handle_output("<td>#{install_os}</td>") 
+          handle_output("</tr>")
+        else
+          output = install_client+" os="+install_os+" mac="+install_mac
+          handle_output(output) 
+        end
+      end
+    end
+    if $output_format.match(/html/)
+      handle_output("</table>")
+    else
+      handle_output("")
+    end
   end
   return
 end
