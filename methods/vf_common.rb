@@ -242,12 +242,9 @@ def show_fusion_vm(install_client)
   if exists.match(/yes/)
     fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
     if File.exist?(fusion_vmx_file)
-      %x[cat "#{fusion_vmx_file}"]
+      print_contents_of_file(fusion_vmx_file)
     end
   else
-    handle_output("Warning:\tFusion VM #{install_client} does not exist")
-    exit
-  end
   return
 end
 

@@ -1408,13 +1408,26 @@ end
 # Print contents of file
 
 def print_contents_of_file(file_name)
-  if $verbose_mode == 1
+  if $verbose_mode == 1 or $output_format.match(/html/)
     if File.exist?(file_name)
-      handle_output("")
-      handle_output("Information:\tContents of file #{file_name}")
-      handle_output("")
-      system("cat '#{file_name}'")
-      handle_output("")
+      output = %x[cat '#{file_name}']
+      if $output_format.match(/html/)
+        handle_output("<table border=\"1\">")
+        handle_output("<tr>")
+        handle_output("<th>#{fusion_vmx_file}</th>")
+        handle_output("<tr>")
+        handle_output("<td>")
+        handle_output("<pre>")
+        handle_output("#{output}")
+        handle_output("</pre>")
+        handle_output("</td>")
+        handle_output("</tr>")
+        handle_output("</table>")
+      else
+        handle_output("")
+        handle_output("Information:\tContents of file #{file_name}")
+        handle_output(output)
+        handle_output("")
     else
       handle_output("Warning:\tFile #{file_name} does not exist")
     end

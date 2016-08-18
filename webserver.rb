@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine) webserver
-# Version:      0.0.2
+# Version:      0.0.3
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -262,8 +262,13 @@ get '/' do
   if params["version"]
     redirect "/version"
   end
+  if params["client"]
+    install_client = params["client"]
+  else
+    install_client = ""
+  end
   if params["action"]
-    action = params["action"]
+    install_action = params["action"]
   else
     redirect "/help"
   end
@@ -287,9 +292,19 @@ get '/' do
   else
     install_type = ""
   end
-  case action
+  case install_action
   when /help/
     redirect "/help"
+  when /display|view|show|prop/
+    if install_client.match(/[a-z,A-Z]/)
+      if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
+        eval"[show_#{install_vm}_vm_config(install_client)]"
+      else
+        get_client_config(install_client,install_service,install_method,install_type)
+      end
+    else
+      handle_output("Warning:\tClient name not specified")
+    end
   when /list/
     if install_type.match(/[a-z]/)
       if install_type.match(/iso/)
