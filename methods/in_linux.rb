@@ -87,24 +87,64 @@ end
 
 # List ISOs
 
-def list_linux_isos(search_string)
+def list_linux_isos(search_string,linux_type)
   iso_list      = check_iso_base_dir(search_string)
-  iso_list.each do |iso_file_name|
-    iso_file_name = iso_file_name.chomp
-    (linux_distro,iso_version,iso_arch) = get_linux_version_info(iso_file_name)
-    handle_output("ISO file:\t#{iso_file_name}")
-    handle_output("Distribution:\t#{linux_distro}")
-    handle_output("Version:\t#{iso_version}")
-    handle_output("Architecture:\t#{iso_arch}")
-    iso_version      = iso_version.gsub(/\./,"_")
-    service_name     = linux_distro+"_"+iso_version+"_"+iso_arch
-    repo_version_dir = $repo_base_dir+"/"+service_name
-    if File.directory?(repo_version_dir)
-      handle_output("Service Name:\t#{service_name} (exists)")
+    iso_list      = check_iso_base_dir(search_string)
+  if iso_list.length > 0
+    if $output_format.match(/html/)
+      handle_output("<h1>Available #{linux_type} ISOs:</h1>")
+      handle_output("<table>")
+      handle_output("<tr>")
+      handle_output("<th>ISO File</th>")
+      handle_output("<th>Distribution</th>")
+      handle_output("<th>Version</th>")
+      handle_output("<th>Architecture</th>")
+      handle_output("<th>Service Name</th>")
+      handle_output("</tr>")
     else
-      handle_output("Service Name:\t#{service_name}")
+      handle_output("Available #{linux_type} ISOs:")
+      handle_output("") 
     end
-    handle_output("")
+    iso_list.each do |iso_file_name|
+      iso_file_name = iso_file_name.chomp
+      (linux_distro,iso_version,iso_arch) = get_linux_version_info(iso_file_name)
+      if $output_format.match(/html/)
+        handle_output("<tr>")
+        handle_output("<td>#{iso_file_name}</td>")
+        handle_output("<td>#{linux_distro}</td>")
+        handle_output("<td>#{iso_version}</td>")
+        handle_output("<td>#{iso_arch}</td>")
+      else
+        handle_output("ISO file:\t#{iso_file_name}")
+        handle_output("Distribution:\t#{linux_distro}")
+        handle_output("Version:\t#{iso_version}")
+        handle_output("Architecture:\t#{iso_arch}")
+      end
+      iso_version      = iso_version.gsub(/\./,"_")
+      service_name     = linux_distro+"_"+iso_version+"_"+iso_arch
+      repo_version_dir = $repo_base_dir+"/"+service_name
+      if File.directory?(repo_version_dir)
+        if $output_format.match(/html/)
+          handle_output("<td>#{service_name} (exists)</td>")
+          handle_output("</tr>")
+        else
+          handle_output("Service Name:\t#{service_name} (exists)")
+        end
+      else
+        if $output_format.match(/html/)
+          handle_output("<td>#{service_name}</td>")
+          handle_output("</tr>")
+        else
+          handle_output("Service Name:\t#{service_name}")
+        end
+      end
+      if !$output_format.match(/html/)
+        handle_output("") 
+      end
+    end
+    if $output_format.match(/html/)
+      handle_output("</table>")
+    end
   end
   return
 end

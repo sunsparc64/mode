@@ -59,31 +59,7 @@ end
 
 def list_ks_isos()
   search_string = "CentOS|rhel|SL|OracleLinux|Fedora"
-  iso_list      = check_iso_base_dir(search_string)
-  if iso_list.length > 0
-    handle_output("Available Kickstart ISOs:")
-    handle_output("") 
-  end
-  iso_list.each do |iso_file_name|
-    iso_file_name = iso_file_name.chomp
-    if iso_file_name.match(/VMvisor/)
-      (linux_distro,iso_version,iso_arch) = get_vsphere_version_info(iso_file_name)
-    else
-      (linux_distro,iso_version,iso_arch) = get_linux_version_info(iso_file_name)
-    end
-    handle_output("ISO file:\t#{iso_file_name}")
-    handle_output("Distribution:\t#{linux_distro}")
-    handle_output("Version:\t#{iso_version}")
-    handle_output("Architecture:\t#{iso_arch}")
-    iso_version      = iso_version.gsub(/\./,"_")
-    install_service  = linux_distro+"_"+iso_version+"_"+iso_arch
-    repo_version_dir = $repo_base_dir+"/"+install_service
-    if File.directory?(repo_version_dir)
-      handle_output("Information:\tService Name #{install_service} (exists)")
-    else
-      handle_output("Information:\tService Name #{install_service}")
-    end
-    handle_output("") 
-  end
+  linux_type    = "CentOS, Red Hat Enterprise, Oracle Linux, Scientific or Fedora"
+  list_linux_isos(search_string,linux_type)
   return
 end

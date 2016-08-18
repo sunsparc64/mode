@@ -4,6 +4,7 @@
 # Set up some global variables/defaults
 
 def set_global_vars()
+  $script_name              = "mode"
   $script                   = $0
   $script_file              = Pathname.new($script).realpath
   $script_dir               = File.dirname($script_file)

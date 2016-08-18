@@ -771,3 +771,5 @@
 # Added HTML output capability to AI list commands
 # 3.8.5: Thu 18 Aug 2016 10:37:15 AEST
 # Added some initial plumbing for webserver
+# 3.8.6: Thu 18 Aug 2016 12:46:50 AEST
+# Code cleanup for listing ISOs

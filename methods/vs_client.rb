@@ -353,7 +353,7 @@ end
 # Populate post commands
 
 def populate_vs_post_list(install_service)
-  post_list   = []
+  post_list = []
   post_list.push("")
   return post_list
 end

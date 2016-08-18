@@ -4,8 +4,9 @@
 # List available SLES ISOs
 
 def list_ay_isos()
-  search_string = "SLES"
-  list_linux_isos(search_string)
+  search_string = "SLE"
+  linux_type    = "OpenSuSE or SuSE Enterprise Linux"
+  list_linux_isos(search_string,linux_type)
   return
 end
 
@@ -14,10 +15,10 @@ end
 def configure_ay_server(install_arch,publisher_host,publisher_port,install_service,install_file)
   if install_service.match(/[a-z,A-Z]/)
     if install_service.downcase.match(/suse/)
-      search_string = "SLES"
+      search_string = "SLE"
     end
   else
-    search_string = "SLES"
+    search_string = "SLE"
   end
   configure_linux_server(install_arch,publisher_host,publisher_port,install_service,install_file,search_string)
   return

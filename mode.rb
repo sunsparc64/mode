@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.8.5
+# Version:      3.8.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -190,6 +190,15 @@ if option["format"]
   $output_format = option["format"].downcase
 end
 
+# Prime HTML
+
+if $output_format.match(/html/)
+  $output_text.push("<html>")
+  $output_text.push("<head>")
+  $output_text.push("<title>#{$script_name}</title>")
+  $output_text.push("</head>")
+  $output_text.push("<body>")
+end
 
 # Set verbose mode
 
@@ -1570,16 +1579,13 @@ if option["action"]
   when /list/
     if install_type.match(/packer/)
       list_packer_clients(install_vm)
-      exit
     end
     if install_type.match(/service/) or install_mode.match(/server/)
       if install_method.match(/[a-z]/)
         eval"[list_#{install_method}_services]"
         handle_output("")
-        exit
       else
         list_all_services()
-        exit
       end
     end
     if install_type.match(/iso/)
@@ -1588,22 +1594,18 @@ if option["action"]
       else
         list_os_isos(install_os)
       end
-      exit
     end
     if install_mode.match(/client/) or install_type.match(/client/)
       install_mode = "client"
       check_local_config(install_mode)
       list_clients(install_service)
       list_vms(install_vm,install_type)
-      exit
     end
     if install_method.match(/[a-z]/) and install_vm.match(/none/) 
       eval"[list_#{install_method}_clients()]"
-      exit
     end
     if install_type.match(/ova/)
       list_ovas()
-      exit
     end
     if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
       if install_type.match(/snapshot/)
@@ -1611,7 +1613,6 @@ if option["action"]
       else
         list_vm(install_vm,install_os,install_method)
       end
-      exit
     end
   when /delete|remove/
     if install_client.match(/[a-z]/)
@@ -1626,7 +1627,6 @@ if option["action"]
             handle_output("")
             handle_output("Available services")
             list_all_services()
-            exit
           end
         end
       else
@@ -1639,7 +1639,6 @@ if option["action"]
                 delete_vm_snapshot(install_vm,install_client,install_clone)
               else
                 handle_output("Warning:\tClient name or clone not specified")
-                exit
               end
             else
               delete_vm(install_vm,install_client)
@@ -1678,7 +1677,6 @@ if option["action"]
   when /add|create/
     if install_vm.match(/none/) and !install_method.match(/[a-z]/) and !install_type.match(/[a-z]/) and !install_mode.match(/server/)
       handle_output("Warning:\tNo VM, Method or given")
-      exit
     end
     if install_mode.match(/server/) or install_file.match(/[a-z,A-Z,0-9]/) or install_type.match(/service/) and install_vm.match(/none/) and !install_type.match(/packer/) and !install_service.match(/packer/)
       check_local_config("server")
@@ -1838,7 +1836,6 @@ if option["action"]
         end
       else
         handle_output("Warning:\tInstall service or VM type not specified")
-        exit
       end
     end
   when /import/
@@ -1908,7 +1905,6 @@ if option["action"]
         eval"[snapshot_#{install_vm}_vm(install_client,install_clone)]"
       else
         handle_output("Warning:\tClient name not specified")
-        exit
       end
     end
   when /migrate/
@@ -1931,7 +1927,6 @@ if option["action"]
         eval"[restore_#{install_vm}_vm_snapshot(install_client,install_clone)]"
       else
         handle_output("Warning:\tClient name not specified")
-        exit
       end
     end
   when /set/
@@ -1948,7 +1943,6 @@ if option["action"]
         connect_to_virtual_serial(install_client,install_vm)
       else
         handle_output("Warning:\tClient name not specified")
-        exit
       end
     end
   when /check/
@@ -1967,5 +1961,11 @@ if option["action"]
       check_vm_network(install_vm,install_mode,install_network)
     end
   end
-  exit
 end
+
+if $output_format.match(/html/)
+  $output_text.push("</body>")
+  $output_text.push("</html>")
+  puts $output_text.join("\n")
+end
+
