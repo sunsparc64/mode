@@ -244,7 +244,7 @@ def show_fusion_vm(install_client)
     if File.exist?(fusion_vmx_file)
       print_contents_of_file(fusion_vmx_file)
     end
-  else
+  end
   return
 end
 
