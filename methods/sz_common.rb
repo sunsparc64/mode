@@ -46,26 +46,50 @@ end
 def list_zone_isos()
   iso_list = Dir.entries($iso_base_dir).grep(/solaris/)
   if iso_list.length > 0
-    handle_output("Available branded zone images:")
-    handle_output("") 
-  end
-  if $os_arch.match(/sparc/)
-    search_arch = $os_arch
-  else
-    search_arch = "x86"
-  end
-  iso_list.each do |image_file|
-    image_file = image_file.chomp
-    if image_file.match(/^solaris/) and image_file.match(/bin$/)
-      if image_file.match(/#{search_arch}/)
-        (image_version,image_arch,install_service) = get_zone_image_info(image_file)
-        handle_output("Image file:\t#{$iso_base_dir}/#{image_file}")
-        handle_output("Distribution:\tSolaris")
-        handle_output("Version:\t#{image_version}")
-        handle_output("Architecture:\t#{image_arch}")
-        handle_output("Service Name\t#{install_service}")
-        handle_output("") 
+    if $output_format.match(/html/)
+      handle_output("<h1>Available branded zone images:</h1>")
+      handle_output("<table>")
+      handle_output("<tr>")
+      handle_output("<th>Image File</th>")
+      handle_output("<th>Distribution</th>")
+      handle_output("<th>Architecture</th>")
+      handle_output("<th>Service Name</th>")
+      handle_output("</tr>")
+    else
+      handle_output("Available branded zone images:")
+      handle_output("") 
+    end
+    if $os_arch.match(/sparc/)
+      search_arch = $os_arch
+    else
+      search_arch = "x86"
+    end
+    iso_list.each do |image_file|
+      image_file = image_file.chomp
+      if image_file.match(/^solaris/) and image_file.match(/bin$/)
+        if image_file.match(/#{search_arch}/)
+          (image_version,image_arch,install_service) = get_zone_image_info(image_file)
+          if $output_format.match(/html/)
+            handle_output("<tr>")
+            handle_output("<td>#{$iso_base_dir}/#{image_file}</td>")
+            handle_output("<td>Solaris</td>")
+            handle_output("<td>#{image_version}</td>")
+            handle_output("<td>#{install_service}</td>")
+            handle_output("</tr>")
+          else
+            handle_output("Image file:\t#{$iso_base_dir}/#{image_file}")
+            handle_output("Distribution:\tSolaris")
+            handle_output("Version:\t#{image_version}")
+            handle_output("Architecture:\t#{image_arch}")
+            handle_output("Service Name\t#{install_service}")
+          end
+        end
       end
+    end
+    if $output_format.match(/html/)
+      handle_output("</table>")
+    else
+      handle_output("")
     end
   end
   return

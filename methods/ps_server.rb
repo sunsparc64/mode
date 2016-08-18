@@ -12,16 +12,9 @@ end
 # List Preseed services
 
 def list_ps_services()
-  service_list = Dir.entries($repo_base_dir)
-  service_list = service_list.grep(/ubuntu/)
-  if service_list.length > 0
-    handle_output("") 
-    handle_output("Preseed services:")
-    handle_output("")
-  end
-  service_list.each do |install_service|
-    handle_output(install_service)
-  end
+  service_type    = "Preseed"
+  service_command = "ls $repo_base_dir/ |egrep 'ubuntu|debian'"
+  list_services(service_type,service_command)
   return
 end
 
