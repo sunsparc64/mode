@@ -1428,6 +1428,7 @@ def print_contents_of_file(file_name)
         handle_output("Information:\tContents of file #{file_name}")
         handle_output(output)
         handle_output("")
+      end
     else
       handle_output("Warning:\tFile #{file_name} does not exist")
     end
