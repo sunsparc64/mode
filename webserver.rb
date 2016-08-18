@@ -67,6 +67,11 @@ begin
 rescue LoadError
   install_gem("fileutils")
 end
+begin
+  require 'parseconfig'
+rescue LoadError
+  install_gem("parseconfig")
+end
 
 # Some webserver defaults
 
