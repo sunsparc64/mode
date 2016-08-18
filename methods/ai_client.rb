@@ -175,7 +175,7 @@ def update_ai_client_grub_cfg(install_mac)
       end
     end
     File.open(grub_file,"w") {|file| file.puts copy}
-    print_contents_of_file(grub_file)
+    print_contents_of_file("",grub_file)
   end
 end
 
@@ -227,7 +227,7 @@ def update_ai_client_dhcpd_entry(install_client,install_mac,install_ip)
     end
   end
   File.open(dhcp_file,"w") {|file| file.puts copy}
-  print_contents_of_file(dhcp_file)
+  print_contents_of_file("",dhcp_file)
   return
 end
 

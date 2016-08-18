@@ -60,7 +60,7 @@ def configure_xb_pxe_client(install_client,client_ip,install_mac,client_arch,ins
     message = "Information:\tCreating PXE configuration file "+pxe_cfg_file
     command = "cp #{tmp_file} #{pxe_cfg_file} ; rm #{tmp_file}"
     execute_command(message,command)
-    print_contents_of_file(pxe_cfg_file)
+    print_contents_of_file("",pxe_cfg_file)
   end
   return
 end

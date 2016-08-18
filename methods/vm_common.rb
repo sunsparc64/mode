@@ -105,10 +105,14 @@ end
 
 def list_vms(install_vm,install_type)
   if !install_type
-    install_type = ""
+    install_type = "all"
+  else
+    if !install_type.match(/[a-z]/)
+      install_type = "all"
+    end
   end
   if install_vm.match(/[a-z]/)
-    eval"[list_#{install_vm}_vms()]"
+    eval"[list_#{install_vm}_vms(install_type)]"
   else
     $valid_vm_list.each do |vm_type|
       case vm_type

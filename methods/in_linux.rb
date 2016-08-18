@@ -101,7 +101,7 @@ def list_linux_isos(search_string,linux_type)
   if iso_list.length > 0
     if $output_format.match(/html/)
       handle_output("<h1>Available #{linux_type} ISOs:</h1>")
-      handle_output("<table>")
+      handle_output("<table border=\"1\">")
       handle_output("<tr>")
       handle_output("<th>ISO File</th>")
       handle_output("<th>Distribution</th>")

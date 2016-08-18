@@ -246,7 +246,7 @@ def create_named_conf()
     message = "Information:\tCreating named configuration file "+named_conf
     command = "cp #{tmp_file} #{named_conf} ; rm #{tmp_file}"
     execute_command(message,command)
-    print_contents_of_file(named_conf)
+    print_contents_of_file("",named_conf)
   end
   serial_no = %x[date +%Y%m%d].chomp+"01"
   tmp_file  = "/tmp/forward"
@@ -271,7 +271,7 @@ def create_named_conf()
     message = "Information:\tCreating named configuration file "+forward_file
     command = "cp #{tmp_file} #{forward_file} ; rm #{tmp_file}"
     execute_command(message,command)
-    print_contents_of_file(forward_file)
+    print_contents_of_file("",forward_file)
   end
   tmp_file = "/tmp/reverse"
   if !File.exist?(reverse_file)
@@ -296,7 +296,7 @@ def create_named_conf()
     message = "Information:\tCreating named configuration file "+reverse_file
     command = "cp #{tmp_file} #{reverse_file} ; rm #{tmp_file}"
     execute_command(message,command)
-    print_contents_of_file(reverse_file)
+    print_contents_of_file("",reverse_file)
   end
   return
 end
@@ -377,7 +377,7 @@ def create_sol11_puppet_manifest(service)
   message = "Information:\tCreating Puppet "+service
   command = "cp #{tmp_file} #{xml_file} ; rm #{tmp_file}"
   execute_command(message,command)
-  print_contents_of_file(xml_file)
+  print_contents_of_file("",xml_file)
   service = "puppet"+service
   import_smf_manifest(service,xml_file)
   service = "svc:/network/"+service

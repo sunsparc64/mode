@@ -779,3 +779,7 @@
 # Code cleanup for listing VMs
 # 3.8.9: Thu 18 Aug 2016 22:06:17 AEST
 # Fixed OS check for VMware Fusion VMs
+# 3.9.0: Fri 19 Aug 2016 06:20:26 AEST
+# More HTML output fixes
+# 3.9.1: Fri 19 Aug 2016 06:55:35 AEST
+# Added initial VNC code

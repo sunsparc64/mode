@@ -38,7 +38,7 @@ def output_ps_header(client_name,output_file)
   message = "Creating:\tPreseed file "+output_file+" for "+client_name
   command = "cp #{tmp_file} #{output_file} ; rm #{tmp_file}"
   execute_command(message,command)
-  print_contents_of_file(output_file)
+  print_contents_of_file("",output_file)
   return
 end
 

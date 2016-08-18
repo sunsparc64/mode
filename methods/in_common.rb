@@ -82,6 +82,7 @@ def set_global_vars()
   $default_mass_password    = $default_admin_password
   $default_server_admin     = "root"
   $default_server_password  = "P455w0rd"
+  $default_vnc_password     = "P455w0rd"
   $use_alt_repo             = 0
   $destroy_fs               = "n"
   $use_defaults             = 0
@@ -170,6 +171,8 @@ def set_global_vars()
   $default_ssh_wait_timeout = "20m"
   $output_text              = []
   $output_format            = "text"
+  $vbox_bin                 = "/usr/local/bin/VBoxManage"
+  $enable_vnc               =  1
 
   # VMware Fusion Global variables
   
@@ -1327,7 +1330,7 @@ def list_clients(install_service)
       else
         handle_output("<h1>Available clients:</h1>")
       end
-      handle_output("<table>")
+      handle_output("<table border=\"1\">")
       handle_output("<tr>")
       handle_output("<th>Client</th>")
       handle_output("<th>Service</th>")
@@ -1407,14 +1410,18 @@ end
 
 # Print contents of file
 
-def print_contents_of_file(file_name)
+def print_contents_of_file(message,file_name)
   if $verbose_mode == 1 or $output_format.match(/html/)
     if File.exist?(file_name)
       output = %x[cat '#{file_name}']
       if $output_format.match(/html/)
         handle_output("<table border=\"1\">")
         handle_output("<tr>")
-        handle_output("<th>#{fusion_vmx_file}</th>")
+        if message.length > 1
+          handle_output("<th>#{message}</th>")
+        else
+          handle_output("<th>#{file_name}</th>")
+        end
         handle_output("<tr>")
         handle_output("<td>")
         handle_output("<pre>")
@@ -1424,13 +1431,47 @@ def print_contents_of_file(file_name)
         handle_output("</tr>")
         handle_output("</table>")
       else
-        handle_output("")
-        handle_output("Information:\tContents of file #{file_name}")
-        handle_output(output)
-        handle_output("")
+        if $verbose_mode == 1
+          handle_output("")
+          if message.length > 1
+            handle_output("Information:\t#{message}")
+          else
+            handle_output("Information:\tContents of file #{file_name}")
+          end
+          handle_output("")
+          handle_output(output)
+          handle_output("")
+        end
       end
     else
       handle_output("Warning:\tFile #{file_name} does not exist")
+    end
+  end
+  return
+end
+
+# Show output of command
+
+def show_output_of_command(message,output)
+  if $output_format.match(/html/)
+    handle_output("<table border=\"1\">")
+    handle_output("<tr>")
+    handle_output("<th>#{message}</th>")
+    handle_output("<tr>")
+    handle_output("<td>")
+    handle_output("<pre>")
+    handle_output("#{output}")
+    handle_output("</pre>")
+    handle_output("</td>")
+    handle_output("</tr>")
+    handle_output("</table>")
+  else
+    if $verbose_mode == 1
+      handle_output("")
+      handle_output("Information:\t#{message}:")
+      handle_output("")
+      handle_output(output)
+      handle_output("")
     end
   end
   return
@@ -2324,7 +2365,7 @@ def execute_command(message,command)
     end
     if $execute_host.match(/localhost/)
       if command.match(/VBoxManage/)
-        if $vboxmanage_bin.match(/[a-z]/)
+        if $vbox_bin.match(/[a-z]/)
           output = %x[#{command}]
         end
       else
@@ -2565,7 +2606,7 @@ def check_install_arch(install_arch,opt)
   end
   if !install_arch.match(/i386|sparc|x86_64/)
     handle_output("Warning:\tInvalid architecture specified")
-    handle_output("Warning:\tUse -a i386, -a x86_64 or -a sparc")
+    handle_output("Warning:\tUse --arch i386, --arch x86_64 or --arch sparc")
     exit
   end
   return install_arch

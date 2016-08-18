@@ -966,11 +966,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   json_output = JSON.pretty_generate(json_data)
   delete_file(json_file)
   File.write(json_file,json_output)
-  if $verbose_mode == 1
-    handle_output("")	
-  	system("cat #{json_file}")
-    handle_output("")
-  end
+  print_contents_of_file("",json_file)
   return communicator
 end
 

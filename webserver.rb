@@ -319,7 +319,7 @@ get '/' do
       end
     else
       if install_vm.match(/[a-z]/)
-        list_vm(install_vm,install_os,install_method)
+        list_vms(install_vm,install_os)
       end
     end
   end

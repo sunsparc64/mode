@@ -407,7 +407,7 @@ def create_osx_puppet_config()
     message = "Information:\tCreating Puppet configuration file "+puppet_file
     command = "cp #{tmp_file} #{puppet_file} ; rm #{tmp_file}"
     execute_command(message,command)
-    print_contents_of_file(puppet_file)
+    print_contents_of_file("",puppet_file)
   end
   return
 end

@@ -123,7 +123,7 @@ def configure_ks_pxe_client(install_client,install_ip,install_mac,install_arch,i
   message = "Information:\tCreating PXE configuration file "+pxe_cfg_file
   command = "cp #{tmp_file} #{pxe_cfg_file} ; rm #{tmp_file}"
   execute_command(message,command)
-  print_contents_of_file(pxe_cfg_file)
+  print_contents_of_file("",pxe_cfg_file)
   return
 end
 
@@ -661,12 +661,7 @@ def output_ks_post_list(install_client,post_list,output_file,install_service)
   file.close
   message = "Information:\tCreating post install script "+output_file
   execute_command(message,command)
-  if $verbose_mode == 1
-    handle_output("Information:\tInstall file #{output_file} contents:")
-    handle_output("") 
-    system("cat #{output_file}")
-    handle_output("") 
-  end
+  print_contents_of_file("",output_file)
   return
 end
 

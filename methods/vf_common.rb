@@ -17,19 +17,6 @@ def set_fusion_dir()
   end
 end
 
-# Show VM config
-
-def show_fusion_vm_config(install_client)
-  fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
-  if File.exist?(fusion_vmx_file)
-    file_data = %x[cat "#{fusion_vmx_file}"]
-    handle_output(file_data)
-  else
-    handle_output("Warning:\tFusion VM config file #{fusion_vmx_file} does not exit")
-  end
-  return
-end
-
 # Import Packer Fusion VM image
 
 def import_packer_fusion_vm(install_client,install_vm)
@@ -182,7 +169,7 @@ def list_fusion_vms(search_string)
   if file_list.length > 0
     if $output_format.match(/html/)
       handle_output("<h1>Available #{type_string} VMs</h1>")
-      handle_output("<table>")
+      handle_output("<table border=\"1\">")
       handle_output("<tr>")
       handle_output("<th>VM</th>")
       handle_output("<th>OS</th>")
@@ -237,12 +224,13 @@ end
 
 # Show Fusion VM config
 
-def show_fusion_vm(install_client)
+def show_fusion_vm_config(install_client)
+  fusion_vmx_file = ""
   exists = check_fusion_vm_exists(install_client)
   if exists.match(/yes/)
     fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
     if File.exist?(fusion_vmx_file)
-      print_contents_of_file(fusion_vmx_file)
+      print_contents_of_file("",fusion_vmx_file)
     end
   end
   return
@@ -1133,10 +1121,7 @@ def create_fusion_vm_vmx_file(install_client,install_mac,install_os,fusion_vmx_f
     file.write(output)
   end
   file.close
-  if $verbose_mode == 1
-    handle_output("Information:\tVMware Fusion VM #{install_client} configuration:")
-    system("cat '#{fusion_vmx_file}'")
-  end
+  print_contents_of_file("",fusion_vmx_file)
   return
 end
 
@@ -1171,10 +1156,7 @@ def create_fusion_vm_esx_file(install_client,local_vmx_file,fixed_vmx_file)
     file.write(output)
   end
   file.close
-  if $verbose_mode == 1
-    handle("Information:\tVMware Fusion VM #{install_client} configuration:")
-    system("cat '#{fixed_vmx_file}'")
-  end
+  print_contents_of_file("",fixed_vmx_file)
   return
 end
 
@@ -1359,6 +1341,13 @@ def populate_fusion_vm_vmx_info(install_client,install_mac,install_os,install_me
     vmx_info.push("sharedFolder0.guestName,#{install_mount}")
     vmx_info.push("sharedFolder0.expiration,never")
     vmx_info.push("sharedFolder.maxNum,1")
+  end
+  if $enable_vnc == 1
+    vmx_info.push("RemoteDisplay.vnc.enabled,TRUE")
+    vmx_info.push("RemoteDisplay.vnc.port,5900")
+    vmx_info.push("RemoteDisplay.vnc.password,#{$default_vnc_password}")
+    vmx_info.push("signal.suspendOnHUP=TRUE")
+    vmx_info.push("signal.powerOffOnTERM,TRUE")
   end
   return vmx_info
 end

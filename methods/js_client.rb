@@ -20,7 +20,7 @@ def create_js_sysid_file(install_client,sysid_file)
   message = "Information:\tCreating configuration file "+sysid_file+" for "+install_client
   command = "cp #{tmp_file} #{sysid_file} ; rm #{tmp_file}"
   execute_command(message,command)
-  print_contents_of_file(sysid_file)
+  print_contents_of_file("",sysid_file)
   return
 end
 
@@ -43,13 +43,7 @@ def create_js_machine_file(install_client,machine_file)
   message = "Information:\tCreating configuration file "+machine_file+" for "+install_client
   command = "cp #{tmp_file} #{machine_file} ; rm #{tmp_file}"
   execute_command(message,command)
-  if $verbose_mode == 1
-    handle_output("") 
-    handle_output("Information:\tContents of configuration file: #{machine_file}")
-    handle_output("") 
-    system("cat #{machine_file}")
-    handle_output("") 
-  end
+  print_contents_of_file("",machine_file)
   return
 end
 
@@ -72,7 +66,7 @@ def create_js_rules_file(install_client,client_karch,rules_file)
   message = "Information:\tCreating configuration file "+rules_file+" for "+install_client
   command = "cp #{tmp_file} #{rules_file} ; rm #{tmp_file}"
   execute_command(message,command)
-  print_contents_of_file(rules_file)
+  print_contents_of_file("",rules_file)
   return karch_line
 end
 
@@ -106,7 +100,7 @@ def create_rules_ok_file(install_client,client_dir)
   message   = "Information:\tCreating rules file "+rules_ok_file
   command   = "echo '#{output}' >> #{rules_ok_file}"
   execute_command(message,command)
-  print_contents_of_file(rules_ok_file)
+  print_contents_of_file("",rules_ok_file)
   return
 end
 
@@ -155,7 +149,7 @@ def create_js_finish_file(install_client,output_file)
     file.write(line)
   end
   file.close()
-  print_contents_of_file(output_file)
+  print_contents_of_file("",output_file)
   return
 end
 
@@ -220,12 +214,7 @@ def configure_js_pxe_client(install_client,install_mac,install_arch,install_serv
     message = "Information:\tCreating PXE boot config file "+pxe_cfg_file
     command = "cp #{tmp_file} #{pxe_cfg_file} ; rm #{tmp_file}"
     execute_command(message,command)
-    if $verbose_mode == 1
-      handle_output("Information:\tPXE menu file #{pxe_cfg_file} contents:")
-      handle_output("") 
-      system("cat #{pxe_cfg_file}")
-      handle_output("") 
-    end
+    print_contents_of_file("",pxe_cfg_file)
   end
   return
 end

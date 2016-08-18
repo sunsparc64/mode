@@ -48,7 +48,7 @@ def list_zone_isos()
   if iso_list.length > 0
     if $output_format.match(/html/)
       handle_output("<h1>Available branded zone images:</h1>")
-      handle_output("<table>")
+      handle_output("<table border=\"1\">")
       handle_output("<tr>")
       handle_output("<th>Image File</th>")
       handle_output("<th>Distribution</th>")
@@ -166,7 +166,7 @@ def standard_zone_post_install(install_client,client_rel)
     admin_info = admin_username+":x:"+admin_uid+":"+admin_gid+":"+admin_fullname+":"+admin_home+":"+admin_shell
     command = "echo '#{admin_info}' >> #{tmp_file} ; cat #{tmp_file} > #{passwd_file} ; rm #{tmp_file}"
     execute_command(message,command)
-    print_contents_of_file(passwd_file)
+    print_contents_of_file("",passwd_file)
     info = IO.readlines(shadow_file)
     file = File.open(tmp_file,"w")
     info.each do |line|
@@ -186,7 +186,7 @@ def standard_zone_post_install(install_client,client_rel)
     message = "Information:\tCreating shadow file"
     command = "cat #{tmp_file} > #{shadow_file} ; rm #{tmp_file}"
     execute_command(message,command)
-    print_contents_of_file(shadow_file)
+    print_contents_of_file("",shadow_file)
     client_home = client_dir+admin_home
     message = "Information:\tCreating SSH directory for "+admin_username
     command = "mkdir -p #{client_home}/.ssh ; cd #{client_dir}/export/home ; chown -R #{admin_uid}:#{admin_gid} #{admin_username}"
@@ -350,7 +350,7 @@ def create_zone_config(install_client,install_ip)
     end
     file.write("end\n")
     file.close
-    print_contents_of_file(zone_file)
+    print_contents_of_file("",zone_file)
   end
   return zone_file
 end

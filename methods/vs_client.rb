@@ -27,7 +27,7 @@ def list_vs_clients()
   if client_list.length > 0
     if $output_format.match(/html/)
       handle_output("<h1>Available vSphere clients:</h1>") 
-      handle_output("<table>")
+      handle_output("<table border=\"1\">")
       handle_output("<tr>")
       handle_output("<th>Client</th>")
       handle_output("<th>Service</th>")
@@ -100,10 +100,7 @@ def configure_vs_pxe_client(install_client,install_mac,install_service)
   end
   file.write("IPAPPEND 1\n")
   file.close
-  if $verbose_mode == 1
-    handle_output("Created:\tPXE menu file #{pxe_cfg_file}:")
-    system("cat #{pxe_cfg_file}")
-  end
+  print_contents_of_file("",pxe_cfg_file)
   tftp_boot_file=$tftp_dir+"/"+tftp_boot_file
   esx_boot_file=$tftp_dir+"/"+install_service+"/boot.cfg"
   if $verbose_mode == 1
@@ -135,10 +132,7 @@ def configure_vs_pxe_client(install_client,install_mac,install_service)
     end
   end
   File.open(tftp_boot_file,"w") {|file_data| file_data.puts copy}
-  if $verbose_mode == 1
-    handle_output("Created:\tBoot config file #{tftp_boot_file}:")
-    system("cat #{tftp_boot_file}")
-  end
+  print_contents_of_file("",tftp_boot_file)
   return
 end
 
