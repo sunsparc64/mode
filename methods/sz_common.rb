@@ -22,10 +22,10 @@ def list_zone_services()
   os_version = $os_rel.split(/\./)[1]
   os_branded = os_version.to_i-1
   os_branded = os_branded.to_s
-  puts "Supported containers:"
-  puts
-  puts "Solaris "+os_version+" (native)"
-  puts "Solaris "+os_branded+" (branded)"
+  handle_output("Supported containers:")
+  handle_output("") 
+  handle_output("Solaris #{os_version} (native)")
+  handle_output("Solaris #{os_branded} (branded)")
   return
 end
 
@@ -37,8 +37,8 @@ def get_zone_image_info(image_file)
   if image_arch.match(/x86/)
     image_arch = "i386"
   end
-  service_name = image_os+"_"+image_version.gsub(/\./,"_")+"_"+image_arch
-  return image_version,image_arch,service_name
+  install_service = image_os+"_"+image_version.gsub(/\./,"_")+"_"+image_arch
+  return image_version,image_arch,install_service
 end
 
 # List zone ISOs/Images
@@ -46,8 +46,8 @@ end
 def list_zone_isos()
   iso_list = Dir.entries($iso_base_dir).grep(/solaris/)
   if iso_list.length > 0
-    puts "Available branded zone images:"
-    puts
+    handle_output("Available branded zone images:")
+    handle_output("") 
   end
   if $os_arch.match(/sparc/)
     search_arch = $os_arch
@@ -58,13 +58,13 @@ def list_zone_isos()
     image_file = image_file.chomp
     if image_file.match(/^solaris/) and image_file.match(/bin$/)
       if image_file.match(/#{search_arch}/)
-        (image_version,image_arch,service_name) = get_zone_image_info(image_file)
-        puts "Image file:\t"+$iso_base_dir+"/"+image_file
-        puts "Distribution:\tSolaris"
-        puts "Version:\t"+image_version
-        puts "Architecture:\t"+image_arch
-        puts "Service Name\t"+service_name
-        puts
+        (image_version,image_arch,install_service) = get_zone_image_info(image_file)
+        handle_output("Image file:\t#{$iso_base_dir}/#{image_file}")
+        handle_output("Distribution:\tSolaris")
+        handle_output("Version:\t#{image_version}")
+        handle_output("Architecture:\t#{image_arch}")
+        handle_output("Service Name\t#{install_service}")
+        handle_output("") 
       end
     end
   end
@@ -74,12 +74,12 @@ end
 # List available zones
 
 def list_zones()
-  puts "Available Zones:"
-  puts
+  handle_output("Available Zones:")
+  handle_output("") 
   message = ""
   command = "zoneadm list |grep -v global"
   output  = execute_command(message,command)
-  puts output
+  handle_output(output)
   return
 end
 
@@ -95,10 +95,10 @@ end
 def print_branded_zone_info()
   branded_url = "http://www.oracle.com/technetwork/server-storage/solaris11/vmtemplates-zones-1949718.html"
   branded_dir = "/export/isos"
-  puts "Warning:\tBranded zone templates not found"
-  puts "Information:\tDownload them from "+branded_url
-  puts "Information:\tCopy them to "+branded_dir
-  puts
+  handle_output("Warning:\tBranded zone templates not found")
+  handle_output("Information:\tDownload them from #{branded_url}")
+  handle_output("Information:\tCopy them to #{branded_dir}")
+  handle_output("") 
   return
 end
 
@@ -120,11 +120,11 @@ end
 
 # Standard zone post install
 
-def standard_zone_post_install(client_name,client_rel)
-  zone_dir = $zone_base_dir+"/"+client_name
+def standard_zone_post_install(install_client,client_rel)
+  zone_dir = $zone_base_dir+"/"+install_client
   if File.directory?(zone_dir)
     client_dir    = zone_dir+"/root"
-    tmp_file      = "/tmp/zone_"+client_name
+    tmp_file      = "/tmp/zone_"+install_client
     admin_username = $q_struct["admin_username"].value
     admin_uid      = $q_struct["admin_uid"].value
     admin_gid      = $q_struct["admin_gid"].value
@@ -220,7 +220,7 @@ def standard_zone_post_install(client_name,client_rel)
     command = "echo '#{admin_username} ALL=(ALL) NOPASSWD:ALL' > #{sudoers_file}"
     execute_command(message,command)
   else
-    puts "Warning:\tZone "+client_name+" doesn't exist"
+    handle_output("Warning:\tZone #{install_client} doesn't exist")
     exit
   end
   return
@@ -228,14 +228,14 @@ end
 
 # Branded zone post install
 
-def branded_zone_post_install(client_name,client_rel)
-  zone_dir = $zone_base_dir+"/"+client_name
+def branded_zone_post_install(install_client,client_rel)
+  zone_dir = $zone_base_dir+"/"+install_client
   if File.directory?(zone_dir)
     client_dir = zone_dir+"/root"
     var_dir    = "/var/tmp"
     tmp_dir    = client_dir+"/"+var_dir
     post_file  = tmp_dir+"/postinstall.sh"
-    tmp_file   = "/tmp/zone_"+client_name
+    tmp_file   = "/tmp/zone_"+install_client
     pkg_name   = "pkgutil.pkg"
     pkg_url    = $local_opencsw_mirror+"/"+pkg_name
     pkg_file   = tmp_dir+"/"+pkg_name
@@ -254,7 +254,7 @@ def branded_zone_post_install(client_name,client_rel)
     command = "cp #{tmp_file} #{post_file} ; rm #{tmp_file}"
     execute_command(message,command)
   else
-    puts "Warning:\tZone "+client_name+" doesn't exist"
+    handle_output("Warning:\tZone #{install_client} doesn't exist")
     exit
   end
   return
@@ -262,38 +262,38 @@ end
 
 # Create branded zone
 
-def create_branded_zone(image_file,client_ip,zone_nic,client_name,client_rel)
+def create_branded_zone(image_file,install_ip,zone_nic,install_client,client_rel)
   check_branded_zone_pkg()
   if Files.exists?(image_file)
-    message = "Information:\tInstalling Branded Zone "+client_name
-    command = "cd /tmp ; #{image_file} -p #{$zone_base_dir} -i #{zone_nic} -z #{client_name} -f"
+    message = "Information:\tInstalling Branded Zone "+install_client
+    command = "cd /tmp ; #{image_file} -p #{$zone_base_dir} -i #{zone_nic} -z #{install_client} -f"
     execute_command(message,command)
   else
-    puts "Warning:\tImage file "+image_file+" doesn't exist"
+    handle_output("Warning:\tImage file #{image_file} doesn't exist")
   end
-  standard_zone_post_install(client_name,client_rel)
-  branded_zone_post_install(client_name,client_rel)
+  standard_zone_post_install(install_client,client_rel)
+  branded_zone_post_install(install_client,client_rel)
   return
 end
 
 # Check zone doesn't exist
 
-def check_zone_doesnt_exist(client_name)
-  message = "Information:\tChecking Zone "+client_name+" doesn't exist"
-  command = "zoneadm list -cv |awk '{print $2}' |grep '#{client_name}'"
+def check_zone_doesnt_exist(install_client)
+  message = "Information:\tChecking Zone "+install_client+" doesn't exist"
+  command = "zoneadm list -cv |awk '{print $2}' |grep '#{install_client}'"
   output  = execute_command(message,command)
   return output
 end
 
 # Create zone config
 
-def create_zone_config(client_name,client_ip)
+def create_zone_config(install_client,install_ip)
   virtual  = 0
   zone_nic = $q_struct["ipv4_interface_name"].value
   gateway  = $q_struct["ipv4_default_route"].value
   zone_nic = zone_nic.split(/\//)[0]
-  zone_status = check_zone_doesnt_exist(client_name)
-  if !zone_status.match(/#{client_name}/)
+  zone_status = check_zone_doesnt_exist(install_client)
+  if !zone_status.match(/#{install_client}/)
     if $os_arch.match(/i386/)
       message = "Information:\tChecking Platform"
       command = "prtdiag -v |grep 'VMware'"
@@ -302,8 +302,8 @@ def create_zone_config(client_name,client_ip)
         virtual = 1
       end
     end
-    zone_dir = $zone_base_dir+"/"+client_name
-    zone_file = "/tmp/zone_"+client_name
+    zone_dir = $zone_base_dir+"/"+install_client
+    zone_file = "/tmp/zone_"+install_client
     file = File.open(tmp_file,"w")
     file.write("create -b\n")
     file.write("set brand=solaris\n")
@@ -312,7 +312,7 @@ def create_zone_config(client_name,client_ip)
     if virtual == 1
       file.write("set ip-type=shared\n")
       file.write("add net\n")
-      file.write("set address=#{client_ip}/24\n")
+      file.write("set address=#{install_ip}/24\n")
       file.write("set configure-allowed-address=true\n")
       file.write("set physical=#{zone_nic}\n")
       file.write("set defrouter=#{gateway}\n")
@@ -333,12 +333,12 @@ end
 
 # Install zone
 
-def install_zone(client_name,zone_filr)
-  message = "Information:\tCreating Solaris "+client_rel+" Zone "+client_name+" in "+zone_dir
-  command = "zonecfg -z #{client_name} -f #{zone_file}"
+def install_zone(install_client,zone_file)
+  message = "Information:\tCreating Solaris "+client_rel+" Zone "+install_client+" in "+zone_dir
+  command = "zonecfg -z #{install_client} -f #{zone_file}"
   execute_command(message,command)
-  message = "Information:\tInstalling Zone "+client_name
-  command = "zoneadm -z #{client_name} install"
+  message = "Information:\tInstalling Zone "+install_client
+  command = "zoneadm -z #{install_client} install"
   execute_command(message,command)
   system("rm #{zone_file}")
   return
@@ -346,7 +346,7 @@ end
 
 # Create zone
 
-def create_zone(client_name,client_ip,zone_dir,client_rel,image_file,service_name)
+def create_zone(install_client,install_ip,zone_dir,client_rel,image_file,install_service)
   virtual = 0
   message = "Information:\tChecking Platform"
   command = "prtdiag -v |grep 'VMware'"
@@ -354,8 +354,8 @@ def create_zone(client_name,client_ip,zone_dir,client_rel,image_file,service_nam
   if output.match(/VMware/)
     virtual = 1
   end
-  if service_name.match(/[a-z,A-Z]/)
-    image_info    = service_name.split(/_/)
+  if install_service.match(/[a-z,A-Z]/)
+    image_info    = install_service.split(/_/)
     image_version = image_info[1]+"u"+image_info[2]
     image_arch    = image_info[3]
     if image_arch.match(/i386/)
@@ -373,88 +373,88 @@ def create_zone(client_name,client_ip,zone_dir,client_rel,image_file,service_nam
     if !File.exists(branded_file)
       print_branded_zone_info()
     end
-    create_branded_zone(image_file,client_ip,zone_nic,client_name,client_rel)
+    create_branded_zone(image_file,install_ip,zone_nic,install_client,client_rel)
   else
     if !image_file.match(/[a-z,A-Z]/)
-      zone_file = create_zone_config(client_name,client_ip)
-      install_zone(client_name,zone_file)
-      standard_zone_post_install(client_name,client_rel)
+      zone_file = create_zone_config(install_client,install_ip)
+      install_zone(install_client,zone_file)
+      standard_zone_post_install(install_client,client_rel)
     else
       if !File.exists?(image_file)
         print_branded_zone_info()
       end
-      create_zone_config(client_name,client_ip)
+      create_zone_config(install_client,install_ip)
       if $os_rel.match(/11/) and virtual == 1
-        puts "Warning:\tCan't create branded zones with exclusive IPs in VMware"
+        handle_output("Warning:\tCan't create branded zones with exclusive IPs in VMware")
         exit
       else
-        create_branded_zone(image_file,client_ip,zone_nic,client_name,client_rel)
+        create_branded_zone(image_file,install_ip,zone_nic,install_client,client_rel)
       end
     end
   end
   if $serial_mode == 1
-    boot_zone(client_name)
+    boot_zone(install_client)
   end
-  add_hosts_entry(client_name,client_ip)
+  add_hosts_entry(install_client,install_ip)
   return
 end
 
 # Halt zone
 
-def halt_zone(client_name)
-  message = "Information:\tHalting Zone "+client_name
-  command = "zoneadm -z #{client_name} halt"
+def halt_zone(install_client)
+  message = "Information:\tHalting Zone "+install_client
+  command = "zoneadm -z #{install_client} halt"
   execute_command(message,command)
   return
 end
 
 # Delete zone
 
-def unconfigure_zone(client_name)
-  halt_zone(client_name)
-  message = "Information:\tUninstalling Zone "+client_name
-  command = "zoneadm -z #{client_name} uninstall -F"
+def unconfigure_zone(install_client)
+  halt_zone(install_client)
+  message = "Information:\tUninstalling Zone "+install_client
+  command = "zoneadm -z #{install_client} uninstall -F"
   execute_command(message,command)
-  message = "Information:\tDeleting Zone "+client_name+" configuration"
-  command = "zonecfg -z #{client_name} delete -F"
+  message = "Information:\tDeleting Zone "+install_client+" configuration"
+  command = "zonecfg -z #{install_client} delete -F"
   execute_command(message,command)
   if $yes_to_all == 1
-    zone_dir = $zone_base_dir+"/"+client_name
+    zone_dir = $zone_base_dir+"/"+install_client
     destroy_zfs_fs(zone_dir)
   end
-  client_ip = get_client_ip(client_name)
-  remove_hosts_entry(client_name,client_ip)
+  install_ip = get_install_ip(install_client)
+  remove_hosts_entry(install_client,install_ip)
   return
 end
 
 # Get zone status
 
-def get_zone_status(client_name)
-  message = "Information:\tChecking Zone "+client_name+" isn't running"
-  command = "zoneadm list -cv |grep ' #{client_name} ' |awk '{print $3}'"
+def get_zone_status(install_client)
+  message = "Information:\tChecking Zone "+install_client+" isn't running"
+  command = "zoneadm list -cv |grep ' #{install_client} ' |awk '{print $3}'"
   output  = execute_command(message,command)
   return output
 end
 
 # Boot zone
 
-def boot_zone(client_name)
-  message = "Information:\tBooting Zone "+client_name
-  command = "zoneadm -z #{client_name} boot"
+def boot_zone(install_client)
+  message = "Information:\tBooting Zone "+install_client
+  command = "zoneadm -z #{install_client} boot"
   execute_command(message,command)
   if $serial_mode == 1
-    system("zlogin #{client_name}")
+    system("zlogin #{install_client}")
   end
   return
 end
 
 # Shutdown zone
 
-def stop_zone(client_name)
-  status  = get_zone_status(client_name)
+def stop_zone(install_client)
+  status  = get_zone_status(install_client)
   if !status.match(/running/)
-    message = "Information:\tStopping Zone "+client_name
-    command = "zlogin #{client_name} shutdown -y -g0 -i 0"
+    message = "Information:\tStopping Zone "+install_client
+    command = "zlogin #{install_client} shutdown -y -g0 -i 0"
     execute_command(message,command)
   end
   return
@@ -464,23 +464,23 @@ end
 
 # Configure zone
 
-def configure_zone(client_name,client_ip,client_mac,client_arch,client_os,client_rel,publisher_host,image_file,service_name)
+def configure_zone(install_client,install_ip,client_mac,client_arch,client_os,client_rel,publisher_host,image_file,install_service)
   if client_arch.match(/[a-z,A-Z]/)
     check_same_arch(client_arch)
   end
-  if !image_file.match(/[a-z,A-Z]/) and !service_name.match(/[a-z,A-Z]/)
+  if !image_file.match(/[a-z,A-Z]/) and !install_service.match(/[a-z,A-Z]/)
     if !client_rel.match(/[0-9]/)
       client_rel = $os_rel
     end
   end
   if client_rel.match(/11/)
-    populate_ai_client_profile_questions(client_ip,client_name)
-    process_questions(service_name)
+    populate_ai_client_profile_questions(install_ip,install_client)
+    process_questions(install_service)
   else
-    populate_js_client_profile_questions(client_ip,client_name)
-    process_questions(service_name)
+    populate_js_client_profile_questions(install_ip,install_client)
+    process_questions(install_service)
     if image_file.match(/[a-z,A-Z]/)
-      (client_rel,client_arch,service_name) = get_zone_image_info(image_file)
+      (client_rel,client_arch,install_service) = get_zone_image_info(image_file)
       check_same_arch(client_arch)
     end
   end
@@ -491,7 +491,7 @@ def configure_zone(client_name,client_ip,client_mac,client_arch,client_os,client
     command = "zfs set #{$default_zpool}#{$zone_base_dir} mountpoint=#{$zone_base_dir}"
     execute_command(message,command)
   end
-  zone_dir = $zone_base_dir+"/"+client_name
-  create_zone(client_name,client_ip,zone_dir,client_rel,image_file,service_name)
+  zone_dir = $zone_base_dir+"/"+install_client
+  create_zone(install_client,install_ip,zone_dir,client_rel,image_file,install_service)
   return
 end

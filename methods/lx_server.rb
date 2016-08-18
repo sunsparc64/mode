@@ -6,30 +6,58 @@ def list_lxc_services()
   if $os_name.match(/Linux/)
     image_list = Dir.entries($lxc_image_dir)
     if image_list.length > 0
-      puts
-      puts "Available LXC Images:"
-      puts
-    end
-    image_list.each do |image_name|
-      if image_name.match(/tar/)
-        image_file   = $lxc_image_dir+"/"+image_name
-        image_info   = File.basename(image_name,".tar.gz")
-        image_info   = image_info.split(/-/)
-        image_os     = image_info[0]
-        image_ver    = image_info[1]
-        image_arch   = image_info[2]
-        puts "Distribution:\t"+image_os.capitalize
-        puts "Version:\t"+image_ver
-        puts "Architecture:\t"+image_arch
-        puts "Image File:\t"+image_file
-        if image_info[3]
-          service_name = image_os.gsub(/ /,"")+"_"+image_ver.gsub(/\./,"_")+"_"+image_arch+"_"+image_info[3]
-        else
-          service_name = image_os.gsub(/ /,"")+"_"+image_ver.gsub(/\./,"_")+"_"+image_arch
-        end
-        puts "Service Name:\t"+service_name
-        puts
+      if $output_format.match(/html/)
+        handle_output("<h1>Available LXC service(s)</h1>")
+        handle_output("<table border=\"1\">")
+        handle_output("<tr>")
+        handle_output("<th>Distribution</th>")
+        handle_output("<th>Version</th>")
+        handle_output("<th>Architecture</th>")
+        handle_output("<th>Image File</th>")
+        handle_output("<th>Service</th>")
+        handle_output("</tr>")
+      else
+        handle_output("") 
+        handle_output("Available LXC Images:")
+        handle_output("") 
       end
+      image_list.each do |image_name|
+        if image_name.match(/tar/)
+          image_file   = $lxc_image_dir+"/"+image_name
+          image_info   = File.basename(image_name,".tar.gz")
+          image_info   = image_info.split(/-/)
+          image_os     = image_info[0]
+          image_ver    = image_info[1]
+          image_arch   = image_info[2]
+          if $output_format.match(/html/)
+            handle_output("<tr>")
+            handle_output("<td>#{image_os.capitalize}</td>")
+            handle_output("<td>#{image_ver}</td>")
+            handle_output("<td><#{image_arch}/td>")
+            handle_output("<td>#{image_file}</td>")
+          else
+            handle_output("Distribution:\t#{image_os.capitalize}")
+            handle_output("Version:\t#{image_ver}")
+            handle_output("Architecture:\t#{image_arch}")
+            handle_output("Image File:\t#{image_file}")
+          end
+          if image_info[3]
+            service_name = image_os.gsub(/ /,"")+"_"+image_ver.gsub(/\./,"_")+"_"+image_arch+"_"+image_info[3]
+          else
+            service_name = image_os.gsub(/ /,"")+"_"+image_ver.gsub(/\./,"_")+"_"+image_arch
+          end
+          if $output_format.match(/html/)
+            handle_output("<td><#{service_name}</td>")
+            handle_output("</tr>")
+          else
+            handle_output("Service Name:\t#{service_name}")
+            handle_output("")
+          end
+        end
+      end
+    end
+    if $output_format.match(/html/)
+      handle_output("</table>")
     end
   end
   return

@@ -2,7 +2,7 @@
 
 # Populate CoreOS questions
 
-def populate_coreos_questions(service_name,client_name,client_ip)
+def populate_coreos_questions(install_service,install_client,install_ip)
   $q_struct = {}
   $q_order  = []
 
@@ -12,7 +12,7 @@ def populate_coreos_questions(service_name,client_name,client_ip)
     question  = "Hostname",
     ask       = "yes",
     parameter = "",
-    value     = client_name,
+    value     = install_client,
     valid     = "",
     eval      = "no"
     )
@@ -38,7 +38,7 @@ def populate_coreos_questions(service_name,client_name,client_ip)
     question  = "IP",
     ask       = "yes",
     parameter = "",
-    value     = client_ip,
+    value     = install_ip,
     valid     = "",
     eval      = "no"
     )
@@ -71,7 +71,7 @@ def populate_coreos_questions(service_name,client_name,client_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  gateway = client_ip.split(/\./)[0..2].join(".")+".254"
+  gateway = install_ip.split(/\./)[0..2].join(".")+".254"
 
   name = "gateway"
   config = Ks.new(
@@ -86,7 +86,7 @@ def populate_coreos_questions(service_name,client_name,client_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  broadcast = client_ip.split(/\./)[0..2].join(".")+".255"
+  broadcast = install_ip.split(/\./)[0..2].join(".")+".255"
 
   name = "broadcast"
   config = Ks.new(
@@ -101,7 +101,7 @@ def populate_coreos_questions(service_name,client_name,client_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  network_address = client_ip.split(/\./)[0..2].join(".")+".0"
+  network_address = install_ip.split(/\./)[0..2].join(".")+".0"
 
   name = "network_address"
   config = Ks.new(

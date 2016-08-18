@@ -7,7 +7,7 @@ def check_gdom_is_running(install_client)
   command = "ldm list-bindings #{install_client} |grep '^#{install_client}'"
   output  = execute_command(message,command)
   if !output.match(/active/)
-    puts "Warning:\tGuest Domain "+install_client+" is not running"
+    handle_output("Warning:\tGuest Domain #{install_client} is not running")
     exit
   end
   return
@@ -20,7 +20,7 @@ def check_gdom_isnt_running(install_client)
   command = "ldm list-bindings #{install_client} |grep '^#{install_client}'"
   output  = execute_command(message,command)
   if output.match(/active/)
-    puts "Warning:\tGuest Domain "+install_client+" is already running"
+    handle_output("Warning:\tGuest Domain #{install_client} is already running")
     exit
   end
   return
@@ -39,18 +39,33 @@ end
 # List available LDoms
 
 def list_gdoms()
-  puts
-  puts "Available Guest Domains:"
-  puts
-  message   = ""
-  command   = "ldm list |grep -v NAME |grep -v primary |awk '{print $1}'"
-  output    = execute_command(message,command)
-  gdom_list = output.split(/\n/)
-  gdom_list.each do |gdom_name|
-    gdom_mac = get_gdom_mac(gdom_name)
-    puts gdom_name+" "+gdom_mac
+  if $os_info.match(/SunOS/)
+    if $os_rel.match(/10|11/)
+      if $os_info.match(/sun4v/)
+        ldom_type    = "Guest Domain"
+        ldom_command = "ldm list |grep -v NAME |grep -v primary |awk '{print $1}'"
+        list_doms(ldom_type,ldom_command)
+      else
+        if $verbose_mode == 1
+          handle_output("") 
+          handle_output("Warning:\tThis service is only available on the Sun4v platform")
+          handle_output("") 
+        end
+      end
+    else
+      if $verbose_mode == 1
+        handle_output("") 
+        handle_output("Warning:\tThis service is only available on Solaris 10 or later")
+        handle_output("") 
+      end
+    end
+  else
+    if $verbose_mode == 1
+      handle_output("") 
+      handle_output("Warning:\tThis service is only available on Solaris")
+      handle_output("") 
+    end
   end
-  puts
   return
 end
 
@@ -96,7 +111,7 @@ def check_gdom_doesnt_exist(install_client)
   command = "ldm list |grep #{install_client}"
   output  = execute_command(message,command)
   if output.match(/#{install_client}/)
-    puts "Warning:\tGuest domain "+install_client+" already exists"
+    handle_output("Warning:\tGuest domain #{install_client} already exists")
     exit
   end
   return
@@ -109,7 +124,7 @@ def check_gdom_exists(install_client)
   command = "ldm list |grep #{install_client}"
   output  = execute_command(message,command)
   if !output.match(/#{install_client}/)
-    puts "Warning:\tGuest domain "+install_client+" doesn't exist"
+    handle_output("Warning:\tGuest domain #{install_client} doesn't exist")
     exit
   end
   return
@@ -299,11 +314,11 @@ def connect_to_gdom_console(install_client)
   check_gdom_is_running(install_client)
   vcc_port = get_gdom_console_port(install_client)
   vcc_port = vcc_port.chomp
-  puts
-  puts "To connect to console of Guest Domain "+install_client+" type the following command: "
-  puts
-  puts "telnet localhost "+vcc_port
-  puts
+  handle_output("") 
+  handle_output("To connect to console of Guest Domain #{install_client} type the following command: ")
+  handle_output("") 
+  handle_output("telnet localhost #{vcc_port}")
+  handle_output("") 
   return
 end
 

@@ -11,36 +11,29 @@ end
 
 # Configure AutoYast server
 
-def configure_ay_server(client_arch,publisher_host,publisher_port,service_name,iso_file)
-  if service_name.match(/[a-z,A-Z]/)
-    if service_name.downcase.match(/suse/)
+def configure_ay_server(install_arch,publisher_host,publisher_port,install_service,install_file)
+  if install_service.match(/[a-z,A-Z]/)
+    if install_service.downcase.match(/suse/)
       search_string = "SLES"
     end
   else
     search_string = "SLES"
   end
-  configure_linux_server(client_arch,publisher_host,publisher_port,service_name,iso_file,search_string)
+  configure_linux_server(install_arch,publisher_host,publisher_port,install_service,install_file,search_string)
   return
 end
 
 # List AutoYast services
 
 def list_ay_services()
-  service_list = Dir.entries($repo_base_dir)
-  service_list = service_list.grep(/sles/)
-  if service_list.length > 0
-    puts
-    puts "AutoYast services:"
-    puts
-  end
-  service_list.each do |service_name|
-    puts service_name
-  end
+  service_type    = "AutoYast"
+  service_command = "ls #{$repo_base_dir}/ |grep 'sles'"
+  list_services(service_type,service_command)
   return
 end
 
 # Unconfigure AutoYast server
 
-def unconfigure_ay_server(service_name)
-  unconfigure_ks_repo(service_name)
+def unconfigure_ay_server(install_service)
+  unconfigure_ks_repo(install_service)
 end

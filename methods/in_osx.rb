@@ -57,7 +57,7 @@ def check_osx_pfctl(gw_if_name,if_name)
     end
     output = File.open(pf_file,"w")
     if $verbose_mode == 1
-      puts "Information:\tEnabling forwarding between "+gw_if_name+" and "+if_name
+      handle_output("Information:\tEnabling forwarding between #{gw_if_name} and #{if_name}")
     end
     output.write("nat on #{gw_if_name} from #{if_name}:network to any -> (#{gw_if_name})\n")
     output.write("pass inet proto icmp all\n")
@@ -476,7 +476,7 @@ def check_osx_service_is_enabled(service)
     plist_file = "/System"+plist_file
   end
   if !File.exist?(plist_file)
-    puts "Warning:\tLaunch Agent not found for "+service
+    handle_output("Warning:\tLaunch Agent not found for #{service}")
     exit
   end
   tmp_file  = "/tmp/tmp.plist"
@@ -489,7 +489,7 @@ def check_osx_service_is_enabled(service)
   output    = execute_command(message,command)
   if !output.match(/true/)
     if $verbose_mode == 1
-      puts "Information:\t"+service+" enabled"
+      handle_output("Information:\t#{service} enabled")
     end
   else
     backup_file(plist_file)

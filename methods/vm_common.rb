@@ -5,7 +5,7 @@
 
 def handle_vm_install_status(install_vm,install_status)
   if install_status.match(/no/)
-    puts "Warning:\tVirtualisation application does not exist for "+install_vm
+    handle_output("Warning:\tVirtualisation application does not exist for #{install_vm}")
     exit
   end
   return
@@ -85,8 +85,8 @@ def create_vm(install_method,install_vm,install_client,install_mac,install_os,in
   end
   if !install_method.match(/[a-z]/) and !install_os.match(/[a-z]/)
     if $verbose_mode == 1
-      puts "Warning:\tInstall method or OS not specified"
-      puts "Information:\tSetting OS to other"
+      handle_output("Warning:\tInstall method or OS not specified")
+      handle_output("Information:\tSetting OS to other")
     end
     install_method = "other"
   end

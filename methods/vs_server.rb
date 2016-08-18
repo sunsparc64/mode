@@ -71,7 +71,7 @@ def configure_vs_repo(iso_file,repo_version_dir,install_service)
   end
   check_dir = repo_version_dir+"/upgrade"
   if $verbose_mode == 1
-    puts "Information:\tChecking directory "+check_dir+" exists"
+    handle_output("Information:\tChecking directory #{check_dir} exists")
   end
   if !File.directory?(check_dir)
     mount_iso(iso_file)
@@ -124,7 +124,7 @@ def configure_vs_pxe_boot(install_service)
       command = "cd #{pxe_boot_dir} ; #{$rpm2cpio_bin} #{rpm_file} | cpio -iud"
       output  = execute_command(message,command)
     else
-      puts "Warning:\tSource directory "+rpm_dir+" does not exist"
+      handle_output("Warning:\tSource directory #{rpm_dir} does not exist")
       exit
     end
   end
@@ -156,13 +156,13 @@ def configure_vs_server(install_arch,publisher_host,publisher_port,install_servi
   if iso_file.match(/[a-z,A-Z]/)
     if File.exists?(iso_file)
       if !iso_file.match(/VM/)
-        puts "Warning:\tISO "+iso_file+" does not appear to be VMware distribution"
+        handle_output("Warning:\tISO #{iso_file} does not appear to be VMware distribution")
         exit
       else
         iso_list[0] = iso_file
       end
     else
-      puts "Warning:\tISO file "+is_file+" does not exist"
+      handle_output("Warning:\tISO file #{is_file} does not exist")
     end
   else
     iso_list = check_iso_base_dir(search_string)
@@ -191,20 +191,11 @@ def configure_vs_server(install_arch,publisher_host,publisher_port,install_servi
   return
 end
 
-# List kickstart services
+# List vSphere kickstart services
 
 def list_vs_services()
-  service_list = Dir.entries($repo_base_dir)
-  service_list = service_list
-  if service_list.length > 0
-    puts
-    puts "vSphere services:"
-    puts
-  end
-  service_list.each do |install_service|
-    if install_service.match(/vmware/)
-      puts install_service
-    end
-  end
+  service_type    = "vSphere"
+  service_command = "ls #{$repo_base_dir}/ |egrep 'vmware|esx'"
+  list_services(service_type,service_command)
   return
 end

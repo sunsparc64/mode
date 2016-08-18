@@ -3,30 +3,24 @@
 # List availabel clients
 
 def list_lxcs()
-  puts
-  puts "Available LXC clients:"
-  puts
-  client_list = %x[lxc-ls]
-  client_list = client_list.xplit(/\n/)
-  client_list.each do |client_name|
-    client_name = client_name.chomp
-    puts client_name
-  end
+  dom_type = "LXC"
+  dom_command = "lxc-ls"
+  list_doms(dom_type,dom_command)
   return
 end
 
 # Start container
 
-def boot_lxc(client_name)
-  message = "Information:\tChecking status of "+client_name
-  command = "lxc-list |grep '^#{client_name}'"
+def boot_lxc(install_client)
+  message = "Information:\tChecking status of "+install_client
+  command = "lxc-list |grep '^#{install_client}'"
   output  = execute_command(message,command)
   if !output.match(/RUNNING/)
-    message = "Information:\tStarting client "+client_name
-    command = "lxc-start -n #{client_name} -d"
+    message = "Information:\tStarting client "+install_client
+    command = "lxc-start -n #{install_client} -d"
     execute_command(message,command)
     if $serial_mode == 1
-      system("lxc-console -n #{client_name}")
+      system("lxc-console -n #{install_client}")
     end
   end
   return
@@ -34,13 +28,13 @@ end
 
 # Stop container
 
-def stop_lxc(client_name)
-  message = "Information:\tChecking status of "+client_name
-  command = "lxc-list |grep '^#{client_name}'"
+def stop_lxc(install_client)
+  message = "Information:\tChecking status of "+install_client
+  command = "lxc-list |grep '^#{install_client}'"
   output  = execute_command(message,command)
   if output.match(/RUNNING/)
-    message = "Information:\tStopping client "+client_name
-    command = "lxc-stop -n #{client_name}"
+    message = "Information:\tStopping client "+install_client
+    command = "lxc-stop -n #{install_client}"
     execute_command(message,command)
   end
   return
@@ -48,8 +42,8 @@ end
 
 # Create Centos container configuration
 
-def create_centos_lxc_config(client_name)
-  tmp_file = "/tmp/lxc_"+client_name
+def create_centos_lxc_config(install_client)
+  tmp_file = "/tmp/lxc_"+install_client
   file = File.open(tmp_file,"w")
   file.write("\n")
   file.close
@@ -58,25 +52,25 @@ end
 
 # Create Ubuntu container config
 
-def create_ubuntu_lxc_config(client_name,client_ip,client_mac)
-  tmp_file = "/tmp/lxc_"+client_name
-  client_dir  = $lxc_base_dir+"/"+client_name
+def create_ubuntu_lxc_config(install_client,install_ip,install_mac)
+  tmp_file = "/tmp/lxc_"+install_client
+  client_dir  = $lxc_base_dir+"/"+install_client
   config_file = client_dir+"/config"
-  message = "Information:\tCreating configuration for "+client_name
+  message = "Information:\tCreating configuration for "+install_client
   command = "cp #{config_file} #{tmp_file}"
   execute_command(message,command)
   copy = []
   info = IO.readlines(config_file)
   info.each do |line|
     if line.match(/hwaddr/)
-      if client_mac.match(/[0-9]/)
-        output = "lxc.network.hwaddr = "+client_mac+"\n"
+      if install_mac.match(/[0-9]/)
+        output = "lxc.network.hwaddr = "+install_mac+"\n"
         copy.push(output)
-        output = "lxc.network.ipv4 = "+client_ip+"\n"
+        output = "lxc.network.ipv4 = "+install_ip+"\n"
         copy.push(output)
       else
         copy.push(line)
-        output = "lxc.network.ipv4 = "+client_ip+"\n"
+        output = "lxc.network.ipv4 = "+install_ip+"\n"
         copy.push(output)
       end
     else
@@ -101,7 +95,7 @@ def create_ubuntu_lxc_config(client_name,client_ip,client_mac)
   file.write("\n")
   file.write("auto eth0\n")
   file.write("iface eth0 inet static\n")
-  file.write("address #{client_ip}\n")
+  file.write("address #{install_ip}\n")
   file.write("netmask #{netmask}\n")
   file.write("gateway #{gateway}\n")
   file.write("network #{network}\n")
@@ -229,10 +223,10 @@ end
 
 # Create standard LXC
 
-def create_standard_lxc(client_name)
-  message = "Information:\tCreating standard container "+client_name
+def create_standard_lxc(install_client)
+  message = "Information:\tCreating standard container "+install_client
   if $os_info.match(/Ubuntu/)
-    command = "lxc-create -t ubuntu -n #{client_name}"
+    command = "lxc-create -t ubuntu -n #{install_client}"
   end
   execute_command(message,command)
   return
@@ -240,24 +234,24 @@ end
 
 # Unconfigure LXC client
 
-def unconfigure_lxc(client_name)
-  stop_lxc(client_name)
-  message = "Information:\tDeleting client "+client_name
-  command = "lxc-destroy -n #{client_name}"
+def unconfigure_lxc(install_client)
+  stop_lxc(install_client)
+  message = "Information:\tDeleting client "+install_client
+  command = "lxc-destroy -n #{install_client}"
   execute_command(message,command)
-  client_ip = get_client_ip(client_name)
-  remove_hosts_entry(client_name,client_ip)
+  install_ip = get_install_ip(install_client)
+  remove_hosts_entry(install_client,install_ip)
   return
 end
 
 # Check LXC exists
 
-def check_lxc_exists(client_name)
-  message = "Information:\tChecking LXC "+client_name+" exists"
-  command = "lxc-ls |grep '#{client_name}'"
+def check_lxc_exists(install_client)
+  message = "Information:\tChecking LXC "+install_client+" exists"
+  command = "lxc-ls |grep '#{install_client}'"
   output  = execute_command(message,command)
-  if !output.match(/#{client_name}/)
-    puts "Warning:\tClient "+client_name+" doesn't exist"
+  if !output.match(/#{install_client}/)
+    handle_output("Warning:\tClient #{install_client} doesn't exist")
     exit
   end
   return
@@ -265,12 +259,12 @@ end
 
 # Check LXC doesn't exist
 
-def check_lxc_doesnt_exist(client_name)
-  message = "Information:\tChecking LXC "+client_name+" doesn't exist"
-  command = "lxc-ls |grep '#{client_name}'"
+def check_lxc_doesnt_exist(install_client)
+  message = "Information:\tChecking LXC "+install_client+" doesn't exist"
+  command = "lxc-ls |grep '#{install_client}'"
   output  = execute_command(message,command)
-  if output.match(/#{client_name}/)
-    puts "Warning:\tClient "+client_name+" already exists"
+  if output.match(/#{install_client}/)
+    handle_output("Warning:\tClient #{install_client} already exists")
     exit
   end
   return
@@ -319,9 +313,9 @@ end
 
 # Create post install package on container
 
-def create_lxc_post(client_name,post_list)
+def create_lxc_post(install_client,post_list)
   tmp_file   = "/tmp/post"
-  client_dir = $lxc_base_dir+"/"+client_name
+  client_dir = $lxc_base_dir+"/"+install_client
   post_file  = client_dir+"/rootfs/root/post_install.sh"
   file       = File.open(tmp_file,"w")
   post_list.each do |line|
@@ -337,52 +331,52 @@ end
 
 # Execute post install script
 
-def execute_lxc_post(client_name)
-  client_dir = $lxc_base_dir+"/"+client_name
+def execute_lxc_post(install_client)
+  client_dir = $lxc_base_dir+"/"+install_client
   post_file  = client_dir+"/root/post_install.sh"
   if !File.exists?(post_file)
     post_list = populate_lxc_post()
-    create_lxc_post(client_name,post_list)
+    create_lxc_post(install_client,post_list)
   end
-  boot_lxc(client_name)
+  boot_lxc(install_client)
   post_file = "/root/post_install.sh"
-  message   = "Information:\tExecuting post install script on "+client_name
-  command   = "ssh -o 'StrictHostKeyChecking no' #{client_name} '#{post_file}'"
+  message   = "Information:\tExecuting post install script on "+install_client
+  command   = "ssh -o 'StrictHostKeyChecking no' #{install_client} '#{post_file}'"
   execute_command(message,command)
   return
 end
 
 # Configure a container
 
-def configure_lxc(client_name,client_ip,client_mac,client_arch,client_os,client_rel,publisher_host,image_file,service_name)
-  check_lxc_doesnt_exist(client_name)
-  if !service_name.match(/[a-z,A-Z]/) and !image_file.match(/[a-z,A-Z]/)
-    puts "Warning:\tImage file or Service name not specified"
-    puts "Warning:\tIf this is the first time you have run this command it may take a while"
-    puts "Information:\tCreating standard container"
-    populate_lxc_client_questions(client_ip)
-    process_questions(service_name)
-    create_standard_lxc(client_name)
+def configure_lxc(install_client,install_ip,install_mac,install_arch,client_os,client_rel,publisher_host,image_file,install_service)
+  check_lxc_doesnt_exist(install_client)
+  if !install_service.match(/[a-z,A-Z]/) and !image_file.match(/[a-z,A-Z]/)
+    handle_output("Warning:\tImage file or Service name not specified")
+    handle_output("Warning:\tIf this is the first time you have run this command it may take a while")
+    handle_output("Information:\tCreating standard container")
+    populate_lxc_client_questions(install_ip)
+    process_questions(install_service)
+    create_standard_lxc(install_client)
     if $os_info.match(/Ubuntu/)
-      create_ubuntu_lxc_config(client_name,client_ip,client_mac)
+      create_ubuntu_lxc_config(install_client,install_ip,install_mac)
     end
     if $os_info.match(/RedHat|Centos/)
-      create_centos_lxc_config(client_name,client_ip,client_mac)
+      create_centos_lxc_config(install_client,install_ip,install_mac)
     end
   else
-    if service_name.match(/[a-z,A-Z]/)
-      image_file = $lxc_image_dir+"/"+service_name.gsub(/([0-9])_([0-9])/,'\1.\2').gsub(/_/,"-").gsub(/x86.64/,"x86_64")+".tar.gz"
+    if install_service.match(/[a-z,A-Z]/)
+      image_file = $lxc_image_dir+"/"+install_service.gsub(/([0-9])_([0-9])/,'\1.\2').gsub(/_/,"-").gsub(/x86.64/,"x86_64")+".tar.gz"
     end
     if image_file.match(/[a-z,A-Z]/)
       if !File.exists?(image_file)
-        puts "Warning:\tImage file "+image_file+" does not exist"
+        handle_output("Warning:\tImage file #{image_file} does not exist")
         exit
       end
     end
   end
-  add_hosts_entry(client_name,client_ip)
-  boot_lxc(client_name)
+  add_hosts_entry(install_client,install_ip)
+  boot_lxc(install_client)
   post_list = populate_lxc_post()
-  create_lxc_post(client_name,post_list)
+  create_lxc_post(install_client,post_list)
   return
 end

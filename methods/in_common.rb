@@ -3,265 +3,272 @@
 
 # Set up some global variables/defaults
 
-$script                   = $0
-$script_file              = Pathname.new($script).realpath
-$script_dir               = File.dirname($script_file)
-$wiki_dir                 = $script_dir+"/"+File.basename($script,".rb")+".wiki"
-$wiki_url                 = "https://github.com/lateralblast/mode.wiki.git"
-$verbose_mode             = 0
-$test_mode                = 0
-$download_mode            = 1
-$iso_base_dir             = "/export/isos"
-$repo_base_dir            = "/export/repo"
-$image_base_dir           = "/export/images"
-$pkg_base_dir             = "/export/pkgs"
-$ldom_base_dir            = "/ldoms"
-$zone_base_dir            = "/zones"
-$iso_mount_dir            = "/cdrom"
-$ai_base_dir              = "/export/auto_install"
-$client_base_dir          = "/export/clients"
-$lxc_base_dir             = "/lxc"
-$lxc_image_dir            = "/export/images"
-$work_dir                 = ""
-$tmp_dir                  = ""
-$alt_repo_name            = "alt"
-$alt_prefix_name          = "solaris"
-$home_dir                 = ENV["HOME"]
-$dhcpd_file               = "/etc/inet/dhcpd4.conf"
-$fusion_dir               = ""
-$default_zpool            = "rpool"
-$default_ai_port          = "10081"
-$default_host             = ""
-$default_hostname         = %x["hostname"].chomp
-$default_nic              = ""
-$default_net              = "net0"
-$default_timezone         = "Australia/Victoria"
-$default_windows_timezone = "Eastern Standard Time"
-$default_terminal         = "sun"
-$default_country          = "AU"
-$local_opencsw_mirror     = "http://192.168.1.250/pub/Software/OpenCSW"
-$default_opencsw          = "testing"
-$default_ubuntu_mirror    = $default_country.downcase+".archive.ubuntu.com"
-$default_centos_mirror    = "mirror.centos.org"
-$default_sl_mirror        = "ftp.scientificlinux.org/linux"
-$default_epel_mirror      = "download.fedoraproject.org"
-$local_sl_mirror          = "mirror.aarnet.edu.au/pub"
-$local_ubuntu_mirror      = "mirror.aarnet.edu.au"
-$local_centos_mirror      = "mirror.aarnet.edu.au/pub"
-$local_epel_mirror        = "mirror.aarnet.edu.au"
-$default_timeserver       = "0."+$default_country.downcase+".pool.ntp.org"
-$default_keymap           = "US-English"
-$default_disable_autoconf = "true"
-$default_disable_dhcp     = "true"
-$default_environment      = "en_US.UTF-8"
-$default_keyboard         = "US"
-$default_language         = "en_US"
-$default_locale           = "en_US"
-$default_windows_locale   = "en_US"
-$default_windows_bootzise = "350"
-$default_debian_language  = "en"
-$default_ubuntu_software  = "OpenSSH server"
-$default_debian_interface = "eth0"
-$default_no_mirror        = "true"
-$default_use_mirror       = "false"
-$default_system_locale    = "C"
-$default_nameserver       = "8.8.8.8"
-$default_name_service     = "none"
-$default_security         = "none"
-$default_netmask          = "255.255.255.0"
-$default_domainname       = "lab.net"
-$default_search           = "local"
-$default_files            = "files"
-$default_hosts            = "files dns"
-$default_root_password    = "P455w0rd"
-$default_admin_password   = "P455w0rd"
-$default_maas_admin       = "root"
-$default_maas_email       = $default_maas_admin+"@"+$default_host
-$default_mass_password    = $default_admin_password
-$default_server_admin     = "root"
-$default_server_password  = "P455w0rd"
-$use_alt_repo             = 0
-$destroy_fs               = "n"
-$use_defaults             = 0
-$default_apache_allow     = ""
-$default_admin_name       = "Sys Admin"
-$default_admin_user       = "sysadmin"
-$default_organisation     = "Multi OS Deployment Server"
-$default_server_admin     = "root"
-$default_admin_group      = "wheel"
-$default_admin_home       = "/home/"+$default_admin_user
-$default_admin_shell      = "/bin/bash"
-$default_admin_uid        = "200"
-$default_admin_gid        = "200"
-$preseed_admin_uid        = "1000"
-$preseed_admin_gid        = "1000"
-$tftp_dir                 = "/etc/netboot"
-$default_cluster          = "SUNWCprog"
-$default_install          = "initial_install"
-$default_nfs4_domain      = "dynamic"
-$default_auto_reg         = "disable"
-$q_struct                 = {}
-$q_order                  = []
-$text_mode                = 1
-$backup_dir               = ""
-$openssh_win_url          = "http://www.mls-software.com/files/setupssh-7.2p2-1-v1.exe"
-$ovftool_tar_url          = "https://github.com/richardatlateralblast/ottar/blob/master/vmware-ovftools.tar.gz?raw=true"
-$ovftool_dmg_url          = "https://github.com/richardatlateralblast/ottar/blob/master/VMware-ovftool-4.1.0-2459827-mac.x64.dmg?raw=true"
-$ovftool_bin              = "/Applications/VMware OVF Tool/ovftool"
-$rpm2cpio_url             = "http://svnweb.freebsd.org/ports/head/archivers/rpm2cpio/files/rpm2cpio?revision=259745&view=co"
-$rpm2cpio_bin             = ""
-$vbox_disk_type           = "sas"
-$default_vm_size          = "20G"
-$default_vm_mem           = "1024"
-$default_vm_vcpu          = "1"
-$serial_mode              = 0
-$os_name                  = ""
-$yes_to_all               = 0
-$default_cdom_mau         = "1"
-$default_gdom_mau         = "1"
-$default_cdom_vcpu        = "8"
-$default_gdom_mem         = "4G"
-$default_gdom_vcpu        = "8"
-$default_gdom_mem         = "4G"
-$default_gdom_size        = "10G"
-$default_cdom_name        = "initial"
-$default_dpool            = "dpool"
-$default_gdom_vnet        = "vnet0"
-$use_sudo                 = 1
-$do_ssh_keys              = 0
-$default_vm_network       = "hostonly"
-$default_vm_hw_version    = "8"
-$default_hostonly_ip      = "192.168.2.254"
-$default_server_size      = "small"
-$default_manifest_name    = "modest"
-$vbox_additions_iso       = "/Applications/VirtualBox.app//Contents/MacOS/VBoxGuestAdditions.iso"
-$openbsd_base_url         = "http://ftp.openbsd.org/pub/OpenBSD"
-$default_x86_virtual      = "VirtualBox"
-$default_x86_vm_net       = "enp0s3"
-$default_ext_network      = "192.168.1.0"
-$puppet_rpm_base_url      = "http://yum.puppetlabs.com"
-$centos_rpm_base_url      = "http://"+$local_centos_mirror+"/centos"
-$default_vm_utc           = "off"
-$valid_os_list            = [ 'Solaris', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'Ubuntu', 'Debian', 'Fedora', 'RHEL', 'SL', 'Purity', 'Windows', 'JeOS' ]
-$valid_linux_os_list      = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'Ubuntu', 'Debian', 'Fedora', 'RHEL', 'SL', 'Purity' ]
-$valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
-$valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
-$valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image', 'ldom', 'cdom', 'gdom' ]
-$valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer' ]
-$valid_mode_list          = [ 'client', 'server', 'osx' ]
-$valid_vm_list            = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'ldom', 'gdom', 'parallels' ]
-$execute_host             = "localhost"
-$default_options          = ""
-$do_checksums             = 0
-$default_ipfamily         = "ipv4"
-$default_datastore        = "datastore1"
-$default_server_network   = "VM Network"
-$default_diskmode         = "thin"
-$default_sitename         = $default_domainname.split(".")[0]
-$default_vcsa_size        = "tiny"
-$default_thindiskmode     = "true"
-$default_sshenable        = "true"
-$default_httpd_port       = "8888"
-$default_slice_size       = "8192"
-$default_boot_disk_size   = "350"
-$default_install_shell    = "ssh"
-$default_ssh_wait_timeout = "20m"
+def set_global_vars()
+  $script                   = $0
+  $script_file              = Pathname.new($script).realpath
+  $script_dir               = File.dirname($script_file)
+  $wiki_dir                 = $script_dir+"/"+File.basename($script,".rb")+".wiki"
+  $wiki_url                 = "https://github.com/lateralblast/mode.wiki.git"
+  $verbose_mode             = 0
+  $test_mode                = 0
+  $download_mode            = 1
+  $iso_base_dir             = "/export/isos"
+  $repo_base_dir            = "/export/repo"
+  $image_base_dir           = "/export/images"
+  $pkg_base_dir             = "/export/pkgs"
+  $ldom_base_dir            = "/ldoms"
+  $zone_base_dir            = "/zones"
+  $iso_mount_dir            = "/cdrom"
+  $ai_base_dir              = "/export/auto_install"
+  $client_base_dir          = "/export/clients"
+  $lxc_base_dir             = "/lxc"
+  $lxc_image_dir            = "/export/images"
+  $work_dir                 = ""
+  $tmp_dir                  = ""
+  $alt_repo_name            = "alt"
+  $alt_prefix_name          = "solaris"
+  $home_dir                 = ENV["HOME"]
+  $dhcpd_file               = "/etc/inet/dhcpd4.conf"
+  $fusion_dir               = ""
+  $default_zpool            = "rpool"
+  $default_ai_port          = "10081"
+  $default_host             = ""
+  $default_hostname         = %x["hostname"].chomp
+  $default_nic              = ""
+  $default_net              = "net0"
+  $default_timezone         = "Australia/Victoria"
+  $default_windows_timezone = "Eastern Standard Time"
+  $default_terminal         = "sun"
+  $default_country          = "AU"
+  $local_opencsw_mirror     = "http://192.168.1.250/pub/Software/OpenCSW"
+  $default_opencsw          = "testing"
+  $default_ubuntu_mirror    = $default_country.downcase+".archive.ubuntu.com"
+  $default_centos_mirror    = "mirror.centos.org"
+  $default_sl_mirror        = "ftp.scientificlinux.org/linux"
+  $default_epel_mirror      = "download.fedoraproject.org"
+  $local_sl_mirror          = "mirror.aarnet.edu.au/pub"
+  $local_ubuntu_mirror      = "mirror.aarnet.edu.au"
+  $local_centos_mirror      = "mirror.aarnet.edu.au/pub"
+  $local_epel_mirror        = "mirror.aarnet.edu.au"
+  $default_timeserver       = "0."+$default_country.downcase+".pool.ntp.org"
+  $default_keymap           = "US-English"
+  $default_disable_autoconf = "true"
+  $default_disable_dhcp     = "true"
+  $default_environment      = "en_US.UTF-8"
+  $default_keyboard         = "US"
+  $default_language         = "en_US"
+  $default_locale           = "en_US"
+  $default_windows_locale   = "en_US"
+  $default_windows_bootzise = "350"
+  $default_debian_language  = "en"
+  $default_ubuntu_software  = "OpenSSH server"
+  $default_debian_interface = "eth0"
+  $default_no_mirror        = "true"
+  $default_use_mirror       = "false"
+  $default_system_locale    = "C"
+  $default_nameserver       = "8.8.8.8"
+  $default_name_service     = "none"
+  $default_security         = "none"
+  $default_netmask          = "255.255.255.0"
+  $default_domainname       = "lab.net"
+  $default_search           = "local"
+  $default_files            = "files"
+  $default_hosts            = "files dns"
+  $default_root_password    = "P455w0rd"
+  $default_admin_password   = "P455w0rd"
+  $default_maas_admin       = "root"
+  $default_maas_email       = $default_maas_admin+"@"+$default_host
+  $default_mass_password    = $default_admin_password
+  $default_server_admin     = "root"
+  $default_server_password  = "P455w0rd"
+  $use_alt_repo             = 0
+  $destroy_fs               = "n"
+  $use_defaults             = 0
+  $default_apache_allow     = ""
+  $default_admin_name       = "Sys Admin"
+  $default_admin_user       = "sysadmin"
+  $default_organisation     = "Multi OS Deployment Server"
+  $default_server_admin     = "root"
+  $default_admin_group      = "wheel"
+  $default_admin_home       = "/home/"+$default_admin_user
+  $default_admin_shell      = "/bin/bash"
+  $default_admin_uid        = "200"
+  $default_admin_gid        = "200"
+  $preseed_admin_uid        = "1000"
+  $preseed_admin_gid        = "1000"
+  $tftp_dir                 = "/etc/netboot"
+  $default_cluster          = "SUNWCprog"
+  $default_install          = "initial_install"
+  $default_nfs4_domain      = "dynamic"
+  $default_auto_reg         = "disable"
+  $q_struct                 = {}
+  $q_order                  = []
+  $text_mode                = 1
+  $backup_dir               = ""
+  $openssh_win_url          = "http://www.mls-software.com/files/setupssh-7.2p2-1-v1.exe"
+  $ovftool_tar_url          = "https://github.com/richardatlateralblast/ottar/blob/master/vmware-ovftools.tar.gz?raw=true"
+  $ovftool_dmg_url          = "https://github.com/richardatlateralblast/ottar/blob/master/VMware-ovftool-4.1.0-2459827-mac.x64.dmg?raw=true"
+  $ovftool_bin              = "/Applications/VMware OVF Tool/ovftool"
+  $rpm2cpio_url             = "http://svnweb.freebsd.org/ports/head/archivers/rpm2cpio/files/rpm2cpio?revision=259745&view=co"
+  $rpm2cpio_bin             = ""
+  $vbox_disk_type           = "sas"
+  $default_vm_size          = "20G"
+  $default_vm_mem           = "1024"
+  $default_vm_vcpu          = "1"
+  $serial_mode              = 0
+  $os_name                  = ""
+  $yes_to_all               = 0
+  $default_cdom_mau         = "1"
+  $default_gdom_mau         = "1"
+  $default_cdom_vcpu        = "8"
+  $default_gdom_mem         = "4G"
+  $default_gdom_vcpu        = "8"
+  $default_gdom_mem         = "4G"
+  $default_gdom_size        = "10G"
+  $default_cdom_name        = "initial"
+  $default_dpool            = "dpool"
+  $default_gdom_vnet        = "vnet0"
+  $use_sudo                 = 1
+  $do_ssh_keys              = 0
+  $default_vm_network       = "hostonly"
+  $default_vm_hw_version    = "8"
+  $default_hostonly_ip      = "192.168.2.254"
+  $default_server_size      = "small"
+  $default_manifest_name    = "modest"
+  $vbox_additions_iso       = "/Applications/VirtualBox.app//Contents/MacOS/VBoxGuestAdditions.iso"
+  $openbsd_base_url         = "http://ftp.openbsd.org/pub/OpenBSD"
+  $default_x86_virtual      = "VirtualBox"
+  $default_x86_vm_net       = "enp0s3"
+  $default_ext_network      = "192.168.1.0"
+  $puppet_rpm_base_url      = "http://yum.puppetlabs.com"
+  $centos_rpm_base_url      = "http://"+$local_centos_mirror+"/centos"
+  $default_vm_utc           = "off"
+  $valid_os_list            = [ 'Solaris', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'Ubuntu', 'Debian', 'Fedora', 'RHEL', 'SL', 'Purity', 'Windows', 'JeOS' ]
+  $valid_linux_os_list      = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'Ubuntu', 'Debian', 'Fedora', 'RHEL', 'SL', 'Purity' ]
+  $valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
+  $valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
+  $valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image', 'ldom', 'cdom', 'gdom' ]
+  $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer' ]
+  $valid_mode_list          = [ 'client', 'server', 'osx' ]
+  $valid_vm_list            = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'ldom', 'gdom', 'parallels' ]
+  $execute_host             = "localhost"
+  $default_options          = ""
+  $do_checksums             = 0
+  $default_ipfamily         = "ipv4"
+  $default_datastore        = "datastore1"
+  $default_server_network   = "VM Network"
+  $default_diskmode         = "thin"
+  $default_sitename         = $default_domainname.split(".")[0]
+  $default_vcsa_size        = "tiny"
+  $default_thindiskmode     = "true"
+  $default_sshenable        = "true"
+  $default_httpd_port       = "8888"
+  $default_slice_size       = "8192"
+  $default_boot_disk_size   = "350"
+  $default_install_shell    = "ssh"
+  $default_ssh_wait_timeout = "20m"
+  $output_text              = []
+  $output_format            = "text"
 
-# VMware Fusion Global variables
+  # VMware Fusion Global variables
+  
+  $vmrun_bin = ""
+  $vmapp_bin = ""
 
-$vmrun_bin = ""
-$vmapp_bin = ""
+  # Declare some package versions
 
-# Declare some package versions
+  $facter_version = "1.7.4"
+  $hiera_version  = "1.3.1"
+  $puppet_version = "3.4.2"
+  $packer_version = "0.10.0"
 
-$facter_version = "1.7.4"
-$hiera_version  = "1.3.1"
-$puppet_version = "3.4.2"
-$packer_version = "0.10.0"
+  # Set some global OS types
 
-# Set some global OS types
+  $os_name = %x[uname].chomp
+  $os_arch = %x[uname -p].chomp
+  $os_mach = %x[uname -m].chomp
+  if $os_name.match(/SunOS|Darwin/)
+    $os_info = %x[uname -a].chomp
+    $os_rel  = %x[uname -r].chomp
+    if $os_name.match(/SunOS/)
+      $os_ver = $os_rel.split(/\./)[1]
+      $os_rev = $os_rel.split(/\./)[1]
+    else
+      $os_ver = $os_rel.split(/\./)[0]
+      if File.exist?("/et/release")
+        $os_rev = %x[cat /etc/release |grep Solaris |head -1].chomp
+        if $os_rev.match(/Oracle/)
+          $os_ver = $os_rev.split(/\s+/)[3].split(/\./)[1]
+        end
+      end
+    end
+    if $os_rel.match(/5\.11/) and $os_name.match(/SunOS/)
+      $os_update   = %x[uname -v].chomp
+      $default_net = "net0"
+    end
+  end
 
-$os_name = %x[uname].chomp
-$os_arch = %x[uname -p].chomp
-$os_mach = %x[uname -m].chomp
-if $os_name.match(/SunOS|Darwin/)
-  $os_info = %x[uname -a].chomp
-  $os_rel  = %x[uname -r].chomp
-  if $os_name.match(/SunOS/)
-    $os_ver = $os_rel.split(/\./)[1]
-    $os_rev = $os_rel.split(/\./)[1]
+  $id = %x[/usr/bin/id -u]
+  $id = Integer($id)
+  
+  if $os_arch.match(/sparc/)
+    if $os_test = %x[uname -r].split(/\./)[1].to_i > 9
+      $valid_vm_list = [ 'zone', 'cdom', 'gdom' ]
+    end
   else
-    $os_ver = $os_rel.split(/\./)[0]
-    if File.exist?("/et/release")
-      $os_rev = %x[cat /etc/release |grep Solaris |head -1].chomp
-      if $os_rev.match(/Oracle/)
-        $os_ver = $os_rev.split(/\s+/)[3].split(/\./)[1]
+    case $os_name
+    when /SunOS/
+      $valid_vm_list = [ 'vbox', 'zone' ]
+      platform = %x[prtdiag |grep 'System Configuration'].chomp
+    when /Linux/
+      $valid_vm_list = [ 'vbox', 'lxc' ]
+      if File.exist?("/sbin/dmidecode")
+        dmidecode_bin = "/sbin/dmidecode"
+      else
+        dmidecode_bin = "/usr/sbin/dmidecode"
+      end
+      platform = %x[#{dmidecode_bin} |grep 'Product Name'].chomp
+      if File.exist?("/bin/lsb_release")
+        lsb_bin = "/bin/lsb_release"
+      else
+        lsb_bin = "/usr/bin/lsb_release"
+      end
+      $os_info = %x[#{lsb_bin} -i -s].chomp
+      $os_rel  = %x[#{lsb_bin} -r -s].chomp
+    when /Darwin/
+      $valid_vm_list = [ 'vbox', 'fusion', 'parallels' ]
+    end
+    case platform
+    when /VMware/
+      $default_gateway_ip  = "130.194.2.254"
+      $default_hostonly_ip = "130.194.2.254"
+      if $os_name.match(/Linux/)
+        $default_net = "eth0"
+      end
+    when /VirtualBox/
+      $default_gateway_ip  = "130.194.3.254"
+      $default_hostonly_ip = "130.194.3.254"
+      if $os_info.match(/RedHat|CentOS/) and $os_rel.match(/^7/)
+        $default_net = "enp0s3"
+      else
+        $default_net = "eth0"
+      end
+    else
+      $default_gateway_ip  = "130.194.3.254"
+      $default_hostonly_ip = "130.194.3.254"
+      if $os_name.match(/Linux/)
+        $default_net = "eth0"
+        network_test = %x[ifconfig -a |grep eth0].chomp
+        if !network_test.match(/eth0/)
+          $default_net = %x[sudo sh -c 'route |grep default'].split(/\s+/)[-1].chomp
+        end
       end
     end
   end
-  if $os_rel.match(/5\.11/) and $os_name.match(/SunOS/)
-    $os_update   = %x[uname -v].chomp
-    $default_net = "net0"
-  end
+  return
 end
 
-$id = %x[/usr/bin/id -u]
-$id = Integer($id)
-
-if $os_arch.match(/sparc/)
-  if $os_test = %x[uname -r].split(/\./)[1].to_i > 9
-    $valid_vm_list = [ 'zone', 'cdom', 'gdom' ]
-  end
-else
-  case $os_name
-  when /SunOS/
-    $valid_vm_list = [ 'vbox', 'zone' ]
-    platform = %x[prtdiag |grep 'System Configuration'].chomp
-  when /Linux/
-    $valid_vm_list = [ 'vbox', 'lxc' ]
-    if File.exist?("/sbin/dmidecode")
-      dmidecode_bin = "/sbin/dmidecode"
-    else
-      dmidecode_bin = "/usr/sbin/dmidecode"
-    end
-    platform = %x[#{dmidecode_bin} |grep 'Product Name'].chomp
-    if File.exist?("/bin/lsb_release")
-      lsb_bin = "/bin/lsb_release"
-    else
-      lsb_bin = "/usr/bin/lsb_release"
-    end
-    $os_info = %x[#{lsb_bin} -i -s].chomp
-    $os_rel  = %x[#{lsb_bin} -r -s].chomp
-  when /Darwin/
-    $valid_vm_list = [ 'vbox', 'fusion', 'parallels' ]
-  end
-  case platform
-  when /VMware/
-    $default_gateway_ip  = "130.194.2.254"
-    $default_hostonly_ip = "130.194.2.254"
-    if $os_name.match(/Linux/)
-      $default_net = "eth0"
-    end
-  when /VirtualBox/
-    $default_gateway_ip  = "130.194.3.254"
-    $default_hostonly_ip = "130.194.3.254"
-    if $os_info.match(/RedHat|CentOS/) and $os_rel.match(/^7/)
-      $default_net = "enp0s3"
-    else
-      $default_net = "eth0"
-    end
-  else
-    $default_gateway_ip  = "130.194.3.254"
-    $default_hostonly_ip = "130.194.3.254"
-    if $os_name.match(/Linux/)
-      $default_net = "eth0"
-      network_test = %x[ifconfig -a |grep eth0].chomp
-      if !network_test.match(/eth0/)
-        $default_net = %x[sudo sh -c 'route |grep default'].split(/\s+/)[-1].chomp
-      end
-    end
-  end
-end
+set_global_vars()
 
 # Calculate CIDR
 
@@ -280,9 +287,9 @@ def print_usage()
   long_switch  = ""
   short_switch = ""
   help_info    = ""
-  puts ""
-  puts "Usage: "+$script
-  puts ""
+  handle_output("")
+  handle_output("Usage: #{$script}")
+  handle_output("")
   file_array  = IO.readlines $0
   option_list = file_array.grep(/\[ "--/)
   option_list.each do |line|
@@ -292,18 +299,54 @@ def print_usage()
       long_switch  = switches[0].gsub(/\[/,"").gsub(/\s+/,"")
       short_switch = switches[1].gsub(/\s+/,"")
       if long_switch.gsub(/\s+/,"").length < 7
-        puts long_switch+",\t\t\t"+short_switch+"\t"+help_info
+        handle_output("#{long_switch},\t\t\t#{short_switch}\t#{help_info}")
       else
         if long_switch.gsub(/\s+/,"").length < 15
-          puts long_switch+",\t\t"+short_switch+"\t"+help_info
+          handle_output("#{long_switch},\t\t#{short_switch}\t#{help_info}")
         else
-          puts long_switch+",\t"+short_switch+"\t"+help_info
+          handle_output("#{long_switch},\t#{short_switch}\t#{help_info}")
         end
       end
     end
   end
-  puts
+  handle_output("")
   return
+end
+
+# Handle output
+
+def handle_output(text)
+  if $output_format.match(/html/)
+    if text == ""
+      text = "<br>"
+    end
+  end
+  if $output_format.match(/text/)
+    puts text 
+  end
+  $output_text.push(text)
+  return
+end
+
+# HTML header
+
+def html_header(pipe,title)
+  pipe.push("<html>")
+  pipe.push("<header>")
+  pipe.push("<title>")
+  pipe.push(title)
+  pipe.push("</title>")
+  pipe.push("</header>")
+  pipe.push("<body>")
+  return pipe
+end
+
+# HTML footer
+
+def html_footer(pipe)
+  pipe.push("</body>")
+  pipe.push("</html>")
+  return pipe
 end
 
 # Get version
@@ -320,20 +363,20 @@ end
 
 def print_version()
   (version,packager,name) = get_version()
-  puts name+" v. "+version+" "+packager
-  exit
+  handle_output("#{name} v. #{version} #{packager}")
+  return
 end
 
 # Generate a client MAC address if not given one
 
-def create_client_mac(client_mac)
-  if !client_mac.match(/[0-9]/)
-    client_mac = (1..6).map{"%0.2X"%rand(256)}.join(":")
+def create_install_mac(install_mac)
+  if !install_mac.match(/[0-9]/)
+    install_mac = (1..6).map{"%0.2X"%rand(256)}.join(":")
     if $verbose_mode == 1
-      puts "Information:\tGenerated MAC address "+client_mac
+      handle_output("Information:\tGenerated MAC address #{install_mac}")
     end
   end
-  return client_mac
+  return install_mac
 end
 
 # Get default host
@@ -390,7 +433,7 @@ def check_local_config(install_mode)
     check_ssh_keys()
   end
   if $verbose_mode == 1
-    puts "Information:\tHome directory "+$home_dir
+    handle_output("Information:\tHome directory #{$home_dir}")
   end
   if !$work_dir.match(/[a-z,A-Z,0-9]/)
     dir_name = File.basename($script,".*")
@@ -401,13 +444,13 @@ def check_local_config(install_mode)
     end
   end
   if $verbose_mode == 1
-    puts "Information:\tSetting work directory to "+$work_dir
+    handle_output("Information:\tSetting work directory to #{$work_dir}")
   end
   if !$tmp_dir.match(/[a-z,A-Z,0-9]/)
     $tmp_dir = $work_dir+"/tmp"
   end
   if $verbose_mode == 1
-    puts "Information:\tSetting temporary directory to "+$work_dir
+    handle_output("Information:\tSetting temporary directory to #{$work_dir}")
   end
   # Get OS name and set system settings appropriately
   check_dir_exists($work_dir)
@@ -445,7 +488,7 @@ def check_local_config(install_mode)
       check_dir_exists("/tftpboot")
     end
     if $verbose_mode == 1
-      puts "Information:\tSetting apache allow range to "+$default_apache_allow
+      handle_output("Information:\tSetting apache allow range to #{$default_apache_allow}")
     end
     if $os_name.match(/SunOS/)
       if $os_name.match(/SunOS/) and $os_rel.match(/11/)
@@ -519,16 +562,16 @@ end
 # Print valid list
 
 def print_valid_list(message,valid_list)
-  puts
-  puts message
-  puts
-  puts "Available options:"
-  puts
+  handle_output("")
+  handle_output(message)
+  handle_output("")
+  handle_output("Available options:")
+  handle_output("")
   valid_list.each do |item|
-    puts item
+    handle_output(item)
   end
-  puts
-  exit
+  handle_output("")
+  return
 end
 
 # Print change log
@@ -540,9 +583,10 @@ def print_changelog()
     changelog.each_with_index do |line, index|
       line = line.gsub(/^# /,"")
       if line.match(/^[0-9]/)
-        puts line
-        puts changelog[index-1].gsub(/^# /,"")
-        puts
+        handle_output(line)
+        text = changelog[index-1].gsub(/^# /,"")
+        handle_output(text)
+        handle_output("")
       end
     end
   end
@@ -589,11 +633,11 @@ end
 
 def check_password(install_password)
   if !install_password.match(/[A-Z]/)
-    puts "Warning:\tPassword does not contain and upper case character"
+    handle_output("Warning:\tPassword does not contain and upper case character")
     exit
   end
   if !install_password.match(/[0-9]/)
-    puts "Warning:\tPassword does not contain a number"
+    handle_output("Warning:\tPassword does not contain a number")
     exit
   end
   return
@@ -624,7 +668,7 @@ def attach_dmg(ovftool_dmg)
     tmp_dir = "/Volumes/"+tmp_dir
   end
   if $werbose_mode == 1
-    puts "Information:\tDMG mounted on "+tmp_dir
+    handle_output("Information:\tDMG mounted on #{tmp_dir}")
   end
   return tmp_dir
 end
@@ -634,9 +678,9 @@ end
 def check_osx_ovftool()
   ovftool_bin = "/Applications/VMware OVF Tool/ovftool"
   if !File.exist?(ovftool_bin)
-    puts "Warning:\tOVF Tool not installed"
+    handle_output("Warning:\tOVF Tool not installed")
     wget_file($ovftool_dmg_url,ovftool_dmg)
-    puts "Information:\tInstalling OVF Tool"
+    handle_output("Information:\tInstalling OVF Tool")
     ovftool_dmg = $ovftool_dmg_url.split(/\?/)[0]
     ovftool_dmg = File.basename(ovftool_dmg)
     tmp_dir  = attach_dmg(ovftool_dmg)
@@ -653,7 +697,7 @@ end
 
 def scp_file(install_server,install_serveradmin,install_serverpassword,local_file,remote_file)
   if $verbose_mode == 1
-    puts "Information:\tCopying file \""+local_file+"\" to \""+install_server+":"+remote_file+"\""
+    handle_output("Information:\tCopying file \""+local_file+"\" to \""+install_server+":"+remote_file+"\"")
   end
   Net::SCP.start(install_server,install_serveradmin,:password => install_serverpassword, :paranoid => false) do |scp|
     scp.upload! local_file, remote_file
@@ -665,7 +709,7 @@ end
 
 def execute_ssh_command(install_server,install_serveradmin,install_serverpassword,command)
   if $verbose_mode == 1
-    puts "Information:\tExecuting command \""+command+"\" on server "+install_server
+    handle_output("Information:\tExecuting command \""+command+"\" on server "+install_server)
   end
   Net::SSH.start(install_server,install_serveradmin,:password => install_serverpassword, :paranoid => false) do |ssh|
     ssh.exec!(command)
@@ -701,7 +745,7 @@ def get_client_config(install_client,install_service,install_method,install_type
   end
   if File.exist?(config_file)
     file_data = %x[cat #{config_file}]
-    puts file_data
+    handle_output(file_data)
   end
   return
 end
@@ -723,11 +767,11 @@ def get_install_method(install_client,install_service)
   service_dir = $repo_base_dir+"/"+install_service
   if File.directory?(service_dir) or File.symlink?(service_dir)
     if $verbose_mode == 1
-      puts "Information:\tFound directory "+service_dir
-      puts "Information:\tDetermining service type"
+      handle_output("Information:\tFound directory #{service_dir}")
+      handle_output("Information:\tDetermining service type")
     end
   else
-    puts "Warning:\tService "+install_service+" does not exist"
+    handle_output("Warning:\tService #{install_service} does not exist")
   end
   install_method = ""
   test_file = service_dir+"/vmware-esx-base-osl.txt"
@@ -754,7 +798,7 @@ def unconfigure_server(install_service)
   if install_method.match(/[a-z]/)
     eval"[unconfigure_#{install_method}_server(install_service)]"
   else
-    puts "Warning:\tCould not determine service type for "+install_service
+    handle_output("Warning:\tCould not determine service type for #{install_service}")
   end
   return
 end
@@ -810,7 +854,7 @@ end
 
 def get_install_service_from_file(install_file)
   install_service = ""
-  service_name    = ""
+  install_service    = ""
   service_version = ""
   install_arch    = ""
   install_release = ""
@@ -823,36 +867,36 @@ def get_install_service_from_file(install_file)
   end
   case install_file
   when /ubuntu/
-    service_name    = "ubuntu"
+    install_service    = "ubuntu"
     service_version = install_file.split(/-/)[1].gsub(/\./,"_").gsub(/_iso/,"")
     service_version = service_version+"_"+install_arch
     install_method  = "ps"
     install_release = install_file.split(/-/)[1]
   when /purity/
-    service_name    = "purity"
+    install_service    = "purity"
     service_version = install_file.split(/_/)[1]
     install_method  = "ps"
     install_arch    = "x86_64"
   when /vCenter-Server-Appliance|VCSA/
-    service_name    = "vcsa"
+    install_service    = "vcsa"
     service_version = install_file.split(/-/)[3..4].join(".").gsub(/\./,"_").gsub(/_iso/,"")
     install_method  = "image"
     install_release = install_file.split(/-/)[3..4].join(".").gsub(/\.iso/,"")
     install_arch    = "x86_64"
   when /VMvisor-Installer/
-    service_name    = "vsphere"
+    install_service    = "vsphere"
     install_arch    = "x86_64"
     service_version = install_file.split(/-/)[3].gsub(/\./,"_")+"_"+install_arch
     install_method  = "vs"
     install_release = install_file.split(/-/)[3].gsub(/update/,"")
   when /CentOS/
-    service_name    = "centos"
+    install_service    = "centos"
     service_version = install_file.split(/-/)[1..2].join(".").gsub(/\./,"_").gsub(/_iso/,"")
-    install_os      = service_name
+    install_os      = install_service
     install_method  = "ks"
     install_release = install_file.split(/-/)[1]
   when /Fedora-Server/
-    service_name    = "fedora"
+    install_service    = "fedora"
     if install_file.match(/DVD/)
       service_version = install_file.split(/-/)[-1].gsub(/\./,"_").gsub(/_iso/,"_")
       service_arch    = install_file.split(/-/)[-2].gsub(/\./,"_").gsub(/_iso/,"_")
@@ -865,33 +909,33 @@ def get_install_service_from_file(install_file)
     service_version = service_version+"_"+service_arch
     install_method  = "ks"
   when /OracleLinux/
-    service_name    = "oel"
+    install_service    = "oel"
     service_version = install_file.split(/-/)[1..2].join(".").gsub(/\./,"_").gsub(/R|U/,"")
     service_arch    = install_file.split(/-/)[-2]
     service_version = service_version+"_"+service_arch
     install_release = install_file.split(/-/)[1..2].join(".").gsub(/[a-z,A-Z]/,"")
     install_method  = "ks"
   when /openSUSE/
-    service_name    = "opensuse"
+    install_service    = "opensuse"
     service_version = install_file.split(/-/)[1].gsub(/\./,"_").gsub(/_iso/,"")
     service_arch    = install_file.split(/-/)[-1].gsub(/\./,"_").gsub(/_iso/,"")
     service_version = service_version+"_"+service_arch
     install_method  = "ay"
     install_release = install_file.split(/-/)[1]
   when /rhel/
-    service_name    = "rhel"
+    install_service    = "rhel"
     service_version = install_file.split(/-/)[2..3].join(".").gsub(/\./,"_").gsub(/_iso/,"")
     install_method  = "ks"
     install_release = install_file.split(/-/)[2]
   when /SLE/
-    service_name    = "sles"
+    install_service    = "sles"
     service_version = install_file.split(/-/)[1]
     service_arch    = install_file.split(/-/)[4]
     service_version = service_version+"_"+service_arch
     install_method  = "ay"
     install_release = install_file.split(/-/)[1]
   when /sol/
-    service_name    = "sol"
+    install_service    = "sol"
     install_release = install_file.split(/-/)[1].gsub(/_/,".")
     if install_release.to_i > 10
       if install_file.match(/1111/)
@@ -907,7 +951,7 @@ def get_install_service_from_file(install_file)
     service_version = install_release+"_"+install_arch
     service_version = service_version.gsub(/\./,"_")
   when /[0-9][0-9][0-9][0-9]|Win|Srv/
-    service_name = "windows"
+    install_service = "windows"
     mount_iso(install_file)
     wim_file = $iso_mount_dir+"/sources/install.wim"
     if File.exist?(wim_file)
@@ -918,7 +962,7 @@ def get_install_service_from_file(install_file)
         execute_command(message,command)
         wiminfo_bin = %x[which wiminfo]
         if !wiminfo_bin.match(/wiminfo/)
-          puts "Warning:\tCannnot find wiminfo (required to determine version of windows from ISO)"
+          handle_output("Warning:\tCannnot find wiminfo (required to determine version of windows from ISO)")
           exit
         end
       end
@@ -937,11 +981,11 @@ def get_install_service_from_file(install_file)
     install_service = install_service.gsub(/__/,"_")
     install_method  = "pe"
   end
-  install_os      = service_name
-  install_service = service_name+"_"+service_version.gsub(/__/,"_")
+  install_os      = install_service
+  install_service = install_service+"_"+service_version.gsub(/__/,"_")
   if $verbose_mode == 1
-    puts "Information:\tSetting service name to "+install_service
-    puts "Information:\tSetting OS name to "+install_os
+    handle_output("Information:\tSetting service name to #{install_service}")
+    handle_output("Information:\tSetting OS name to #{install_os}")
   end
   return install_service,install_os,install_method,install_release,install_arch,install_label
 end
@@ -976,7 +1020,7 @@ end
 def configure_server(install_method,install_arch,publisher_host,publisher_port,install_service,install_file)
   if !install_method.match(/[a-z,A-Z]/)
     if !install_file.match(/[a-z,A-Z]/)
-      puts "Warning:\tCould not determine service name"
+      handle_output("Warning:\tCould not determine service name")
       exit
     else
       install_method = get_install_method_from_iso(install_file)
@@ -1015,7 +1059,7 @@ def list_all_services()
   $valid_method_list.each do |install_method|
     eval"[list_#{install_method}_services()]"
   end
-  puts
+  handle_output("") 
   return
 end
 
@@ -1033,7 +1077,7 @@ def check_ip(install_ip)
     end
   end
   if invalid_ip == 1
-    puts "Warning:\tInvalid IP Address"
+    handle_output("Warning:\tInvalid IP Address")
     exit
   end
   return
@@ -1045,7 +1089,7 @@ def check_hostname(install_client)
   install_client = install_client.split()
   install_client.each do |char|
     if !char.match(/[a-z,A-Z,0-9]|-/)
-      puts "Invalid hostname: "+client_name.join()
+      handle_output("Invalid hostname: #{install_client.join()}")
       exit
     end
   end
@@ -1055,8 +1099,15 @@ end
 
 def get_iso_list(install_os,install_method,install_release,install_arch)
   search_string = ""
-  iso_list = check_iso_base_dir(search_string)
+  full_list = check_iso_base_dir(search_string)
+  if !install_os.match(/[a-z]/) and !install_method.match(/[a-z]/) and !install_release.match(/[a-z]/) and ! install_arch.match(/[a-z]/)
+    return full_list
+  end
+  temp_list = []
+  iso_list  = []
   case install_os.downcase
+  when /pe|win/
+    install_os = "OEM|win|Win|EVAL|eval"
   when /oel|oraclelinux/
     install_os = "OracleLinux"
   when /sles/
@@ -1129,10 +1180,18 @@ def get_iso_list(install_os,install_method,install_release,install_arch)
       install_arch = install_arch.gsub(/amd64/,"x86_64")
     end
   end
+  search_strings = []
   [ install_os, install_method, install_release, install_arch ].each do |search_string|
     if search_string.match(/[a-z,A-Z,0-9]/)
-      iso_list = iso_list.grep(/#{search_string}/)
+      search_strings.push(search_string)
     end
+  end
+  temp_list = full_list
+  search_strings.each do |search_string|
+    temp_list = temp_list.grep(/#{search_string}/) 
+  end
+  if temp_list.length > 0
+    iso_list = temp_list
   end
   return iso_list
 end
@@ -1140,12 +1199,18 @@ end
 # List ISOs
 
 def list_isos(install_os,install_method,install_release,install_arch)
-  puts
+  if !$output_format.match(/html/)
+    handle_output("") 
+  end
   iso_list = get_iso_list(install_os,install_method,install_release,install_arch)
   iso_list.each do |iso_file|
-    puts iso_file
+    if $output_format.match(/html/)
+      handle_output("<tr>#{iso_file}</tr>")
+    else
+      handle_output(iso_file)
+      handle_output("")
+    end
   end
-  puts
   return
 end
 
@@ -1155,21 +1220,21 @@ def connect_to_virtual_serial(install_client,install_vm)
   if install_vm.match(/ldom|gdom/)
     connect_to_gdom_console(install_client)
   else
-    puts
-    puts "Connecting to serial port of "+install_client
-    puts
-    puts "To disconnect from this session use CTRL-Q"
-    puts
-    puts "If you wish to re-connect to the serial console of this machine,"
-    puts "run the following command:"
-    puts
-    puts $script+" --action=console --vm="+install_vm+" --client="+install_client
-    puts
-    puts "or:"
-    puts
-    puts "socat UNIX-CONNECT:/tmp/"+install_client+" STDIO,raw,echo=0,escape=0x11,icanon=0"
-    puts
-    puts
+    handle_output("")
+    handle_output("Connecting to serial port of #{install_client}")
+    handle_output("")
+    handle_output("To disconnect from this session use CTRL-Q")
+    handle_output("")
+    handle_output("If you wish to re-connect to the serial console of this machine,")
+    handle_output("run the following command:")
+    handle_output("")
+    handle_output("#{$script} --action=console --vm=#{install_vm} --client=#{install_client}")
+    handle_output("")
+    handle_output("or:")
+    handle_output("")
+    handle_output("socat UNIX-CONNECT:/tmp/#{install_client} STDIO,raw,echo=0,escape=0x11,icanon=0")
+    handle_output("")
+    handle_output("")
     system("socat UNIX-CONNECT:/tmp/#{install_client} STDIO,raw,echo=0,escape=0x11,icanon=0")
   end
   return
@@ -1203,9 +1268,9 @@ def get_client_dir(install_client)
   client_dir = execute_command(message,command).chomp
   if $verbose_mode == 1
     if File.directory?(client_dir)
-      puts "Information:\tNo client directory found for "+install_client
+      handle_output("Information:\tNo client directory found for #{install_client}")
     else
-      puts "Information:\tClient directory found "+client_dir
+      handle_output("Information:\tClient directory found #{client_dir}")
     end
   end
   return client_dir
@@ -1235,43 +1300,80 @@ end
 # List clients for an install service
 
 def list_clients(install_service)
-  puts
-  if install_service.match(/[a-z,A-Z]/)
-    puts "Available "+install_service+" clients:"
-  else
-    puts "Available clients:"
-  end
-  puts
   case install_service.downcase
-  when /kickstart/
+  when /ai/
+    list_ai_clients()
+    return
+  when /js|jumpstart/
+    search_string = "sol_6|sol_7|sol_8|sol_9|sol_10"
+  when /ks|kickstart/
     search_string = "centos|redhat|rhel|scientific|fedora"
-  when /preseed/
+  when /ps|preseed/
     search_string = "debian|ubuntu"
-  when /esx/
+  when /vmware|vsphere|esx|vs/
     search_string = "vmware"
-  when /autoyast/
+  when /ay|autoyast/
     search_string = "suse|sles"
+  when /xb/
+    search_string = "bsd|coreos"
   end
   service_list = Dir.entries($client_base_dir)
-  service_list.each do |service_name|
-    if service_name.match(/#{search_string}|#{install_service}/) and service_name.match(/[a-z,A-Z]/)
-      repo_version_dir = $client_base_dir+"/"+service_name
-      if File.directory?(repo_version_dir) or File.symlink?(repo_version_dir)
-        client_list      = Dir.entries(repo_version_dir)
-        client_list.each do |client_name|
-          if client_name.match(/[a-z,A-Z,0-9]/)
-            client_dir = repo_version_dir+"/"+client_name
-            client_ip  = get_client_ip(client_name)
-            client_mac = get_client_mac(client_name)
-            if File.directory?(client_dir)
-              puts client_name+"\t[ service = "+service_name+", ip = "+client_ip+", mac = "+client_mac+" ] "
+  service_list = service_list.grep(/#{search_string}|#{install_service}/)
+  if service_list.length > 0
+    if $output_format.match(/html/)
+      if install_service.match(/[a-z,A-Z]/)
+        handle_output("<h1>Available #{install_service} clients:</h1>")
+      else
+        handle_output("<h1>Available clients:</h1>")
+      end
+      handle_output("<table>")
+      handle_output("<tr>")
+      handle_output("<th>Client</th>")
+      handle_output("<th>Service</th>")
+      handle_output("<th>IP</th>")
+      handle_output("<th>MAC</th>")
+      handle_output("</tr>")
+    else
+      handle_output("")
+      if install_service.match(/[a-z,A-Z]/)
+        handle_output("Available #{install_service} clients:")
+      else
+        handle_output("Available clients:")
+      end
+      handle_output("")
+    end
+    service_list.each do |install_service|
+      if install_service.match(/#{search_string}|#{install_service}/) and install_service.match(/[a-z,A-Z]/)
+        repo_version_dir = $client_base_dir+"/"+install_service
+        if File.directory?(repo_version_dir) or File.symlink?(repo_version_dir)
+          client_list      = Dir.entries(repo_version_dir)
+          client_list.each do |install_client|
+            if install_client.match(/[a-z,A-Z,0-9]/)
+              client_dir  = repo_version_dir+"/"+install_client
+              install_ip  = get_install_ip(install_client)
+              install_mac = get_install_mac(install_client)
+              if File.directory?(client_dir)
+                if $output_format.match(/html/)
+                  handle_output("<tr>")
+                  handle_output("<td>#{install_client}</td>")
+                  handle_output("<td>#{install_service}</td>")
+                  handle_output("<td>#{install_ip}</td>")
+                  handle_output("<td>#{install_mac}</td>")
+                  handle_output("</tr>")
+                else
+                  handle_output("#{install_client}\t[ service = #{install_service}, ip = #{install_ip}, mac = #{install_mac} ] ")
+                end
+              end
             end
           end
         end
       end
     end
+    if $output_format.match(/html/)
+      handle_output("</table>")
+    end
   end
-  puts
+  handle_output("")
   return
 end
 
@@ -1279,15 +1381,15 @@ end
 
 def list_ovas()
   file_list = Dir.entries($iso_base_dir)
-  puts
-  puts "Virtual Appliances:"
-  puts
+  handle_output("")
+  handle_output("Virtual Appliances:")
+  handle_output("")
   file_list.each do |file_name|
     if file_name.match(/ova$/)
-      puts file_name
+      handle_output(file_name)
     end
   end
-  puts
+  handle_output("")
 end
 
 # Check directory ownership
@@ -1307,13 +1409,13 @@ end
 def print_contents_of_file(file_name)
   if $verbose_mode == 1
     if File.exist?(file_name)
-      puts
-      puts "Information:\tContents of file "+file_name
-      puts
+      handle_output("")
+      handle_output("Information:\tContents of file #{file_name}")
+      handle_output("")
       system("cat '#{file_name}'")
-      puts
+      handle_output("")
     else
-      puts "Warning:\tFile "+file_name+" does not exist"
+      handle_output("Warning:\tFile #{file_name} does not exist")
     end
   end
   return
@@ -1384,7 +1486,7 @@ def remove_nfs_export(export_dir)
       execute_command(message,command)
     else
       if $verbose_mode == 1
-        puts "Information:\tZFS filesystem #{$default_zpool}#{export_dir} does not exist"
+        handle_output("Information:\tZFS filesystem #{$default_zpool}#{export_dir} does not exist")
       end
     end
   else
@@ -1414,9 +1516,9 @@ end
 
 # Check we are running on the right architecture
 
-def check_same_arch(client_arch)
-  if !$os_arch.match(/#{client_arch}/)
-    puts "Warning:\tSystem and Zone Architecture do not match"
+def check_same_arch(install_arch)
+  if !$os_arch.match(/#{install_arch}/)
+    handle_output("Warning:\tSystem and Zone Architecture do not match")
     exit
   end
   return
@@ -1454,7 +1556,7 @@ def check_ssh_keys()
   ssh_key = $home_dir+"/.ssh/id_rsa.pub"
   if !File.exist?(ssh_key)
     if $verbose_mode == 1
-      puts "Generating:\tPublic SSH key file "+ssh_key
+      handle_output("Generating:\tPublic SSH key file #{ssh_key}")
     end
     system("ssh-keygen -t rsa")
   end
@@ -1727,7 +1829,7 @@ end
 
 def restart_xinetd()
   service = "xinetd"
-  service = get_service_name(service)
+  service = get_install_service(service)
   refresh_service(service)
   return
 end
@@ -1736,7 +1838,7 @@ end
 
 def restart_tftpd()
   service = "tftp"
-  service = get_service_name(service)
+  service = get_install_service(service)
   refresh_service(service)
   return
 end
@@ -1827,59 +1929,59 @@ end
 
 # Get client IP
 
-def get_client_ip(client_name)
-  client_ip  = ""
+def get_install_ip(install_client)
+  install_ip  = ""
   hosts_file = "/etc/hosts"
   if File.exists?(hosts_file) or File.symlink?(hosts_file)
     file_array = IO.readlines(hosts_file)
     file_array.each do |line|
       line = line.chomp
-      if line.match(/#{client_name}\s+/)
-        client_ip = line.split(/\s+/)[0]
+      if line.match(/#{install_client}\s+/)
+        install_ip = line.split(/\s+/)[0]
       end
     end
   end
-  return client_ip
+  return install_ip
 end
 
 # Get client MAC
 
-def get_client_mac(client_name)
-  client_mac   = ""
+def get_install_mac(install_client)
+  install_mac   = ""
   found_client = 0
   if File.exists?($dhcpd_file) or File.symlink?($dhcpd_file)
     file_array = IO.readlines($dhcpd_file)
     file_array.each do |line|
       line = line.chomp
-      if line.match(/#{client_name} /)
+      if line.match(/#{install_client} /)
         found_client = 1
       end
       if line.match(/hardware ethernet/) and found_client == 1
-        client_mac = line.split(/\s+/)[3].gsub(/\;/,"")
-        return client_mac
+        install_mac = line.split(/\s+/)[3].gsub(/\;/,"")
+        return install_mac
       end
     end
   end
-  return client_mac
+  return install_mac
 end
 
 # Add hosts entry
 
-def add_hosts_entry(client_name,client_ip)
+def add_hosts_entry(install_client,install_ip)
   hosts_file = "/etc/hosts"
-  message    = "Checking:\tHosts file for "+client_name
-  command    = "cat #{hosts_file} |grep -v '^#' |grep '#{client_name}' |grep '#{client_ip}'"
+  message    = "Checking:\tHosts file for "+install_client
+  command    = "cat #{hosts_file} |grep -v '^#' |grep '#{install_client}' |grep '#{install_ip}'"
   output     = execute_command(message,command)
-  if !output.match(/#{client_name}/)
+  if !output.match(/#{install_client}/)
     backup_file(hosts_file)
-    message = "Adding:\t\tHost "+client_name+" to "+hosts_file
-    command = "echo \"#{client_ip}\\t#{client_name}.local\\t#{client_name}\\t# #{$default_admin_user}\" >> #{hosts_file}"
+    message = "Adding:\t\tHost "+install_client+" to "+hosts_file
+    command = "echo \"#{install_ip}\\t#{install_client}.local\\t#{install_client}\\t# #{$default_admin_user}\" >> #{hosts_file}"
     output  = execute_command(message,command)
     if $os_name.match(/Darwin/)
       pfile   = "/Library/LaunchDaemons/homebrew.mxcl.dnsmasq.plist"
       if File.exist?(pfile)
         service = "dnsmasq"
-        service = get_service_name(service)
+        service = get_install_service(service)
         refresh_service(service)
       end
     end
@@ -1889,23 +1991,23 @@ end
 
 # Remove hosts entry
 
-def remove_hosts_entry(client_name,client_ip)
+def remove_hosts_entry(install_client,install_ip)
   tmp_file   = "/tmp/hosts"
   hosts_file = "/etc/hosts"
-  message    = "Checking:\tHosts file for "+client_name
-  if client_ip.match(/[0-9]/)
-    command = "cat #{hosts_file} |grep -v '^#' |grep '#{client_name}' |grep '#{client_ip}'"
+  message    = "Checking:\tHosts file for "+install_client
+  if install_ip.match(/[0-9]/)
+    command = "cat #{hosts_file} |grep -v '^#' |grep '#{install_client}' |grep '#{install_ip}'"
   else
-    command = "cat #{hosts_file} |grep -v '^#' |grep '#{client_name}'"
+    command = "cat #{hosts_file} |grep -v '^#' |grep '#{install_client}'"
   end
   output = execute_command(message,command)
   copy   = []
-  if output.match(/#{client_name}/)
+  if output.match(/#{install_client}/)
     file_info=IO.readlines(hosts_file)
     file_info.each do |line|
-      if !line.match(/#{client_name}/)
-        if client_ip.match(/[0-9]/)
-          if !line.match(/^#{client_ip}/)
+      if !line.match(/#{install_client}/)
+        if install_ip.match(/[0-9]/)
+          if !line.match(/^#{install_ip}/)
             copy.push(line)
           end
         else
@@ -1927,18 +2029,18 @@ end
 
 # Add host to DHCP config
 
-def add_dhcp_client(client_name,install_mac,client_ip,client_arch,service_name)
+def add_dhcp_client(install_client,install_mac,install_ip,install_arch,install_service)
   if !install_mac.match(/:/)
     install_mac = install_mac[0..1]+":"+install_mac[2..3]+":"+install_mac[4..5]+":"+install_mac[6..7]+":"+install_mac[8..9]+":"+install_mac[10..11]
   end
-  tmp_file = "/tmp/dhcp_"+client_name
-  if !client_arch.match(/sparc/)
+  tmp_file = "/tmp/dhcp_"+install_client
+  if !install_arch.match(/sparc/)
     tftp_pxe_file = install_mac.gsub(/:/,"")
     tftp_pxe_file = tftp_pxe_file.upcase
-    if service_name.match(/sol/)
+    if install_service.match(/sol/)
       suffix = ".bios"
     else
-      if service_name.match(/bsd/)
+      if install_service.match(/bsd/)
         suffix = ".pxeboot"
       else
         suffix = ".pxelinux"
@@ -1948,10 +2050,10 @@ def add_dhcp_client(client_name,install_mac,client_ip,client_arch,service_name)
   else
     tftp_pxe_file = "http://#{$default_host}:5555/cgi-bin/wanboot-cgi"
   end
-  message = "Checking:\fIf DHCPd configuration contains "+client_name
-  command = "cat #{$dhcpd_file} | grep '#{client_name}'"
+  message = "Checking:\fIf DHCPd configuration contains "+install_client
+  command = "cat #{$dhcpd_file} | grep '#{install_client}'"
   output  = execute_command(message,command)
-  if !output.match(/#{client_name}/)
+  if !output.match(/#{install_client}/)
     backup_file($dhcpd_file)
     file = File.open(tmp_file,"w")
     file_info=IO.readlines($dhcpd_file)
@@ -1959,10 +2061,10 @@ def add_dhcp_client(client_name,install_mac,client_ip,client_arch,service_name)
       file.write(line)
     end
     file.write("\n")
-    file.write("host #{client_name} {\n")
-    file.write("  fixed-address #{client_ip};\n")
+    file.write("host #{install_client} {\n")
+    file.write("  fixed-address #{install_ip};\n")
     file.write("  hardware ethernet #{install_mac};\n")
-    if service_name.match(/[a-z,A-Z]/)
+    if install_service.match(/[a-z,A-Z]/)
       file.write("  filename \"#{tftp_pxe_file}\";\n")
     end
     file.write("}\n")
@@ -1979,15 +2081,15 @@ end
 
 # Remove host from DHCP config
 
-def remove_dhcp_client(client_name)
+def remove_dhcp_client(install_client)
   found     = 0
   copy      = []
   if !File.exist?($dhcpd_file)
-    puts "Warning:\tFile "+$dhcpd_file+" does not exist"
+    handle_output("Warning:\tFile #{$dhcpd_file} does not exist")
   else
     file_info = IO.readlines($dhcpd_file)
     file_info.each do |line|
-      if line.match(/^host #{client_name}/)
+      if line.match(/^host #{install_client}/)
         found = 1
       end
       if found == 0
@@ -2033,13 +2135,13 @@ def wget_file(file_url,file_name)
 end
 # Find client MAC
 
-def get_install_mac(client_name)
+def get_install_mac(install_client)
   ethers_file = "/etc/ethers"
   output      = ""
   found       = 0
   if File.exist?(ethers_file)
-    message    = "Checking:\tFile "+ethers_file+" for "+client_name+" MAC address"
-    command    = "cat #{ethers_file} |grep '#{client_name} '|awk '{print $2}'"
+    message    = "Checking:\tFile "+ethers_file+" for "+install_client+" MAC address"
+    command    = "cat #{ethers_file} |grep '#{install_client} '|awk '{print $2}'"
     install_mac = execute_command(message,command)
     install_mac = install_mac.chomp
   end
@@ -2047,7 +2149,7 @@ def get_install_mac(client_name)
     file=IO.readlines($dhcpd_file)
     file.each do |line|
       line=line.chomp
-      if line.match(/#{client_name}/)
+      if line.match(/#{install_client}/)
         found=1
       end
       if found == 1
@@ -2108,8 +2210,8 @@ def check_zfs_fs_exists(dir_name)
         zfs_name = $default_zpool+dir_name
       end
       if dir_name.match(/vmware_|openbsd_|coreos_/) or $os_rel.to_i > 10
-        service_name = File.basename(dir_name)
-        mount_dir    = $tftp_dir+"/"+service_name
+        install_service = File.basename(dir_name)
+        mount_dir    = $tftp_dir+"/"+install_service
         if !File.directory?(mount_dir)
           Dir.mkdir(mount_dir)
         end
@@ -2147,14 +2249,14 @@ def destroy_zfs_fs(dir_name)
     if $destroy_fs.match(/y|Y/)
       if File.directory?(dir_name)
         if dir_name.match(/netboot/)
-          service_name = "svc:/network/tftp/udp6:default"
-          disable_service(service_name)
+          install_service = "svc:/network/tftp/udp6:default"
+          disable_service(install_service)
         end
         message = "Warning:\tDestroying "+dir_name
         command = "zfs destroy -r -f #{zfs_name}"
         output  = execute_command(message,command)
         if dir_name.match(/netboot/)
-          enable_service(service_name)
+          enable_service(install_service)
         end
       end
     end
@@ -2184,7 +2286,7 @@ def execute_command(message,command)
   execute = 0
   if $verbose_mode == 1
     if message.match(/[a-z,A-Z,0-9]/)
-      puts message
+      handle_output(message)
     end
   end
   if $test_mode == 1
@@ -2203,7 +2305,7 @@ def execute_command(message,command)
       end
     end
     if $verbose_mode == 1
-      puts "Executing:\t"+command
+      handle_output("Executing:\t#{command}")
     end
     if $execute_host.match(/localhost/)
       if command.match(/VBoxManage/)
@@ -2222,11 +2324,11 @@ def execute_command(message,command)
   if $verbose_mode == 1
     if output.length > 1
       if !output.match(/\n/)
-        puts "Output:\t\t"+output
+        handle_output("Output:\t\t#{output}")
       else
         multi_line_output = output.split(/\n/)
         multi_line_output.each do |line|
-          puts "Output:\t\t"+line
+          handle_output("Output:\t\t#{line}")
         end
       end
     end
@@ -2244,7 +2346,7 @@ def get_date_string()
   date_string = date_string.gsub(/:/,"_")
   date_string = date_string.gsub(/-/,"_")
   if $verbose_mode == 1
-    puts "Information:\tSetting date string to "+date_string
+    handle_output("Information:\tSetting date string to #{date_string}")
   end
   return date_string
 end
@@ -2261,11 +2363,11 @@ end
 def restart_dhcpd()
   if $os_name.match(/SunOS/)
     function         = "refresh"
-    smf_service_name = "svc:/network/dhcp/server:ipv4"
-    output           = handle_smf_service(function,smf_service_name)
+    smf_install_service = "svc:/network/dhcp/server:ipv4"
+    output           = handle_smf_service(function,smf_install_service)
   else
-    service_name = "dhcpd"
-    refresh_service(service_name)
+    install_service = "dhcpd"
+    refresh_service(install_service)
   end
   return output
 end
@@ -2279,13 +2381,13 @@ def check_dhcpd()
     output  = execute_command(message,command)
     if output.match(/disabled/)
       function         = "enable"
-      smf_service_name = "svc:/network/dhcp/server:ipv4"
-      output           = handle_smf_service(function,smf_service_name)
+      smf_install_service = "svc:/network/dhcp/server:ipv4"
+      output           = handle_smf_service(function,smf_install_service)
     end
     if output.match(/maintenance/)
       function         = "refresh"
-      smf_service_name = "svc:/network/dhcp/server:ipv4"
-      output           = handle_smf_service(function,smf_service_name)
+      smf_install_service = "svc:/network/dhcp/server:ipv4"
+      output           = handle_smf_service(function,smf_install_service)
     end
   end
   if $os_name.match(/Darwin/)
@@ -2294,8 +2396,8 @@ def check_dhcpd()
     if !output.match(/dhcp/)
       service = "dhcp"
       check_osx_service_is_enabled(service)
-      service_name = "dhcp"
-      refresh_service(service_name)
+      install_service = "dhcp"
+      refresh_service(install_service)
     end
     check_osx_tftpd()
   end
@@ -2304,93 +2406,93 @@ end
 
 # Get service basename
 
-def get_service_base_name(service_name)
-  service_name = service_name.gsub(/_i386|_x86_64|_sparc/,"")
-  return service_name
+def get_service_base_name(install_service)
+  install_service = install_service.gsub(/_i386|_x86_64|_sparc/,"")
+  return install_service
 end
 
 # Get service name
 
-def get_service_name(service_name)
+def get_install_service(install_service)
   if $os_name.match(/SunOS/)
-    if service_name.match(/apache/)
-      service_name = "svc:/network/http:apache22"
+    if install_service.match(/apache/)
+      install_service = "svc:/network/http:apache22"
     end
-    if service_name.match(/dhcp/)
-      service_name = "svc:/network/dhcp/server:ipv4"
+    if install_service.match(/dhcp/)
+      install_service = "svc:/network/dhcp/server:ipv4"
     end
   end
   if $os_name.match(/Darwin/)
-    if service_name.match(/apache/)
-      service_name = "org.apache.httpd"
+    if install_service.match(/apache/)
+      install_service = "org.apache.httpd"
     end
-    if service_name.match(/dhcp/)
-      service_name = "homebrew.mxcl.isc-dhcp"
+    if install_service.match(/dhcp/)
+      install_service = "homebrew.mxcl.isc-dhcp"
     end
-    if service_name.match(/dnsmasq/)
-      service_name = "homebrew.mxcl.dnsmasq"
+    if install_service.match(/dnsmasq/)
+      install_service = "homebrew.mxcl.dnsmasq"
     end
-    if service_name.match(/^puppet$/)
-      service_name = "com.puppetlabs.puppet.plist"
+    if install_service.match(/^puppet$/)
+      install_service = "com.puppetlabs.puppet.plist"
     end
-    if service_name.match(/^puppetmaster$/)
-      service_name = "com.puppetlabs.puppetmaster.plist"
+    if install_service.match(/^puppetmaster$/)
+      install_service = "com.puppetlabs.puppetmaster.plist"
     end
   end
   if $os_name.match(/RedHat|CentOS|SuSE|Ubuntu/)
   end
-  return service_name
+  return install_service
 end
 
 # Enable service
 
-def enable_service(service_name)
-  service_name = get_service_name(service_name)
+def enable_service(install_service)
+  install_service = get_install_service(install_service)
   if $os_name.match(/SunOS/)
-    output = enable_smf_service(service_name)
+    output = enable_smf_service(install_service)
   end
   if $os_name.match(/Darwin/)
-    output = enable_osx_service(service_name)
+    output = enable_osx_service(install_service)
   end
   if $os_name.match(/Linux/)
-    output = enable_linux_service(service_name)
+    output = enable_linux_service(install_service)
   end
   return output
 end
 
 # Disable service
 
-def disable_service(service_name)
-  service_name = get_service_name(service_name)
+def disable_service(install_service)
+  install_service = get_install_service(install_service)
   if $os_name.match(/SunOS/)
-    output = disable_smf_service(service_name)
+    output = disable_smf_service(install_service)
   end
   if $os_name.match(/Darwin/)
-    output = disable_osx_service(service_name)
+    output = disable_osx_service(install_service)
   end
   return output
 end
 
 # Refresh / Restart service
 
-def refresh_service(service_name)
-  service_name = get_service_name(service_name)
+def refresh_service(install_service)
+  install_service = get_install_service(install_service)
   if $os_name.match(/SunOS/)
-    output = refresh_smf_service(service_name)
+    output = refresh_smf_service(install_service)
   end
   if $os_name.match(/Darwin/)
-    output = refresh_osx_service(service_name)
+    output = refresh_osx_service(install_service)
   end
   if $os_name.match(/Linux/)
-    restart_linux_service(service_name)
+    restart_linux_service(install_service)
   end
   return output
 end
 
 # Calculate route
 
-def get_ipv4_default_route(client_ip)
-  octets             = client_ip.split(/\./)
+def get_ipv4_default_route(install_ip)
+  octets             = install_ip.split(/\./)
   octets[3]          = "254"
   ipv4_default_route = octets.join(".")
   return ipv4_default_route
@@ -2406,7 +2508,7 @@ end
 def check_iso_base_dir(search_string)
   iso_list = []
   if $verbose_mode == 1
-    puts "Checking:\t"+$iso_base_dir
+    handle_output("Checking:\t#{$iso_base_dir}")
   end
   check_fs_exists($iso_base_dir)
   message  = "Getting:\t"+$iso_base_dir+" contents"
@@ -2418,7 +2520,7 @@ def check_iso_base_dir(search_string)
   iso_list = execute_command(message,command)
   if search_string.match(/sol_11/)
     if !iso_list.grep(/full/)
-      puts "Warning:\tNo full repository ISO images exist in "+$iso_base_dir
+      handle_output("Warning:\tNo full repository ISO images exist in #{$iso_base_dir}")
       if $test_mode != 1
         exit
       end
@@ -2430,28 +2532,28 @@ end
 
 # Check client architecture
 
-def check_client_arch(client_arch,opt)
-  if !client_arch.match(/i386|sparc|x86_64/)
+def check_install_arch(install_arch,opt)
+  if !install_arch.match(/i386|sparc|x86_64/)
     if opt["F"] or opt["O"]
       if opt["A"]
-        puts "Information:\tSetting architecture to x86_64"
-        client_arch = "x86_64"
+        handle_output("Information:\tSetting architecture to x86_64")
+        install_arch = "x86_64"
       end
     end
     if opt["n"]
-      service_name = opt["n"]
-      service_arch = service_name.split("_")[-1]
+      install_service = opt["n"]
+      service_arch = install_service.split("_")[-1]
       if service_arch.match(/i386|sparc|x86_64/)
-        client_arch = service_arch
+        install_arch = service_arch
       end
     end
   end
-  if !client_arch.match(/i386|sparc|x86_64/)
-    puts "Warning:\tInvalid architecture specified"
-    puts "Warning:\tUse -a i386, -a x86_64 or -a sparc"
+  if !install_arch.match(/i386|sparc|x86_64/)
+    handle_output("Warning:\tInvalid architecture specified")
+    handle_output("Warning:\tUse -a i386, -a x86_64 or -a sparc")
     exit
   end
-  return client_arch
+  return install_arch
 end
 
 # Check client MAC
@@ -2459,9 +2561,9 @@ end
 def check_install_mac(install_mac,install_vm)
   if !install_mac.match(/:/)
     if install_mac.length != 12
-      puts "Warning:\tInvalid MAC address"
+      handle_output("Warning:\tInvalid MAC address")
       install_mac = generate_mac_address(install_vm)
-      puts "Information:\tGenerated new MAC address: "+install_mac
+      handle_output("Information:\tGenerated new MAC address: #{install_mac}")
     else
       chars       = install_mac.split(//)
       install_mac = chars[0..1].join+":"+chars[2..3].join+":"+chars[4..5].join+":"+chars[6..7].join+":"+chars[8..9].join+":"+chars[10..11].join
@@ -2469,14 +2571,14 @@ def check_install_mac(install_mac,install_vm)
   end
   macs = install_mac.split(":")
   if macs.length != 6
-    puts "Warning:\tInvalid MAC address"
+    handle_output("Warning:\tInvalid MAC address")
     exit
   end
   macs.each do |mac|
     if mac =~ /[G-Z]|[g-z]/ or mac.length != 2
-      puts "Warning:\tInvalid MAC address"
+      handle_output("Warning:\tInvalid MAC address")
       install_mac = generate_mac_address(install_vm)
-      puts "Information:\tGenerated new MAC address: "+install_mac
+      handle_output("Information:\tGenerated new MAC address: #{install_mac}")
     end
   end
   return install_mac
@@ -2487,12 +2589,12 @@ end
 def check_install_ip(install_ip)
   ips = install_ip.split(".")
   if ips.length != 4
-    puts "Warning:\tInvalid IP Address"
+    handle_output("Warning:\tInvalid IP Address")
     exit
   end
   ips.each do |ip|
     if ip =~ /[a-z,A-Z]/ or ip.length > 3 or ip.to_i > 254
-      puts "Warning:\tInvalid IP Address"
+      handle_output("Warning:\tInvalid IP Address")
       exit
     end
   end
@@ -2520,9 +2622,9 @@ def add_apache_proxy(publisher_host,publisher_port,service_base_name)
     message = "Adding:\t\tProxy entry to "+apache_config_file
     command = "echo 'ProxyPass /"+service_base_name+" http://"+publisher_host+":"+publisher_port+" nocanon max=200' >>"+apache_config_file
     execute_command(message,command)
-    service_name = "apache"
-    enable_service(service_name)
-    refresh_service(service_name)
+    install_service = "apache"
+    enable_service(install_service)
+    refresh_service(install_service)
   end
   return
 end
@@ -2548,8 +2650,8 @@ def remove_apache_proxy(service_base_name)
       message = "Restoring:\t"+restore_file+" to "+apache_config_file
       command = "cp #{restore_file} #{apache_config_file}"
       execute_command(message,command)
-      service_name = "apache"
-      refresh_service(service_name)
+      install_service = "apache"
+      refresh_service(install_service)
     end
   end
 end
@@ -2586,7 +2688,7 @@ def add_apache_alias(service_base_name)
       command = "cp #{apache_config_file} #{apache_config_file}.no_#{service_base_name}"
       execute_command(message,command)
       if $verbose_mode == 1
-        puts "Adding:\t\tDirectory and Alias entry to "+apache_config_file
+        handle_output("Adding:\t\tDirectory and Alias entry to #{apache_config_file}")
       end
       message = "Copying:\tApache config file so it can be edited"
       command = "cp #{apache_config_file} #{tmp_file} ; chown #{$id} #{tmp_file}"
@@ -2604,12 +2706,12 @@ def add_apache_alias(service_base_name)
     end
     if $os_name.match(/SunOS|Linux/)
       if $os_name.match(/Linux/)
-        service_name = "httpd"
+        install_service = "httpd"
       else
-        service_name = "apache"
+        install_service = "apache"
       end
-      enable_service(service_name)
-      refresh_service(service_name)
+      enable_service(install_service)
+      refresh_service(install_service)
     end
     if $os_name.match(/Linux/)
       if $os_info.match(/RedHat/)
@@ -2640,7 +2742,7 @@ end
 # If there is something mounted there already it will unmount it
 
 def mount_iso(iso_file)
-  puts "Information:\tProcessing: "+iso_file
+  handle_output("Information:\tProcessing: #{iso_file}")
   output  = check_dir_exists($iso_mount_dir)
   message = "Checking:\tExisting mounts"
   command = "df |awk '{print $NF}' |grep '^#{$iso_mount_dir}$'"
@@ -2657,7 +2759,7 @@ def mount_iso(iso_file)
   if $os_name.match(/Darwin/)
     command = "sudo hdiutil attach -nomount \"#{iso_file}\" |head -1 |awk '{print $1}'"
     if $verbose_mode == 1
-      puts "Executing:\t"+command
+      handle_output("Executing:\t#{command}")
     end
     disk_id = %x[#{command}]
     disk_id = disk_id.chomp
@@ -2675,7 +2777,7 @@ def mount_iso(iso_file)
       if $os_name.match(/Darwin/)
         command = "sudo hdiutil attach -nomount \"#{iso_file}\" |head -1 |awk '{print $1}'"
         if $verbose_mode == 1
-          puts "Executing:\t"+command
+          handle_output("Executing:\t#{command}")
         end
         disk_id = %x[#{command}]
         disk_id = disk_id.chomp
@@ -2721,8 +2823,8 @@ def mount_iso(iso_file)
     end
   end
   if !File.directory?(iso_test_dir) and !File.exist?(iso_test_dir) and !iso_file.match(/DVD2\.iso|2of2\.iso|repo-full/)
-    puts "Warning:\tISO did not mount, or this is not a repository ISO"
-    puts "Warning:\t"+iso_test_dir+" does not exit"
+    handle_output("Warning:\tISO did not mount, or this is not a repository ISO")
+    handle_output("Warning:\t#{iso_test_dir} does not exit")
     if $test_mode != 1
       umount_iso()
       exit
@@ -2748,7 +2850,7 @@ end
 
 def copy_iso(iso_file,repo_version_dir)
   if $verbose_mode == 1
-    puts "Checking:\tIf we can copy data from full repo ISO"
+    handle_output("Checking:\tIf we can copy data from full repo ISO")
   end
   if iso_file.match(/sol/)
     iso_test_dir = $iso_mount_dir+"/repo"
@@ -2759,7 +2861,7 @@ def copy_iso(iso_file,repo_version_dir)
       if File.directory?(iso_test_dir)
         iso_repo_dir = $iso_mount_dir
       else
-        puts "Warning:\tRepository source directory does not exist"
+        handle_output("Warning:\tRepository source directory does not exist")
         if $test_mode != 1
           exit
         end
@@ -2786,7 +2888,7 @@ def copy_iso(iso_file,repo_version_dir)
     end
   end
   if !File.directory?(repo_version_dir) and !File.symlink?(repo_version_dir) and !iso_file.match(/2\.iso/)
-    puts "Warning:\tRepository directory "+repo_version_dir+" does not exist"
+    handle_output("Warning:\tRepository directory #{repo_version_dir} does not exist")
     if $test_mode != 1
       exit
     end
@@ -2794,7 +2896,7 @@ def copy_iso(iso_file,repo_version_dir)
   if !File.directory?(test_dir) or iso_file.match(/DVD2\.iso|2of2\.iso/)
     if iso_file.match(/sol/)
       if !File.directory?(iso_repo_dir)
-        puts "Warning:\tRepository source directory "+iso_repo_dir+" does not exist"
+        handle_output("Warning:\tRepository source directory #{iso_repo_dir} does not exist")
         if $test_mode != 1
           exit
         end
@@ -2816,11 +2918,57 @@ def copy_iso(iso_file,repo_version_dir)
           output  = execute_command(message,command)
         end
       else
-        puts message
+        handle_output(message)
         output  = execute_command(message,command)
       end
     end
   end
+  return
+end
+
+# List domains/zones/etc instances
+
+def list_doms(dom_type,dom_command)
+  message = "Information:\nAvailable #{dom_type}(s)"
+  command = dom_command
+  output  = execute_command(message,command)
+  output  = output.split("\n")
+  if output.length > 0
+    if $output_format.match(/html/)
+      handle_output("<h1>Available #{dom_type}(s)</h1>")
+      handle_output("<table border=\"1\">")
+      handle_output("<tr>")
+      handle_output("<th>Service</th>")
+      handle_output("</tr>")
+    else
+      handle_output("") 
+      handle_output("Available #{dom_type}(s):")
+      handle_output("") 
+    end
+    output.each do |line|
+      line = line.chomp
+      line = line.gsub(/\s+$/,"")
+      if $output_format.match(/html/)
+        handle_output("<tr>")
+        handle_output("<td>#{line}</td>")
+        handle_output("</tr>")
+      else
+        handle_output(line)
+      end
+    end
+    if $output_format.match(/html/)
+      handle_output("</table>")
+    end
+  end
+  return
+end
+
+# List services
+
+def list_services(service_type,service_command)
+  dom_type    = service_type+" service"
+  dom_command = service_command
+  list_doms(dom_type,dom_command)
   return
 end
 
@@ -2830,7 +2978,7 @@ def umount_iso()
   if $os_name.match(/Darwin/)
     command = "df |grep '#{$iso_mount_dir}$' |head -1 |awk '{print $1}'"
     if $verbose_mode == 1
-      puts "Executing:\t"+command
+      handle_output("Executing:\t#{command}")
     end
     disk_id = %x[#{command}]
     disk_id = disk_id.chomp
@@ -2849,13 +2997,13 @@ end
 
 # Clear a service out of maintenance mode
 
-def clear_service(service_name)
-  message    = "Checking:\tStatus of service "+service_name
-  command    = "sleep 5 ; svcs -a |grep '#{service_name}' |awk '{print $1}'"
+def clear_service(smf_service)
+  message    = "Checking:\tStatus of service "+smf_service
+  command    = "sleep 5 ; svcs -a |grep '#{install_service}' |awk '{print $1}'"
   output     = execute_command(message,command)
   if output.match(/maintenance/)
-    message    = "Clearing:\tService "+service_name
-    command    = "svcadm clear #{service_name}"
+    message    = "Clearing:\tService "+smf_service
+    command    = "svcadm clear #{smf_service}"
     output     = execute_command(message,command)
   end
   return
@@ -2866,7 +3014,7 @@ end
 # Clear it out of maintenance mode
 
 def clear_solaris_dhcpd()
-  service_name = "svc:/network/dhcp/server:ipv4"
-  clear_service(service_name)
+  smf_service = "svc:/network/dhcp/server:ipv4"
+  clear_service(smf_service)
   return
 end

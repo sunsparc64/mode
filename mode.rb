@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.8.1
+# Version:      3.8.5
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -77,6 +77,14 @@ begin
 rescue LoadError
 end
 
+# Set output mode
+
+$output_format = "text"
+
+# Declare array for text output (used for webserver)
+
+$output_text = []
+
 # Load methods
 
 if File.directory?("./methods")
@@ -106,7 +114,7 @@ end
 
 ARGV[0..-1].each do |switch|
   if switch.match(/^-[a-z,A-Z][a-z,A-Z]/)
-    puts "Invalid command line option: "+switch
+    handle_output("Invalid command line option: #{switch}")
     exit
   end
 end
@@ -145,6 +153,7 @@ begin
     [ "--service",        "-n", Getopt::REQUIRED ], # Service name
     [ "--timeserver",     "-N", Getopt::REQUIRED ], # Set NTP server IP / Address
     [ "--os",             "-o", Getopt::REQUIRED ], # OS type
+    [ "--format",         "-O", Getopt::REQUIRED ], # Output format
     [ "--post",           "-p", Getopt::REQUIRED ], # Post install configuration
     [ "--publisher",      "-P", Getopt::REQUIRED ], # Set publisher information (Solaris AI)
     [ "--adminpassword",  "-q", Getopt::REQUIRED ], # Client admin password
@@ -174,6 +183,13 @@ rescue
   print_usage()
   exit
 end
+
+# Set output format
+
+if option["format"]
+  $output_format = option["format"].downcase
+end
+
 
 # Set verbose mode
 
@@ -211,11 +227,11 @@ end
 if option["param"]
   if !install_action.match(/get/)
     if !option["value"]
-      puts "Warning:\tSetting a parameter requires a value"
+      handle_output("Warning:\tSetting a parameter requires a value")
       exit
     else
       if !option["value"].match(/[A-Z]|[a-z]|[0-9]/)
-        puts "Warning:\tSetting a parameter requires a value"
+        handle_output("Warning:\tSetting a parameter requires a value")
         exit
       else
         install_param = option["param"]
@@ -231,7 +247,7 @@ end
 
 if option["value"]
   if !option["param"].match(/[A-Z]|[a-z]|[0-9]/)
-    puts "Warning:\tSetting a value requires a parameter"
+    handle_output("Warning:\tSetting a value requires a parameter")
     exit
   else
     install_value = option["value"]
@@ -249,16 +265,16 @@ if option["method"]
       option["mode"] = "server"
       option["vm"]   = "cdom"
       if $verbose_mode == 1
-        puts "Information:\tSetting mode to server"
-        puts "Information:\tSetting vm to cdrom"
+        handle_output("Information:\tSetting mode to server")
+        handle_output("Information:\tSetting vm to cdrom")
       end
     else
       if option["method"].match(/gdom/) 
         option["mode"] = "client"
         opyion["vm"]   = "gdom"
         if $verbose_mode == 1
-          puts "Information:\tSetting mode to client"
-          puts "Information:\tSetting vm to gdom"
+          handle_output("Information:\tSetting mode to client")
+          handle_output("Information:\tSetting vm to gdom")
         end
       else
         if option["method"].match(/ldom/)
@@ -267,12 +283,12 @@ if option["method"]
             option["vm"]     = "gdom"
             option["mode"]   = "client"
             if $verbose_mode == 1
-              puts "Information:\tSetting mode to client"
-              puts "Information:\tSetting method to gdom"
-              puts "Information:\tSetting vm to gdom"
+              handle_output("Information:\tSetting mode to client")
+              handle_output("Information:\tSetting method to gdom")
+              handle_output("Information:\tSetting vm to gdom")
             end
           else
-            puts "Warning:\tCould not determine whether to run in server of client mode"
+            handle_output("Warning:\tCould not determine whether to run in server of client mode")
             exit
           end
         end
@@ -307,16 +323,16 @@ else
           option["vm"]     = "gdom"
           option["method"] = "gdom"
           if $verbose_mode == 1
-            puts "Information:\tSetting method to gdom"
-            puts "Information:\tSetting vm to gdom"
+            handle_output("Information:\tSetting method to gdom")
+            handle_output("Information:\tSetting vm to gdom")
           end
         end
         if option["mode"].match(/server/)
           option["vm"]     = "cdom"
           option["method"] = "cdom"
           if $verbose_mode == 1
-            puts "Information:\tSetting method to cdom"
-            puts "Information:\tSetting vm to cdom"
+            handle_output("Information:\tSetting method to cdom")
+            handle_output("Information:\tSetting vm to cdom")
           end
         end
       end
@@ -329,7 +345,7 @@ end
 if option["network"]
   install_network = option["network"]
   if $verbose_mode == 1
-    puts "Information:\tSetting network type to "+install_network
+    handle_output("Information:\tSetting network type to #{install_network}")
   end
 else
   install_network   = $default_vm_network
@@ -342,7 +358,7 @@ if option["network"]
   if !option["network"].match(/nat/)
     if option["vm"]
       if option["vm"].downcase.match(/virtualbox|vbox/)
-        puts "Warning:\tVirtualBox does not support Hostonly or Bridged network with Packer"
+        handle_output("Warning:\tVirtualBox does not support Hostonly or Bridged network with Packer")
       end
     end
   end
@@ -400,29 +416,29 @@ end
 
 if install_action.match(/build/)
   if !option["type"]
-    puts "Information:\tSetting Install Service to Packer"
+    handle_output("Information:\tSetting Install Service to Packer")
     option["type"] = "packer"
     install_type   = "packer"
   else
     if !option["type"].match(/packer/)
-      puts "Warning:\tInstall type not set to Packer"
+      handle_output("Warning:\tInstall type not set to Packer")
       exit
     end
   end
   if !option["vm"]
     if !option["client"]
-      puts "Warning:\tNo client name given"
+      handle_output("Warning:\tNo client name given")
       exit
     end
     install_client = option["client"]
     option["vm"] = get_client_vm_type_from_packer(install_client)
   end
   if !option["vm"].match(/[a-z]/)
-    puts "Warning:\tVM type not specified"
+    handle_output("Warning:\tVM type not specified")
     exit
   else
     if !option["vm"].match(/vbox|fusion/)
-      puts "Warning:\tInvalid VM type specified"
+      handle_output("Warning:\tInvalid VM type specified")
       exit
     end
   end
@@ -447,7 +463,7 @@ end
 if option["file"]
   install_file = option["file"]
   if !File.exist?(install_file)
-    puts "Warning:\tFile "+install_file+" does not exist"
+    handle_output("Warning:\tFile "+install_file+" does not exist")
     exit
   end
   if install_action.match(/deploy/)
@@ -465,7 +481,7 @@ end
 if option["rootpassword"]
   install_root_password = option["rootpassword"]
   if $verbose_mode == 1
-    puts "Information:\tSetting password to "+install_root_password
+    handle_output("Information:\tSetting password to #{install_root_password}")
   end
 else
   install_root_password = $default_root_password
@@ -478,7 +494,7 @@ end
 if option["adminpassword"]
   install_admin_password = option["adminpassword"]
   if $verbose_mode == 1
-    puts "Information:\tSetting password to "+install_admin_password
+    handle_output("Information:\tSetting password to #{install_admin_password}")
   end
 else
   install_admin_password = $default_admin_password
@@ -571,7 +587,7 @@ if install_action.match(/deploy/)
     check_ovftool_exists()
     if install_type.match(/vcsa/)
       if !install_file.match(/[a-z,A-Z,0-9]/)
-        puts "Warning:\tNo deployment image file specified"
+        handle_output("Warning:\tNo deployment image file specified")
         exit
       end
       check_password(install_root_password)
@@ -629,7 +645,7 @@ end
 
 if option["action"].match(/list/)
   if !option["vm"] and !option["service"] and !option["method"] and !option["type"] and !option["mode"]
-    puts "Warning:\tNo type or service given"
+    handle_output("Warning:\tNo type or service given")
     exit
   end
 end
@@ -671,12 +687,12 @@ if option["action"]
       end
     end
     if !option["vm"]
-      puts "Information:\tVirtualisation method not specified, setting virtualisation method to VMware"
+      handle_output("Information:\tVirtualisation method not specified, setting virtualisation method to VMware")
       option["vm"] = "fusion"
       install_vm   = option["vm"]
     end
     if !option["server"] or !option["ip"]
-      puts "Warning:\tRemote server hostname or IP not specified"
+      handle_output("Warning:\tRemote server hostname or IP not specified")
       exit
     end
   end
@@ -747,35 +763,35 @@ end
 if option["service"]
   install_service = option["service"].downcase
   if $verbose_mode == 1
-    puts "Information:\tSetting install service to "+install_service
+    handle_output("Information:\tSetting install service to #{install_service}")
   end
   if install_type.match(/^packer$/)
     check_packer_is_installed()
     option["mode"]  = "client"
     install_mode    = "client"
     if !option["method"] and !option["os"] and !option["action"].match(/build|list|import|delete/)
-      puts "Warning:\tNo OS, or Install Method specified for build type "+install_service
+      handle_output("Warning:\tNo OS, or Install Method specified for build type #{install_service}")
       exit
     end
     if !option["vm"] and !option["action"].match(/list/)
-      puts "Warning:\tNo VM type specified for build type "+install_service
+      handle_output("Warning:\tNo VM type specified for build type #{install_service}")
       exit
     end
     if !option["client"] and !option["action"].match(/list/)
-      puts "Warning:\tNo Client name specified for build type "+install_service
+      handle_output("Warning:\tNo Client name specified for build type #{install_service}")
       exit
     end
     if !option["file"] and !option["action"].match(/build|list|import|delete/)
-      puts "Warning:\tNo ISO file specified for build type "+install_service
+      handle_output("Warning:\tNo ISO file specified for build type #{install_service}")
       exit
     end
     if !option["ip"] and !option["action"].match(/build|list|import|delete/)
-      puts "Warning:\tNo IP Address given "
+      handle_output("Warning:\tNo IP Address given ")
       exit
     end
     if !option["mac"] and !option["action"].match(/build|list|import|delete/)
-      puts "Warning:\tNo MAC Address given"
-      puts "Information:\tGenerating MAC Address"
+      handle_output("Warning:\tNo MAC Address given")
+      handle_output("Information:\tGenerating MAC Address")
       if install_vm
         if install_vm.match(/[a-z]/)
           option["mac"] = generate_mac_address(install_vm)
@@ -798,28 +814,28 @@ else
       option["mode"]  = "client"
       install_mode    = "client"
       if !option["method"] and !option["os"] and !option["action"].match(/build|list|import|delete/)
-        puts "Warning:\tNo OS, or Install Method specified for build type "+install_service
+        handle_output("Warning:\tNo OS, or Install Method specified for build type #{install_service}")
         exit
       end
       if !option["vm"] and !option["action"].match(/list/)
-        puts "Warning:\tNo VM type specified for build type "+install_service
+        handle_output("Warning:\tNo VM type specified for build type #{install_service}")
         exit
       end
       if !option["client"] and !option["action"].match(/list/)
-        puts "Warning:\tNo Client name specified for build type "+install_service
+        handle_output("Warning:\tNo Client name specified for build type #{install_service}")
         exit
       end
       if !option["file"] and !option["action"].match(/build|list|import|delete/)
-        puts "Warning:\tNo ISO file specified for build type "+install_service
+        handle_output("Warning:\tNo ISO file specified for build type #{install_service}")
         exit
       end
       if !option["ip"] and !option["action"].match(/build|list|import|delete/)
-        puts "Warning:\tNo IP Address given "
+        handle_output("Warning:\tNo IP Address given")
         exit
       end
       if !option["mac"] and !option["action"].match(/build|list|import|delete/)
-        puts "Warning:\tNo MAC Address given"
-        puts "Information:\tGenerating MAC Address"
+        handle_output("Warning:\tNo MAC Address given")
+        handle_output("Information:\tGenerating MAC Address")
         if !option["vm"]
           install_vm = "none"
         else
@@ -854,7 +870,7 @@ if install_action.match(/import/)
       end
     end
     if !vm_exists.match(/yes/)
-      puts "Warning:\tNo install file, type or service specified"
+      handle_output("Warning:\tNo install file, type or service specified")
       exit
     end
   end
@@ -872,7 +888,7 @@ end
 
 if option["verbose"]
   $verbose_mode = 1
-  puts "Information:\tRuning in verbose mode"
+  handle_output("Information:\tRuning in verbose mode")
 else
   $verbose_mode = 0
 end
@@ -882,7 +898,7 @@ end
 if option["test"]
   $test_mode     = 1
   $download_mode = 0
-  puts "Information:\tRuning in test mode"
+  handle_output("Information:\tRuning in test mode")
 else
   $download_mode = 1
   $test_mode     = 0
@@ -909,15 +925,15 @@ end
 if option["share"]
   install_share = option["share"]
   if !File.directory?(install_share)
-    puts "Warning:\tShare point "+install_share+" doesn't exist"
+    handle_output("Warning:\tShare point #{install_share} doesn't exist")
     exit
   end
   if !install_mount.match(/[a-z,A-Z,0-9]/)
     install_mount = File.basename(install_share)
   end
   if $verbose_mode == 1
-    puts "Information:\tSharing "+install_share
-    puts "Information:\tSetting mount point to "+install_mount
+    handle_output("Information:\tSharing #{install_share}")
+    handle_output("Information:\tSetting mount point to #{install_mount}")
   end
 else
   install_share = ""
@@ -930,9 +946,9 @@ if option["yes"]
   $use_defaults = 1
   $destroy_fs   = "y"
   if $verbose_mode == 1
-    puts "Information:\tAnswering yes to all questions (accepting defaults)"
+    handle_output("Information:\tAnswering yes to all questions (accepting defaults)")
     if $os_name =~ /SunOS/
-      puts "Information:\tZFS filesystem for a service will be destroyed when a service is removed"
+      handle_output("Information:\tZFS filesystem for a service will be destroyed when a service is removed")
     end
   end
 end
@@ -943,7 +959,7 @@ if option["client"]
   install_client = option["client"]
   check_hostname(install_client)
   if $verbose_mode == 1
-    puts "Setting:\tClient name to "+install_client
+    handle_output("Setting:\tClient name to #{install_client}")
   end
 else
   install_client = ""
@@ -955,7 +971,7 @@ if option["ip"]
   install_ip = option["ip"]
   check_install_ip(install_ip)
   if $verbose_mode == 1
-     puts "Information:\tSetting client IP address is "+install_ip
+     handle_output("Information:\tSetting client IP address is #{install_ip}")
   end
 else
   install_ip = ""
@@ -980,14 +996,17 @@ if option["release"]
     install_release = ""
   else
     install_release = option["release"]
-    if option["vm"].match(/zone/) and $os_rel.match(/10/) and !install_release.match(/10/)
-      puts "Warning:\tInvalid release number: "+install_release
+    if !option["vm"]
+      option["vm"] = "none"
+    end
+    if option["vm"].match(/zone/) and $os_rel.match(/10|11/) and !install_release.match(/10|11/)
+      handle_output("Warning:\tInvalid release number: #{install_release}")
       exit
     end
-    if !install_release.match(/[0-9]/) or install_release.match(/[a-z,A-Z]/)
-      puts "Warning:\tInvalid release number: "+install_release
-      exit
-    end
+#    if !install_release.match(/[0-9]/) or install_release.match(/[a-z,A-Z]/)
+#      puts "Warning:\tInvalid release number: "+install_release
+#      exit
+#    end
   end
 else
   if option["vm"]
@@ -999,7 +1018,7 @@ else
   end
 end
 if $verbose_mode == 1 and option["release"]
-  puts "Information:\tSetting Operating System version to "+install_release
+  handle_output("Information:\tSetting Operating System version to #{install_release}")
 end
 
 # Get MAC address if given
@@ -1011,7 +1030,7 @@ if option["mac"]
   end
   install_mac = check_install_mac(install_mac,install_vm)
   if $verbose_mode == 1
-     puts "Information:\tSetting client MAC address to "+install_mac
+     handle_output("Information:\tSetting client MAC address to #{install_mac}")
   end
 else
   install_mac = ""
@@ -1027,7 +1046,7 @@ if option["size"]
     end
   end
   if $verbose_mode == 1
-    puts "Information:\tSetting disk size to "+install_size
+    handle_output("Information:\tSetting disk size to #{install_size}")
   end
 else
   if install_type.match(/vcsa/)
@@ -1045,7 +1064,7 @@ if !option["os"]
       if option["action"].match(/add|create/)
         if !option["method"]
           if !option["vm"].match(/ldom|cdom|gdom/)
-            puts "Warning:\tNo OS or install method specified when creating VM"
+            handle_output("Warning:\tNo OS or install method specified when creating VM")
             exit
           else
             option["os"] = ""
@@ -1118,13 +1137,13 @@ if option["file"]
     install_file = $vbox_additions_iso
   end
   if !File.exist?(install_file)
-    puts "Warning:\tFile doesn't exist: "+install_file
+    handle_output("Warning:\tFile doesn't exist: #{install_file}")
     exit
   end
   if !install_type.match(/[a-z]/)
     install_type = get_install_type_from_file(install_file)
     if $verbose_mode == 1
-      puts "Information:\tSetting install type to "+install_type
+      handle_output("Information:\tSetting install type to #{install_type}")
     end
   end
 else
@@ -1141,8 +1160,8 @@ if option["publisher"] and option["mode"].match(/server/) and $os_name.match(/Su
   else
     publisher_port = $default_ai_port
   end
-  puts "Information:\tSetting publisher host to "+publisher_host
-  puts "Information:\tSetting publisher port to "+publisher_port
+  handle_output("Information:\tSetting publisher host to #{publisher_host}")
+  handle_output("Information:\tSetting publisher port to #{publisher_port}")
 else
   if option["mode"] == "server" or option["file"].match(/repo/)
     if $os_name == "SunOS"
@@ -1150,8 +1169,8 @@ else
       publisher_host = $default_host
       publisher_port = $default_ai_port
       if $verbose_mode == 1
-        puts "Information:\tSetting publisher host to "+publisher_host
-        puts "Information:\tSetting publisher port to "+publisher_port
+        handle_output("Information:\tSetting publisher host to #{publisher_host}")
+        handle_output("Information:\tSetting publisher port to #{publisher_port}")
       end
     end
   else
@@ -1199,7 +1218,7 @@ if option["arch"]
     print_valid_list("Warning:\tInvalid architecture specified",$valid_arch_list)
   end
   if $verbose_mode == 1
-    puts "Information:\tSetting architecture to "+install_arch
+    handle_output("Information:\tSetting architecture to #{install_arch}")
   end
 else
   install_arch = ""
@@ -1214,7 +1233,7 @@ if option["vm"]
     $default_vm_network = option["network"]
   end
   if $verbose_mode == 1
-    puts "Information:\tSetting VM network to "+$default_vm_network
+    handle_output("Information:\tSetting VM network to #{$default_vm_network}")
   end
   case install_vm
   when /parallels/
@@ -1265,10 +1284,10 @@ if option["vm"]
           install_vm = "cdom"
         end
       else
-        puts "Warning:\tLDoms require Solaris 10 or 11"
+        handle_output("Warning:\tLDoms require Solaris 10 or 11")
       end
     else
-      puts "Warning:\tLDoms require Solaris on SPARC"
+      handle_output("Warning:\tLDoms require Solaris on SPARC")
       exit
     end
   end
@@ -1276,7 +1295,7 @@ if option["vm"]
     print_valid_list("Warning:\tInvalid VM type",$valid_vm_list)
   end
   if $verbose_mode == 1
-    puts "Information:\tSetting VM type to "+install_vm
+    handle_output("Information:\tSetting VM type to #{install_vm}")
   end
 else
   install_vm = "none"
@@ -1303,7 +1322,7 @@ else
   $text_mode      = 0
 end
 if $verbose_mode == 1
-  puts "Information:\tSetting console mode to "+install_console
+  handle_output("Information:\tSetting console mode to #{install_console}")
 end
 
 # Get/set system model
@@ -1319,7 +1338,7 @@ if option["vm"] or option["method"]
     end
   end
   if $verbose_mode == 1 and option["method"]
-    puts "Information:\tSetting model to "+install_model
+    handle_output("Information:\tSetting model to #{install_model}")
   end
 end
 
@@ -1351,8 +1370,8 @@ if option["os"]
       else
         (install_service,test_os) = get_packer_install_service(install_file)
         if !test_os.match(/#{install_os}/)
-          puts "Warning:\tSpecified OS does not match installation media OS"
-          puts "Information:\tSetting OS name to "+test_os
+          handle_output("Warning:\tSpecified OS does not match installation media OS")
+          handle_output("Information:\tSetting OS name to #{test_os}")
           install_os = test_os
         end
       end
@@ -1427,7 +1446,7 @@ end
 if option["clone"]
   install_clone = option["clone"]
   if $verbose_mode == 1 and option["clone"]
-    puts "Information:\tSetting clone name to "+install_clone
+    handle_output("Information:\tSetting clone name to #{install_clone}")
   end
 else
   if option["action"] == "snapshot"
@@ -1437,7 +1456,7 @@ else
     install_clone = ""
   end
   if $verbose_mode == 1 and option["clone"]
-    puts "Information:\tSetting clone name to "+install_clone
+    handle_output("Information:\tSetting clone name to #{install_clone}")
   end
 end
 
@@ -1449,7 +1468,7 @@ if option["mode"]
     print_valid_list("Warning:\tInvalid mode specified",$valid_mode_list)
   end
   if $verbose_mode == 1
-    puts "Information:\tSetting install mode to "+install_mode
+    handle_output("Information:\tSetting install mode to #{install_mode}")
   end
 else
   install_mode = ""
@@ -1502,7 +1521,7 @@ end
 if option["admin"]
   $default_admin_user = options["admin"]
   if $verbose_mode == 1
-    puts "Information:\tSetting admin user to "+$default_admin_user
+    handle_output("Information:\tSetting admin user to #{$default_admin_user}")
   end
 end
 
@@ -1536,7 +1555,7 @@ if option["action"]
         get_client_config(install_client,install_service,install_method,install_type)
       end
     else
-      puts "Warning:\tClient name not specified"
+      handle_output("Warning:\tClient name not specified")
     end
   when /help/
     print_usage()
@@ -1556,7 +1575,7 @@ if option["action"]
     if install_type.match(/service/) or install_mode.match(/server/)
       if install_method.match(/[a-z]/)
         eval"[list_#{install_method}_services]"
-        puts
+        handle_output("")
         exit
       else
         list_all_services()
@@ -1603,9 +1622,9 @@ if option["action"]
             $use_sudo = 0
             delete_vm(install_vm,install_client)
           else
-            puts "Warning:\tNo VM, client or service specified"
-            puts
-            puts "Available services"
+            handle_output("Warning:\tNo VM, client or service specified")
+            handle_output("")
+            handle_output("Available services")
             list_all_services()
             exit
           end
@@ -1619,7 +1638,7 @@ if option["action"]
               if install_client.match(/[a-z]/) and install_clone.match(/[a-z,A-Z,0-9]|\*/)
                 delete_vm_snapshot(install_vm,install_client,install_clone)
               else
-                puts "Warning:\tClient name or clone not specified"
+                handle_output("Warning:\tClient name or clone not specified")
                 exit
               end
             else
@@ -1658,7 +1677,7 @@ if option["action"]
     end
   when /add|create/
     if install_vm.match(/none/) and !install_method.match(/[a-z]/) and !install_type.match(/[a-z]/) and !install_mode.match(/server/)
-      puts "Warning:\tNo VM, Method or given"
+      handle_output("Warning:\tNo VM, Method or given")
       exit
     end
     if install_mode.match(/server/) or install_file.match(/[a-z,A-Z,0-9]/) or install_type.match(/service/) and install_vm.match(/none/) and !install_type.match(/packer/) and !install_service.match(/packer/)
@@ -1761,10 +1780,10 @@ if option["action"]
           if install_method.match(/ai/)
             configure_ai_server(client_arch,publisher_host,publisher_port,service_name,install_file)
           else
-            puts "Warning:\tNo install method specified"
+            handle_output("Warning:\tNo install method specified")
           end
         else
-          puts "Warning:\tClient or service name not specified"
+          handle_output("Warning:\tClient or service name not specified")
         end
       end
     end
@@ -1799,7 +1818,7 @@ if option["action"]
         end
       else
         if !install_client.match(/[a-z]/)
-          puts "Warning:\tClient name not specified"
+          handle_output("Warning:\tClient name not specified")
         end
       end
     end
@@ -1815,10 +1834,10 @@ if option["action"]
           eval"[stop_#{install_vm}_vm(install_client)]"
           eval"[boot_#{install_vm}_vm(install_client,install_type)]"
         else
-          puts "Warning:\tClient name not specified"
+          handle_output("Warning:\tClient name not specified")
         end
       else
-        puts "Warning:\tInstall service or VM type not specified"
+        handle_output("Warning:\tInstall service or VM type not specified")
         exit
       end
     end
@@ -1847,7 +1866,7 @@ if option["action"]
     if install_clone.match(/[a-z,A-Z,0-9]/) and install_client.match(/[a-z,0-9]/)
       eval"[clone_#{install_vm}_vm(install_client,install_clone,install_mac,install_ip)]"
     else
-      puts "Warning:\tClient name or clone name not specified"
+      handle_output("Warning:\tClient name or clone name not specified")
     end
   when /running|stopped|suspended|paused/
     if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
@@ -1855,7 +1874,7 @@ if option["action"]
     end
   when /crypt/
     install_crypt = get_password_crypt(install_root_password)
-    puts install_crypt
+    handle_output(install_crypt)
   when /post/
     eval"[execute_#{install_vm}_post(install_client)]"
   when /change|modify/
@@ -1867,7 +1886,7 @@ if option["action"]
         eval"[change_#{install_vm}_vm_mac(install_client,client_mac)]"
       end
     else
-      puts "Warning:\tClient name not specified"
+      handle_output("Warning:\tClient name not specified")
     end
   when /attach/
     if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
@@ -1877,7 +1896,7 @@ if option["action"]
     if install_vm.match(/[a-z]/) and install_client.match(/[a-z,0-9]/) and !install_vm.match(/none/)
       eval"[detach_file_from_#{install_vm}_vm(install_client,install_file,install_type)]"
     else
-      puts "Warning:\tClient name or virtualisation platform not specified"
+      handle_output("Warning:\tClient name or virtualisation platform not specified")
     end
   when /share/
     if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
@@ -1888,7 +1907,7 @@ if option["action"]
       if install_client.match(/[a-z,0-9]/)
         eval"[snapshot_#{install_vm}_vm(install_client,install_clone)]"
       else
-        puts "Warning:\tClient name not specified"
+        handle_output("Warning:\tClient name not specified")
         exit
       end
     end
@@ -1911,7 +1930,7 @@ if option["action"]
       if install_client.match(/[a-z,0-9]/)
         eval"[restore_#{install_vm}_vm_snapshot(install_client,install_clone)]"
       else
-        puts "Warning:\tClient name not specified"
+        handle_output("Warning:\tClient name not specified")
         exit
       end
     end
@@ -1928,7 +1947,7 @@ if option["action"]
       if install_client.match(/[a-z,0-9]/)
         connect_to_virtual_serial(install_client,install_vm)
       else
-        puts "Warning:\tClient name not specified"
+        handle_output("Warning:\tClient name not specified")
         exit
       end
     end

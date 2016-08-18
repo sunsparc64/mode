@@ -3,23 +3,23 @@
 
 # Configure NFS service
 
-def configure_js_nfs_service(service_name,publisher_host)
-  repo_version_dir = $repo_base_dir+"/"+service_name
+def configure_js_nfs_service(install_service,publisher_host)
+  repo_version_dir = $repo_base_dir+"/"+install_service
   if $os_name.match(/SunOS/)
     if $os_rel.match(/11/)
       check_fs_exists($client_base_dir)
-      add_nfs_export(service_name,repo_version_dir,publisher_host)
+      add_nfs_export(install_service,repo_version_dir,publisher_host)
       export_name = "client_configs"
       add_nfs_export(export_name,$client_base_dir,publisher_host)
     else
       check_dir_exists($client_base_dir)
-      add_nfs_export(service_name,repo_version_dir,publisher_host)
+      add_nfs_export(install_service,repo_version_dir,publisher_host)
       export_name = "client_configs"
       add_nfs_export(export_name,$client_base_dir,publisher_host)
     end
   else
     check_dir_exists($client_base_dir)
-    add_nfs_export(service_name,repo_version_dir,publisher_host)
+    add_nfs_export(install_service,repo_version_dir,publisher_host)
     export_name = "client_configs"
     add_nfs_export(export_name,$client_base_dir,publisher_host)
   end
@@ -28,15 +28,15 @@ end
 
 # Unconfigure NFS services
 
-def unconfigure_js_nfs_service(service_name)
-  repo_version_dir = $repo_base_dir+"/"+service_name
+def unconfigure_js_nfs_service(install_service)
+  repo_version_dir = $repo_base_dir+"/"+install_service
   remove_nfs_export(repo_version_dir)
 end
 
 # Configure tftpboot services
 
-def configure_js_tftp_service(client_arch,service_name,repo_version_dir,os_version)
-  boot_dir=$tftp_dir+"/"+service_name+"/boot"
+def configure_js_tftp_service(install_arch,install_service,repo_version_dir,os_version)
+  boot_dir=$tftp_dir+"/"+install_service+"/boot"
   source_dir = repo_version_dir+"/boot"
   if $os_name.match(/SunOS/)
     if $os_rel.match(/11/)
@@ -55,11 +55,11 @@ def configure_js_tftp_service(client_arch,service_name,repo_version_dir,os_versi
         command = "ln -s #{old_tftp_dir} #{$tftp_dir}"
         output  = execute_command(message,command)
       end
-      smf_service_name="svc:/network/tftp/udp6:default"
+      smf_install_service="svc:/network/tftp/udp6:default"
       message = "Information:\tChecking TFTP service is installed"
-      command = "svcs -a |grep '#{smf_service_name}'"
+      command = "svcs -a |grep '#{smf_install_service}'"
       output  = execute_command(message,command)
-      if !output.match(/#{smf_service_name}/)
+      if !output.match(/#{smf_install_service}/)
         message = "Information:\tCreating TFTP service information"
         command = "echo 'tftp  dgram  udp6  wait  root  /usr/sbin/in.tftpd  in.tftpd -s /tftpboot' >> /tmp/tftp"
         output  = execute_command(message,command)
@@ -67,7 +67,7 @@ def configure_js_tftp_service(client_arch,service_name,repo_version_dir,os_versi
         command = "inetconv -i /tmp/tftp"
         output  = execute_command(message,command)
       end
-      enable_smf_service(smf_service_name)
+      enable_smf_service(smf_install_service)
     end
   end
   if $os_name.match(/Darwin/)
@@ -113,8 +113,8 @@ end
 
 # Unconfigure jumpstart repo
 
-def unconfigure_js_repo(service_name)
-  repo_version_dir = $repo_base_dir+"/"+service_name
+def unconfigure_js_repo(install_service)
+  repo_version_dir = $repo_base_dir+"/"+install_service
   destroy_zfs_fs(repo_version_dir)
   return
 end
@@ -130,7 +130,7 @@ def configure_js_repo(iso_file,repo_version_dir,os_version,os_update)
   end
   check_dir = repo_version_dir+"/boot"
   if $verbose_mode == 1
-    puts "Checking:\tDirectory "+check_dir+" exists"
+    handle_output("Checking:\tDirectory #{check_dir} exists")
   end
   if !File.directory?(check_dir)
     if $os_name.match(/SunOS/)
@@ -141,12 +141,12 @@ def configure_js_repo(iso_file,repo_version_dir,os_version,os_update)
         check_dir = $iso_mount_dir+"/installer"
       end
       if $verbose_mode == 1
-        puts "Checking:\tDirectory "+check_dir+" exists"
+        handle_output("Checking:\tDirectory #{check_dir} exists")
       end
       if File.directory?(check_dir) or File.exist?(check_dir)
         iso_update = get_js_iso_update($iso_mount_dir,os_version)
         if !iso_update.match(/#{os_update}/)
-          puts "Warning:\tISO update version does not match ISO name"
+          handle_output("Warning:\tISO update version does not match ISO name")
           exit
         end
         message = "Information:\tCopying ISO file "+iso_file+" contents to "+repo_version_dir
@@ -178,7 +178,7 @@ def configure_js_repo(iso_file,repo_version_dir,os_version,os_update)
         end
         execute_command(message,command)
       else
-        puts "Warning:\tISO "+iso_file+" is not mounted"
+        handle_output("Warning:\tISO #{iso_file} is not mounted")
         return
       end
       umount_iso()
@@ -236,18 +236,9 @@ end
 # List Jumpstart services
 
 def list_js_services()
-  service_list = Dir.entries($repo_base_dir)
-  service_list = service_list.grep(/^sol_6|^sol_7|^sol_8|^sol_9|^sol_10/)
-  if service_list.length > 0
-    puts
-    puts "Available Jumpstart services:"
-    puts
-  end
-  service_list.each do |service_name|
-    if service_name.match(/^sol/) and !service_name.match(/sol_11/)
-      puts service_name
-    end
-  end
+  service_type    = "Jumpstart"
+  service_command = "ls $repo_base_dir/ |egrep 'sol_6|sol_7|sol_8|sol_9|sol_10'"
+  list_services(service_type,service_command) 
   return
 end
 
@@ -275,29 +266,29 @@ end
 
 # Unconfigure jumpstart server
 
-def unconfigure_js_server(service_name)
-  unconfigure_js_nfs_service(service_name)
-  unconfigure_js_repo(service_name)
+def unconfigure_js_server(install_service)
+  unconfigure_js_nfs_service(install_service)
+  unconfigure_js_repo(install_service)
   unconfigure_js_tftp_service()
   return
 end
 
 # Configure jumpstart server
 
-def configure_js_server(client_arch,publisher_host,publisher_port,service_name,iso_file)
+def configure_js_server(install_arch,publisher_host,publisher_port,install_service,iso_file)
   check_dhcpd_config(publisher_host)
   iso_list      = []
   search_string = "\\-ga\\-"
   if iso_file.match(/[a-z,A-Z]/)
     if File.exist?(iso_file)
       if !iso_file.match(/sol/)
-        puts "Warning:\tISO "+iso_file+" does not appear to be a valid Solaris distribution"
+        handle_output("Warning:\tISO #{iso_file} does not appear to be a valid Solaris distribution")
         exit
       else
         iso_list[0] = iso_file
       end
     else
-      puts "Warning:\tISO file "+is_file+" does not exist"
+      handle_output("Warning:\tISO file #{iso_file} does not exist")
     end
   else
     iso_list=check_iso_base_dir(search_string)
@@ -317,16 +308,16 @@ def configure_js_server(client_arch,publisher_host,publisher_port,service_name,i
       if os_arch.match(/x86/)
         os_arch = "i386"
       else
-        puts "Warning:\tCould not determine architecture from ISO name"
+        handle_output("Warning:\tCould not determine architecture from ISO name")
         exit
       end
     end
-    service_name     = "sol_"+os_version+"_"+os_update+"_"+os_arch
-    repo_version_dir = $repo_base_dir+"/"+service_name
-    add_apache_alias(service_name)
+    install_service     = "sol_"+os_version+"_"+os_update+"_"+os_arch
+    repo_version_dir = $repo_base_dir+"/"+install_service
+    add_apache_alias(install_service)
     configure_js_repo(iso_file_name,repo_version_dir,os_version,os_update)
-    configure_js_tftp_service(client_arch,service_name,repo_version_dir,os_version)
-    configure_js_nfs_service(service_name,publisher_host)
+    configure_js_tftp_service(install_arch,install_service,repo_version_dir,os_version)
+    configure_js_nfs_service(install_service,publisher_host)
     if os_arch.match(/sparc/)
       copy_js_sparc_boot_images(repo_version_dir,os_version,os_update)
     end

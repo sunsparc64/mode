@@ -1,5 +1,13 @@
 # Windows related code
 
+# List PE clients
+
+def list_pe_clients()
+  install_method = "pe"
+  list_clients(install_method)
+  return
+end
+
 # Populate post install commands
 
 def populate_pe_post_list(admin_username,admin_password,install_label,install_shell)

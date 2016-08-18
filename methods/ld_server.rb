@@ -6,39 +6,28 @@ def list_cdom_services()
   if $os_info.match(/SunOS/)
     if $os_rel.match(/10|11/)
       if $os_info.match(/sun4v/)
-        message = "Information:\tListing Control Domain Services"
-        command = "ldm list |grep ^primary |awk '{print $1}'"
-        output  = execute_command(message,command)
-        if output.match(/primary/)
-          puts
-          puts "Available Control Domains:"
-          puts
-          puts output
-          puts
-        else
-          puts
-          puts "No Control Domains exist"
-          puts
-        end
+        ldom_type    = "Control Domain"
+        ldom_command = "ldm list |grep ^primary |awk '{print $1}'"
+        list_doms(ldom_type,ldom_command)
       else
-      if $verbose_mode == 1
-          puts
-          puts "Warning:\tThis service is only available on the Sun4v platform"
-          puts
+        if $verbose_mode == 1
+          handle_output("") 
+          handle_output("Warning:\tThis service is only available on the Sun4v platform")
+          handle_output("") 
         end
       end
     else
       if $verbose_mode == 1
-        puts
-        puts "Warning:\tThis service is only available on Solaris 10 or later"
-        puts
+        handle_output("") 
+        handle_output("Warning:\tThis service is only available on Solaris 10 or later")
+        handle_output("") 
       end
     end
   else
     if $verbose_mode == 1
-      puts
-      puts "Warning:\tThis service is only available on Solaris"
-      puts
+      handle_output("") 
+      handle_output("Warning:\tThis service is only available on Solaris")
+      handle_output("") 
     end
   end
   return
@@ -123,7 +112,7 @@ def check_cdom_config()
     command = "ldm list-config |grep #{config}"
     output  = execute_command(message,command)
     if output.match(/#{config}/)
-      puts "Warning:\tLDom configuration "+config+" already exists"
+      handle_output("Warning:\tLDom configuration #{config} already exists")
       exit
     end
     if $os_info.match(/T5[0-9]|T3/)
@@ -151,8 +140,8 @@ def check_cdom_config()
       message = "Warning:\tRebooting primary domain to enable settings"
       execute_command(message,command)
     else
-      puts "Warning:\tReboot required for settings to take effect"
-      puts "Infromation:\tExecute "+command
+      handle_output("Warning:\tReboot required for settings to take effect")
+      handle_output("Infromation:\tExecute #{command}")
       exit
     end
   end
@@ -198,7 +187,7 @@ end
 # Unconfigure LDom Server
 
 def unconfigure_cdom()
-  puts "Warning:\tCurrently unconfiguring the Control Domain must be done manually"
+  handle_output("Warning:\tCurrently unconfiguring the Control Domain must be done manually")
   exit
   return
 end
@@ -210,5 +199,19 @@ end
 
 def unconfigure_gdom_server()
   unconfigure_cdom()
+  return
+end
+
+# List LDom ISOs
+
+def list_ldom_isos()
+  return
+end
+
+def list_cdom_isos()
+  return
+end
+
+def list_gdom_isos()
   return
 end

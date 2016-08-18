@@ -19,8 +19,8 @@ def list_vs_isos()
   search_string = "VMvisor"
   iso_list      = check_iso_base_dir(search_string)
   if iso_list.length > 0
-	puts "Available vSphere ISOs:"
-  	puts
+	handle_output("Available vSphere ISOs:")
+  handle_output("")
   end
   iso_list.each do |iso_file|
     iso_file    = iso_file.chomp
@@ -31,20 +31,20 @@ def list_vs_isos()
     iso_version = iso_info[3]
     iso_arch    = iso_info[4].split(/\./)[1]
     iso_release = iso_info[4].split(/\./)[0]
-    puts "ISO file:\t"+iso_file
-    puts "Distribution:\t"+vs_distro
-    puts "Version:\t"+iso_version
-    puts "Release:\t"+iso_release
-    puts "Architecture:\t"+iso_arch
+    handle_output("ISO file:\t#{iso_file}")
+    handle_output("Distribution:\t#{vs_distro}")
+    handle_output("Version:\t#{iso_version}")
+    handle_output("Release:\t#{iso_release}")
+    handle_output("Architecture:\t#{iso_arch}")
     iso_version      = iso_version.gsub(/\./,"_")
     service_name     = vs_distro+"_"+iso_version+"_"+iso_arch
     repo_version_dir = $repo_base_dir+"/"+service_name
     if File.directory?(repo_version_dir)
-      puts "Service Name:\t"+service_name+" (exists)"
+      handle_output("Service Name:\t#{service_name} (exists)")
     else
-      puts "Service Name:\t"+service_name
+      handle_output("Service Name:\t#{service_name}")
     end
-    puts
+    handle_output("")
   end
   return
 end

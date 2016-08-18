@@ -7,10 +7,10 @@ def get_vs_network()
   if $q_struct["bootproto"].value.match(/dhcp/)
     result = "--netdevice "+$q_struct["nic"].value+" --bootproto "+$q_struct["bootproto"].value
   else
-    client_ip = $q_struct["ip"].value
-    client_name = $q_struct["hostname"].value
-    gateway = get_ipv4_default_route(client_ip)
-    result = "--device="+$q_struct["nic"].value+" --bootproto="+$q_struct["bootproto"].value+" --ip="+client_ip+" --netmask="+$default_netmask+" --gateway="+gateway+" --nameserver="+$default_nameserver+" --hostname="+client_name+" --addvmportgroup=0"
+    install_ip = $q_struct["ip"].value
+    install_client = $q_struct["hostname"].value
+    gateway = get_ipv4_default_route(install_ip)
+    result = "--device="+$q_struct["nic"].value+" --bootproto="+$q_struct["bootproto"].value+" --ip="+install_ip+" --netmask="+$default_netmask+" --gateway="+gateway+" --nameserver="+$default_nameserver+" --hostname="+install_client+" --addvmportgroup=0"
   end
   return result
 end
@@ -36,23 +36,23 @@ end
 
 # Get install url
 
-def get_vs_install_url(service_name)
-  install_url = "http://"+$default_host+"/"+service_name
+def get_vs_install_url(install_service)
+  install_url = "http://"+$default_host+"/"+install_service
   return install_url
 end
 
 # Get kickstart header
 
-def get_vs_header(client_name)
+def get_vs_header(install_client)
   version = get_version()
   version = version.join(" ")
-  header  = "# kickstart file for "+client_name+" "+version
+  header  = "# kickstart file for "+install_client+" "+version
   return header
 end
 
 # Populate ks questions
 
-def populate_vs_questions(service_name,client_name,client_ip)
+def populate_vs_questions(install_service,install_client,install_ip)
   $q_struct = {}
   $q_order  = []
 
@@ -62,7 +62,7 @@ def populate_vs_questions(service_name,client_name,client_ip)
     question  = "VSphere file header comment",
     ask       = "yes",
     parameter = "",
-    value     = get_vs_header(client_name),
+    value     = get_vs_header(install_client),
     valid     = "",
     eval      = "no"
     )
@@ -127,7 +127,7 @@ def populate_vs_questions(service_name,client_name,client_ip)
     question  = "Hostname",
     ask       = "yes",
     parameter = "",
-    value     = client_name,
+    value     = install_client,
     valid     = "",
     eval      = "no"
     )
@@ -140,7 +140,7 @@ def populate_vs_questions(service_name,client_name,client_ip)
     question  = "IP",
     ask       = "yes",
     parameter = "",
-    value     = client_ip,
+    value     = install_ip,
     valid     = "",
     eval      = "no"
     )

@@ -3,9 +3,9 @@
 
 # Configure Preseed server
 
-def configure_ps_server(client_arch,publisher_host,publisher_port,service_name,iso_file)
+def configure_ps_server(install_arch,publisher_host,publisher_port,install_service,install_file)
   search_string = "ubuntu"
-  configure_linux_server(client_arch,publisher_host,publisher_port,service_name,iso_file,search_string)
+  configure_linux_server(install_arch,publisher_host,publisher_port,install_service,install_file,search_string)
   return
 end
 
@@ -15,18 +15,18 @@ def list_ps_services()
   service_list = Dir.entries($repo_base_dir)
   service_list = service_list.grep(/ubuntu/)
   if service_list.length > 0
-    puts
-    puts "Preseed services:"
-    puts
+    handle_output("") 
+    handle_output("Preseed services:")
+    handle_output("")
   end
-  service_list.each do |service_name|
-    puts service_name
+  service_list.each do |install_service|
+    handle_output(install_service)
   end
   return
 end
 
 # Unconfigure Preseed server
 
-def unconfigure_ps_server(service_name)
-  unconfigure_ks_repo(service_name)
+def unconfigure_ps_server(install_service)
+  unconfigure_ks_repo(install_service)
 end

@@ -5,7 +5,7 @@
 def configure_maas_server()
   maas_url = "http://"+$default_host+"/MAAS/"
   if $os_info.match(/Ubuntu/)
-    message = "Information:\tCheckingnstallation status of MAAS"
+    message = "Information:\tChecking installation status of MAAS"
     command = "dpkg -l maas"
     output  = execute_command(message,command)
     if output.match(/no packages found/)
@@ -27,12 +27,12 @@ def configure_maas_server()
       message = "Information:\tCreating MAAS Admin"
       command = "maas createadmin --username=#{$default_maas_admin} --email=#{$default_maas_email} --password=#{$default_mass_password}"
       execute_command(message,command)
-      puts
-      puts "Information:\tLog into "+maas_url+" and continue configuration"
-      puts
+      handle_output("") 
+      handle_output("Information:\tLog into #{maas_url} and continue configuration")
+      handle_output("") 
     end
   else
-    puts "Warning:\tMAAS is only supported on Ubuntu LTS"
+    handle_output("Warning:\tMAAS is only supported on Ubuntu LTS")
     exit
   end
   return

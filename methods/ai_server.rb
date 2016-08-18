@@ -4,28 +4,28 @@
 # Delecte a service
 # This will also delete all the clients under it
 
-def unconfigure_ai_server(service_name)
+def unconfigure_ai_server(install_service)
   if $os_name.match(/SunOS/)
-    service_base_name = get_service_base_name(service_name)
-    smf_service_name  = "svc:/application/pkg/server:"+service_base_name
-    smf_service_test  = %x[svcs -a |grep "#{smf_service_name}"]
+    service_base_name = get_service_base_name(install_service)
+    smf_install_service  = "svc:/application/pkg/server:"+service_base_name
+    smf_service_test  = %x[svcs -a |grep "#{smf_install_service}"]
     if smf_service_test.match(/pkg/)
-      unconfigure_ai_pkg_repo(smf_service_name)
+      unconfigure_ai_pkg_repo(smf_install_service)
     end
-    if !service_name.match(/i386|sparc/)
+    if !install_service.match(/i386|sparc/)
       ["i386","sparc"].each do |sys_arch|
-        service_test=%x[installadm list |grep #{service_name} |grep #{sys_arch}]
+        service_test=%x[installadm list |grep #{install_service} |grep #{sys_arch}]
         if service_test.match(/[a-z,A-Z,0-9]/)
-          message = "Information:\tDeleting service "+service_name+"_"+sys_arch+" and all clients under it"
-          command = "installadm delete-service "+service_name+"_"+sys_arch+" -r -y"
+          message = "Information:\tDeleting service "+install_service+"_"+sys_arch+" and all clients under it"
+          command = "installadm delete-service "+install_service+"_"+sys_arch+" -r -y"
           execute_command(message,command)
         end
       end
     else
-      service_test=%x[installadm list |grep #{service_name}]
+      service_test=%x[installadm list |grep #{install_service}]
       if service_test.match(/[a-z,A-Z,0-9]/)
-        message = "Information:\tDeleting service "+service_name+" and all clients under it"
-        command = "installadm delete-service "+service_name+" -r -y"
+        message = "Information:\tDeleting service "+install_service+" and all clients under it"
+        command = "installadm delete-service "+install_service+" -r -y"
         execute_command(message,command)
       end
     end
@@ -35,17 +35,17 @@ def unconfigure_ai_server(service_name)
       message         = "Information:\tRestoring file "+backup_file+" to "+file
       command         = "cp #{backup_file} #{file}"
       execute_command(message,command)
-      smf_service_name = "svc:/network/dhcp/server:ipv4"
-      refresh_smf_service(smf_service_name)
+      smf_install_service = "svc:/network/dhcp/server:ipv4"
+      refresh_smf_service(smf_install_service)
     end
-    remove_apache_proxy(service_name)
+    remove_apache_proxy(install_service)
     repo_version_dir = $repo_base_dir+"/"+service_base_name
     test_dir = repo_version_dir+"/publisher"
     if File.directory?(test_dir) and $yes_to_all == 1
       destroy_zfs_fs(repo_version_dir)
     end
   else
-    remove_apache_proxy(service_name)
+    remove_apache_proxy(install_service)
   end
   return
 end
@@ -58,7 +58,7 @@ def check_default_route()
   command = "netstat -rn |grep default |awk '{print $2}'"
   output  = execute_command(message,command)
   if !output.match(/[0-9]/)
-    puts "Warning:\tNo default route exists"
+    handle_output("Warning:\tNo default route exists")
     if $test_mode != 1
       exit
     end
@@ -73,7 +73,7 @@ def check_dhcpd4_conf()
   if $os_name.match(/SunOS/)
     file="/etc/inet/dhcpd4.conf"
     if $verbose_mode == 1
-      puts "Checking:\t"+file+" exists"
+      handle_output("Checking:\t#{file} exists")
     end
     if !File.exist?(file)
       message = "Information:\tCreating "+file
@@ -94,7 +94,7 @@ end
 
 def check_ai_base_dir()
   if $verbose_mode == 1
-    puts "Checking:\t"+$ai_base_dir
+    handle_output("Checking:\t#{$ai_base_dir}")
   end
   output = check_fs_exists($ai_base_dir)
   return output
@@ -105,23 +105,23 @@ end
 
 def check_version_dir(dir_name,repo_version)
   full_version_dir=dir_name+repo_version
-  puts "Checking:\t"+full_version_dir
+  handle_output("Checking:\t#{full_version_dir}")
   check_fs_exists(full_version_dir)
   return full_version_dir
 end
 
 # Check AI service is running
 
-def check_ai_service(service_name)
-  message = "Information:\tChecking AI service "+service_name
+def check_ai_service(install_service)
+  message = "Information:\tChecking AI service "+install_service
   if $os_name.match(/SunOS/)
-    if service_name.match(/alt/)
-      command = "installadm list |grep '#{service_name}'"
+    if install_service.match(/alt/)
+      command = "installadm list |grep '#{install_service}'"
     else
-      command = "installadm list |grep '#{service_name}' |grep -v alt"
+      command = "installadm list |grep '#{install_service}' |grep -v alt"
     end
   else
-    command = "ls #{$repo_base_dir} |grep '#{service_name}'"
+    command = "ls #{$repo_base_dir} |grep '#{install_service}'"
   end
   output  = execute_command(message,command)
   return output
@@ -130,7 +130,7 @@ end
 # Routine to create AI service
 
 def configure_ai_services(iso_repo_version,publisher_url,client_arch)
-  puts "Creating:\tAI services"
+  handle_output("Creating:\tAI services")
   client_arch_list = []
   if !client_arch.downcase.match(/i386|sparc/)
     client_arch_list = ["i386","SPARC"]
@@ -140,28 +140,28 @@ def configure_ai_services(iso_repo_version,publisher_url,client_arch)
   client_arch_list.each do |sys_arch|
     lc_arch = sys_arch.downcase
     ai_dir  = $ai_base_dir+"/"+iso_repo_version+"_"+lc_arch
-    service_name = iso_repo_version+"_"+lc_arch
+    install_service = iso_repo_version+"_"+lc_arch
     if $os_name.match(/SunOS/)
-      service_check = check_ai_service(service_name)
-      if !service_check.match(/#{service_name}/)
+      service_check = check_ai_service(install_service)
+      if !service_check.match(/#{install_service}/)
         message = "Information:\tCreating AI service for #{lc_arch}"
-        command = "installadm create-service -a #{lc_arch} -n #{service_name} -p solaris=#{publisher_url} -d #{ai_dir}"
+        command = "installadm create-service -a #{lc_arch} -n #{install_service} -p solaris=#{publisher_url} -d #{ai_dir}"
         execute_command(message,command)
       end
     else
-      service_info = service_name.split(/_/)
+      service_info = install_service.split(/_/)
       client_ver   = service_info[1]
       client_rel   = service_info[2]
       ai_iso_file  = "sol-"+client_ver+"_"+client_rel+"-ai-"+lc_arch+".iso"
       ai_iso_file  = $iso_base_dir+"/"+ai_iso_file
       if !File.exist?(ai_iso_file)
-        puts "Warning:\tAI ISO file "+ai_iso_file+" not found for architecture "+lc_arch
+        handle_output("Warning:\tAI ISO file #{ai_iso_file} not found for architecture #{lc_arch}")
       else
         if $os_name.match(/Darwin/)
-          tftp_version_dir = $tftp_dir+"/"+service_name
+          tftp_version_dir = $tftp_dir+"/"+install_service
           output = check_osx_iso_mount(tftp_version_dir,ai_iso_file)
           if output.match(/Resource busy/)
-            puts "Warning:\t ISO already mounted"
+            handle_output("Warning:\t ISO already mounted")
             exit
           end
         end
@@ -226,9 +226,9 @@ def get_ai_solaris_release(repo_version_dir)
       output           = execute_command(message,command)
       iso_repo_version = output.chomp.gsub(/\./,"_")
     else
-      puts "Warning:\tCould not find "+release_file
-      puts "Warning:\tCould not verify solaris release from repository"
-      puts "Information:\tSetting Solaris release to 11"
+      handle_output("Warning:\tCould not find #{release_file}")
+      handle_output("Warning:\tCould not verify solaris release from repository")
+      handle_output("Information:\tSetting Solaris release to 11")
       iso_repo_version="11"
     end
   end
@@ -259,7 +259,7 @@ end
 
 # Main server routine called from modest main code
 
-def configure_ai_server(client_arch,publisher_host,publisher_port,service_name,file_name)
+def configure_ai_server(client_arch,publisher_host,publisher_port,install_service,file_name)
   # Enable default package service
   clear_service("svc:/system/install/server:default")
   enable_service("svc:/system/install/server:default")
@@ -272,16 +272,16 @@ def configure_ai_server(client_arch,publisher_host,publisher_port,service_name,f
   # Get a list of installed services
   services_list = get_ai_install_services()
   # If given a service name check the service doesn't already exist
-  if service_name.match(/[a-z,A-Z]/)
-    if services_list.match(/#{service_name}/)
-      puts "Warning:\tService "+service_name+" already exists"
+  if install_service.match(/[a-z,A-Z]/)
+    if services_list.match(/#{install_service}/)
+      handle_output("Warning:\tService #{install_service} already exists")
       exit
     end
   end
   # Check we have ISO to get repository data from
   if !file_name.match(/[a-z,A-Z,0-9]/)
-    if service_name.match(/[a-z,A-Z]/)
-      search_string = service_name.gsub(/i386|sparc/,"")
+    if install_service.match(/[a-z,A-Z]/)
+      search_string = install_service.gsub(/i386|sparc/,"")
       search_string = search_string.gsub(/sol_/,"sol-")
       search_string = search_string.gsub(/_beta/,"-beta")
       search_string = search_string+"-repo-full"
@@ -293,17 +293,17 @@ def configure_ai_server(client_arch,publisher_host,publisher_port,service_name,f
     iso_list[0] = file_name
   end
   if !iso_list[0]
-    puts "Warning:\tNo suitable ISOs found"
+    handle_output("Warning:\tNo suitable ISOs found")
     exit
   end
   iso_list.each do |iso_file|
     if File.exist?(iso_file)
       if !iso_file.match(/repo/)
-        puts "Warning:\tISO "+iso_file+" does not appear to be a valid Solaris distribution"
+        handle_output("Warning:\tISO #{iso_file} does not appear to be a valid Solaris distribution")
         exit
       end
     else
-      puts "Warning:\tISO "+iso_file+" does not exist"
+      handle_output("Warning:\tISO #{iso_file does} not exist")
       exit
     end
     iso_repo_version = File.basename(iso_file,".iso")
@@ -313,10 +313,10 @@ def configure_ai_server(client_arch,publisher_host,publisher_port,service_name,f
     else
       iso_repo_version = "sol_"+iso_repo_version
     end
-    if !service_name.match(/[a-z,A-Z,0-9]/)
+    if !install_service.match(/[a-z,A-Z,0-9]/)
       service_base_name = iso_repo_version
     else
-      service_base_name = get_service_base_name(service_name)
+      service_base_name = get_service_base_name(install_service)
     end
     repo_version_dir = get_repo_version_dir(iso_repo_version)
     if !iso_repo_version.match(/11/)
@@ -333,8 +333,8 @@ def configure_ai_server(client_arch,publisher_host,publisher_port,service_name,f
     publisher_port = check_publisher_port(publisher_port)
     configure_ai_pkg_repo(publisher_host,publisher_port,service_base_name,repo_version_dir,read_only)
     if $use_alt_repo == 1
-      alt_service_name=check_alt_service_name(service_name)
-      configure_ai_alt_pkg_repo(publisher_host,publisher_port,alt_service_name)
+      alt_install_service=check_alt_install_service(install_service)
+      configure_ai_alt_pkg_repo(publisher_host,publisher_port,alt_install_service)
     end
     publisher_url = get_ai_publisher_url(publisher_host,publisher_port)
     configure_ai_services(iso_repo_version,publisher_url,client_arch)
@@ -347,15 +347,9 @@ end
 
 def list_ai_services()
   if $os_name.match(/SunOS/) and $os_ver.to_i > 10
-    message = "Information:\nAvailable AI services"
-    command = "installadm list |grep 'auto_install' |grep -v default |awk '{print $1}'"
-    output  = execute_command(message,command)
-    if output.length > 0
-      puts
-      puts "Available AI services:"
-      puts
-      puts output
-    end
+    service_type    = "AI"
+    service_command = "installadm list |grep 'auto_install' |grep -v default |awk '{print $1}'"
+    list_services(service_type,service_command)
   end
   return
 end

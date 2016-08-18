@@ -55,18 +55,18 @@ end
 
 def list_all_parallels_vms()
   vm_list = get_all_parallels_vms()
-  puts
-  puts "Parallels VMS:"
-  puts
+  handle_output("") 
+  handle_output("Parallels VMS:")
+  handle_output("") 
   vm_list.each do |vm_name|
     os_info = %x[prlctl list --info "#{vm_name}" |grep '^OS' |cut -f2 -d:].chomp.gsub(/^\s+/,"")
     case os_info
     when /rhel/
     	os_info = "RedHat Enterprise Linux"
     end
-    puts vm_name+"\t"+os_info
+    handle_output("#{vm_name}\t#{os_info}")
   end
-  puts
+  handle_output("") 
   return
 end
 
@@ -77,14 +77,14 @@ def list_running_parallels_vms()
   command = "prlctl list --all |grep running |awk '{print $4}'"
 	vm_list = execute_command(message,command)
   vm_list = vm_list.split("\n")
-  puts
-  puts "Running Parallels VMS:"
-  puts
+  handle_output("") 
+  handle_output("Running Parallels VMS:")
+  handle_output("") 
   vm_list.each do |vm_name|
     os_info = get_parallels_os(vm_name)
-    puts vm_name+"\t"+os_info
+    handle_output("#{vm_name}\t#{os_info}")
   end
-  puts
+  handle_output("") 
   return
 end
 
@@ -96,46 +96,23 @@ def list_stopped_parallels_vms()
   vm_list = execute_command(message,command)
   vm_list = vm_list.split("\n")
   vm_list = %x[prlctl list --all |grep stopped |awk '{print $4}'].split("\n")
-  puts
-  puts "Stopped Parallels VMS:"
-  puts
+  handle_output("") 
+  handle_output("Stopped Parallels VMS:")
+  handle_output("") 
   vm_list.each do |vm_name|
     os_info = get_parallels_os(vm_name)
-    puts vm_name+"\t"+os_info
+    handle_output("#{vm_name}\t#{os_info}")
   end
-  puts
+  handle_output("") 
   return
 end
 
 # List Parallels VMs
 
 def list_parallels_vms(search_string)
-  output_list = []
-  message = "Information:\tSearching Parallels VMs:"
-  command = "prlctl list --all |grep -v UUID |awk '{print $4}'"
-  vm_list = execute_command(message,command)
-  vm_list = vm_list.split(/\n/)
-  vm_list.each do |vm_name|
-    vm_mac = get_parallels_vm_mac(vm_name)
-    output = vm_name+" "+vm_mac
-    if search_string.match(/[a-z,A-Z]/)
-      install_os = get_parallels_vm_os(vm_name)
-      if install_os.match(/#{search_string}/)
-        output_list.push(output)
-      end
-    else
-      output_list.push(output)
-    end
-  end
-  if output_list.length > 0
-    puts
-    puts "Available "+search_string+" VMs:"
-    puts
-    output_list.each do |output|
-      puts output
-    end
-    puts
-  end
+  dom_type    = "Parallels VM"
+  dom_command = "prlctl list --all |grep -v UUID |awk '{print $4}'"
+  list_doms(dom_type,dom_command)
   return
 end
 
@@ -144,7 +121,7 @@ end
 def clone_parallels_vm(install_client,new_name,install_mac,client_ip)
   exists = check_parallels_vm_exists(install_client)
   if exists.match(/no/)
-    puts "Warning:\tParallels VM "+install_client+" does not exist"
+    handle_output("Warning:\tParallels VM #{install_client} does not exist")
     exit
   end
   message = "Information:\tCloning Parallels VM "+install_client+" to "+new_name
@@ -394,21 +371,21 @@ def boot_parallels_vm(install_client)
   check_parallels_hostonly_network()
   exists = check_parallels_vm_exists(install_client)
   if exists.match(/no/)
-    puts "Warning:\tParallels VM "+install_client+" does not exist"
+    handle_output("Warning:\tParallels VM #{install_client} does not exist")
     exit
   end
   message = "Starting:\tVM "+install_client
   if $text_mode == 1 or $serial_mode == 1
-    puts
-    puts "Information:\tBooting and connecting to virtual serial port of "+install_client
-    puts
-    puts "To disconnect from this session use CTRL-Q"
-    puts
-    puts "If you wish to re-connect to the serial console of this machine,"
-    puts "run the following command"
-    puts
-    puts "socat UNIX-CONNECT:/tmp/#{install_client} STDIO,raw,echo=0,escape=0x11,icanon=0"
-    puts
+    handle_output("") 
+    handle_output("Information:\tBooting and connecting to virtual serial port of #{install_client}")
+    handle_output("") 
+    handle_output("To disconnect from this session use CTRL-Q")
+    handle_output("") 
+    handle_output("If you wish to re-connect to the serial console of this machine,")
+    handle_output("run the following command")
+    handle_output("") 
+    handle_output("socat UNIX-CONNECT:/tmp/#{install_client} STDIO,raw,echo=0,escape=0x11,icanon=0")
+    handle_output("") 
     %x[prlctl start #{install_client}]
   else
     command = "prlctl start #{install_client} ; open \"/Applications/Parallels Desktop.app\" &"
@@ -417,15 +394,15 @@ def boot_parallels_vm(install_client)
   if $serial_mode == 1
     system("socat UNIX-CONNECT:/tmp/#{install_client} STDIO,raw,echo=0,escape=0x11,icanon=0")
   else
-    puts
-    puts "If you wish to connect to the serial console of this machine,"
-    puts "run the following command"
-    puts
-    puts "socat UNIX-CONNECT:/tmp/#{install_client} STDIO,raw,echo=0,escape=0x11,icanon=0"
-    puts
-    puts "To disconnect from this session use CTRL-Q"
-    puts
-    puts
+    handle_output("") 
+    handle_output("If you wish to connect to the serial console of this machine,")
+    handle_output("run the following command")
+    handle_output("") 
+    handle_output("socat UNIX-CONNECT:/tmp/#{install_client} STDIO,raw,echo=0,escape=0x11,icanon=0")
+    handle_output("") 
+    handle_output("To disconnect from this session use CTRL-Q")
+    handle_output("") 
+    handle_output("") 
   end
   return
 end
@@ -461,7 +438,7 @@ def configure_parallels_vm(install_client,install_mac,install_os,install_size,in
   else
     install_mac = get_parallels_vm_mac(install_client)
   end
-  puts "Created Parallels VM "+install_client+" with MAC address "+install_mac
+  handle_output("Created Parallels VM #{install_client} with MAC address #{install_mac}")
   return
 end
 
@@ -517,7 +494,7 @@ end
 def check_parallels_vm_doesnt_exist(install_client)
   exists = check_parallels_vm_exists(install_client)
   if exists.match(/yes/)
-    puts "Parallels VM "+install_client+" already exists"
+    handle_output("Parallels VM #{install_client} already exists")
     exit
   end
   return
@@ -544,7 +521,7 @@ def unconfigure_parallels_vm(install_client)
   check_parallels_is_installed()
   exists = check_parallels_vm_exists(install_client)
   if exists.match(/no/)
-    puts "Parallels VM "+install_client+" does not exist"
+    handle_output("Parallels VM #{install_client} does not exist")
     exit
   end
   stop_parallels_vm(install_client)

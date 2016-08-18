@@ -174,8 +174,8 @@ end
 
 # Get ZFS bootenv
 
-def get_js_zfs_bootenv(service_name)
-  zfs_bootenv = "installbe bename "+service_name
+def get_js_zfs_bootenv(install_service)
+  zfs_bootenv = "installbe bename "+install_service
   return zfs_bootenv
 end
 
@@ -263,7 +263,7 @@ end
 
 # Populate Jumpstart machine file
 
-def populate_js_machine_questions(client_model,client_karch,publisher_host,service_name,os_version,os_update,image_file)
+def populate_js_machine_questions(client_model,client_karch,publisher_host,install_service,os_version,os_update,image_file)
   $q_struct = {}
   $q_order  = []
 
@@ -495,7 +495,7 @@ def populate_js_machine_questions(client_model,client_karch,publisher_host,servi
 
   f_order.each do |fs_name|
 
-    if service_name.match(/sol_10_0[6-9]|sol_10_[10,11]/) and $q_struct["root_fs"].value.match(/zfs/)
+    if install_service.match(/sol_10_0[6-9]|sol_10_[10,11]/) and $q_struct["root_fs"].value.match(/zfs/)
       fs_size = "auto"
     else
       fs_size = f_struct[fs_name].size
@@ -516,7 +516,7 @@ def populate_js_machine_questions(client_model,client_karch,publisher_host,servi
 
     funct_string="get_js_filesys(\""+fs_name+"\")"
 
-    if !service_name.match(/sol_10/)
+    if !install_service.match(/sol_10/)
 
       name = f_struct[fs_name].name+"_fs"
       config = Js.new(
@@ -535,7 +535,7 @@ def populate_js_machine_questions(client_model,client_karch,publisher_host,servi
 
   end
 
-  if service_name.match(/sol_10_0[6-9]|sol_10_[10,11]/) and $q_struct["root_fs"].value.match(/zfs/)
+  if install_service.match(/sol_10_0[6-9]|sol_10_[10,11]/) and $q_struct["root_fs"].value.match(/zfs/)
 
     name = "zfs_layout"
     config = Js.new(
@@ -550,7 +550,7 @@ def populate_js_machine_questions(client_model,client_karch,publisher_host,servi
     $q_struct[name] = config
     $q_order.push(name)
 
-    zfs_bootenv=get_js_zfs_bootenv(service_name)
+    zfs_bootenv=get_js_zfs_bootenv(install_service)
 
     name = "zfs_bootenv"
     config = Js.new(
@@ -628,7 +628,7 @@ end
 
 # Populate Jumpstart sysidcfg questions
 
-def populate_js_sysid_questions(client_name,client_ip,client_arch,client_model,os_version,os_update)
+def populate_js_sysid_questions(install_client,install_ip,install_arch,client_model,os_version,os_update)
   $q_struct = {}
   $q_order  = []
 
@@ -638,7 +638,7 @@ def populate_js_sysid_questions(client_name,client_ip,client_arch,client_model,o
     question  = "System Hostname",
     ask       = "yes",
     parameter = "",
-    value     = client_name,
+    value     = install_client,
     valid     = "",
     eval      = "no"
     )
@@ -674,7 +674,7 @@ def populate_js_sysid_questions(client_name,client_ip,client_arch,client_model,o
     question  = "System IP",
     ask       = "yes",
     parameter = "",
-    value     = client_ip,
+    value     = install_ip,
     valid     = "",
     eval      = "no"
     )
@@ -694,7 +694,7 @@ def populate_js_sysid_questions(client_name,client_ip,client_arch,client_model,o
   $q_struct[name] = config
   $q_order.push(name)
 
-  ipv4_default_route=get_ipv4_default_route(client_ip)
+  ipv4_default_route=get_ipv4_default_route(install_ip)
 
   name = "system_model"
   config = Js.new(
@@ -709,7 +709,7 @@ def populate_js_sysid_questions(client_name,client_ip,client_arch,client_model,o
   $q_struct[name] = config
   $q_order.push(name)
 
-  if !client_arch.match(/i386|sun4/)
+  if !install_arch.match(/i386|sun4/)
 
     name = "system_karch"
     config = Js.new(
@@ -732,7 +732,7 @@ def populate_js_sysid_questions(client_name,client_ip,client_arch,client_model,o
       question  = "System Kernel Architecture",
       ask       = "yes",
       parameter = "",
-      value     = client_arch,
+      value     = install_arch,
       valid     = "",
       eval      = "no"
       )

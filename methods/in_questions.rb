@@ -1,10 +1,10 @@
 
 # Process questions (array of structs)
 
-def process_questions(service_name)
+def process_questions(install_service)
   $q_order.each do |key|
     if $verbose_mode == 1
-      puts "Information:\tProcessing value for "+key
+      handle_output("Information:\tProcessing value for #{key}")
     end
     correct = 0
     if $q_struct[key].ask.match(/yes/)
@@ -20,7 +20,7 @@ def process_questions(service_name)
           answer = $stdin.gets.chomp
         else
           answer = $q_struct[key].value
-          evaluate_answer(key,answer,service_name)
+          evaluate_answer(key,answer,install_service)
           correct = 1
         end
         if answer != ""
@@ -33,7 +33,7 @@ def process_questions(service_name)
                 end
               end
             else
-              correct = evaluate_answer(key,answer,service_name)
+              correct = evaluate_answer(key,answer,install_service)
               if correct == 1
                 $q_struct[key].value = answer
               end
@@ -45,7 +45,7 @@ def process_questions(service_name)
           end
         else
           answer = $q_struct[key].value
-          correct = evaluate_answer(key,answer,service_name)
+          correct = evaluate_answer(key,answer,install_service)
           correct = 1
         end
       end
@@ -62,7 +62,7 @@ end
 
 # Code to check answers
 
-def evaluate_answer(key,answer,service_name)
+def evaluate_answer(key,answer,install_service)
   correct = 1
   if $q_struct[key].eval != "no"
     new_value = $q_struct[key].eval
@@ -85,7 +85,7 @@ def evaluate_answer(key,answer,service_name)
   end
   answer = answer.to_s
   if $verbose_mode == 1
-    puts "Information:\tSetting parameter "+key+" to "+answer
+    handle_output("Information:\tSetting parameter #{key} to #{answer}")
   end
   return correct
 end

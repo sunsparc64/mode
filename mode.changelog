@@ -763,3 +763,11 @@
 # Added check for platform when listing LDom services
 # 3.8.1: Tue 16 Aug 2016 20:10:42 AEST
 # Migrated common code in mode.rb into common.rb
+# 3.8.2: Wed 17 Aug 2016 10:02:52 AEST
+# Added initial webserver functionality
+# 3.8.3: Wed 17 Aug 2016 14:37:46 AEST
+# Output code migrated to new method
+# 3.8.4: Wed 17 Aug 2016 19:55:29 AEST
+# Added HTML output capability to AI list commands
+# 3.8.5: Thu 18 Aug 2016 10:37:15 AEST
+# Added some initial plumbing for webserver

@@ -12,7 +12,7 @@ end
 def import_packer_vbox_vm(install_client,install_vm)
   (exists,images_dir) = check_packer_vm_image_exists(install_client,install_vm)
   if exists.match(/no/)
-    puts "Warning:\tPacker VirtualBox VM image for "+install_client+" does not exist"
+    handle_output("Warning:\tPacker VirtualBox VM image for #{install_client} does not exist")
     exit
   end
   ovf_file = images_dir+"/"+install_client+".ovf"
@@ -21,7 +21,7 @@ def import_packer_vbox_vm(install_client,install_vm)
     command = "VBoxManage import '#{ovf_file}'"
     execute_command(message,command)
   else
-    puts "Warning:\tOVF file for Packer VirtualBox VM "+install_client+" does not exist"
+    handle_output("Warning:\tOVF file for Packer VirtualBox VM #{install_client} does not exist")
     exit
   end
   return
@@ -34,7 +34,7 @@ def show_vbox_vm(install_client)
   if exists.match(/yes/)
     %x[VBoxManage showvminfo '#{install_client}']
   else
-    puts "Warning:\tVirtualBox VM "+install_client+" does not exist"
+    handle_output("Warning:\tVirtualBox VM #{install_client} does not exist")
     exit
   end
   return
@@ -47,7 +47,7 @@ def set_vbox_value(install_client,install_param,install_value)
   if exists.match(/yes/)
     %x[VBoxManage modifyvm '#{install_client}' --#{install_param} #{install_value}]
   else
-    puts "Warning:\tVirtualBox VM "+install_client+" does not exist"
+    handle_output("Warning:\tVirtualBox VM #{install_client} does not exist")
     exit
   end
   return
@@ -60,7 +60,7 @@ def set_vbox_value(install_client,install_param)
   if exists.match(/yes/)
     %x[VBoxManage showvminfo '#{install_client}' | grep '#{install_param}']
   else
-    puts "Warning:\tVirtualBox VM "+install_client+" does not exist"
+    handle_output("Warning:\tVirtualBox VM #{install_client} does not exist")
     exit
   end
   return
@@ -150,8 +150,8 @@ end
 
 def list_vbox_vm_snapshots(install_client)
   snapshot_list = get_vbox_vm_snapshots(install_client)
-  puts "Snapshots for "+install_client+":"
-  puts snapshot_list 
+  handle_output("Snapshots for #{install_client}:")
+  handle_output(snapshot_list)
   return
 end
 
@@ -160,7 +160,7 @@ end
 def snapshot_vbox_vm(install_client,install_clone)
   exists = check_vbox_vm_exists(install_client)
   if exists.match(/no/)
-    puts "Warning:\tVirtualBox VM "+install_client+" does not exist"
+    handle_output("Warning:\tVirtualBox VM #{install_client} does not exist")
     exit
   end
   message = "Information:\tCloning VirtualBox VM "+install_client+" to "+install_clone
@@ -206,16 +206,16 @@ end
 
 def list_all_vbox_vms()
   vm_list = get_available_vbox_vms()
-  puts
-  puts "VirtualBox VMs"
-  puts
+  handle_output("") 
+  handle_output("VirtualBox VMs")
+  handle_output("") 
   vm_list.each do |line|
     install_client = line.split(/"/)[1]
     install_os     = get_vbox_vm_os(install_client)
     install_mac    = get_vbox_vm_mac(install_client)
-    puts install_client+" os="+install_os+" mac="+install_mac
+    handle_output("#{install_client} os=#{install_os} mac=#{install_mac}")
   end
-  puts
+  handle_output("") 
   return
 end
 
@@ -225,15 +225,15 @@ def list_running_vbox_vms()
   set_vboxmanage_bin()
   if $vboxmanage_bin.match(/[a-z]/)
     vm_list = %x[VBoxManage list runningvms].split("\n")
-    puts
-    puts "Running VirtualBox VMs:"
-    puts
+    handle_output("") 
+    handle_output("Running VirtualBox VMs:")
+    handle_output ("")
     vm_list.each do |vm_name|
       vm_name = vm_name.split(/"/)[1]
       os_info = %x[VBoxManage showvminfo "#{vm_name}" |grep '^Guest OS' |cut -f2 -d:].chomp.gsub(/^\s+/,"")
-      puts vm_name+"\t"+os_info
+      handle_output("#{vm_name}\t#{os_info}")
     end
-    puts
+    handle_output("") 
   end
   return
 end
@@ -289,7 +289,7 @@ end
 def clone_vbox_vm(install_client,new_name,install_mac,client_ip)
   exists = check_vbox_vm_exists(install_client)
   if exists.match(/no/)
-    puts "Warning:\tVirtualBox VM "+install_client+" does not exist"
+    handle_output("Warning:\tVirtualBox VM #{install_client} does not exist")
     exit
   end
   message = "Information:\tCloning VM "+install_client+" to "+new_name
@@ -312,8 +312,8 @@ def export_vbox_ova(install_client,ova_file)
     stop_vbox_vm(install_client)
     if !ova_file.match(/[0-9,a-z,A-Z]/)
       ova_file = "/tmp/"+install_client+".ova"
-      puts "Warning:\tNo ouput file given"
-      puts "Information:\tExporting VirtualBox VM "+install_client+" to "+ova_file
+      handle_output("Warning:\tNo ouput file given")
+      handle_output("Information:\tExporting VirtualBox VM #{install_client} to #{ova_file}")
     end
     if !ova_file.match(/\.ova$/)
       ova_file = ova_file+".ova"
@@ -322,7 +322,7 @@ def export_vbox_ova(install_client,ova_file)
     command = "VBoxManage export \"#{install_client}\" -o \"#{ova_file}\""
     execute_command(message,command)
   else
-    puts "Warning:\tVirtualBox VM "+install_client+"does not exist"
+    handle_output("Warning:\tVirtualBox VM #{install_client} does not exist")
   end
   return
 end
@@ -351,7 +351,7 @@ def import_vbox_ova(install_client,install_mac,client_ip,ova_file)
       if $vboxmanage_bin.match(/[a-z]/)
         install_client = %x[VBoxManage import -n #{ova_file} |grep "Suggested VM name"].split(/\n/)[-1]
         if !install_client.match(/[0-9,a-z,A-Z]/)
-          puts "Warning:\tCould not determine VM name for Virtual Appliance "+ova_file
+          handle_output("Warning:\tCould not determine VM name for Virtual Appliance #{ova_file}")
           exit
         else
           install_client = install_client.split(/Suggested VM name /)[1].chomp
@@ -362,7 +362,7 @@ def import_vbox_ova(install_client,install_mac,client_ip,ova_file)
       end
     end
   else
-    puts "Warning:\tVirtual Appliance "+ova_file+"does not exist"
+    handle_output("Warning:\tVirtual Appliance #{ova_file} does not exist")
   end
   if client_ip.match(/[0-9]/)
     add_hosts_entry(install_client,client_ip)
@@ -386,7 +386,7 @@ def import_vbox_ova(install_client,install_mac,client_ip,ova_file)
     configure_vmware_vcenter_defaults()
     configure_vmware_vbox_vm(install_client)
   end
-  puts "Warning:\tVirtual Appliance "+ova_file+" imported with VM name "+install_client+" and MAC address "+install_mac
+  handle_output("Warning:\tVirtual Appliance #{ova_file} imported with VM name #{install_client} and MAC address #{install_mac}")
   return
 end
 
@@ -442,7 +442,7 @@ end
 def set_vboxmanage_bin()
   $vboxmanage_bin = %x[which VBoxManage].chomp
   if !$vboxmanage_bin.match(/VBoxManage/) or $vboxmanage_bin.match(/no VBoxManage/)
-    puts "Warning:\tCould not find VBoxManage"
+    handle_output("Warning:\tCould not find VBoxManage")
   end
   return
 end
@@ -455,7 +455,7 @@ def check_vbox_vm_exists(install_client)
   host_list = execute_command(message,command)
   if !host_list.match(install_client)
     if $verbose_mode == 1
-      puts "Information:\tVirtualBox VM "+install_client+" does not exist"
+      handle_output("Information:\tVirtualBox VM #{install_client} does not exist")
     end
     exists = "no"
   else
@@ -557,13 +557,13 @@ def list_vbox_vms(search_string)
     end
   end
   if output_list.length > 0
-    puts
-    puts "Available "+search_string+" VMs:"
-    puts
+    handle_output("") 
+    handle_output("Available #{search_string} VMs:")
+    handle_output("") 
     output_list.each do |output|
-      puts output
+      handle_output(output)
     end
-    puts
+    handle_output("") 
   end
   return
 end
@@ -623,7 +623,7 @@ def check_vbox_vm_doesnt_exist(install_client)
   command   = "VBoxManage list vms"
   host_list = execute_command(message,command)
   if host_list.match(install_client)
-    puts "Information:\tVirtualBox VM #{install_client} already exists"
+    handle_output("Information:\tVirtualBox VM #{install_client} already exists")
     exit
   end
   return
@@ -975,7 +975,7 @@ end
 def boot_vbox_vm(install_client,install_type)
   exists = check_vbox_vm_exists(install_client)
   if exists.match(/no/)
-    puts "VirtualBox VM "+install_client+" does not exist"
+    handle_output("VirtualBox VM #{install_client} does not exist")
     exit
   end
   if install_type.match(/cdrom|net|dvd|disk/)
@@ -984,16 +984,16 @@ def boot_vbox_vm(install_client,install_type)
   end
   message = "Starting:\tVM "+install_client
   if $text_mode == 1 or $serial_mode == 1
-    puts
-    puts "Information:\tBooting and connecting to virtual serial port of "+install_client
-    puts
-    puts "To disconnect from this session use CTRL-Q"
-    puts
-    puts "If you wish to re-connect to the serial console of this machine,"
-    puts "run the following command"
-    puts
-    puts "socat UNIX-CONNECT:/tmp/#{install_client} STDIO,raw,echo=0,escape=0x11,icanon=0"
-    puts
+    handle_output("") 
+    handle_output("Information:\tBooting and connecting to virtual serial port of #{install_client}")
+    handle_output("") 
+    handle_output("To disconnect from this session use CTRL-Q")
+    handle_output("") 
+    handle_output("If you wish to re-connect to the serial console of this machine,")
+    handle_output("run the following command")
+    handle_output("") 
+    handle_output("socat UNIX-CONNECT:/tmp/#{install_client} STDIO,raw,echo=0,escape=0x11,icanon=0")
+    handle_output("") 
     set_vboxmanage_bin()
     if $vboxmanage_bin.match(/[a-z]/)
       %x[VBoxManage startvm #{install_client} --type headless ; sleep 1]
@@ -1005,15 +1005,15 @@ def boot_vbox_vm(install_client,install_type)
   if $serial_mode == 1
     system("socat UNIX-CONNECT:/tmp/#{install_client} STDIO,raw,echo=0,escape=0x11,icanon=0")
   else
-    puts
-    puts "If you wish to connect to the serial console of this machine,"
-    puts "run the following command"
-    puts
-    puts "socat UNIX-CONNECT:/tmp/#{install_client} STDIO,raw,echo=0,escape=0x11,icanon=0"
-    puts
-    puts "To disconnect from this session use CTRL-Q"
-    puts
-    puts
+    handle_output("") 
+    handle_output("If you wish to connect to the serial console of this machine,")
+    handle_output("run the following command")
+    handle_output("") 
+    handle_output("socat UNIX-CONNECT:/tmp/#{install_client} STDIO,raw,echo=0,escape=0x11,icanon=0")
+    handle_output("") 
+    handle_output("To disconnect from this session use CTRL-Q")
+    handle_output("") 
+    handle_output("") 
   end
   return
 end
@@ -1185,7 +1185,7 @@ def configure_vbox_vm(install_client,install_mac,install_os,install_size,install
     configure_vmware_esxi_vbox_vm(install_client)
   end
   add_cpu_to_vbox_vm(install_client,install_cpu)
-  puts "Information:\tCreated VirtualBox VM "+install_client+" with MAC address "+install_mac
+  handle_output("Information:\tCreated VirtualBox VM #{install_client} with MAC address #{install_mac}")
   return
 end
 
@@ -1209,7 +1209,7 @@ def unconfigure_vbox_vm(install_client)
     if exists.match(/yes/)
       delete_vbox_vm_config(install_client)
     else
-      puts "Warning:\tVirtualBox VM "+install_client+" does not exist"
+      handle_output("Warning:\tVirtualBox VM #{install_client} does not exist")
       return
     end
   end

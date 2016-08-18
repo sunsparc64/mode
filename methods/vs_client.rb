@@ -10,8 +10,8 @@ def get_vs_clients()
       file_list        = Dir.entries(repo_version_dir)
       file_list.each do |file_name|
         if file_name.match(/\.cfg$/) and !file_name.match(/boot\.cfg|isolinux\.cfg/)
-          client_name = file_name.split(/\./)[0]
-          client_info = client_name+" service = "+install_service
+          install_client = file_name.split(/\./)[0]
+          client_info = install_client+" service = "+install_service
           client_list.push(client_info)
         end
       end
@@ -23,41 +23,64 @@ end
 # List ks clients
 
 def list_vs_clients()
-  puts
-  puts "Available vSphere clients:"
-  puts
   client_list = get_vs_clients()
-  client_list.each do |client_info|
-    puts client_info
+  if client_list.length > 0
+    if $output_format.match(/html/)
+      handle_output("<h1>Available vSphere clients:</h1>") 
+      handle_output("<table>")
+      handle_output("<tr>")
+      handle_output("<th>Client</th>")
+      handle_output("<th>Service</th>")
+      handle_output("</tr>")
+    else
+      handle_output("")
+      handle_output("Available vSphere clients:")
+      handle_output("")
+    end
+    client_list.each do |client_info|
+      if $output_format.match(/html/)
+        (install_client,install_service) = client_info.split(/ service = /)
+        handle_output("<tr>")
+        handle_output("<td>#{install_client}</td>")
+        handle_output("<td>#{install_service}</td>")
+        handle_output("</tr>")
+      else
+        handle_output(client_info)
+      end
+    end
+    if $output_format.match(/html/)
+      handle_output("</table>")
+    else
+      handle_output("")
+    end
   end
-  puts
   return
 end
 
 # Configure client PXE boot
 
-def configure_vs_pxe_client(client_name,client_mac,install_service)
-  tftp_pxe_file  = client_mac.gsub(/:/,"")
+def configure_vs_pxe_client(install_client,install_mac,install_service)
+  tftp_pxe_file  = install_mac.gsub(/:/,"")
   tftp_pxe_file  = tftp_pxe_file.upcase
   tftp_boot_file = "boot.cfg.01"+tftp_pxe_file
   tftp_pxe_file  = "01"+tftp_pxe_file+".pxelinux"
   test_file      = $tftp_dir+"/"+tftp_pxe_file
   if !File.exists?(test_file)
     pxelinux_file = install_service+"/usr/share/syslinux/pxelinux.0"
-    message       = "Information:\tCreating PXE boot file for "+client_name+" with MAC address "+client_mac
+    message       = "Information:\tCreating PXE boot file for "+install_client+" with MAC address "+install_mac
     command       = "cd #{$tftp_dir} ; ln -s #{pxelinux_file} #{tftp_pxe_file}"
     execute_command(message,command)
   end
   pxe_cfg_dir  = $tftp_dir+"/pxelinux.cfg"
-  pxe_cfg_file = client_mac.gsub(/:/,"-")
+  pxe_cfg_file = install_mac.gsub(/:/,"-")
   pxe_cfg_file = "01-"+pxe_cfg_file
   pxe_cfg_file = pxe_cfg_file.downcase
   pxe_cfg_file = pxe_cfg_dir+"/"+pxe_cfg_file
-  #ks_url       = "http://"+$default_host+"/"+install_service+"/"+client_name+".cfg"
-  ks_url       = "http://"+$default_host+"/clients/"+install_service+"/"+client_name+"/"+client_name+".cfg"
+  #ks_url       = "http://"+$default_host+"/"+install_service+"/"+install_client+".cfg"
+  ks_url       = "http://"+$default_host+"/clients/"+install_service+"/"+install_client+"/"+install_client+".cfg"
   mboot_file   = "/"+install_service+"/mboot.c32"
   if $verbose_mode == 1
-    puts "Information:\tCreating Menu config file "+pxe_cfg_file
+    handle_output("Information:\tCreating Menu config file #{pxe_cfg_file}")
   end
   file = File.open(pxe_cfg_file,"w")
   if $serial_mode == 1
@@ -78,13 +101,13 @@ def configure_vs_pxe_client(client_name,client_mac,install_service)
   file.write("IPAPPEND 1\n")
   file.close
   if $verbose_mode == 1
-    puts "Created:\tPXE menu file "+pxe_cfg_file+":"
+    handle_output("Created:\tPXE menu file #{pxe_cfg_file}:")
     system("cat #{pxe_cfg_file}")
   end
   tftp_boot_file=$tftp_dir+"/"+tftp_boot_file
   esx_boot_file=$tftp_dir+"/"+install_service+"/boot.cfg"
   if $verbose_mode == 1
-    puts "Creating:\tBoot config file "+tftp_boot_file
+    handle_output("Creating:\tBoot config file #{tftp_boot_file}")
   end
   copy=[]
   file=IO.readlines(esx_boot_file)
@@ -113,7 +136,7 @@ def configure_vs_pxe_client(client_name,client_mac,install_service)
   end
   File.open(tftp_boot_file,"w") {|file_data| file_data.puts copy}
   if $verbose_mode == 1
-    puts "Created:\tBoot config file "+tftp_boot_file+":"
+    handle_output("Created:\tBoot config file #{tftp_boot_file}:")
     system("cat #{tftp_boot_file}")
   end
   return
@@ -121,55 +144,55 @@ end
 
 # Unconfigure client PXE boot
 
-def unconfigure_vs_pxe_client(client_name)
-  client_mac = get_client_mac(client_name)
-  if !client_mac
-    puts "Warning:\tNo MAC Address entry found for "+client_name
+def unconfigure_vs_pxe_client(install_client)
+  install_mac = get_install_mac(install_client)
+  if !install_mac
+    handle_output("Warning:\tNo MAC Address entry found for #{install_client}")
     exit
   end
-  tftp_pxe_file = client_mac.gsub(/:/,"")
+  tftp_pxe_file = install_mac.gsub(/:/,"")
   tftp_pxe_file = tftp_pxe_file.upcase
   tftp_pxe_file = "01"+tftp_pxe_file+".pxelinux"
   tftp_pxe_file = $tftp_dir+"/"+tftp_pxe_file
   if File.exists?(tftp_pxe_file)
-    message = "Information:\tRemoving PXE boot file "+tftp_pxe_file+" for "+client_name
+    message = "Information:\tRemoving PXE boot file "+tftp_pxe_file+" for "+install_client
     command = "rm #{tftp_pxe_file}"
     execute_command(message,command)
   end
   pxe_cfg_dir  = $tftp_dir+"/pxelinux.cfg"
-  pxe_cfg_file = client_mac.gsub(/:/,"-")
+  pxe_cfg_file = install_mac.gsub(/:/,"-")
   pxe_cfg_file = "01-"+pxe_cfg_file
   pxe_cfg_file = pxe_cfg_file.downcase
   pxe_cfg_file = pxe_cfg_dir+"/"+pxe_cfg_file
   if File.exists?(pxe_cfg_file)
-    message = "Information:\tRemoving PXE boot config file "+pxe_cfg_file+" for "+client_name
+    message = "Information:\tRemoving PXE boot config file "+pxe_cfg_file+" for "+install_client
     command = "rm #{pxe_cfg_file}"
     execute_command(message,command)
   end
   client_info     = get_vs_clients()
-  install_service = client_info.grep(/#{client_name}/)[0].split(/ = /)[1].chomp
+  install_service = client_info.grep(/#{install_client}/)[0].split(/ = /)[1].chomp
   ks_dir          = $tftp_dir+"/"+install_service
-  ks_cfg_file     = ks_dir+"/"+client_name+".cfg"
+  ks_cfg_file     = ks_dir+"/"+install_client+".cfg"
   if File.exist?(ks_cfg_file)
-    message = "Information:\tRemoving Kickstart boot config file "+ks_cfg_file+" for "+client_name
+    message = "Information:\tRemoving Kickstart boot config file "+ks_cfg_file+" for "+install_client
     command = "rm #{ks_cfg_file}"
     execute_command(message,command)
   end
-  unconfigure_vs_dhcp_client(client_name)
+  unconfigure_vs_dhcp_client(install_client)
   return
 end
 
 # Configure DHCP entry
 
-def configure_vs_dhcp_client(client_name,client_mac,client_ip,client_arch,install_service)
-  add_dhcp_client(client_name,client_mac,client_ip,client_arch,install_service)
+def configure_vs_dhcp_client(install_client,install_mac,client_ip,client_arch,install_service)
+  add_dhcp_client(install_client,install_mac,client_ip,client_arch,install_service)
   return
 end
 
 # Unconfigure DHCP client
 
-def unconfigure_vs_dhcp_client(client_name)
-  remove_dhcp_client(client_name)
+def unconfigure_vs_dhcp_client(install_client)
+  remove_dhcp_client(install_client)
   return
 end
 
@@ -179,8 +202,8 @@ def configure_vs_client(install_client,install_arch,install_mac,install_ip,insta
                         install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type,install_vm)
   repo_version_dir=$repo_base_dir+"/"+install_service
   if !File.directory?(repo_version_dir) and !File.symlink?(repo_version_dir)
-    puts "Information:\tWarning service "+install_service+" does not exist"
-    puts
+    handle_output("Information:\tWarning service #{install_service} does not exist")
+    handle_output("")
     list_vs_services()
     exit
   end
@@ -212,9 +235,9 @@ end
 
 # Unconfigure VSphere client
 
-def unconfigure_vs_client(client_name,client_mac,install_service)
-  unconfigure_vs_pxe_client(client_name)
-  unconfigure_vs_dhcp_client(client_name)
+def unconfigure_vs_client(install_client,install_mac,install_service)
+  unconfigure_vs_pxe_client(install_client)
+  unconfigure_vs_dhcp_client(install_client)
   return
 end
 
@@ -339,7 +362,7 @@ end
 
 def output_vs_header(output_file)
   if $verbose_mode == 1
-    puts "Information:\tCreating vSphere file "+output_file
+    handle_output("Information:\tCreating vSphere file #{output_file}")
   end
   file=File.open(output_file, 'w')
   $q_order.each do |key|
@@ -349,7 +372,7 @@ def output_vs_header(output_file)
       else
         output=$q_struct[key].parameter+" "+$q_struct[key].value+"\n"
         if $verbose_mode == 1
-          puts output
+          handle_output(output)
         end
       end
       file.write(output)
@@ -375,12 +398,12 @@ end
 
 def check_vs_install_service(install_service)
   if !install_service.match(/[a-z,A-Z]/)
-    puts "Warning:\tService name not given"
+    handle_output("Warning:\tService name not given")
     exit
   end
   client_list=Dir.entries($repo_base_dir)
   if !client_list.grep(install_service)
-    puts "Warning:\tService name "+install_service+" does not exist"
+    handle_output("Warning:\tService name #{install_service} does not exist")
     exit
   end
   return

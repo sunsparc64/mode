@@ -23,9 +23,9 @@ def show_fusion_vm_config(install_client)
   fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
   if File.exist?(fusion_vmx_file)
     file_data = %x[cat "#{fusion_vmx_file}"]
-    puts file_data
+    handle_output(file_data)
   else
-    puts "Warning:\tFusion VM config file "+fusion_vmx_file+" does not exit"
+    handle_output("Warning:\tFusion VM config file #{fusion_vmx_file} does not exit")
   end
   return
 end
@@ -35,7 +35,7 @@ end
 def import_packer_fusion_vm(install_client,install_vm)
   (exists,images_dir) = check_packer_vm_image_exists(install_client,install_vm)
   if exists.match(/no/)
-    puts "Warning:\tPacker Fusion VM image for "+install_client+" does not exist"
+    handle_output("Warning:\tPacker Fusion VM image for #{install_client} does not exist")
     exit
   end
   fusion_vm_dir,fusion_vmx_file,fusion_disk_file = check_fusion_vm_doesnt_exist(install_client)
@@ -51,13 +51,13 @@ end
 def migrate_fusion_vm(install_client,install_server,install_serveradmin,install_serverpassword,install_servernetwork,install_datastore)
   exists = check_fusion_vm_exists(install_client)
   if exists.match(/no/)
-    puts "Warning:\tFusion VM "+install_client+" does not exist"
+    handle_output("Warning:\tFusion VM #{install_client} does not exist")
     exit
   end
   local_vmx_file   = get_fusion_vm_vmx_file(install_client)
   local_vmdk_file  = get_fusion_vm_vmdk_file(install_client)
   if !File.exist?(local_vmx_file) or !File.exist?(local_vmdk_file)
-    puts "Warning:\tVMware config or disk file for "+install_client+" does not exist"
+    handle_output("Warning:\tVMware config or disk file for #{install_client} does not exist")
     exit
   end
   remote_vmx_file  = File.basename(local_vmx_file)
@@ -120,7 +120,7 @@ end
 
 def list_fusion_vm_snapshots(install_client)
   snapshot_list = get_fusion_vm_snapshots(install_client)
-  puts snapshot_list
+  handle_output(snapshot_list)
   return
 end
 
@@ -139,7 +139,7 @@ def get_fusion_vm_vmx_file_value(install_client,install_search)
     end
   else
     if $verbose_mode == 1
-      puts "Warning:\tWMware configuration file \""+vmx_file+"\" not found for client"
+      handle_output("Warning:\tWMware configuration file \"#{vmx_file}\" not found for client")
     end
   end
   return vm_value
@@ -156,9 +156,9 @@ end
 # List all Fusion VMs
 
 def list_all_fusion_vms()
-  puts
-  puts "VMware Fusion VMs:"
-  puts
+  handle_output("") 
+  handle_output("VMware Fusion VMs:")
+  handle_output("")
   install_os  = ""
   install_mac = ""
   file_list   = Dir.entries($fusion_dir)
@@ -170,10 +170,10 @@ def list_all_fusion_vms()
       if !install_os
         install_os = "unknown"
       end
-      puts install_client+" os="+install_os+" mac="+install_mac
+      handle_output("#{install_client} os=#{install_os} mac=#{install_mac}")
     end
   end
-  puts
+  handle_output("")
   return
 end
 
@@ -200,13 +200,13 @@ def list_fusion_vms(search_string)
     end
   end
   if output_list.length > 0
-    puts
-    puts "Available "+search_string+" VMs:"
-    puts
+    handle_output("") 
+    handle_output("Available #{search_string} VMs:")
+    handle_output("") 
     output_list.each do |output|
-      puts output
+      handle_output(output)
     end
-    puts
+    handle_output("")
   end
   return
 end
@@ -234,7 +234,7 @@ def show_fusion_vm(install_client)
       %x[cat "#{fusion_vmx_file}"]
     end
   else
-    puts "Warning:\tFusion VM "+install_client+" does not exist"
+    handle_output("Warning:\tFusion VM #{install_client} does not exist")
     exit
   end
   return
@@ -250,7 +250,7 @@ def set_fusion_value(install_client,install_param,install_value)
     command = "'#{$vmrun_bin}' writeVariable '#{fusion_vmx_file}' runtimeConfig '#{install_param}' '#{install_value}'"
     execute_command(message,command)
   else
-    puts "Warning:\tFusion VM "+install_client+" does not exist"
+    handle_output("Warning:\tFusion VM #{install_client} does not exist")
     exit
   end
   return
@@ -265,9 +265,9 @@ def get_fusion_value(install_client,install_param)
     message = "Information:\tGetting Parameter "+install_param+" for "+install_client
     command = "'#{$vmrun_bin}' readVariable '#{fusion_vmx_file}' runtimeConfig '#{install_param}'"
     output  = execute_command(message,command)
-    puts output
+    handle_output(output)
   else
-    puts "Warning:\tFusion VM "+install_client+" does not exist"
+    handle_output("Warning:\tFusion VM #{install_client} does not exist")
     exit
   end
   return
@@ -291,7 +291,7 @@ end
 def snapshot_fusion_vm(install_client,install_clone)
   exists = check_fusion_vm_exists(install_client)
   if exists.match(/no/)
-    puts "Warning:\tFusion VM "+install_client+" does not exist"
+    handle_output("Warning:\tFusion VM #{install_client} does not exist")
     exit
   end
   fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
@@ -331,7 +331,7 @@ def set_vmrun_bin()
   $vmrun_bin = "/Applications/VMware Fusion.app/Contents/Library/vmrun"
   $vmapp_bin = "/Applications/VMware Fusion.app/Contents/MacOS/VMware Fusion"
   if !File.exist?($vmrun_bin)
-    puts "Warning:\tCould not find vmrun"
+    handle_output("Warning:\tCould not find vmrun")
     exit
   end
   return
@@ -342,7 +342,7 @@ end
 def set_ovftool_bin()
   $ovftool_bin = "/Applications/VMware Fusion.app/Contents/Library/VMware OVF Tool/ovftool"
   if !File.exist?($ovftool_bin)
-    puts "Warning:\tCould not find ovftool"
+    handle_output("Warning:\tCould not find ovftool")
     exit
   end
   return
@@ -359,14 +359,14 @@ end
 
 def list_running_fusion_vms()
   vm_list = get_running_fusion_vms()
-  puts
-  puts "Running VMs:"
-  puts
+  handle_output("") 
+  handle_output("Running VMs:")
+  handle_output("") 
   vm_list.each do |vm_name|
     vm_name = File.basename(vm_name,".vmx")
-    puts vm_name
+    handle_output(vm_name)
   end
-  puts
+  handle_output("")
   return
 end
 
@@ -378,8 +378,8 @@ def export_fusion_ova(install_client,install_file)
     stop_fusion_vm(install_client)
     if !install_file.match(/[0-9,a-z,A-Z]/)
       install_file = "/tmp/"+install_client+".ova"
-      puts "Warning:\tNo ouput file given"
-      puts "Information:\tExporting VM "+install_client+" to "+install_file
+      handle_output("Warning:\tNo ouput file given")
+      handle_output("Information:\tExporting VM #{install_client} to #{install_file}")
     end
     if !install_file.match(/\.ova$/)
       install_file = install_file+".ova"
@@ -408,7 +408,7 @@ def import_fusion_ova(install_client,install_mac,install_ip,install_file)
   fusion_vm_dir   = $fusion_dir+"/"+install_client+".vmwarevm"
   fusion_vmx_file = fusion_vm_dir+"/"+install_client+".vmx"
   if !File.exist?(fusion_vmx_file)
-    puts "Warning:\tWMware configuration file for client does not exist"
+    handle_output("Warning:\tWMware configuration file for client does not exist")
   end
   exists = check_fusion_vm_exists(install_client)
   if exists.match(/no/)
@@ -428,7 +428,7 @@ def import_fusion_ova(install_client,install_mac,install_ip,install_file)
         install_client = install_client.gsub(/\s+/,"")
         fusion_vmx_file = fusion_vm_dir+"/"+install_client+".vmx"
         if !install_client.match(/[0-9,a-z,A-Z]/)
-          puts "Warning:\tCould not determine VM name for Virtual Appliance "+install_file
+          handle_output("Warning:\tCould not determine VM name for Virtual Appliance #{install_file}")
           exit
         else
           install_client = install_client.split(/Suggested VM name /)[1].chomp
@@ -441,10 +441,10 @@ def import_fusion_ova(install_client,install_mac,install_ip,install_file)
         end
       end
     else
-      puts "Warning:\tVirtual Appliance "+install_file+"does not exist"
+      handle_output("Warning:\tVirtual Appliance #{install_file} does not exist")
     end
   else
-    puts "Warning:\tVMware Fusion VM "+install_client+" does not exist"
+    handle_output("Warning:\tVMware Fusion VM #{install_client} does not exist")
   end
   if install_ip.match(/[0-9]/)
     add_hosts_entry(install_client,install_ip)
@@ -459,7 +459,7 @@ def import_fusion_ova(install_client,install_mac,install_ip,install_file)
     end
   end
   change_fusion_vm_network(install_client,$default_vm_network)
-  puts "Information:\tVirtual Appliance "+install_file+" imported with VM name "+install_client+" and MAC address "+install_mac
+  handle_output("Information:\tVirtual Appliance #{install_file} imported with VM name #{install_client} and MAC address #{install_mac}")
   return
 end
 
@@ -515,10 +515,10 @@ end
 
 def check_fusion_vm_mac(install_mac)
   if install_mac.gsub(/:/,"").match(/^08/)
-    puts "Warning:\tInvalid MAC address: "+install_mac
+    handle_output("Warning:\tInvalid MAC address: #{install_mac}")
     install_vm  = "fusion"
     install_mac = generate_mac_address(install_vm)
-    puts "Information:\tGenerated new MAC address: "+install_mac
+    handle_output("Information:\tGenerated new MAC address: #{install_mac}")
   end
   return install_mac
 end
@@ -541,7 +541,7 @@ end
 def change_fusion_vm_mac(install_client,install_mac)
   (fusion_vm_dir,fusion_vmx_file,fusion_disk_file) = check_fusion_vm_doesnt_exist(install_client)
   if !File.exist?(fusion_vmx_file)
-    puts "Warning:\tFusion VM "+install_client+" does not exist "
+    handle_output("Warning:\tFusion VM #{install_client} does not exist ")
     exit
   end
   copy=[]
@@ -567,12 +567,12 @@ def attach_file_to_fusion_vm(install_client,install_file,install_type)
   fusion_vm_dir    = $fusion_dir+"/"+install_client+".vmwarevm"
   fusion_vmx_file  = fusion_vm_dir+"/"+install_client+".vmx"
   if !File.exist?(fusion_vmx_file)
-    puts "Warning:\tFusion VM "+install_client+" does not exist "
+    handle_output("Warning:\tFusion VM #{install_client} does not exist ")
     exit
   end
   if $verbose_mode == 1
-    puts "Information:\tAttaching file "+install_file+" to "+install_client
-    puts "Information:\tModifying file \""+fusion_vmx_file+"\""
+    handle_output("Information:\tAttaching file #{install_file} to #{install_client}")
+    handle_output("Information:\tModifying file \"#{fusion_vmx_file}\"")
   end
   copy=[]
   file=IO.readlines(fusion_vmx_file)
@@ -596,7 +596,7 @@ end
 
 def detach_file_from_fusion_vm(install_client)
   if $verbose_mode == 1
-    puts "Information:\tDetaching CDROM from "+install_client
+    handle_output("Information:\tDetaching CDROM from #{install_client}")
   end
   fusion_vm_dir    = $fusion_dir+"/"+install_client+".vmwarevm"
   fusion_vmx_file  = fusion_vm_dir+"/"+install_client+".vmx"
@@ -735,20 +735,20 @@ def boot_fusion_vm(install_client,install_type)
     execute_command(message,command)
     if $serial_mode == 1
       if $verbose_mode == 1
-        puts "Information:\tConnecting to serial port of "+install_client
+        handle_output("Information:\tConnecting to serial port of #{install_client}")
       end
       begin
         socket = UNIXSocket.open("/tmp/#{install_client}")
         socket.each_line do |line|
-          puts line
+          handle_output(line)
         end
       rescue
-        puts "Warning:\tCannot open socket"
+        handle_output("Warning:\tCannot open socket")
         exit
       end
     end
   else
-    puts "Warning:\tVMware Fusion VM "+install_client+" does not exist"
+    handle_output("Warning:\tVMware Fusion VM #{install_client} does not exist")
   end
   return
 end
@@ -765,7 +765,7 @@ def add_shared_folder_to_fusion_vm(install_client,install_share,install_mount)
     execute_command(message,command)
   else
     if $verbose_mode == 1
-      puts "Information:\tVMware Fusion VM "+install_client+" not running"
+      handle_output("Information:\tVMware Fusion VM #{install_client} not running")
     end
   end
   return
@@ -787,7 +787,7 @@ def stop_fusion_vm(install_client)
     execute_command(message,command)
   else
     if $verbose_mode == 1
-      puts "Information:\tVMware Fusion VM "+install_client+" not running"
+      handle_output("Information:\tVMware Fusion VM #{install_client} not running")
     end
   end
   return
@@ -809,7 +809,7 @@ def reset_fusion_vm(install_client)
     execute_command(message,command)
   else
     if $verbose_mode == 1
-      puts "Information:\tVMware Fusion VM "+install_client+" not running"
+      handle_output("Information:\tVMware Fusion VM #{install_client} not running")
     end
   end
   return
@@ -827,7 +827,7 @@ def suspend_fusion_vm(install_client)
     execute_command(message,command)
   else
     if $verbose_mode == 1
-      puts "Information:\tVMware Fusion VM "+install_client+" not running"
+      handle_output("Information:\tVMware Fusion VM #{install_client} not running")
     end
   end
   return
@@ -837,7 +837,7 @@ end
 
 def create_fusion_vm_disk(install_client,fusion_vm_dir,fusion_disk_file)
   if File.exist?(fusion_disk_file)
-    puts "Warning:\tVMware Fusion VM disk '"+fusion_disk_file+"' already exists for "+install_client
+    handle_output("Warning:\tVMware Fusion VM disk '#{fusion_disk_file}' already exists for #{install_client}")
     exit
   end
   check_dir_exists(fusion_vm_dir)
@@ -857,12 +857,12 @@ def check_fusion_vm_exists(install_client)
   fusion_vmx_file = fusion_vm_dir+"/"+install_client+".vmx"
   if !File.exist?(fusion_vmx_file)
     if $verbose_mode == 1
-      puts "Information:\tVMware Fusion VM "+install_client+" does not exist"
+      handle_output("Information:\tVMware Fusion VM #{install_client} does not exist")
     end
     exists = "no"
   else
     if $verbose_mode == 1
-      puts "Information:\tVMware Fusion VM "+install_client+" exists"
+      handle_output("Information:\tVMware Fusion VM #{install_client} exists")
     end
     exists = "yes"
   end
@@ -876,7 +876,7 @@ def check_fusion_vm_doesnt_exist(install_client)
   fusion_vmx_file  = fusion_vm_dir+"/"+install_client+".vmx"
   fusion_disk_file = fusion_vm_dir+"/"+install_client+".vmdk"
   if File.exist?(fusion_vmx_file)
-    puts "Information:\tVMware Fusion VM "+install_client+" already exists"
+    handle_output("Information:\tVMware Fusion VM #{install_client} already exists")
     exit
   end
   return fusion_vm_dir,fusion_vmx_file,fusion_disk_file
@@ -1105,7 +1105,7 @@ def unconfigure_fusion_vm(install_client)
     execute_command(message,command)
   else
     if $verbose_mode == 1
-      puts "Warning:\tVMware Fusion VM "+install_client+" does not exist"
+      handle_output("Warning:\tVMware Fusion VM #{install_client} does not exist")
     end
   end
   return
@@ -1126,7 +1126,7 @@ def create_fusion_vm_vmx_file(install_client,install_mac,install_os,fusion_vmx_f
   end
   file.close
   if $verbose_mode == 1
-    puts "Information:\tVMware Fusion VM "+install_client+" configuration:"
+    handle_output("Information:\tVMware Fusion VM #{install_client} configuration:")
     system("cat '#{fusion_vmx_file}'")
   end
   return
@@ -1164,7 +1164,7 @@ def create_fusion_vm_esx_file(install_client,local_vmx_file,fixed_vmx_file)
   end
   file.close
   if $verbose_mode == 1
-    puts "Information:\tVMware Fusion VM "+install_client+" configuration:"
+    handle("Information:\tVMware Fusion VM #{install_client} configuration:")
     system("cat '#{fixed_vmx_file}'")
   end
   return
@@ -1184,9 +1184,9 @@ def configure_fusion_vm(install_client,install_mac,install_os,install_arch,insta
   if !install_file.match(/ova$/)
     create_fusion_vm_disk(install_client,fusion_vm_dir,fusion_disk_file)
   end
-  puts
-  puts "Information:\tClient:     "+install_client+" created with MAC address "+install_mac
-  puts
+  handle_output("") 
+  handle_output("Information:\tClient:     #{install_client} created with MAC address #{install_mac}")
+  handle_output("")
   return
 end
 

@@ -46,7 +46,7 @@ end
 
 def handle_pkg(p_struct,pkg_name,build_type,pkg_repo_dir)
   if $verbose_mode == 1
-    puts "Information:\tHandling Package "+pkg_name
+    handle_output("Information:\tHandling Package #{pkg_name}")
   end
   depend_list     = []
   pkg_version     = p_struct[pkg_name].version
@@ -66,7 +66,7 @@ def handle_pkg(p_struct,pkg_name,build_type,pkg_repo_dir)
       end
       if !depend_pkg_name.match(/#{pkg_name}/)
         if $verbose_mode == 1
-          puts "Information:\tHandling dependency "+depend_pkg_name
+          handle_output("Information:\tHandling dependency #{depend_pkg_name}")
         end
         build_pkg(p_struct,depend_pkg_name,build_type,pkg_repo_dir)
         install_pkg(p_struct,depend_pkg_name,pkg_repo_dir)

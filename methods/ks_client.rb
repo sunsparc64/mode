@@ -11,8 +11,8 @@ end
 
 # Configure client PXE boot
 
-def configure_ks_pxe_client(client_name,client_ip,client_mac,client_arch,service_name)
-  tftp_pxe_file = client_mac.gsub(/:/,"")
+def configure_ks_pxe_client(install_client,install_ip,install_mac,install_arch,install_service)
+  tftp_pxe_file = install_mac.gsub(/:/,"")
   tftp_pxe_file = tftp_pxe_file.upcase
   tftp_pxe_file = "01"+tftp_pxe_file+".pxelinux"
   test_file     = $tftp_dir+"/"+tftp_pxe_file
@@ -22,58 +22,58 @@ def configure_ks_pxe_client(client_name,client_ip,client_mac,client_arch,service
     command = "rm #{test_file}"
     execute_command(message,command)
   end
-  if service_name.match(/ubuntu/)
-    pxelinux_file = service_name+"/images/pxeboot/netboot/pxelinux.0"
+  if install_service.match(/ubuntu/)
+    pxelinux_file = install_service+"/images/pxeboot/netboot/pxelinux.0"
   else
-    pxelinux_file = service_name+"/usr/share/syslinux/pxelinux.0"
+    pxelinux_file = install_service+"/usr/share/syslinux/pxelinux.0"
   end
-  message = "Information:\tCreating PXE boot file for "+client_name+" with MAC address "+client_mac
+  message = "Information:\tCreating PXE boot file for "+install_client+" with MAC address "+install_mac
   command = "cd #{$tftp_dir} ; ln -s #{pxelinux_file} #{tftp_pxe_file}"
   execute_command(message,command)
   pxe_cfg_dir  = $tftp_dir+"/pxelinux.cfg"
-  pxe_cfg_file = client_mac.gsub(/:/,"-")
+  pxe_cfg_file = install_mac.gsub(/:/,"-")
   pxe_cfg_file = "01-"+pxe_cfg_file
   pxe_cfg_file = pxe_cfg_file.downcase
   pxe_cfg_file = pxe_cfg_dir+"/"+pxe_cfg_file
-  if service_name.match(/sles/)
-    vmlinuz_file = "/"+service_name+"/boot/#{client_arch}/loader/linux"
+  if install_service.match(/sles/)
+    vmlinuz_file = "/"+install_service+"/boot/#{install_arch}/loader/linux"
   else
-    vmlinuz_file = "/"+service_name+"/images/pxeboot/vmlinuz"
+    vmlinuz_file = "/"+install_service+"/images/pxeboot/vmlinuz"
   end
-  if service_name.match(/ubuntu/)
-    if service_name.match(/x86_64/)
-      initrd_file  = "/"+service_name+"/images/pxeboot/netboot/ubuntu-installer/amd64/initrd.gz"
+  if install_service.match(/ubuntu/)
+    if install_service.match(/x86_64/)
+      initrd_file  = "/"+install_service+"/images/pxeboot/netboot/ubuntu-installer/amd64/initrd.gz"
     else
-      initrd_file  = "/"+service_name+"/images/pxeboot/netboot/ubuntu-installer/i386/initrd.gz"
+      initrd_file  = "/"+install_service+"/images/pxeboot/netboot/ubuntu-installer/i386/initrd.gz"
     end
-    if service_name.match(/14_10|15/)
+    if install_service.match(/14_10|15/)
       ldlinux_link = $tftp_dir+"/ldlinux.c32"
       if !File.exist?(ldlinux_link) and !File.symlink?(ldlinux_link)
-        ldlinux_file = service_name+"/images/pxeboot/netboot/ldlinux.c32"
+        ldlinux_file = install_service+"/images/pxeboot/netboot/ldlinux.c32"
         message = "Information:\tCreating symlink for ldlinux.c32"
         command = "ln -s #{ldlinux_file} #{ldlinux_link}"
         execute_command(message,command)
       end
     end
   else
-    if service_name.match(/sles/)
-      initrd_file  = "/"+service_name+"/boot/#{client_arch}/loader/initrd"
+    if install_service.match(/sles/)
+      initrd_file  = "/"+install_service+"/boot/#{install_arch}/loader/initrd"
     else
-      initrd_file  = "/"+service_name+"/images/pxeboot/initrd.img"
+      initrd_file  = "/"+install_service+"/images/pxeboot/initrd.img"
     end
   end
   if $os_name.match(/Darwin/)
     vmlinuz_file = vmlinuz_file.gsub(/^\//,"")
     initrd_file  = initrd_file.gsub(/^\//,"")
   end
-  if service_name.match(/packer/)
+  if install_service.match(/packer/)
     host_info = $default_gateway_ip+":"+$default_httpd_port
   else
     host_info = $default_host
   end
-  ks_url       = "http://"+host_info+"/clients/"+service_name+"/"+client_name+"/"+client_name+".cfg"
-  autoyast_url = "http://"+host_info+"/clients/"+service_name+"/"+client_name+"/"+client_name+".xml"
-  install_url  = "http://"+host_info+"/"+service_name
+  ks_url       = "http://"+host_info+"/clients/"+install_service+"/"+install_client+"/"+install_client+".cfg"
+  autoyast_url = "http://"+host_info+"/clients/"+install_service+"/"+install_client+"/"+install_client+".xml"
+  install_url  = "http://"+host_info+"/"+install_service
   file         = File.open(tmp_file,"w")
   if $serial_mode == 1
     file.write("serial 0 115200\n")
@@ -82,33 +82,33 @@ def configure_ks_pxe_client(client_name,client_ip,client_mac,client_arch,service
   file.write("DEFAULT LINUX\n")
   file.write("LABEL LINUX\n")
   file.write("  KERNEL #{vmlinuz_file}\n")
-  if service_name.match(/ubuntu/)
-    client_ip         = $q_struct["ip"].value
-    client_domain     = $q_struct["domain"].value
-    client_nic        = $q_struct["nic"].value
-    client_gateway    = $q_struct["gateway"].value
-    client_netmask    = $q_struct["netmask"].value
-    client_network    = $q_struct["network_address"].value
-    client_nameserver = $q_struct["nameserver"].value
+  if install_service.match(/ubuntu/)
+    install_ip         = $q_struct["ip"].value
+    install_domain     = $q_struct["domain"].value
+    install_nic        = $q_struct["nic"].value
+    install_gateway    = $q_struct["gateway"].value
+    install_netmask    = $q_struct["netmask"].value
+    install_network    = $q_struct["network_address"].value
+    install_nameserver = $q_struct["nameserver"].value
     disable_dhcp      = $q_struct["disable_dhcp"].value
     if disable_dhcp.match(/true/)
-      append_string = "  APPEND auto=true priority=critical preseed/url=#{ks_url} console-keymaps-at/keymap=us locale=en_US hostname=#{client_name} domain=#{client_domain} interface=#{client_nic} netcfg/get_ipaddress=#{client_ip} netcfg/get_netmask=#{client_netmask} netcfg/get_gateway=#{client_gateway} netcfg/get_nameservers=#{client_nameserver} netcfg/disable_dhcp=true initrd=#{initrd_file}"
+      append_string = "  APPEND auto=true priority=critical preseed/url=#{ks_url} console-keymaps-at/keymap=us locale=en_US hostname=#{install_client} domain=#{install_domain} interface=#{install_nic} netcfg/get_ipaddress=#{install_ip} netcfg/get_netmask=#{install_netmask} netcfg/get_gateway=#{install_gateway} netcfg/get_nameservers=#{install_nameserver} netcfg/disable_dhcp=true initrd=#{initrd_file}"
     else
-      append_string = "  APPEND `"
+      append_string = "  APPEND "
     end
   else
-    if service_name.match(/sles/)
+    if install_service.match(/sles/)
       append_string = "  APPEND initrd=#{initrd_file} install=#{install_url} autoyast=#{autoyast_url} language=#{$default_language}"
     else
-      if service_name.match(/fedora_2[0-3]/)
-        append_string = "  APPEND initrd=#{initrd_file} ks=#{ks_url} ip=#{client_ip} netmask=#{$default_netmask}"
+      if install_service.match(/fedora_2[0-3]/)
+        append_string = "  APPEND initrd=#{initrd_file} ks=#{ks_url} ip=#{install_ip} netmask=#{$default_netmask}"
       else
-        append_string = "  APPEND initrd=#{initrd_file} ks=#{ks_url} ksdevice=bootif ip=#{client_ip} netmask=#{$default_netmask}"
+        append_string = "  APPEND initrd=#{initrd_file} ks=#{ks_url} ksdevice=bootif ip=#{install_ip} netmask=#{$default_netmask}"
       end
     end
   end
   if $text_mode == 1
-    if service_name.match(/sles/)
+    if install_service.match(/sles/)
       append_string = append_string+" textmode=1"
     else
       append_string = append_string+" text"
@@ -129,46 +129,46 @@ end
 
 # Unconfigure client PXE boot
 
-def unconfigure_ks_pxe_client(client_name)
-  client_mac=get_client_mac(client_name)
-  if !client_mac
-    puts "Warning:\tNo MAC Address entry found for "+client_name
+def unconfigure_ks_pxe_client(install_client)
+  install_mac = get_install_mac(install_client)
+  if !install_mac
+    handle_output("Warning:\tNo MAC Address entry found for #{install_client}")
     exit
   end
-  tftp_pxe_file = client_mac.gsub(/:/,"")
+  tftp_pxe_file = install_mac.gsub(/:/,"")
   tftp_pxe_file = tftp_pxe_file.upcase
   tftp_pxe_file = "01"+tftp_pxe_file+".pxelinux"
   tftp_pxe_file = $tftp_dir+"/"+tftp_pxe_file
   if File.exist?(tftp_pxe_file)
-    message = "Information:\tRemoving PXE boot file "+tftp_pxe_file+" for "+client_name
+    message = "Information:\tRemoving PXE boot file "+tftp_pxe_file+" for "+install_client
     command = "rm #{tftp_pxe_file}"
     output  = execute_command(message,command)
   end
   pxe_cfg_dir  = $tftp_dir+"/pxelinux.cfg"
-  pxe_cfg_file = client_mac.gsub(/:/,"-")
+  pxe_cfg_file = install_mac.gsub(/:/,"-")
   pxe_cfg_file = "01-"+pxe_cfg_file
   pxe_cfg_file = pxe_cfg_file.downcase
   pxe_cfg_file = pxe_cfg_dir+"/"+pxe_cfg_file
   if File.exist?(pxe_cfg_file)
-    message = "Information:\tRemoving PXE boot config file "+pxe_cfg_file+" for "+client_name
+    message = "Information:\tRemoving PXE boot config file "+pxe_cfg_file+" for "+install_client
     command = "rm #{pxe_cfg_file}"
     output  = execute_command(message,command)
   end
-  unconfigure_ks_dhcp_client(client_name)
+  unconfigure_ks_dhcp_client(install_client)
   return
 end
 
 # Configure DHCP entry
 
-def configure_ks_dhcp_client(client_name,client_mac,client_ip,client_arch,service_name)
-  add_dhcp_client(client_name,client_mac,client_ip,client_arch,service_name)
+def configure_ks_dhcp_client(install_client,install_mac,install_ip,install_arch,install_service)
+  add_dhcp_client(install_client,install_mac,install_ip,install_arch,install_service)
   return
 end
 
 # Unconfigure DHCP client
 
-def unconfigure_ks_dhcp_client(client_name)
-  remove_dhcp_client(client_name)
+def unconfigure_ks_dhcp_client(install_client)
+  remove_dhcp_client(install_client)
   return
 end
 
@@ -189,8 +189,8 @@ def configure_ks_client(install_client,install_arch,install_mac,install_ip,insta
   client_dir = $client_base_dir+"/"+install_service+"/"+install_client
   check_fs_exists(client_dir)
   if !File.directory?(repo_version_dir)
-    puts "Warning:\tService "+install_service+" does not exist"
-    puts
+    handle_output("Warning:\tService #{install_service} does not exist")
+    handle_output("") 
     list_ks_services()
     exit
   end
@@ -207,7 +207,7 @@ def configure_ks_client(install_client,install_arch,install_mac,install_ip,insta
     output_ks_header(install_client,output_file)
     pkg_list = populate_ks_pkg_list(install_service)
     output_ks_pkg_list(install_client,pkg_list,output_file,install_service)
-    post_list = populate_ks_post_list(install_arch,install_service,publisher_host,install_client,install_ip)
+    post_list = populate_ks_post_list(install_arch,install_service,publisher_host,install_client,install_ip,install_vm)
     output_ks_post_list(install_client,post_list,output_file,install_service)
   else
     if install_service.match(/sles/)
@@ -236,15 +236,15 @@ end
 
 # Unconfigure Kickstart client
 
-def unconfigure_ks_client(client_name,client_mac,service_name)
-  unconfigure_ks_pxe_client(client_name)
-  unconfigure_ks_dhcp_client(client_name)
+def unconfigure_ks_client(install_client,install_mac,install_service)
+  unconfigure_ks_pxe_client(install_client)
+  unconfigure_ks_dhcp_client(install_client)
   return
 end
 
 # Populate post commands
 
-def populate_ks_post_list(client_arch,service_name,publisher_host,client_name,client_ip)
+def populate_ks_post_list(install_arch,install_service,publisher_host,install_client,install_ip,install_vm)
   gateway_ip  = $default_gateway_ip
   post_list   = []
   admin_group = $q_struct["admin_group"].value
@@ -283,50 +283,50 @@ def populate_ks_post_list(client_arch,service_name,publisher_host,client_name,cl
   post_list.push("")
   post_list.push("route add default gw #{gateway_ip}")
   post_list.push("echo 'GATEWAY=#{gateway_ip}' > /etc/sysconfig/network")
-  if service_name.match(/rhel_[5,6]/)
+  if install_service.match(/rhel_[5,6]/)
     post_list.push("echo 'NETWORKING=yes' >> /etc/sysconfig/network")
-    post_list.push("echo 'HOSTNAME=#{client_name}' >> /etc/sysconfig/network")
+    post_list.push("echo 'HOSTNAME=#{install_client}' >> /etc/sysconfig/network")
     post_list.push("")
     post_list.push("echo 'default via #{gateway_ip} dev #{nic_name}' > /etc/sysconfig/network-scripts/route-eth0")
   end
   post_list.push("")
-  if service_name.match(/centos|fedora|rhel|sl_|oel/)
-    if service_name.match(/centos_5|fedora_18|rhel_5|sl_5|oel_5/)
+  if install_service.match(/centos|fedora|rhel|sl_|oel/)
+    if install_service.match(/centos_5|fedora_18|rhel_5|sl_5|oel_5/)
       epel_url = "http://"+$local_epel_mirror+"/pub/epel/5/i386/epel-release-5-4.noarch.rpm"
     end
-    if service_name.match(/centos_6|fedora_19|fedora_20|rhel_6|sl_6|oel_6/)
+    if install_service.match(/centos_6|fedora_19|fedora_20|rhel_6|sl_6|oel_6/)
       epel_url = "http://"+$local_epel_mirror+"/pub/epel/6/i386/epel-release-6-8.noarch.rpm"
     end
-    if service_name.match(/centos/)
+    if install_service.match(/centos/)
       repo_file = "/etc/yum.repos.d/CentOS-Base.repo"
     end
-    if service_name.match(/sl_/)
+    if install_service.match(/sl_/)
       repo_file = "/etc/yum.repos.d/sl.repo"
     end
-    if service_name.match(/centos|sl_/)
+    if install_service.match(/centos|sl_/)
       post_list.push("# Change mirror for yum")
       post_list.push("")
       post_list.push("echo 'Changing default mirror for yum'")
       post_list.push("cp #{repo_file} #{repo_file}.orig")
     end
   end
-  if service_name.match(/centos/)
+  if install_service.match(/centos/)
     post_list.push("sed -i 's/^mirror./#&/g' #{repo_file}")
     post_list.push("sed -i 's/^#\\(baseurl\\)/\\1/g' #{repo_file}")
     post_list.push("sed -i 's,#{$default_centos_mirror},#{$local_centos_mirror},g' #{repo_file}")
   end
-  if service_name.match(/sl_/)
+  if install_service.match(/sl_/)
     post_list.push("sed -i 's,#{$default_sl_mirror},#{$local_sl_mirror},g' #{repo_file}")
   end
-  if service_name.match(/_[5,6]/)
-    if service_name.match(/_5/)
-      epel_url = "http://"+$local_epel_mirror+"/pub/epel/5/"+client_arch+"/epel-release-5-4.noarch.rpm"
+  if install_service.match(/_[5,6]/)
+    if install_service.match(/_5/)
+      epel_url = "http://"+$local_epel_mirror+"/pub/epel/5/"+install_arch+"/epel-release-5-4.noarch.rpm"
     end
-    if service_name.match(/_6/)
-      epel_url = "http://"+$local_epel_mirror+"/pub/epel/6/"+client_arch+"/epel-release-6-8.noarch.rpm"
+    if install_service.match(/_6/)
+      epel_url = "http://"+$local_epel_mirror+"/pub/epel/6/"+install_arch+"/epel-release-6-8.noarch.rpm"
     end
-    if service_name.match(/_7/)
-      epel_url = "http://"+$local_epel_mirror+"/pub/epel/beta/7/"+client_arch+"/epel-release-7-0.2.noarch.rpm"
+    if install_service.match(/_7/)
+      epel_url = "http://"+$local_epel_mirror+"/pub/epel/beta/7/"+install_arch+"/epel-release-7-0.2.noarch.rpm"
     end
     post_list.push("")
     post_list.push("# Configure Epel repo")
@@ -341,7 +341,7 @@ def populate_ks_post_list(client_arch,service_name,publisher_host,client_name,cl
     post_list.push("")
   end
   if $default_options.match(/puppet/)
-    rpm_list  = populate_puppet_rpm_list(service_name,client_arch)
+    rpm_list  = populate_puppet_rpm_list(install_service,install_arch)
     rpm_file  = rpm_list.grep(/facter/)[0]
     if rpm_file
       rpm_file  = rpm_file.split(/\//)[1..-1].join("/")
@@ -383,7 +383,7 @@ def populate_ks_post_list(client_arch,service_name,publisher_host,client_name,cl
   post_list.push("sed -i 's/9600/115200/' /etc/inittab")
   post_list.push("sed -i 's/kernel.*/& console=ttyS0,115200n8/' /etc/grub.conf")
   post_list.push("")
-  if service_name.match(/oel_6_5/)
+  if install_service.match(/oel_6_5/)
     post_list.push("# OEL beta repo")
     post_list.push("")
     post_list.push("echo '[uek3_beta]' > #{beta_file}")
@@ -407,25 +407,25 @@ def populate_ks_post_list(client_arch,service_name,publisher_host,client_name,cl
     post_list.push("chmod 755 /etc/rc.modules")
     post_list.push("")
   end
-  if service_name.match(/rhel_/)
+  if install_service.match(/rhel_/)
     post_list.push("# Add host entry")
     post_list.push("")
-    post_list.push("echo '#{client_ip} #{client_name}' >> /etc/hosts")
-    post_list.push("echo 'HOSTNAME=#{client_name}' >> /etc/sysconfig/network")
+    post_list.push("echo '#{install_ip} #{install_client}' >> /etc/hosts")
+    post_list.push("echo 'HOSTNAME=#{install_client}' >> /etc/sysconfig/network")
     post_list.push("")
   end
   if $do_ssh_keys == 1
     post_list.push("# Copy SSH keys")
     post_list.push("")
     ssh_key = $home_dir+"/.ssh/id_rsa.pub"
-    key_dir = service_name+"/keys"
+    key_dir = install_service+"/keys"
     check_dir_exists(key_dir)
     auth_file = key_dir+"/authorized_keys"
     message   = "Copying:\tSSH keys"
     command   = "cp #{ssh_key} #{auth_file}"
     execute_command(message,command)
     ssh_dir   = admin_home+"/.ssh"
-    ssh_url   = "http://#{publisher_host}/#{service_name}/keys/authorized_keys"
+    ssh_url   = "http://#{publisher_host}/#{install_service}/keys/authorized_keys"
     auth_file = ssh_dir+"/authorized_keys"
     post_list.push("mkdir #{ssh_dir}/.ssh")
     post_list.push("chown #{admin_uid}:#{admin_gid} #{ssh_dir}")
@@ -448,17 +448,19 @@ def populate_ks_post_list(client_arch,service_name,publisher_host,client_name,cl
     post_list.push("puppet agent --test")
     post_list.push("")
   end
-  post_list.push("# Install VirtualBox Tools")
-  post_list.push("")
-  post_list.push("mkdir /mnt/cdrom")
-  post_list.push("if [ \"`dmidecode |grep VirtualBox`\" ]; then")
-  post_list.push("  echo 'Installing VirtualBox Guest Additions'")
-  post_list.push("  mount /dev/cdrom /mnt/cdrom")
-  post_list.push("  /mnt/cdrom/VBoxLinuxAdditions.run")
-  post_list.push("  umount /mnt/cdrom")
-  post_list.push("fi")
-  post_list.push("")
-  if service_name.match(/rhel|centos/)
+  if install_vm.match(/vbox/)
+    post_list.push("# Install VirtualBox Tools")
+    post_list.push("")
+    post_list.push("mkdir /mnt/cdrom")
+    post_list.push("if [ \"`dmidecode |grep VirtualBox`\" ]; then")
+    post_list.push("  echo 'Installing VirtualBox Guest Additions'")
+    post_list.push("  mount /dev/cdrom /mnt/cdrom")
+    post_list.push("  /mnt/cdrom/VBoxLinuxAdditions.run")
+    post_list.push("  umount /mnt/cdrom")
+    post_list.push("fi")
+    post_list.push("")
+  end
+  if install_service.match(/rhel|centos/)
     post_list.push("# Enable serial console")
     post_list.push("")
     post_list.push("grubby --update-kernel=ALL --args=\"console=ttyS0\"")
@@ -468,10 +470,10 @@ def populate_ks_post_list(client_arch,service_name,publisher_host,client_name,cl
     post_list.push("mkdir /tmp/rpms")
     post_list.push("cd /tmp/rpms")
     alt_url  = "http://"+$default_host
-    rpm_list = build_ks_alt_rpm_list(service_name)
-    alt_dir  = $repo_base_dir+"/"+service_name+"/alt"
+    rpm_list = build_ks_alt_rpm_list(install_service)
+    alt_dir  = $repo_base_dir+"/"+install_service+"/alt"
     if $verbose_mode == 1
-      puts "Checking:\tAdditional packages"
+      handle_output("Checking:\tAdditional packages")
     end
     if File.directory?(alt_dir)
       rpm_list.each do |rpm_url|
@@ -493,46 +495,46 @@ end
 
 # Populat a list of additional packages to install
 
-def populate_ks_pkg_list(service_name)
+def populate_ks_pkg_list(install_service)
   pkg_list = []
-  if service_name.match(/centos|fedora|rhel|sl_|oel/)
-    if !service_name.match(/fedora_[19,20,21,22,23,24]/)
+  if install_service.match(/centos|fedora|rhel|sl_|oel/)
+    if !install_service.match(/fedora_[19,20,21,22,23,24]/)
       pkg_list.push("@base")
     end
     pkg_list.push("@core")
-    if service_name.match(/[a-z]_6/)
+    if install_service.match(/[a-z]_6/)
       pkg_list.push("@console-internet")
       pkg_list.push("@system-admin-tools")
     end
-    if !service_name.match(/sl_6|[a-z]_5|fedora_[19,20,21,22,23,24]/)
+    if !install_service.match(/sl_6|[a-z]_5|fedora_[19,20,21,22,23,24]/)
       pkg_list.push("@network-file-system-client")
     end
-    if service_name.match(/centos_[6,7]|fedora_[18,19,20,21,22,23,24]|rhel_[6,7]|oel_[6,7]|sl_[6,7]/)
-      if !service_name.match(/fedora_[23,24]/)
+    if install_service.match(/centos_[6,7]|fedora_[18,19,20,21,22,23,24]|rhel_[6,7]|oel_[6,7]|sl_[6,7]/)
+      if !install_service.match(/fedora_[23,24]/)
         pkg_list.push("redhat-lsb-core")
-        if !service_name.match(/rhel_6|oel_6/)
+        if !install_service.match(/rhel_6|oel_6/)
           pkg_list.push("augeas")
         end
         pkg_list.push("tk")
       end
-      if !service_name.match(/fedora_24/)
+      if !install_service.match(/fedora_24/)
         pkg_list.push("ruby")
         pkg_list.push("ruby-irb")
         pkg_list.push("ruby-libs")
         pkg_list.push("rubygems")
       end
-      if !service_name.match(/_7|fedora_[23,24]/)
+      if !install_service.match(/_7|fedora_[23,24]/)
         pkg_list.push("ruby-rdoc")
       end
       pkg_list.push("augeas-libs")
     end
-    if !service_name.match(/fedora_[19,20,21,22,23,24]|[rhel,centos]_7/)
+    if !install_service.match(/fedora_[19,20,21,22,23,24]|[rhel,centos]_7/)
       pkg_list.push("grub")
       pkg_list.push("libselinux-ruby")
     end
     pkg_list.push("e2fsprogs")
     pkg_list.push("lvm2")
-    if !service_name.match(/fedora_[23,24]/)
+    if !install_service.match(/fedora_[23,24]/)
       pkg_list.push("kernel-devel")
       pkg_list.push("automake")
       pkg_list.push("autoconf")
@@ -542,20 +544,20 @@ def populate_ks_pkg_list(service_name)
     pkg_list.push("kernel-headers")
     pkg_list.push("dos2unix")
     pkg_list.push("unix2dos")
-    if !service_name.match(/[rhel,oel]_7|fedora_24/)
+    if !install_service.match(/[rhel,oel]_7|fedora_24/)
       pkg_list.push("ruby-devel")
     end
-    if !service_name.match(/fedora_24/)
+    if !install_service.match(/fedora_24/)
       pkg_list.push("zlib-devel")
     end
-    if !service_name.match(/fedora_[23,24]/)
+    if !install_service.match(/fedora_[23,24]/)
       pkg_list.push("libgpg-error-devel")
       pkg_list.push("libxml2-devel")
       pkg_list.push("libgcrypt-devel")
       pkg_list.push("xz-devel")
       pkg_list.push("libxslt-devel")
       pkg_list.push("libstdc++-devel")
-      if !service_name.match(/rhel_5|fedora_[23,24]/)
+      if !install_service.match(/rhel_5|fedora_[23,24]/)
         pkg_list.push("perl-TermReadKey")
         pkg_list.push("git")
         pkg_list.push("perl-Git")
@@ -566,22 +568,22 @@ def populate_ks_pkg_list(service_name)
       pkg_list.push("xinetd")
       pkg_list.push("tftp-server")
     end
-    if !service_name.match(/rhel_[5,6]|oel_6/)
+    if !install_service.match(/rhel_[5,6]|oel_6/)
       pkg_list.push("libgnome-keyring")
     end
-    if !service_name.match(/rhel_5/)
+    if !install_service.match(/rhel_5/)
       pkg_list.push("perl-Error")
     end
     pkg_list.push("httpd")
-    if service_name.match(/fedora_[19,20,21,22,23,24]/)
+    if install_service.match(/fedora_[19,20,21,22,23,24]/)
       pkg_list.push("net-tools")
       pkg_list.push("bind-utils")
     end
-    if !service_name.match(/fedora_[19,20,21,22,23,24]/)
+    if !install_service.match(/fedora_[19,20,21,22,23,24]/)
       pkg_list.push("ntp")
     end
     pkg_list.push("rsync")
-    if service_name.match(/sl_6/)
+    if install_service.match(/sl_6/)
       pkg_list.push("-samba-client")
     end
   end
@@ -590,8 +592,8 @@ end
 
 # Output the Kickstart file header
 
-def output_ks_header(client_name,output_file)
-  tmp_file = "/tmp/ks_"+client_name
+def output_ks_header(install_client,output_file)
+  tmp_file = "/tmp/ks_"+install_client
   file=File.open(tmp_file, 'w')
   $q_order.each do |key|
     if $q_struct[key].type.match(/output/)
@@ -612,8 +614,8 @@ end
 
 # Output the ks packages list
 
-def output_ks_pkg_list(client_name,pkg_list,output_file,service_name)
-  tmp_file = "/tmp/ks_pkg_"+client_name
+def output_ks_pkg_list(install_client,pkg_list,output_file,install_service)
+  tmp_file = "/tmp/ks_pkg_"+install_client
   file     = File.open(tmp_file, 'w')
   output   = "\n%packages\n"
   file.write(output)
@@ -621,7 +623,7 @@ def output_ks_pkg_list(client_name,pkg_list,output_file,service_name)
     output = pkg_name+"\n"
     file.write(output)
   end
-  if service_name.match(/fedora_[19,20]|[centos,rhel,oel,sl]_7/)
+  if install_service.match(/fedora_[19,20]|[centos,rhel,oel,sl]_7/)
     output   = "\n%end\n"
     file.write(output)
   end
@@ -634,9 +636,9 @@ end
 
 # Output the ks packages list
 
-def output_ks_post_list(client_name,post_list,output_file,service_name)
-  tmp_file = "/tmp/postinstall_"+client_name
-  if service_name.match(/centos|fedora|rhel|sl_|oel/)
+def output_ks_post_list(install_client,post_list,output_file,install_service)
+  tmp_file = "/tmp/postinstall_"+install_client
+  if install_service.match(/centos|fedora|rhel|sl_|oel/)
     message = "Information:\tAppending post install script "+output_file
     command = "cp #{output_file} #{tmp_file}"
     file=File.open(tmp_file, 'a')
@@ -652,7 +654,7 @@ def output_ks_post_list(client_name,post_list,output_file,service_name)
     output = line+"\n"
     file.write(output)
   end
-  if service_name.match(/fedora_[19,20]|[centos,rhel,sl]_7/)
+  if install_service.match(/fedora_[19,20]|[centos,rhel,sl]_7/)
     output   = "\n%end\n"
     file.write(output)
   end
@@ -660,24 +662,24 @@ def output_ks_post_list(client_name,post_list,output_file,service_name)
   message = "Information:\tCreating post install script "+output_file
   execute_command(message,command)
   if $verbose_mode == 1
-    puts "Information:\tInstall file "+output_file+" contents:"
-    puts
+    handle_output("Information:\tInstall file #{output_file} contents:")
+    handle_output("") 
     system("cat #{output_file}")
-    puts
+    handle_output("") 
   end
   return
 end
 
-# Check service service_name
+# Check service install_service
 
-def check_ks_service_name(service_name)
-  if !service_name.match(/[a-z,A-Z]/)
-    puts "Warning:\tService name not given"
+def check_ks_install_service(install_service)
+  if !install_service.match(/[a-z,A-Z]/)
+    handle_output("Warning:\tService name not given")
     exit
   end
   client_list = Dir.entries($repo_base_dir)
-  if !client_list.grep(service_name)
-    puts "Warning:\tService name "+service_name+" does not exist"
+  if !client_list.grep(install_service)
+    handle_output("Warning:\tService name #{install_service} does not exist")
     exit
   end
   return

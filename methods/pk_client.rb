@@ -39,7 +39,7 @@ end
 
 def list_packer_clients(install_vm)
   packer_dir = $client_base_dir+"/packer"
-  if !install_vm.match(/[a-z,A-Z]/)
+  if !install_vm.match(/[a-z,A-Z]/) or install_vm.match(/none/)
     vm_types = [ 'fusion', 'vbox' ]
   else
     vm_types = []
@@ -48,14 +48,14 @@ def list_packer_clients(install_vm)
   vm_types.each do |vm_type|
     vm_dir = packer_dir+"/"+vm_type
     if File.directory?(vm_dir)
-      puts ""
+      handle_output("")
       if vm_type.match(/vbox/)
         vm_title = "VirtualBox"
       else
         vm_title = "VMware Fusion"
       end
-      puts "Packer "+vm_title+" clients:"
-      puts
+      handle_output("Packer #{vm_title} clients:")
+      handle_output("")
       vm_list = Dir.entries(vm_dir)
       vm_list.each do |vm_name|
         if vm_name.match(/[a-z,A-Z]/)
@@ -63,12 +63,13 @@ def list_packer_clients(install_vm)
           if File.exist?(json_file)
             json  = File.readlines(json_file)
             vm_os = json.grep(/guest_os_type/)[0].split(/:/)[1].split(/"/)[1]
-            puts vm_name+" os="+vm_os
+            handle_output("#{vm_name} os=#{vm_os}")
           end
         end
       end
     end
   end
+  return
 end
 
 # Configure Packer JSON file
@@ -966,9 +967,9 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   delete_file(json_file)
   File.write(json_file,json_output)
   if $verbose_mode == 1
-  	puts
+    handle_output("")	
   	system("cat #{json_file}")
-  	puts
+    handle_output("")
   end
   return communicator
 end
@@ -992,7 +993,7 @@ end
 
 def unconfigure_packer_client(install_client,install_vm)
 	if $verbose_mode == 1
-		puts "Information:\tDeleting Packer Image for "+install_client
+		handle_output("Information:\tDeleting Packer Image for #{install_client}")
 	end
 	packer_dir = $client_base_dir+"/packer/"+install_vm
   client_dir = packer_dir+"/"+install_client
@@ -1004,14 +1005,14 @@ def unconfigure_packer_client(install_client,install_vm)
   [ ovf_file, cfg_file, json_file, disk_file ].each do |file_name|
     if File.exist?(file_name)
     	if $verbose_mode == 1
-    		puts "Information:\tDeleting file "+file_name
+    		handle_output("Information:\tDeleting file #{file_name}")
     	end
     	File.delete(file_name)
     end
   end
   if Dir.exist?(image_dir)
   	if $verbose_mode == 1
-  		puts "Information:\tDeleting directory "+image_dir
+  		handle_output("Information:\tDeleting directory #{image_dir}")
   	end
     if image_dir.match(/[a-z]/)
     	FileUtils.rm_rf(image_dir)
@@ -1024,7 +1025,7 @@ end
 # some times dead packer processes are left running which stop the build process starting
 
 def kill_packer_processes(install_client)
-  puts "Information:\tMaking sure no existing Packer processes are running for "+install_client
+  handle_output("Information:\tMaking sure no existing Packer processes are running for #{install_client}")
   %x[ps -ef |grep packer |grep "#{install_client}.json" |awk '{print $2}' |xargs kill]
   return
 end
@@ -1043,12 +1044,12 @@ def configure_packer_client(install_method,install_vm,install_os,install_client,
   check_dir_owner($client_base_dir,uid)
 	exists = eval"[check_#{install_vm}_vm_exists(install_client)]"
 	if exists == "yes"
-		puts "Warning:\tVirtualBox VM "+install_client+" already exists"
+		handle_output("Warning:\tVirtualBox VM #{install_client} already exists")
 		exit
 	end
 	exists = check_packer_image_exists(install_client,install_vm)
 	if exists == "yes"
-		puts "Warning:\tPacker image for VirtualBox VM "+install_client+" already exists "
+		handle_output("Warning:\tPacker image for VirtualBox VM #{install_client} already exists")
 		exit
 	end
   (install_service,install_os,install_method,install_release,install_arch,install_label) = get_packer_install_service(install_file)
@@ -1066,14 +1067,14 @@ def build_packer_config(install_client,install_vm)
   kill_packer_processes(install_client)
   exists = eval"[check_#{install_vm}_vm_exists(install_client)]"
   if exists.to_s.match(/yes/)
-    puts "Warning:\t"+install_vm.capitalize+" VM "+install_client+" already exists "
+    handle_output("Warning:\t#{install_vm.capitalize} VM #{install_client} already exists ")
     exit
   end
   exists = check_packer_image_exists(install_client,install_vm)
   client_dir = $client_base_dir+"/packer/"+install_vm+"/"+install_client
   json_file  = client_dir+"/"+install_client+".json"
   if !File.exist?(json_file)
-    puts "Warning:\tJSON configuration file \""+json_file+"\" for "+install_client+" does not exist"
+    handle_output("Warning:\tJSON configuration file \"#{json_file}\" for #{install_client} does not exist")
     exit
   end
 	message    = "Information:\tBuilding Packer Image "+json_file
@@ -1123,7 +1124,7 @@ def create_packer_ks_install_files(install_arch,install_client,install_service,i
   output_ks_header(install_client,output_file)
   pkg_list = populate_ks_pkg_list(install_service)
   output_ks_pkg_list(install_client,pkg_list,output_file,install_service)
-  post_list = populate_ks_post_list(install_arch,install_service,publisher_host,install_client,install_ip)
+  post_list = populate_ks_post_list(install_arch,install_service,publisher_host,install_client,install_ip,install_vm)
   output_ks_post_list(install_client,post_list,output_file,install_service)
   return
 end
@@ -1244,7 +1245,7 @@ def copy_pkg_to_packer_client(pkg_name,install_client,install_vm)
     source_pkg = pkg_name
   end
   if !File.exist?(source_pkg)
-    puts "Warning:\tPackage "+source_pkg+" does not exist"
+    handle_output("Warning:\tPackage #{source_pkg} does not exist")
     exit
   end
   if !File.exist?(dest_pkg)

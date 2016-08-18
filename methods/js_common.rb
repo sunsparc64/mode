@@ -128,8 +128,8 @@ def list_js_isos()
   search_string = "\\-ga\\-"
   iso_list      = check_iso_base_dir(search_string)
   if iso_list.length > 0
-    puts "Available Jumpstart ISOs:"
-    puts
+    handle_output("Available Jumpstart ISOs:")
+    handle_output("") 
   end
   iso_list.each do |iso_file|
     iso_file    = iso_file.chomp
@@ -137,18 +137,18 @@ def list_js_isos()
     iso_info    = iso_info.split(/-/)
     iso_version = iso_info[1..2].join("_")
     iso_arch    = iso_info[4]
-    puts "ISO file:\t"+iso_file
-    puts "Distribution:\tSolaris"
-    puts "Version:\t"+iso_version
-    puts "Architecture:\t"+iso_arch
+    handle_output("ISO file:\t#{iso_file}")
+    handle_output("Distribution:\tSolaris")
+    handle_output("Version:\t#{iso_version}")
+    handle_output("Architecture:\t#{iso_arch}")
     service_name     = "sol_"+iso_version+"_"+iso_arch
     repo_version_dir = $repo_base_dir+"/"+service_name
     if File.directory?(repo_version_dir)
-      puts "Information:\tService Name "+service_name+" (exists)"
+      handle_output("Information:\tService Name #{service_name} (exists)")
     else
-      puts "Information:\tService Name "+service_name
+      handle_output("Information:\tService Name #{service_name}")
     end
-    puts
+    handle_output("") 
   end
   return
 end

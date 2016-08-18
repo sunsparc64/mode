@@ -3,15 +3,15 @@
 
 # Unconfigure alternate packages
 
-def unconfigure_ks_alt_repo(service_name)
+def unconfigure_ks_alt_repo(install_service)
   return
 end
 
 # Configure alternate packages
 
-def configure_ks_alt_repo(service_name,client_arch)
-  rpm_list = build_ks_alt_rpm_list(service_name)
-  alt_dir  = $repo_base_dir+"/"+service_name+"/alt"
+def configure_ks_alt_repo(install_service,install_arch)
+  rpm_list = build_ks_alt_rpm_list(install_service)
+  alt_dir  = $repo_base_dir+"/"+install_service+"/alt"
   check_dir_exists(alt_dir)
   rpm_list.each do |rpm_url|
     rpm_file = File.basename(rpm_url)
@@ -25,11 +25,11 @@ end
 
 # Unconfigure Linux repo
 
-def unconfigure_ks_repo(service_name)
-  remove_apache_alias(service_name)
-  repo_version_dir = $repo_base_dir+"/"+service_name
+def unconfigure_ks_repo(install_service)
+  remove_apache_alias(install_service)
+  repo_version_dir = $repo_base_dir+"/"+install_service
   if File.symlink?(repo_version_dir)
-    netboot_repo_dir = $tftp_dir+"/"+service_name
+    netboot_repo_dir = $tftp_dir+"/"+install_service
     destroy_zfs_fs(netboot_repo_dir)
     File.delete(repo_version_dir)
   else
@@ -50,8 +50,8 @@ end
 
 # Copy Linux ISO contents to repo
 
-def configure_ks_repo(service_name,iso_file,repo_version_dir)
-  netboot_repo_dir = $tftp_dir+"/"+service_name
+def configure_ks_repo(install_service,iso_file,repo_version_dir)
+  netboot_repo_dir = $tftp_dir+"/"+install_service
   if $os_name.match(/SunOS/)
     if $os_ver.to_i < 11
       check_fs_exists(repo_version_dir)
@@ -79,7 +79,7 @@ def configure_ks_repo(service_name,iso_file,repo_version_dir)
     check_dir = repo_version_dir+"/isolinux"
   end
   if $verbose_mode == 1
-    puts "Information:\tChecking directory "+check_dir+" exits"
+    handle_output("Information:\tChecking directory #{check_dir} exits")
   end
   if !File.directory?(check_dir)
     mount_iso(iso_file)
@@ -102,41 +102,41 @@ end
 
 # Unconfigure Kickstart server
 
-def unconfigure_ks_server(service_name)
-  unconfigure_ks_repo(service_name)
+def unconfigure_ks_server(install_service)
+  unconfigure_ks_repo(install_service)
 end
 
 # Configure PXE boot
 
-def configure_ks_pxe_boot(service_name,iso_arch)
-  pxe_boot_dir = $tftp_dir+"/"+service_name
-  if service_name.match(/centos|rhel|fedora|sles|sl_|oel/)
+def configure_ks_pxe_boot(install_service,iso_arch)
+  pxe_boot_dir = $tftp_dir+"/"+install_service
+  if install_service.match(/centos|rhel|fedora|sles|sl_|oel/)
     test_dir     = pxe_boot_dir+"/usr"
     if !File.directory?(test_dir)
-      if service_name.match(/centos/)
-        rpm_dir = $repo_base_dir+"/"+service_name+"/CentOS"
+      if install_service.match(/centos/)
+        rpm_dir = $repo_base_dir+"/"+install_service+"/CentOS"
         if !File.directory?(rpm_dir)
-          rpm_dir = $repo_base_dir+"/"+service_name+"/Packages"
+          rpm_dir = $repo_base_dir+"/"+install_service+"/Packages"
         end
       end
-      if service_name.match(/sles/)
-        rpm_dir = $repo_base_dir+"/"+service_name+"/suse"
+      if install_service.match(/sles/)
+        rpm_dir = $repo_base_dir+"/"+install_service+"/suse"
       end
-      if service_name.match(/sl_/)
-        rpm_dir = $repo_base_dir+"/"+service_name+"/Scientific"
+      if install_service.match(/sl_/)
+        rpm_dir = $repo_base_dir+"/"+install_service+"/Scientific"
         if !File.directory?(rpm_dir)
-          rpm_dir = $repo_base_dir+"/"+service_name+"/Packages"
+          rpm_dir = $repo_base_dir+"/"+install_service+"/Packages"
         end
       end
-      if service_name.match(/oel|rhel|fedora/)
-        if service_name.match(/rhel_5/)
-          rpm_dir = $repo_base_dir+"/"+service_name+"/Server"
+      if install_service.match(/oel|rhel|fedora/)
+        if install_service.match(/rhel_5/)
+          rpm_dir = $repo_base_dir+"/"+install_service+"/Server"
         else
-          rpm_dir = $repo_base_dir+"/"+service_name+"/Packages"
+          rpm_dir = $repo_base_dir+"/"+install_service+"/Packages"
         end
       end
       if File.directory?(rpm_dir)
-        if !service_name.match(/sl_|fedora_19|rhel_6/)
+        if !install_service.match(/sl_|fedora_19|rhel_6/)
           message  = "Information:\tLocating syslinux package"
           command  = "cd #{rpm_dir} ; find . -name 'syslinux-[0-9]*' |grep '#{iso_arch}'"
           output   = execute_command(message,command)
@@ -170,20 +170,20 @@ def configure_ks_pxe_boot(service_name,iso_arch)
           execute_command(message,command)
         end
       else
-        puts "Warning:\tSource directory "+rpm_dir+" does not exist"
+        handle_output("Warning:\tSource directory #{rpm_dir} does not exist")
         exit
       end
     end
-    if service_name.match(/sles/)
+    if install_service.match(/sles/)
       pxe_image_dir=pxe_boot_dir+"/boot"
     else
       pxe_image_dir=pxe_boot_dir+"/images"
     end
     if !File.directory?(pxe_image_dir)
-      if service_name.match(/sles/)
-        iso_image_dir = $repo_base_dir+"/"+service_name+"/boot"
+      if install_service.match(/sles/)
+        iso_image_dir = $repo_base_dir+"/"+install_service+"/boot"
       else
-        iso_image_dir = $repo_base_dir+"/"+service_name+"/images"
+        iso_image_dir = $repo_base_dir+"/"+install_service+"/images"
       end
       message       = "Information:\tCopying PXE boot images from "+iso_image_dir+" to "+pxe_image_dir
       command       = "cp -r #{iso_image_dir} #{pxe_boot_dir}"
@@ -196,10 +196,10 @@ def configure_ks_pxe_boot(service_name,iso_arch)
     pxe_image_dir = pxe_boot_dir+"/images/pxeboot"
     check_dir_exists(pxe_image_dir)
     test_file = pxe_image_dir+"/vmlinuz"
-    if service_name.match(/ubuntu/)
-      iso_image_dir = $repo_base_dir+"/"+service_name+"/install"
+    if install_service.match(/ubuntu/)
+      iso_image_dir = $repo_base_dir+"/"+install_service+"/install"
     else
-      iso_image_dir = $repo_base_dir+"/"+service_name+"/isolinux"
+      iso_image_dir = $repo_base_dir+"/"+install_service+"/isolinux"
     end
     if !File.exist?(test_file)
       message = "Information:\tCopying PXE boot files from "+iso_image_dir+" to "+pxe_image_dir
@@ -214,46 +214,46 @@ end
 
 # Unconfigure PXE boot
 
-def unconfigure_ks_pxe_boot(service_name)
+def unconfigure_ks_pxe_boot(install_service)
   return
 end
 
 # Configure Kickstart server
 
-def configure_ks_server(client_arch,publisher_host,publisher_port,service_name,iso_file)
-  if service_name.match(/[a-z,A-Z]/)
-    if service_name.downcase.match(/centos/)
+def configure_ks_server(install_arch,publisher_host,publisher_port,install_service,iso_file)
+  if install_service.match(/[a-z,A-Z]/)
+    if install_service.downcase.match(/centos/)
       search_string = "CentOS"
     end
-    if service_name.downcase.match(/redhat/)
+    if install_service.downcase.match(/redhat/)
       search_string = "rhel"
     end
-    if service_name.downcase.match(/scientific|sl_/)
+    if install_service.downcase.match(/scientific|sl_/)
       search_string = "sl"
     end
-    if service_name.downcase.match(/oel/)
+    if install_service.downcase.match(/oel/)
       search_string = "OracleLinux"
     end
   else
     search_string = "CentOS|rhel|SL|OracleLinux|Fedora"
   end
-  configure_linux_server(client_arch,publisher_host,publisher_port,service_name,iso_file,search_string)
+  configure_linux_server(install_arch,publisher_host,publisher_port,install_service,iso_file,search_string)
   return
 end
 
 # Configure local VMware repo
 
-def configure_ks_vmware_repo(service_name,client_arch)
+def configure_ks_vmware_repo(install_service,install_arch)
   vmware_dir   = $pkg_base_dir+"/vmware"
   add_apache_alias(vmware_dir)
   repodata_dir = vmware_dir+"/repodata"
   vmware_url   = "http://packages.vmware.com/tools/esx/latest"
-  if service_name.match(/centos_5|rhel_5|sl_5|oel_5|fedora_18/)
-    vmware_url   = vmware_url+"/rhel5/"+client_arch+"/"
+  if install_service.match(/centos_5|rhel_5|sl_5|oel_5|fedora_18/)
+    vmware_url   = vmware_url+"/rhel5/"+install_arch+"/"
     repodata_url = vmware_url+"repodata/"
   end
-  if service_name.match(/centos_6|rhel_[6,7]|sl_6|oel_6|fedora_[19,20]/)
-    vmware_url   = vmware_url+"/rhel6/"+client_arch+"/"
+  if install_service.match(/centos_6|rhel_[6,7]|sl_6|oel_6|fedora_[19,20]/)
+    vmware_url   = vmware_url+"/rhel6/"+install_arch+"/"
     repodata_url = vmware_url+"repodata/"
   end
   if $download_mode == 1
@@ -273,7 +273,7 @@ end
 
 # Configure local Puppet repo
 
-def configure_ks_puppet_repo(service_name,iso_arch)
+def configure_ks_puppet_repo(install_service,iso_arch)
   puppet_rpm_list = {}
   puppet_base_dir = $pkg_base_dir+"/puppet"
   puppet_rpm_list["products"]     = []
@@ -288,11 +288,11 @@ def configure_ks_puppet_repo(service_name,iso_arch)
   puppet_rpm_list["dependencies"].push("libselinux-ruby")
   check_fs_exists(puppet_base_dir)
   add_apache_alias(puppet_base_dir)
-  rpm_list   = populate_puppet_rpm_list(service_name,iso_arch)
+  rpm_list   = populate_puppet_rpm_list(install_service,iso_arch)
   if !File.directory?(puppet_base_dir)
     check_dir_exists(puppet_base_dir)
   end
-  release    = service_name.split(/_/)[1]
+  release    = install_service.split(/_/)[1]
   [ "products", "dependencies" ].each do |remote_dir|
     puppet_rpm_list[remote_dir].each do |pkg_name|
       if pkg_name.match(/libselinux-ruby/)
@@ -308,7 +308,7 @@ def configure_ks_puppet_repo(service_name,iso_arch)
         local_file = puppet_local_dir+"/"+pkg_file
         if !File.exist?(local_file) or File.size(local_file) == 0
           if $verbose_mode == 1
-            puts "Fetching "+pkg_url+" to "+local_file
+            handle_output("Fetching #{pkg_url} to #{local_file}")
           end
           agent = Mechanize.new
           agent.redirect_ok = true
@@ -323,20 +323,20 @@ end
 
 # Configue Linux server
 
-def configure_linux_server(client_arch,publisher_host,publisher_port,service_name,iso_file,search_string)
+def configure_linux_server(install_arch,publisher_host,publisher_port,install_service,iso_file,search_string)
   iso_list = []
   check_fs_exists($client_base_dir)
   check_dhcpd_config(publisher_host)
   if iso_file.match(/[a-z,A-Z]/)
     if File.exist?(iso_file)
       if !iso_file.match(/CentOS|rhel|Fedora|SL|OracleLinux|ubuntu/)
-        puts "Warning:\tISO "+iso_file+" does not appear to be a valid Linux distribution"
+        handle_output("Warning:\tISO #{iso_file} does not appear to be a valid Linux distribution")
         exit
       else
         iso_list[0] = iso_file
       end
     else
-      puts "Warning:\tISO file "+iso_file+" does not exist"
+      handle_output("Warning:\tISO file #{iso_file} does not exist")
     end
   else
     iso_list = check_iso_base_dir(search_string)
@@ -346,18 +346,18 @@ def configure_linux_server(client_arch,publisher_host,publisher_port,service_nam
       iso_file_name = iso_file_name.chomp
       (linux_distro,iso_version,iso_arch) = get_linux_version_info(iso_file_name)
       iso_version  = iso_version.gsub(/\./,"_")
-      service_name = linux_distro+"_"+iso_version+"_"+iso_arch
-      repo_version_dir  = $repo_base_dir+"/"+service_name
+      install_service = linux_distro+"_"+iso_version+"_"+iso_arch
+      repo_version_dir  = $repo_base_dir+"/"+install_service
       if !iso_file_name.match(/DVD2\.iso|2of2\.iso/)
-        add_apache_alias(service_name)
-        configure_ks_repo(service_name,iso_file_name,repo_version_dir)
-        configure_ks_pxe_boot(service_name,iso_arch)
-        if service_name.match(/centos|fedora|rhel|sl_|oel/)
-          configure_ks_vmware_repo(service_name,iso_arch)
+        add_apache_alias(install_service)
+        configure_ks_repo(install_service,iso_file_name,repo_version_dir)
+        configure_ks_pxe_boot(install_service,iso_arch)
+        if install_service.match(/centos|fedora|rhel|sl_|oel/)
+          configure_ks_vmware_repo(install_service,iso_arch)
         end
-        if !service_name.match(/ubuntu|sles/)
+        if !install_service.match(/ubuntu|sles/)
           if $default_options.match(/puppet/)
-            configure_ks_puppet_repo(service_name,iso_arch)
+            configure_ks_puppet_repo(install_service,iso_arch)
           end
         end
       else
@@ -367,23 +367,23 @@ def configure_linux_server(client_arch,publisher_host,publisher_port,service_nam
       end
     end
   else
-    if service_name.match(/[a-z,A-Z]/)
-      if !client_arch.match(/[a-z,A-Z]/)
-        iso_info    = service_name.split(/_/)
-        client_arch = iso_info[-1]
+    if install_service.match(/[a-z,A-Z]/)
+      if !install_arch.match(/[a-z,A-Z]/)
+        iso_info    = install_service.split(/_/)
+        install_arch = iso_info[-1]
       end
-      add_apache_alias(service_name)
-      configure_ks_pxe_boot(service_name,client_arch)
-      if service_name.match(/centos|fedora|rhel|sl_|oel/)
-        configure_ks_vmware_repo(service_name,client_arch)
+      add_apache_alias(install_service)
+      configure_ks_pxe_boot(install_service,install_arch)
+      if install_service.match(/centos|fedora|rhel|sl_|oel/)
+        configure_ks_vmware_repo(install_service,install_arch)
       end
-      if !service_name.match(/ubuntu|sles/)
+      if !install_service.match(/ubuntu|sles/)
         if $default_options.match(/puppet/)
-          configure_ks_puppet_repo(service_name,client_arch)
+          configure_ks_puppet_repo(install_service,install_arch)
         end
       end
     else
-      puts "Warning:\tISO file and/or Service name not found"
+      handle_output("Warning:\tISO file and/or Service name not found")
       exit
     end
   end
@@ -393,15 +393,8 @@ end
 # List kickstart services
 
 def list_ks_services()
-  service_list = Dir.entries($repo_base_dir)
-  service_list = service_list.grep(/centos|fedora|rhel|sl_|oel/)
-  if service_list.length > 0
-    puts
-    puts "Kickstart services:"
-    puts
-  end
-  service_list.each do |service_name|
-    puts service_name
-  end
+  service_type    = "Kickstart"
+  service_command = "ls $repo_base_dir/ |egrep 'centos|fedora|rhel|sl_|oel'"
+  list_services(service_type,service_command)
   return
 end

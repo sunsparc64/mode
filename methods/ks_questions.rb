@@ -17,21 +17,21 @@ end
 
 # Construct ks network line
 
-def get_ks_network(service_name)
+def get_ks_network(install_service)
   if $q_struct["bootproto"].value == "dhcp"
     result = "--device="+$q_struct["nic"].value+" --bootproto="+$q_struct["bootproto"].value
   else
-    if service_name.match(/fedora_20/)
+    if install_service.match(/fedora_20/)
       result = "--bootproto="+$q_struct["bootproto"].value+" --ip="+$q_struct["ip"].value+" --netmask="+$q_struct["netmask"].value+" --gateway "+$q_struct["gateway"].value+" --nameserver="+$q_struct["nameserver"].value+" --hostname="+$q_struct["hostname"].value
     else
-      if service_name.match(/rhel_5/)
+      if install_service.match(/rhel_5/)
         result = "--device "+$q_struct["nic"].value+" --bootproto "+$q_struct["bootproto"].value+" --ip "+$q_struct["ip"].value
       else
         result = "--device="+$q_struct["nic"].value+" --bootproto="+$q_struct["bootproto"].value+" --ip="+$q_struct["ip"].value+" --netmask="+$q_struct["netmask"].value+" --gateway="+$q_struct["gateway"].value+" --nameserver "+$q_struct["nameserver"].value+" --hostname="+$q_struct["hostname"].value
       end
     end
   end
-  if $q_struct["service_name"].value.match(/oel/)
+  if $q_struct["install_service"].value.match(/oel/)
     result = result+" --onboot=on"
   end
   return result
@@ -135,44 +135,44 @@ end
 
 # Get install url
 
-def get_ks_install_url(service_name,install_type)
+def get_ks_install_url(install_service,install_type)
   if install_type.match(/packer/)
-    install_url = "--url=http://"+$default_host+":"+$default_httpd_port+"/"+service_name
+    install_url = "--url=http://"+$default_host+":"+$default_httpd_port+"/"+install_service
   else
-    install_url = "--url=http://"+$default_host+"/"+service_name
+    install_url = "--url=http://"+$default_host+"/"+install_service
   end
   return install_url
 end
 
 # Get kickstart header
 
-def get_ks_header(client_name)
+def get_ks_header(install_client)
   version = get_version()
   version = version.join(" ")
-  header  = "# kickstart file for "+client_name+" "+version
+  header  = "# kickstart file for "+install_client+" "+version
   return header
 end
 
 # Populate ks questions
 
-def populate_ks_questions(service_name,client_name,client_ip,install_type)
+def populate_ks_questions(install_service,install_client,install_ip,install_type)
   $q_struct = {}
   $q_order  = []
 
-  name   = "service_name"
+  name   = "install_service"
   config = Ks.new(
     type      = "",
     question  = "Service Name",
     ask       = "yes",
     parameter = "",
-    value     = service_name,
+    value     = install_service,
     valid     = "",
     eval      = "no"
     )
   $q_struct[name] = config
   $q_order.push(name)
 
-  if service_name.match(/rhel_5/)
+  if install_service.match(/rhel_5/)
     name   = "install_key"
     config = Ks.new(
       type      = "",
@@ -193,7 +193,7 @@ def populate_ks_questions(service_name,client_name,client_ip,install_type)
     question  = "Kickstart file header comment",
     ask       = "yes",
     parameter = "",
-    value     = get_ks_header(client_name),
+    value     = get_ks_header(install_client),
     valid     = "",
     eval      = "no"
     )
@@ -201,7 +201,7 @@ def populate_ks_questions(service_name,client_name,client_ip,install_type)
   $q_order.push(name)
 
   name = "firewall"
-  if service_name.match(/rhel_5/)
+  if install_service.match(/rhel_5/)
     config = Ks.new(
       type      = "output",
       question  = "Firewall",
@@ -271,7 +271,7 @@ def populate_ks_questions(service_name,client_name,client_ip,install_type)
       question  = "Install Medium",
       ask       = "yes",
       parameter = "url",
-      value     = get_ks_install_url(service_name,install_type),
+      value     = get_ks_install_url(install_service,install_type),
       valid     = "",
       eval      = "no"
       )
@@ -292,7 +292,7 @@ def populate_ks_questions(service_name,client_name,client_ip,install_type)
   $q_struct[name] = config
   $q_order.push(name)
 
-  if !service_name.match(/fedora|rhel|centos_[6,7]|sl_[6,7]|oel_[6,7]/)
+  if !install_service.match(/fedora|rhel|centos_[6,7]|sl_[6,7]|oel_[6,7]/)
     name   = "support_language"
     config = Ks.new(
       type      = "output",
@@ -410,7 +410,7 @@ def populate_ks_questions(service_name,client_name,client_ip,install_type)
   $q_struct[name] = config
   $q_order.push(name)
 
-  if service_name.match(/rhel_7/)
+  if install_service.match(/rhel_7/)
     nic_name = "enp0s3"
   else
     nic_name = "eth0"
@@ -448,7 +448,7 @@ def populate_ks_questions(service_name,client_name,client_ip,install_type)
     question  = "Hostname",
     ask       = "yes",
     parameter = "",
-    value     = client_name,
+    value     = install_client,
     valid     = "",
     eval      = "no"
     )
@@ -461,7 +461,7 @@ def populate_ks_questions(service_name,client_name,client_ip,install_type)
     question  = "IP",
     ask       = "yes",
     parameter = "",
-    value     = client_ip,
+    value     = install_ip,
     valid     = "",
     eval      = "no"
     )
@@ -507,7 +507,7 @@ def populate_ks_questions(service_name,client_name,client_ip,install_type)
   $q_struct[name] = config
   $q_order.push(name)
 
-  broadcast = client_ip.split(/\./)[0..2].join(".")+".255"
+  broadcast = install_ip.split(/\./)[0..2].join(".")+".255"
 
   name   = "broadcast"
   config = Ks.new(
@@ -522,7 +522,7 @@ def populate_ks_questions(service_name,client_name,client_ip,install_type)
   $q_struct[name] = config
   $q_order.push(name)
 
-  network_address = client_ip.split(/\./)[0..2].join(".")+".0"
+  network_address = install_ip.split(/\./)[0..2].join(".")+".0"
 
   name   = "network_address"
   config = Ks.new(
@@ -543,9 +543,9 @@ def populate_ks_questions(service_name,client_name,client_ip,install_type)
     question  = "Network Configuration",
     ask       = "yes",
     parameter = "network",
-    value     = "get_ks_network(service_name)",
+    value     = "get_ks_network(install_service)",
     valid     = "",
-    eval      = "get_ks_network(service_name)"
+    eval      = "get_ks_network(install_service)"
     )
   $q_struct[name] = config
   $q_order.push(name)
@@ -797,7 +797,7 @@ def populate_ks_questions(service_name,client_name,client_ip,install_type)
   $q_order.push(name)
 
   name = "zerombr"
-  if service_name.match(/fedora|rhel|centos_7|oel_7|sl_7/)
+  if install_service.match(/fedora|rhel|centos_7|oel_7|sl_7/)
     config = Ks.new(
       type      = "output",
       question  = "Zero MBR",
