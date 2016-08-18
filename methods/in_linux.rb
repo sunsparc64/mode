@@ -3,7 +3,7 @@
 # Process ISO file to get details
 
 def get_linux_version_info(iso_file_name)
-  iso_info     = File.basename(iso_file_name)
+  iso_info = File.basename(iso_file_name)
   if iso_file_name.match(/purity/)
     iso_info     = iso_info.split(/_/)
   else
@@ -77,8 +77,16 @@ def get_linux_version_info(iso_file_name)
         iso_version = iso_info[1]
         iso_arch    = "x86_64"
       else
-        iso_version = iso_info[2]
-        iso_arch    = iso_info[3]
+        if linux_distro.match(/vmware/)
+          iso_version = iso_info[3].split(/\./)[0..-2].join(".")
+          iso_update  = iso_info[3].split(/\./)[-1]
+          iso_release = iso_info[4].split(/\./)[-3]
+          iso_version = iso_version+"."+iso_update+"."+iso_release
+          iso_arch    = "x86_64"
+        else
+          iso_version = iso_info[2]
+          iso_arch    = iso_info[3]
+        end
       end
     end
   end
@@ -126,19 +134,19 @@ def list_linux_isos(search_string,linux_type)
       if File.directory?(repo_version_dir)
         if $output_format.match(/html/)
           handle_output("<td>#{service_name} (exists)</td>")
-          handle_output("</tr>")
         else
           handle_output("Service Name:\t#{service_name} (exists)")
         end
       else
         if $output_format.match(/html/)
           handle_output("<td>#{service_name}</td>")
-          handle_output("</tr>")
         else
           handle_output("Service Name:\t#{service_name}")
         end
       end
-      if !$output_format.match(/html/)
+      if $output_format.match(/html/)
+        handle_output("</tr>")
+      else
         handle_output("") 
       end
     end

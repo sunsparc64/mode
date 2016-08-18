@@ -128,27 +128,62 @@ def list_js_isos()
   search_string = "\\-ga\\-"
   iso_list      = check_iso_base_dir(search_string)
   if iso_list.length > 0
-    handle_output("Available Jumpstart ISOs:")
-    handle_output("") 
-  end
-  iso_list.each do |iso_file|
-    iso_file    = iso_file.chomp
-    iso_info    = File.basename(iso_file)
-    iso_info    = iso_info.split(/-/)
-    iso_version = iso_info[1..2].join("_")
-    iso_arch    = iso_info[4]
-    handle_output("ISO file:\t#{iso_file}")
-    handle_output("Distribution:\tSolaris")
-    handle_output("Version:\t#{iso_version}")
-    handle_output("Architecture:\t#{iso_arch}")
-    service_name     = "sol_"+iso_version+"_"+iso_arch
-    repo_version_dir = $repo_base_dir+"/"+service_name
-    if File.directory?(repo_version_dir)
-      handle_output("Information:\tService Name #{service_name} (exists)")
+    if $output_format.match(/html/)
+      handle_output("<h1>Available Jumpstart ISOs:</h1>")
+      handle_output("<table>")
+      handle_output("<tr>")
+      handle_output("<th>ISO File</th>")
+      handle_output("<th>Distribution</th>")
+      handle_output("<th>Version</th>")
+      handle_output("<th>Architecture</th>")
+      handle_output("<th>Service Name</th>")
+      handle_output("</tr>")
     else
-      handle_output("Information:\tService Name #{service_name}")
+      handle_output("Available Jumpstart ISOs:")
+      handle_output("") 
     end
-    handle_output("") 
+    iso_list.each do |iso_file|
+      iso_file    = iso_file.chomp
+      iso_info    = File.basename(iso_file)
+      iso_info    = iso_info.split(/-/)
+      iso_version = iso_info[1..2].join("_")
+      iso_arch    = iso_info[4]
+      if $output_format.match(/html/)
+        handle_output("<tr>")
+        handle_output("<td>#{iso_file}</td>")
+        handle_output("<td>Solaris</td>")
+        handle_output("<td>#{iso_version}</td>")
+        handle_output("<td>#{iso_arch}</td>")
+      else
+        handle_output("ISO file:\t#{iso_file}")
+        handle_output("Distribution:\tSolaris")
+        handle_output("Version:\t#{iso_version}")
+        handle_output("Architecture:\t#{iso_arch}")
+      end
+      service_name     = "sol_"+iso_version+"_"+iso_arch
+      repo_version_dir = $repo_base_dir+"/"+service_name
+      if File.directory?(repo_version_dir)
+        if $output_format.match(/html/)
+          handle_output("<td>#{service_name} (exists)</td>")
+        else
+          handle_output("Information:\tService Name #{service_name} (exists)")
+        end
+      else
+        if $output_format.match(/html/)
+          handle_output("<td>#{service_name}</td>")
+        else
+          handle_output("Information:\tService Name #{service_name}")
+        end
+      end
+      if $output_format.match(/html/)
+        handle_output("</tr>") 
+      else
+        handle_output("") 
+      end
+    end
+    if $output_format.match(/html/)
+      handle_output("</table>")
+    end
   end
   return
 end
