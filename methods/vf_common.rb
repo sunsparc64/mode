@@ -149,7 +149,14 @@ end
 
 def get_fusion_vm_os(install_client)
   install_search = "guestOS"
-  install_os = get_fusion_vm_vmx_file_value(install_client,install_search)
+  install_os     = get_fusion_vm_vmx_file_value(install_client,install_search)
+  if !install_os
+    install_search = "guestos"
+    install_os     = get_fusion_vm_vmx_file_value(install_client,install_search)
+  end
+  if !install_os
+    install_os = "Unknown"
+  end
   return install_os
 end
 

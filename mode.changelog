@@ -777,3 +777,5 @@
 # More code cleanup for listing ISOs
 # 3.8.8: Thu 18 Aug 2016 20:02:41 AEST
 # Code cleanup for listing VMs
+# 3.8.9: Thu 18 Aug 2016 22:06:17 AEST
+# Fixed OS check for VMware Fusion VMs
