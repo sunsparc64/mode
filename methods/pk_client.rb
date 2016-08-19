@@ -54,17 +54,40 @@ def list_packer_clients(install_vm)
       else
         vm_title = "VMware Fusion"
       end
-      handle_output("Packer #{vm_title} clients:")
-      handle_output("")
       vm_list = Dir.entries(vm_dir)
-      vm_list.each do |vm_name|
-        if vm_name.match(/[a-z,A-Z]/)
-          json_file = vm_dir+"/"+vm_name+"/"+vm_name+".json"
-          if File.exist?(json_file)
-            json  = File.readlines(json_file)
-            vm_os = json.grep(/guest_os_type/)[0].split(/:/)[1].split(/"/)[1]
-            handle_output("#{vm_name} os=#{vm_os}")
+      if vm_list.length > 0
+        if $output_format.match(/html/)
+          handle_output("<h1>Available Packer #{vm_title} clients</h1>")
+          handle_output("<table border=\"1\">")
+          handle_output("<tr>")
+          handle_output("<th>VM</th>")
+          handle_output("<th>OS</th>")
+          handle_output("</tr>")
+        else
+          handle_output("Packer #{vm_title} clients:")
+          handle_output("")
+        end
+        vm_list.each do |vm_name|
+          if vm_name.match(/[a-z,A-Z]/)
+            json_file = vm_dir+"/"+vm_name+"/"+vm_name+".json"
+            if File.exist?(json_file)
+              json  = File.readlines(json_file)
+              vm_os = json.grep(/guest_os_type/)[0].split(/:/)[1].split(/"/)[1]
+              if $output_format.match(/html/)
+                handle_output("<tr>")
+                handle_output("<td>#{vm_name}</td>")
+                handle_output("<td>#{vm_os}</td>")
+                handle_output("</tr>")
+              else
+                handle_output("#{vm_name} os=#{vm_os}")
+              end
+            end
           end
+        end
+        if $output_format.match(/html/)
+          handle_output("</table>")
+        else
+          handle_output("")
         end
       end
     end

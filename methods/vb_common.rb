@@ -7,6 +7,23 @@ def fix_vbox_mouse_integration()
   return
 end
 
+# Check VM status
+
+def get_vbox_vm_status(install_client)
+  exists = check_vbox_vm_exists(install_client)
+  if exists.match(/yes/)
+    vm_list = get_running_vbox_vms()
+    if vm_list.to_s.match(/#{install_client}/)
+      handle_output("Information:\tVirtualBox VM #{install_client} is Running")
+    else
+      handle_output("Information:\tVrtualBox VM #{install_client} is Not Running")
+    end
+  else
+    handle_output("Warning:\tFusion VM #{install_client} doesn't exist")
+  end
+  return
+end
+
 # Import Packer VirtualBox image
 
 def import_packer_vbox_vm(install_client,install_vm)
@@ -218,12 +235,19 @@ def list_all_vbox_vms()
   return
 end
 
+# Get list of running VMs
+
+def get_running_vbox_vms()
+  vm_list = %x[#{$vbox_bin} list runningvms].split("\n")
+  return vm_list
+end
+
 # List running VMs
 
 def list_running_vbox_vms()
   set_vboxmanage_bin()
   if $vboxmanage_bin.match(/[a-z]/)
-    vm_list = %x[#{$vbox_bin} list runningvms].split("\n")
+    vm_list = get_running_vbox_vms() 
     handle_output("") 
     handle_output("Running VirtualBox VMs:")
     handle_output ("")

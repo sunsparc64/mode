@@ -163,3 +163,9 @@ def list_vm_snapshots(install_vm,install_os,install_method,install_client)
   end
   return
 end
+
+# Catch all for listing VMs
+
+def list_none_vms(install_type)
+  return
+end

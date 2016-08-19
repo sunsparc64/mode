@@ -8,6 +8,23 @@ def deploy_fusion_vm(install_server,install_datastore,install_server_admin,insta
   return
 end
 
+# Check VM status
+
+def get_fusion_vm_status(install_client)
+  exists = check_fusion_vm_exists(install_client)
+  if exists.match(/yes/)
+    vm_list = get_running_fusion_vms()
+    if vm_list.to_s.match(/#{install_client}/)
+      handle_output("Information:\tVMware Fusion VM #{install_client} is Running")
+    else
+      handle_output("Information:\tVMware Fusion VM #{install_client} is Not Running")
+    end
+  else
+    handle_output("Warning:\tFusion VM #{install_client} doesn't exist")
+  end
+  return
+end
+
 # Set Fusion dir
 
 def set_fusion_dir()
@@ -164,7 +181,7 @@ def list_fusion_vms(search_string)
   if search_string == "all"
     type_string = "Fusion"
   else
-    type_string = search_string+" Fusion"
+    type_string = search_string.capitalize+" Fusion"
   end
   if file_list.length > 0
     if $output_format.match(/html/)
@@ -177,16 +194,15 @@ def list_fusion_vms(search_string)
       handle_output("</tr>")
     else
       handle_output("") 
-      handle_output("Available #{type_string} VMs:")
+      handle_output("Available #{type_string.capitalize} VMs:")
       handle_output("") 
     end
     file_list.each do |entry|
       if entry.match(/vmwarevm/)
-        if search_string == "all" or entry.match(/#{search_string}/)
-
-          install_client = entry.gsub(/\.vmwarevm/,"")
-          install_mac    = get_fusion_vm_mac(install_client)
-          install_os     = get_fusion_vm_os(install_client)
+        install_client = entry.gsub(/\.vmwarevm/,"")
+        install_mac    = get_fusion_vm_mac(install_client)
+        install_os     = get_fusion_vm_os(install_client)
+        if search_string == "all" or entry.match(/#{search_string}/) or install_os.match(/#{search_string}/)
           if $output_format.match(/html/)
             handle_output("<tr>")
             handle_output("<td>#{install_client}</td>")
@@ -230,7 +246,7 @@ def show_fusion_vm_config(install_client)
   if exists.match(/yes/)
     fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
     if File.exist?(fusion_vmx_file)
-      print_contents_of_file("",fusion_vmx_file)
+      print_contents_of_file("VMware Fusion configuration",fusion_vmx_file)
     end
   end
   return
@@ -494,7 +510,7 @@ end
 # List Solaris Kickstart VMware Fusion VMs
 
 def list_js_fusion_vms()
-  search_string = "solaris10"
+  search_string = "solaris"
   list_fusion_vms(search_string)
   return
 end
@@ -502,7 +518,7 @@ end
 # List Solaris AI VMware Fusion VMs
 
 def list_ai_fusion_vms()
-  search_string = "solaris10"
+  search_string = "solaris"
   list_fusion_vms(search_string)
   return
 end

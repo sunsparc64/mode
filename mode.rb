@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.9.1
+# Version:      3.9.2
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1316,7 +1316,7 @@ if option["vm"]
       exit
     end
   end
-  if !$valid_vm_list.to_s.downcase.match(/#{install_vm}/)
+  if !$valid_vm_list.to_s.downcase.match(/#{install_vm}/) and !install_action.match(/list/)
     print_valid_list("Warning:\tInvalid VM type",$valid_vm_list)
   end
   if $verbose_mode == 1
@@ -1572,6 +1572,10 @@ end
 if option["action"]
   install_action = option["action"].downcase
   case install_action
+  when /status/
+    if install_vm.match(/[a-z]/)
+      eval"[get_#{install_vm}_vm_status(install_client)]"
+    end
   when /display|view|show|prop/
     if install_client.match(/[a-z,A-Z]/)
       if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
@@ -1595,6 +1599,7 @@ if option["action"]
   when /list/
     if install_type.match(/packer/)
       list_packer_clients(install_vm)
+      quit()
     end
     if install_type.match(/service/) or install_mode.match(/server/)
       if install_method.match(/[a-z]/)
@@ -1603,6 +1608,7 @@ if option["action"]
       else
         list_all_services()
       end
+      quit()
     end
     if install_type.match(/iso/)
       if install_method.match(/[a-z]/)
@@ -1610,18 +1616,22 @@ if option["action"]
       else
         list_os_isos(install_os)
       end
+      quit()
     end
     if install_mode.match(/client/) or install_type.match(/client/)
       install_mode = "client"
       check_local_config(install_mode)
       list_clients(install_service)
       list_vms(install_vm,install_type)
+      quit()
     end
     if install_method.match(/[a-z]/) and install_vm.match(/none/) 
       eval"[list_#{install_method}_clients()]"
+      qui()
     end
     if install_type.match(/ova/)
       list_ovas()
+      quit()
     end
     if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
       if install_type.match(/snapshot/)
@@ -1629,6 +1639,7 @@ if option["action"]
       else
         list_vm(install_vm,install_os,install_method)
       end
+      quit()
     end
   when /delete|remove/
     if install_client.match(/[a-z]/)
@@ -1979,9 +1990,4 @@ if option["action"]
   end
 end
 
-if $output_format.match(/html/)
-  $output_text.push("</body>")
-  $output_text.push("</html>")
-  puts $output_text.join("\n")
-end
-
+quit()

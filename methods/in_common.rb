@@ -284,6 +284,17 @@ end
 
 $default_cidr = netmask_to_cidr($default_netmask)
 
+# Code to run on quiting
+
+def quit()
+  if $output_format.match(/html/)
+    $output_text.push("</body>")
+    $output_text.push("</html>")
+    puts $output_text.join("\n")
+  end
+  exit
+end
+
 # Print script usage information
 
 def print_usage()
