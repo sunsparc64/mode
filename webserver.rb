@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine) webserver
-# Version:      0.0.3
+# Version:      0.0.4
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -31,6 +31,11 @@ begin
   require 'sinatra'
 rescue LoadError
   install_gem("sinatra")
+end
+begin
+  require 'sinatra/formkeeper'
+rescue LoadError
+  install_gem("sinatra-formkeeper")
 end
 begin
   require 'fileutils'
@@ -247,6 +252,155 @@ get '/version' do
   array = array.join("\n")
   "#{array}"
 end 
+
+# handle /list
+
+get '/list/*/*' do 
+  head = []
+  body = []
+  foot = []
+  ( install_type, install_search ) = params[:splat]
+  head = File.readlines("./views/layout.html")
+  head = html_header(head,"Mode")
+  case install_type
+  when /packer/
+    list_packer_clients(install_search)
+  when /service/
+    eval"[list_#{install_search}_services()]"
+  when /iso/
+    if install_search.match(/[a-z]/)
+      eval"[list_#{install_search}_isos()]"
+    else
+      list_os_isos(install_search)
+    end
+  else
+    list_vms(install_type,install_search)
+  end
+  body  = $output_text
+  foot  = html_footer(foot)
+  array = head + body + foot
+  array = array.join("\n")
+  "#{array}"
+end
+
+get '/list/*' do
+  head = []
+  body = []
+  foot = []
+  install_type   = params[:splat][0]
+  install_search = ""
+  head = File.readlines("./views/layout.html")
+  head = html_header(head,"Mode")
+  case install_type
+  when /packer/
+    list_packer_clients(install_search) 
+  when /service/
+    list_all_services()
+  else
+    list_vms(install_type,install_search)
+  end
+  body  = $output_text
+  foot  = html_footer(foot)
+  array = head + body + foot
+  array = array.join("\n")
+  "#{array}"
+end
+
+get '/show/*/*' do
+  head = []
+  body = []
+  foot = []
+  head = File.readlines("./views/layout.html")
+  head = html_header(head,"Mode")
+  ( install_vm, install_client ) = params[:splat]
+  install_method  = ""
+  install_type    = ""
+  install_service = ""
+  get_client_config(install_client,install_service,install_method,install_type,install_vm)
+  body  = $output_text
+  foot  = html_footer(foot)
+  array = head + body + foot
+  array = array.join("\n")
+  "#{array}"
+end
+
+get '/add/client' do
+  head = []
+  body = []
+  foot = []
+  head = File.readlines("./views/layout.html")
+  head = html_header(head,"Mode")
+  $q_order  = []
+  $q_struct = {}
+  if params["client"]
+    install_client = params["client"] 
+  else
+    install_client = ""
+  end
+  if params["ip"]
+    install_ip = params["ip"]
+  else
+    install_ip = ""
+  end
+  if params["method"]
+    install_method = params["method"]
+  else
+    redirect "/help"
+  end
+  if params["service"]
+    install_service = params["service"]
+  else
+    redirect "/list/services"
+  end
+  eval"[populate_#{install_method}_questions(install_service,install_client,install_ip)]"
+  $output_text.push("<form action=\"/add/client\" method=\"post\">")
+  $q_order.each do |key|
+    $output_text.push($q_struct[key].question)
+    $output_text.push("<input type=\"text\" name=\"#{key}\">")
+  end
+  $output_text.push("<input type=\"submit\" value=\"Submit\">")
+  $output_text.push("</form>")
+  body  = $output_text
+  foot  = html_footer(foot)
+  array = head + body + foot
+  array = array.join("\n")
+  "#{array}"
+end
+
+get '/add/fusion' do
+  head = []
+  body = []
+  foot = []
+  head = File.readlines("./views/layout.html")
+  head = html_header(head,"Mode")
+  $q_order  = []
+  $q_struct = {}
+  if params["client"]
+    install_client = params["client"] 
+  else
+    install_client = ""
+  end
+  if params["ip"]
+    install_ip = params["ip"]
+  else
+    install_ip = ""
+  end
+  $output_text = []
+  $output_text.push("<form action=\"/add/client\" method=\"post\">")
+  $output_text.push("Client Name:")
+  $output_text.push("<input type=\"text\" name=\"install_client\" value=\"#{install_client}\">")
+  $output_text.push("<input type=\"submit\" value=\"Submit\">")
+  $output_text.push("</form>")
+  body  = $output_text
+  foot  = html_footer(foot)
+  array = head + body + foot
+  array = array.join("\n")
+  "#{array}"
+end
+
+post '/add/fusion' do
+  create_vm(install_method,install_vm,install_client,install_mac,install_os,install_arch,install_release,install_size,install_file,install_memory,install_cpu,install_network,install_share,install_mount,install_ip)
+end  
 
 # handle /
 

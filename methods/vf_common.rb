@@ -8,7 +8,7 @@ def deploy_fusion_vm(install_server,install_datastore,install_server_admin,insta
   return
 end
 
-# Check VM status
+# Check VM Fusion status
 
 def get_fusion_vm_status(install_client)
   exists = check_fusion_vm_exists(install_client)
@@ -23,6 +23,100 @@ def get_fusion_vm_status(install_client)
     handle_output("Warning:\tFusion VM #{install_client} doesn't exist")
   end
   return
+end
+
+# Get Fusion VM sreencap
+
+def get_fusion_vm_screen(install_client)
+  exists = check_fusion_vm_exists(install_client)
+  if exists.match(/yes/)
+    vm_list = get_running_fusion_vms()
+    if vm_list.to_s.match(/#{install_client}/)
+      fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
+      screencap_file  = $tmp_dir+"/"+install_client+".png"
+      message = "Information:\tCapturing screen of "+install_client+" to "+screencap_file
+      command = "'#{$vmrun_bin}' captureScreen '#{fusion_vmx_file}'' #{screencap_file}" 
+      execute_command(message,command)
+    else
+      handle_output("Information:\tVMware Fusion VM #{install_client} is Not Running")
+    end
+  else
+    handle_output("Warning:\tFusion VM #{install_client} doesn't exist")
+  end
+  return
+end
+
+# Check VMware Fusion VM is running
+
+def check_fusion_vm_is_running(install_client)
+  list_vms = get_running_fusion_vms()  
+  if list_vms.to_s.match(/#{install_client}.vmx/)
+    running = "yes"
+  else
+    running = "no"
+  end
+  return running
+end
+
+# Get VMware Fusion VM IP
+
+def get_fusion_vm_ip(install_client)
+  install_ip = ""
+  exists = check_fusion_vm_exists(install_client)
+  if exists.match(/yes/)
+    running = check_fusion_vm_is_running(install_client)
+    if running.match(/yes/)
+      fusion_vmx_file = get_fusion_vm_vmx_file(install_client)
+      message    = "Information:\tDetermining IP for "+install_client
+      command    = "'#{$vmrun_bin}' getGuestIPAddress '#{fusion_vmx_file}'"
+      install_ip = execute_command(message,command)
+    else
+      handle_output("Warning:\tVMware Fusion VM #{install_client} is not running")
+    end
+  else
+    handle_output("Warning:\tVMware Fusion VM #{install_client} doesn't exist")
+  end
+  return install_ip.chomp
+end
+
+# VNC to VMware Fusion VM
+
+def vnc_fusion_vm(install_client,install_ip)
+  check_vnc_install()
+  exists = check_fusion_vm_exists(install_client)
+  if exists.match(/yes/)
+    if File.directory?($novnc_dir)
+      if !install_ip.match(/[0-9]/)
+        install_ip = get_fusion_vm_ip(install_client)
+      end
+      if install_ip.match(/[0-9]/)
+        temp_ip = install_ip.split(/\./)[-1]
+        if temp_ip.to_i < 100
+          local_vnc_port = "60"+temp_ip
+        else
+          local_vnc_port = "6"+temp_ip
+        end
+        remote_vnc_port = get_fusion_vm_vmx_file_value(install_client,"remotedisplay.vnc.port")
+        if remote_vnc_port.match(/[0-9]/)
+          message = "Information:\tChecking noVNC isn't already running"
+          command = "ps -ef |grep noVNC |grep #{install_ip} | grep -v grep"
+          output  = execute_command(message,command)
+          if !output.match(/noVNC/)
+            message = "Information:\tStarting noVNC web proxy on port "+local_vnc_port+" and redirecting to "+remote_vnc_port
+            command = "cd '#{$novnc_dir}' ; ./utils/launch.sh --listen #{local_vnc_port} --vnc #{install_ip}:#{remote_vnc_port} &"
+            execute_command(message,command)
+          else
+            handle_output("Information:\tnoVNC already running")
+          end
+        else
+          handle_output("Warning:\tUnable to determine VNC port for VMware Fusion VM #{install_client}")
+        end
+      else
+        handle_output("Warning:\tUnable to determine IP for VMware Fusion VM #{install_client}")
+      end
+    end
+  end
+  return install_ip,local_vnc_port,remote_vnc_port
 end
 
 # Set Fusion dir
@@ -228,13 +322,18 @@ end
 # Get Fusion VM vmx file location
 
 def get_fusion_vm_vmx_file(install_client)
-  fusion_vm_dir = $fusion_dir+"/"+install_client+".vmwarevm"
-  if File.directory?(fusion_vm_dir)
-    fusion_vmx_file  = Dir.entries(fusion_vm_dir).grep(/vmx$/)[0].chomp
+  vm_list = get_running_fusion_vms()
+  if vm_list.to_s.match(/#{install_client}\.vmx/)
+    fusion_vmx_file = vm_list.grep(/#{install_client}\.vmx/)[0].chomp
   else
-    fusion_vmx_file = ""
+    fusion_vm_dir = $fusion_dir+"/"+install_client+".vmwarevm"
+    if File.directory?(fusion_vm_dir)
+      fusion_vmx_file  = Dir.entries(fusion_vm_dir).grep(/vmx$/)[0].chomp
+    else
+      fusion_vmx_file = ""
+    end
+    fusion_vmx_file = fusion_vm_dir+"/"+fusion_vmx_file
   end
-  fusion_vmx_file = fusion_vm_dir+"/"+fusion_vmx_file
   return fusion_vmx_file
 end
 
@@ -363,7 +462,7 @@ end
 # Get list of running vms
 
 def get_running_fusion_vms()
-  vm_list = %x["#{$vmrun_bin}" list |grep vmx].split("\n")
+  vm_list = %x['#{$vmrun_bin}' list |grep vmx].split("\n")
   return vm_list
 end
 

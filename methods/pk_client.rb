@@ -17,6 +17,9 @@ end
 # Get packer client directory
 
 def get_packer_client_dir(install_client,install_vm)
+  if !install_vm.match(/[a-z]/)
+    install_vm = get_client_vm_type_from_packer(install_client)
+  end
   packer_dir = $client_base_dir+"/packer"
   client_dir = packer_dir+"/"+install_vm+"/"+install_client
   return client_dir
@@ -120,11 +123,18 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   audio             = "none"
   mouse             = "ps2"
   ssh_pty           = "true"
-#  if install_vm.match(/fusion/)
+  winrm_port        = "5985"
+  if install_ip.match(/[0-9]/)
+    port_no - install_ip.split(/\./)[-1]
+    if port_no.to_i < 100
+      port_no = "0"+port_no
+    end
+    vnc_port_min = "6"+port_no
+    vnc_port_max = "6"+port_no
+  else
     vnc_port_min = "5900"
     vnc_port_max = "5980"
-    winrm_port   = "5985"
-#  end
+  end
   if install_vm.match(/vbox/)
     output_format = "ova"
 #    ssh_host_port_min = "55985"

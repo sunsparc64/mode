@@ -170,9 +170,12 @@ def set_global_vars()
   $default_install_shell    = "ssh"
   $default_ssh_wait_timeout = "20m"
   $output_text              = []
-  $output_format            = "text"
+  $default_output_format    = "text"
   $vbox_bin                 = "/usr/local/bin/VBoxManage"
   $enable_vnc               =  1
+  $vnc_port                 = "5961"
+  $novnc_dir                = $script_dir+"/noVNC"
+  $novnc_url                = "git://github.com/kanaka/noVNC"
 
   # VMware Fusion Global variables
   
@@ -394,6 +397,16 @@ def create_install_mac(install_mac)
   return install_mac
 end
 
+# Check VNC is installed
+
+def check_vnc_install()
+  if !File.directory?($novnc_dir)
+    message = "Information:\tCloning noVNC from "+$novnc_url
+    command = "git clone #{$novnc_url}"
+    execute_command(message,command)
+  end
+end
+
 # Get default host
 
 def get_default_host()
@@ -444,6 +457,8 @@ end
 # Useful for generating client config files
 
 def check_local_config(install_mode)
+  set_vmrun_bin()
+  set_vboxmanage_bin()
   if $do_ssh_keys == 1
     check_ssh_keys()
   end
@@ -547,7 +562,7 @@ def check_local_config(install_mode)
     end
   end
   # If runnning on OS X check we have brew installed
-  if $os_name.match(/Darwn/)
+  if $os_name.match(/Darwin/)
     if !File.exists?("/usr/local/bin/brew")
       message = "Installing:\tBrew for OS X"
       command = "ruby -e \"$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)\""
@@ -734,33 +749,52 @@ end
 
 # Get client config
 
-def get_client_config(install_client,install_service,install_method,install_type)
-  if !install_service.match(/[a-z]/)
-    install_service = get_install_service(install_client)
-  end
-  if !install_method.match(/[a-z]/)
-    install_method  = get_install_method(install_client,install_service)
-  end
-  client_dir      = get_client_dir(install_client)
-  config_file     = ""
-  config_prefix   = client_dir+"/"+install_client
-  case install_method
-  when /config|cfg|ks|Kickstart/
-    config_file = config_prefix+".cfg"
-  when /post/
-    case method
-    when /ps/
-      config_file = config_prefix+"_post.sh"
+def get_client_config(install_client,install_service,install_method,install_type,install_vm)
+  config_files  = []
+  client_dir    = ""
+  config_prefix = ""
+  if install_vm.match(/[a-z]/)
+    eval"[show_#{install_vm}_vm_config(install_client)]"
+  else
+    client_dir = get_client_dir(install_client)
+    if install_type.match(/packer/) or client_dir.match(/packer/)
+      install_method = "packer"
+      client_dir     = get_packer_client_dir(install_client,install_vm)
+    else
+      if !install_service.match(/[a-z]/)
+        install_service = get_install_service_from_client_name(install_client)
+      end
+      if !install_method.match(/[a-z]/)
+        install_method  = get_install_method(install_client,install_service)
+      end
     end
-  when /first/
-    case method
-    when /ps/
-      config_file = config_prefix+"_first_boot.sh"
+    config_prefix = client_dir+"/"+install_client
+    case install_method
+    when /packer/
+      config_files[0] = config_prefix+".json"
+      config_files[1] = config_prefix+".cfg"
+      config_files[2] = config_prefix+"_first_boot.sh"
+      config_files[3] = config_prefix+"_post.sh"
+      config_files[4] = client_dir+"/Autounattend.xml"
+      config_files[5] = client_dir+"/post_install.ps1"
+    when /config|cfg|ks|Kickstart/
+      config_files[0] = config_prefix+".cfg"
+    when /post/
+      case method
+      when /ps/
+        config_files[0] = config_prefix+"_post.sh"
+      end
+    when /first/
+      case method
+      when /ps/
+        config_files[0] = config_prefix+"_first_boot.sh"
+      end
     end
-  end
-  if File.exist?(config_file)
-    file_data = %x[cat #{config_file}]
-    handle_output(file_data)
+    config_files.each do |config_file|
+      if File.exist?(config_file)
+        print_contents_of_file("",config_file)
+      end
+    end
   end
   return
 end
@@ -777,7 +811,7 @@ end
 
 def get_install_method(install_client,install_service)
   if !install_service.match(/[a-z]/)
-    get_install_service(install_client)
+    install_service = get_install_service(install_client)
   end
   service_dir = $repo_base_dir+"/"+install_service
   if File.directory?(service_dir) or File.symlink?(service_dir)
@@ -1274,6 +1308,27 @@ def configure_vmware_vcenter_defaults()
   $vbox_disk_type      = "ide"
   return
 end
+
+# Get Install Service from client name
+
+def get_install_service_from_client_name(install_client)
+  install_service = ""
+  message    = "Information:\tFinding client configuration directory for #{install_client}"
+  command    = "find #{$client_base_dir} -name #{install_client} |grep '#{install_client}$'"
+  client_dir = execute_command(message,command).chomp
+  if $verbose_mode == 1
+    if File.directory?(client_dir)
+      handle_output("Information:\tNo client directory found for #{install_client}")
+    else
+      handle_output("Information:\tClient directory found #{client_dir}")
+      if client_dir.match(/packer/)
+        handle_output = "Information:\tInstall method is Packer"
+      end
+    end
+  end
+  return install_service
+end
+
 
 # Get client directory
 
@@ -2365,7 +2420,7 @@ def execute_command(message,command)
   end
   if execute == 1
     if $id != 0
-      if !command.match(/brew |hg|pip|VBoxManage|netstat|df/)
+      if !command.match(/brew |hg|pip|VBoxManage|netstat|df|vmrun|noVNC/)
         if $use_sudo != 0
           command = "sudo sh -c '"+command+"'"
         end

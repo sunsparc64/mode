@@ -463,9 +463,16 @@ end
 # Get/set #{$vbox_bin} path
 
 def set_vboxmanage_bin()
-  $vboxmanage_bin = %x[which #{$vbox_bin}].chomp
-  if !$vboxmanage_bin.match(/#{$vbox_bin}/) or $vboxmanage_bin.match(/no #{$vbox_bin}/)
-    handle_output("Warning:\tCould not find #{$vbox_bin}")
+  if $os_name.match(/Darwin/)
+    $vboxmanage_bin = %x[which VBoxManage].chomp
+    if !$vboxmanage_bin.match(/VBoxManage/) or $vboxmanage_bin.match(/no VBoxManage}/)
+      handle_output("Warning:\tCould not find VBoxManage")
+    end
+  else
+    $vboxmanage_bin = %x[which vboxmanage].chomp
+    if !$vboxmanage_bin.match(/vboxmanage/) or $vboxmanage_bin.match(/no vboxmanage}/)
+      handle_output("Warning:\tCould not find vboxmanage")
+    end
   end
   return
 end

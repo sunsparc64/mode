@@ -177,6 +177,7 @@ begin
     [ "--locale",         "-x", REQUIRED ], # Select language/language (e.g. en_US)
     [ "--console",        "-X", REQUIRED ], # Select console type (e.g. text, serial, x11) (default is text)
     [ "--yes",            "-y", BOOLEAN ],  # Answer yes to all questions (accept defaults)
+    [ "--vncpassword",    "-Y", REQUIRED ], # VNC password
     [ "--shell",          "-z", REQUIRED ], # Install shell (used for packer, e.g. winrm, ssh)
     [ "--enable",         "-Z", REQUIRED ], # Mount point
     [ "--changelog",      "-1", BOOLEAN ]   # Print changelog
@@ -190,6 +191,8 @@ end
 
 if option["format"]
   $output_format = option["format"].downcase
+else
+  $output_format = $default_output_format
 end
 
 # Prime HTML
@@ -232,6 +235,22 @@ else
   option["action"] = ""
   install_action   = ""
 end
+
+if option["arch"]
+  install_arch = option["arch"]
+else
+  option["arch"] = ""
+  install_arch   = ""
+end
+
+if option["domainname"]
+  install_domainname = option["domainname"]
+else
+  option["domainname"] = ""
+  install_domainname   = ""
+end
+
+
 
 # Handle values and parameters
 
@@ -1501,7 +1520,7 @@ end
 
 # Try to determine install method if only given OS
 
-if !option["method"] and !option["action"].match(/delete|running|reboot|restart|halt|boot|stop|deploy|migrate/)
+if !option["method"] and !option["action"].match(/delete|running|reboot|restart|halt|boot|stop|deploy|migrate|show/)
   case install_os
   when /sol|sunos/
     if install_release.match(/[0-9]/)
@@ -1572,6 +1591,14 @@ end
 if option["action"]
   install_action = option["action"].downcase
   case install_action
+  when /screen/
+    if install_vm.match(/[a-z]/)
+      eval"[get_#{install_vm}_vm_screen(install_client)]"
+    end
+  when /vnc/
+    if install_vm.match(/[a-z]/)
+      eval"[vnc_#{install_vm}_vm(install_client,install_ip)]"
+    end
   when /status/
     if install_vm.match(/[a-z]/)
       eval"[get_#{install_vm}_vm_status(install_client)]"
@@ -1581,7 +1608,7 @@ if option["action"]
       if install_vm.match(/[a-z]/) and !install_vm.match(/none/)
         eval"[show_#{install_vm}_vm_config(install_client)]"
       else
-        get_client_config(install_client,install_service,install_method,install_type)
+        get_client_config(install_client,install_service,install_method,install_type,install_vm)
       end
     else
       handle_output("Warning:\tClient name not specified")

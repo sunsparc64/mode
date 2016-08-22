@@ -211,7 +211,6 @@ def populate_vs_questions(install_service,install_client,install_ip)
     )
   $q_struct[name] = config
   $q_order.push(name)
-
   return
 end
 

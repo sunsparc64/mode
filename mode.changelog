@@ -783,3 +783,5 @@
 # More HTML output fixes
 # 3.9.1: Fri 19 Aug 2016 06:55:35 AEST
 # Added initial VNC code
+# 3.9.2: Mon 22 Aug 2016 11:11:29 AEST
+# More fixes and webserver plumbing
