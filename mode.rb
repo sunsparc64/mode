@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.9.3
+# Version:      3.9.4
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -205,14 +205,6 @@ if $output_format.match(/html/)
   $output_text.push("<body>")
 end
 
-# Set verbose mode
-
-if option["verbose"]
-  $verbose_mode = 1
-else
-  $verbose_mode = 0
-end
-
 # Print version
 
 if option["version"]
@@ -232,6 +224,18 @@ end
 if option["changelog"]
   print_changelog
   exit
+end
+
+# load global variables
+
+set_global_vars()
+
+#  Set verbose mode
+
+if option["verbose"]
+  $verbose_mode = 1
+else
+  $verbose_mode = 0
 end
 
 # Handle client name switch

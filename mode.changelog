@@ -787,3 +787,5 @@
 # More fixes and webserver plumbing
 # 3.9.3: Sat 24 Sep 2016 12:59:10 AEST
 # Initial cleanup of command line option handling
+# 3.9.4: Sat 24 Sep 2016 13:58:33 AEST
+# Fixed bugs with determining windows service name from ISO

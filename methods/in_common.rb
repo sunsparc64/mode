@@ -916,7 +916,7 @@ def get_install_service_from_file(install_file)
   end
   case install_file
   when /ubuntu/
-    install_service    = "ubuntu"
+    install_service = "ubuntu"
     service_version = install_file.split(/-/)[1].gsub(/\./,"_").gsub(/_iso/,"")
     service_version = service_version+"_"+install_arch
     install_method  = "ps"
@@ -1026,12 +1026,12 @@ def get_install_service_from_file(install_file)
       install_arch = output.chomp.split(/\:/)[1].gsub(/^\s+/,"")
       umount_iso()
     end
-    install_service = install_release+"_"+install_arch
-    install_service = install_service.gsub(/__/,"_")
+    service_version = service_version+"_"+install_release+"_"+install_arch
+    service_version = service_version.gsub(/__/,"_")
     install_method  = "pe"
   end
   install_os      = install_service
-  install_service = install_service+"_"+service_version.gsub(/__/,"_")
+  install_service = install_os+"_"+service_version.gsub(/__/,"_")
   if $verbose_mode == 1
     handle_output("Information:\tSetting service name to #{install_service}")
     handle_output("Information:\tSetting OS name to #{install_os}")
