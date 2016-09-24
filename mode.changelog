@@ -702,7 +702,7 @@
 # 3.5.0: Thu  5 May 2016 20:29:09 AEST
 # Added support for Ubuntu 16.04 and fixed a number of bugs
 # 3.5.1: Wed 11 May 2016 12:12:31 AEST
-# Various bug fixed for Packer and Ubuntu 
+# Various bug fixed for Packer and Ubuntu
 # 3.5.2: Thu May 12 14:26:39 AEST 2016
 # Various bug fixes for Ubuntu
 # 3.5.3: Sun 10 Jul 2016 16:42:19 AEST
@@ -785,3 +785,5 @@
 # Added initial VNC code
 # 3.9.2: Mon 22 Aug 2016 11:11:29 AEST
 # More fixes and webserver plumbing
+# 3.9.3: Sat 24 Sep 2016 12:59:10 AEST
+# Initial cleanup of command line option handling

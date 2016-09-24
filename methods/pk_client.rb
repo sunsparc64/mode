@@ -125,7 +125,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   ssh_pty           = "true"
   winrm_port        = "5985"
   if install_ip.match(/[0-9]/)
-    port_no - install_ip.split(/\./)[-1]
+    port_no = install_ip.split(/\./)[-1]
     if port_no.to_i < 100
       port_no = "0"+port_no
     end
@@ -798,7 +798,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
         }
       end
     end
-  elsif !install_service.match(/sol_10/) 
+  elsif !install_service.match(/sol_10/)
     if $default_vm_network.match(/hostonly|bridged/)
       if install_service.match(/win/)
         json_data = {
@@ -1065,8 +1065,10 @@ def configure_packer_client(install_method,install_vm,install_os,install_client,
                             publisher_host,install_service,install_file,install_memory,install_cpu,install_network,install_license,
                             install_mirror,install_size,install_type,install_locale,install_label,install_timezone,install_shell)
 
-  if !$default_host.match(/[0-9,a-z,A-Z]/)
+  if !$default_host
     $default_host = get_default_host()
+  end
+  if !$default_host.match(/[0-9,a-z,A-Z]/)
   end
   uid = %x[id -u].chomp
   check_dir_exists($client_base_dir)
@@ -1342,4 +1344,3 @@ def configure_packer_js_client(install_client,install_arch,install_mac,install_i
   create_packer_js_install_files(install_client,install_service,install_ip,install_mirror,install_vm,install_mac,install_type,install_arch,install_file)
   return
 end
-
