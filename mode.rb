@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.9.4
+# Version:      3.9.5
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -367,12 +367,12 @@ end
 if option["shell"]
   install_shell = option["shell"]
 else
-  if option["os"].match(/win/)
+  if install_os.match(/win/)
     $default_install_shell = "winrm"
-    install_shell   = $default_install_shell
+    install_shell          = $default_install_shell
   else
     $default_install_shell = "ssh"
-    install_shell   = $default_install_shell
+    install_shell          = $default_install_shell
   end
 end
 
@@ -409,7 +409,7 @@ end
 if option["cpu"]
   install_cpu = option["cpu"]
 else
-  if install_vm
+  if !install_vm.empty?
     install_cpu = $default_vm_vcpu
   else
     install_cpu = ""
@@ -424,7 +424,7 @@ if option["share"]
     handle_output("Warning:\tShare point #{install_share} doesn't exist")
     exit
   end
-  if !install_mount
+  if install_mount.empty?
     install_mount = File.basename(install_share)
   end
   if $verbose_mode == 1
@@ -553,10 +553,13 @@ else
   install_client = ""
 end
 
-# Handle type option
+# Handle install type switch
 
 if option["type"]
-  install_type = option["type"]
+  install_type = option["type"].downcase
+  if !$valid_type_list.to_s.downcase.match(/#{install_type}/)
+    print_valid_list("Warning:\tInvalid install type",$valid_type_list)
+  end
 else
   install_type   = ""
 end
@@ -592,11 +595,11 @@ if option["file"]
     handle_output("Warning:\tFile doesn't exist: #{install_file}")
     exit
   end
-  if install_file.match(/[a-z,A-Z,0-9]/) and install_action.match(/create|add/)
-    if !install_method
+  if !install_file.empty? and install_action.match(/create|add/)
+    if install_method.empty?
       install_method = get_install_method_from_iso(install_file)
     end
-    if !install_type
+    if install_type.empty?
       install_type = get_install_type_from_file(install_file)
       if $verbose_mode == 1
         handle_output("Information:\tSetting install type to #{install_type}")
@@ -630,7 +633,7 @@ else
 end
 
 if option["value"]
-  if !install_param
+  if install_param.empty?
     handle_output("Warning:\tSetting a value requires a parameter")
     exit
   else
@@ -640,9 +643,15 @@ else
   install_value   = option["value"]
 end
 
+# Make sure we haven't got a nil methog
+
+if install_method.nil?
+  install_method = ""
+end
+
 # Handle LDoms
 
-if install_method
+if !install_method.empty?
   if install_method.match(/dom/)
     if install_method.match(/cdom/)
       install_mode = "server"
@@ -661,7 +670,7 @@ if install_method
         end
       else
         if install_method.match(/ldom/)
-          if install_client
+          if !install_client.empty?
             install_method = "gdom"
             install_vm     = "gdom"
             install_mode   = "client"
@@ -679,14 +688,14 @@ if install_method
     end
   else
     if install_mode.match(/client/)
-      if install_vm
+      if !install_vm.empty?
         if install_method.match(/ldom|gdom/)
           install_vm = "gdom"
         end
       end
     else
       if install_mode.match(/server/)
-        if install_vm
+        if !install_vm.empty?
           if install_method.match(/ldom|cdom/)
             install_vm = "cdom"
           end
@@ -695,7 +704,8 @@ if install_method
     end
   end
 else
-  if install_mode
+  install_method   = ""
+  if !install_mode.empty?
     if install_vm.match(/ldom/)
       if install_mode.match(/client/)
         install_vm     = "gdom"
@@ -714,8 +724,6 @@ else
         end
       end
     end
-  else
-    install_method   = ""
   end
 end
 
@@ -729,21 +737,29 @@ if !install_network.match(/nat/)
   end
 end
 
+# handle option type
+
+if option["type"]
+  install_type = option["type"]
+else
+  install_type   = ""
+end
+
 # Check action when set to build
 
 if install_action.match(/build/)
-  if !install_type
+  if install_type.empty? or install_type.nil?
     handle_output("Information:\tSetting Install Service to Packer")
     install_type = "packer"
   end
-  if !install_vm
-    if !install_client
+  if install_vm.empty?
+    if install_client.empty?
       handle_output("Warning:\tNo client name given")
       exit
     end
     install_vm = get_client_vm_type_from_packer(install_client)
   end
-  if !install_vm
+  if install_vm.empty?
     handle_output("Warning:\tVM type not specified")
     exit
   else
@@ -760,14 +776,6 @@ if option["enable"]
   $default_options = option["enable"]
 end
 
-# handle option type
-
-if option["type"]
-  install_type = option["type"]
-else
-  install_type   = ""
-end
-
 # Handle file
 
 if option["file"]
@@ -777,9 +785,8 @@ if option["file"]
     exit
   end
   if install_action.match(/deploy/)
-    if !install_type
-      install_type   = get_install_type_from_file(install_file)
-      option["type"] = install_type
+    if install_type.empty?
+      install_type = get_install_type_from_file(install_file)
     end
   end
 else
@@ -844,17 +851,6 @@ else
   install_ip = ""
 end
 
-# Handle install type switch
-
-if option["type"]
-  install_type = option["type"].downcase
-  if !$valid_type_list.to_s.downcase.match(/#{install_type}/)
-    print_valid_list("Warning:\tInvalid install type",$valid_type_list)
-  end
-else
-  install_type   = ""
-end
-
 # Get Netmask
 
 if option["netmask"]
@@ -916,16 +912,16 @@ end
 # Handle deploy
 
 if install_action.match(/deploy/)
-  if !install_type
+  if install_type.empty?
     install_type = "esx"
   end
   if install_type.match(/esx|vcsa/)
-    if !install_server_password
+    if install_server_password.empty?
       install_server_password = install_root_password
     end
     check_ovftool_exists()
     if install_type.match(/vcsa/)
-      if !install_file
+      if install_file.empty?
         handle_output("Warning:\tNo deployment image file specified")
         exit
       end
@@ -1007,7 +1003,7 @@ end
 # Handle list switch
 
 if install_action.match(/list/)
-  if !install_vm and !install_service and !install_method and !install_type and !install_mode
+  if install_vm.empty? and install_service.empty? and install_method.empty? and install_type.empty? and install_mode.empty?
     handle_output("Warning:\tNo type or service given")
     exit
   end
@@ -1015,14 +1011,14 @@ end
 
 # Handle action switch
 
-if install_action
-  if install_action.match(/delete/) and !install_service
-    if !install_vm and install_type
+if !install_action.empty?
+  if install_action.match(/delete/) and install_service.empty?
+    if install_vm.empty? and !install_type.empty?
       install_vm = get_client_vm_type_from_packer(install_client)
     else
-      if install_type and !install_vm
+      if !install_type.empty? and install_vm.empty?
         if install_type.match(/packer/)
-          if install_client
+          if !install_client.empty?
             install_vm = get_client_vm_type_from_packer(install_client)
           end
         end
@@ -1040,11 +1036,11 @@ if install_action
         end
       end
     end
-    if !install_vm
+    if install_vm.empty?
       handle_output("Information:\tVirtualisation method not specified, setting virtualisation method to VMware")
       install_vm = "vm"
     end
-    if !install_server or !install_ip
+    if install_server.empty? or install_ip.empty?
       handle_output("Warning:\tRemote server hostname or IP not specified")
       exit
     end
@@ -1055,8 +1051,8 @@ end
 
 # Handle OS switch
 
-if install_os
-  install_os = option["os"].downcase
+if !install_os.empty?
+  install_os = install_os.downcase
   install_os = install_os.gsub(/windows/,"win")
   install_os = install_os.gsub(/scientificlinux|scientific/,"sl")
   install_os = install_os.gsub(/oel/,"oraclelinux")
@@ -1069,7 +1065,7 @@ if install_os
   end
 else
   if install_type.match(/vcsa|packer/)
-    if !install_service or !install_os or !install_method or !install_release or !install_arch or !install_label
+    if install_service.empty? or install_os.empty? or install_method.empty? or install_release.empty? or install_arch.empty? or install_label.empty?
       (install_service,install_os,install_method,install_release,install_arch,install_label) = get_install_service_from_file(install_file)
     end
   else
@@ -1079,26 +1075,26 @@ end
 
 # Handle install service switch
 
-if install_service
+if !install_service.empty?
   if $verbose_mode == 1
     handle_output("Information:\tSetting install service to #{install_service}")
   end
   if install_type.match(/^packer$/)
     check_packer_is_installed()
     install_mode    = "client"
-    if !install_method and !install_os and !install_action.match(/build|list|import|delete/)
+    if install_method.empty? and install_os.empty? and !install_action.match(/build|list|import|delete/)
       handle_output("Warning:\tNo OS, or Install Method specified for build type #{install_service}")
       exit
     end
-    if !install_vm and !install_action.match(/list/)
+    if install_vm.empty? and !install_action.match(/list/)
       handle_output("Warning:\tNo VM type specified for build type #{install_service}")
       exit
     end
-    if !install_client and !install_action.match(/list/)
+    if install_client.empty? and !install_action.match(/list/)
       handle_output("Warning:\tNo Client name specified for build type #{install_service}")
       exit
     end
-    if !install_file and !install_action.match(/build|list|import|delete/)
+    if install_file.empty? and !install_action.match(/build|list|import|delete/)
       handle_output("Warning:\tNo ISO file specified for build type #{install_service}")
       exit
     end
@@ -1109,8 +1105,8 @@ if install_service
     if !install_mac.match(/[0-9]|[A-F]|[a-f]/) and !install_action.match(/build|list|import|delete/)
       handle_output("Warning:\tNo MAC Address given")
       handle_output("Information:\tGenerating MAC Address")
-      if install_vm
-        if install_vm
+      if !install_vm.empty?
+        if !install_vm.empty?
           install_mac = generate_mac_address(install_vm)
         else
           install_mac = generate_mac_address(install_client)
@@ -1122,25 +1118,25 @@ if install_service
   end
 else
   if install_type.match(/vcsa|packer/)
-    if !install_service or !install_os or !install_method or !install_release or !install_arch or !install_file
+    if install_service.empty? or install_os.empty? or install_method.empty? or install_release.empty? or install_arch.empty? or install_file.empty?
       (install_service,install_os,install_method,install_release,install_arch,install_label) = get_install_service_from_file(install_file)
     end
     if install_type.match(/^packer$/)
       check_packer_is_installed()
       install_mode    = "client"
-      if !install_method and !install_os and !install_action.match(/build|list|import|delete/)
+      if install_method.empty? and install_os.empty? and !install_action.match(/build|list|import|delete/)
         handle_output("Warning:\tNo OS, or Install Method specified for build type #{install_service}")
         exit
       end
-      if !install_vm and !install_action.match(/list/)
+      if install_vm.empty? and !install_action.match(/list/)
         handle_output("Warning:\tNo VM type specified for build type #{install_service}")
         exit
       end
-      if !install_client and !install_action.match(/list/)
+      if install_client.empty? and !install_action.match(/list/)
         handle_output("Warning:\tNo Client name specified for build type #{install_service}")
         exit
       end
-      if !install_file and !install_action.match(/build|list|import|delete/)
+      if install_file.empty? and !install_action.match(/build|list|import|delete/)
         handle_output("Warning:\tNo ISO file specified for build type #{install_service}")
         exit
       end
@@ -1151,7 +1147,7 @@ else
       if !install_mac.match(/[0-9]|[A-F]|[a-f]/) and !install_action.match(/build|list|import|delete/)
         handle_output("Warning:\tNo MAC Address given")
         handle_output("Information:\tGenerating MAC Address")
-        if !install_vm
+        if install_vm.empty?
           install_vm = "none"
         end
         install_mac = generate_mac_address(install_vm)
@@ -1165,7 +1161,7 @@ end
 # Make sure a service (e.g. packer) or an install file (e.g. OVA) is specified for an import
 
 if install_action.match(/import/)
-  if !install_file and !install_service and !install_type.match(/packer/)
+  if install_file.empty? and install_service.empty? and !install_type.match(/packer/)
     install_client = option["client"]
     vm_types       = [ "fusion", "vbox" ]
     exists         = []
@@ -1192,7 +1188,7 @@ if install_release.match(/[0-9]/)
   if install_type.match(/packer/) and install_action.match(/build|delete|import/)
     install_release = ""
   else
-    if !install_vm
+    if install_vm.empty?
       install_vm = "none"
     end
     if install_vm.match(/zone/) and $os_rel.match(/10|11/) and !install_release.match(/10|11/)
@@ -1217,10 +1213,10 @@ end
 
 # Handle empty OS option
 
-if !install_os
-  if install_vm
+if install_os.empty?
+  if !install_vm.empty?
     if install_action.match(/add|create/)
-      if !install_method
+      if install_method.empty?
         if !install_vm.match(/ldom|cdom|gdom/)
           handle_output("Warning:\tNo OS or install method specified when creating VM")
           exit
@@ -1235,11 +1231,12 @@ end
 if option["memory"]
   install_memory = option["memory"]
 else
-  if install_vm
+  install_memory = ""
+  if !install_vm.empty?
     if install_os.match(/vs|esx|vmware|vsphere/) or install_method.match(/vs|esx|vmware|vsphere/)
       install_memory = "4096"
     end
-    if install_os
+    if !install_os.empty?
       if install_os.match(/sol/)
         if install_release.to_i > 9
           install_memory = "2048"
@@ -1250,7 +1247,7 @@ else
         install_memory = "2048"
       end
     end
-    if !install_memory
+    if install_memory.empty?
       install_memory = $default_vm_mem
     end
   else
@@ -1281,7 +1278,7 @@ else
       end
     end
   else
-    if !install_vm
+    if install_vm.empty?
       if install_action.match(/create/)
         install_mode = "server"
         check_local_config(install_mode)
@@ -1296,17 +1293,17 @@ end
 
 # If service is set, but method and os isn't given, try to set method from service name
 
-if install_service and !install_method and !install_os
+if !install_service.empty? and install_method.empty? and install_os.empty?
   install_method = get_install_method_from_service(install_service)
 else
-  if !install_method and !install_os
+  if install_method.empty? and install_os.empty?
     install_method = get_install_method_from_service(install_service)
   end
 end
 
 # Handle VM switch
 
-if install_vm
+if !install_vm.empty?
   install_mode = "client"
   case install_vm
   when /parallels/
@@ -1345,8 +1342,7 @@ if install_vm
     end
   when /ldom|cdom|gdom/
     if $os_arch.downcase.match(/sparc/) and $os_name.match(/SunOS/)
-      if !option["release"]
-        option["release"] = $os_rel
+      if install.release.empty?
         install_release   = $os_rel
       end
       if $os_rel.match(/10|11/)
@@ -1376,8 +1372,14 @@ end
 
 # Get/set system model
 
-if install_vm or install_method
-  if option["model"]
+if option["model"]
+  install_model = option["model"]
+else
+  install_model = ""
+end
+
+if !install_vm.empty? or !install_method.empty?
+  if !install_model.empty?
     install_model = option["model"].downcase
   else
     if install_arch.match(/i386|x86|x86_64|x64|amd64/)
@@ -1393,16 +1395,16 @@ end
 
 # Check OS option
 
-if install_os
+if !install_os.empty?
   if install_os.match(/^Linux|^linux/)
-    if !install_file
+    if install_file.empty?
       print_valid_list("Warning:\tInvalid OS specified",$valid_linux_os_list)
     else
       (install_service,install_os) = get_packer_install_service(install_file)
     end
     exit
   else
-    if install_file
+    if !install_file.empty?
       if install_file.match(/purity/)
         install_os = "purity"
       else
@@ -1443,7 +1445,11 @@ end
 
 # Handle install method switch
 
-if install_method
+if install_method.nil?
+  install_method = ""
+end
+
+if !install_method.empty?
   case install_method
     when /autoinstall|ai/
     info_examples  = "ai"
@@ -1480,7 +1486,7 @@ end
 
 # Try to determine install method if only given OS
 
-if !install_method and !install_action.match(/delete|running|reboot|restart|halt|boot|stop|deploy|migrate|show/)
+if install_method.empty? and !install_action.match(/delete|running|reboot|restart|halt|boot|stop|deploy|migrate|show/)
   case install_os
   when /sol|sunos/
     if install_release.match(/[0-9]/)
@@ -1513,7 +1519,7 @@ if !install_method and !install_action.match(/delete|running|reboot|restart|halt
     install_method = "pe"
   else
     if !install_action.match(/list|info|check/)
-      if !install_action.match(/add|create/) and !install_vm
+      if !install_action.match(/add|create/) and install_vm.empty?
         print_valid_list("Warning:\tInvalid OS specified",$valid_os_list)
       end
     end
@@ -1522,23 +1528,23 @@ end
 
 # Handle action switch
 
-if install_action
+if !install_action.empty?
   case install_action
   when /screen/
-    if install_vm
+    if !install_vm.empty?
       eval"[get_#{install_vm}_vm_screen(install_client)]"
     end
   when /vnc/
-    if install_vm
+    if !install_vm.empty?
       eval"[vnc_#{install_vm}_vm(install_client,install_ip)]"
     end
   when /status/
-    if install_vm
+    if !install_vm.empty?
       eval"[get_#{install_vm}_vm_status(install_client)]"
     end
   when /display|view|show|prop/
-    if install_client
-      if install_vm and !install_vm.match(/none/)
+    if !install_client.empty?
+      if !install_vm.empty? and !install_vm.match(/none/)
         eval"[show_#{install_vm}_vm_config(install_client)]"
       else
         get_client_config(install_client,install_service,install_method,install_type,install_vm)
@@ -1553,7 +1559,7 @@ if install_action
   when /info|usage|help/
     print_examples(install_method,install_type,install_vm)
   when /show/
-    if install_vm and !install_vm.match(/none/)
+    if !install_vm.empty? and !install_vm.match(/none/)
       eval"[show_#{install_vm}_vm(install_client)]"
     end
   when /list/
@@ -1562,7 +1568,7 @@ if install_action
       quit()
     end
     if install_type.match(/service/) or install_mode.match(/server/)
-      if install_method
+      if !install_method.empty?
         eval"[list_#{install_method}_services]"
         handle_output("")
       else
@@ -1571,7 +1577,7 @@ if install_action
       quit()
     end
     if install_type.match(/iso/)
-      if install_method
+      if !install_method.empty?
         eval"[list_#{install_method}_isos]"
       else
         list_os_isos(install_os)
@@ -1585,7 +1591,7 @@ if install_action
       list_vms(install_vm,install_type)
       quit()
     end
-    if install_method and install_vm.match(/none/)
+    if !install_method.empty? and install_vm.match(/none/)
       eval"[list_#{install_method}_clients()]"
       qui()
     end
@@ -1593,7 +1599,7 @@ if install_action
       list_ovas()
       quit()
     end
-    if install_vm and !install_vm.match(/none/)
+    if !install_vm.empty? and !install_vm.match(/none/)
       if install_type.match(/snapshot/)
         list_vm_snapshots(install_vm,install_os,install_method,install_client)
       else
@@ -1602,8 +1608,8 @@ if install_action
       quit()
     end
   when /delete|remove/
-    if install_client
-      if !install_service and install_vm.match(/none/)
+    if !install_client.empty?
+      if install_service.empty? and install_vm.match(/none/)
         if install_vm.match(/none/)
           install_vm = get_client_vm_type(install_client)
           if install_vm.match(/vbox|fusion|parallels/)
@@ -1622,7 +1628,7 @@ if install_action
             eval"[unconfigure_#{install_type}_client(install_client,install_vm)]"
           else
             if install_type.match(/snapshot/)
-              if install_client and install_clone.match(/[a-z,A-Z,0-9]|\*/)
+              if !install_client.empty? and install_clone.match(/[a-z,A-Z,0-9]|\*/)
                 delete_vm_snapshot(install_vm,install_client,install_clone)
               else
                 handle_output("Warning:\tClient name or clone not specified")
@@ -1648,8 +1654,8 @@ if install_action
       if install_type.match(/packer/)
         eval"[unconfigure_#{install_type}_client(install_client)]"
       else
-        if install_service
-          if !install_method
+        if !install_service.empty?
+          if install_method.empty?
             unconfigure_server(install_service)
           else
             eval"[unconfigure_#{install_method}_server(install_service)]"
@@ -1662,19 +1668,19 @@ if install_action
       build_packer_config(install_client,install_vm)
     end
   when /add|create/
-    if install_vm.match(/none/) and !install_method and !install_type and !install_mode.match(/server/)
+    if install_vm.match(/none/) and install_method.empty? and install_type.empty? and !install_mode.match(/server/)
       handle_output("Warning:\tNo VM, Method or given")
     end
-    if install_mode.match(/server/) or install_file or install_type.match(/service/) and install_vm.match(/none/) and !install_type.match(/packer/) and !install_service.match(/packer/)
+    if install_mode.match(/server/) or !install_file.empty? or install_type.match(/service/) and install_vm.match(/none/) and !install_type.match(/packer/) and !install_service.match(/packer/)
       check_local_config("server")
       eval"[configure_server(install_method,install_arch,publisher_host,publisher_port,install_service,install_file)]"
     else
       if install_vm.match(/fusion|vbox/)
         check_vm_network(install_vm,install_mode,install_network)
       end
-      if install_client
-        if install_service or install_type.match(/packer/)
-          if !install_method
+      if !install_client.empty?
+        if !install_service.empty? or install_type.match(/packer/)
+          if install_method.empty?
             install_method = get_install_method(install_client,install_service)
           end
           if !install_type.match(/packer/) and install_vm.match(/none/)
@@ -1704,7 +1710,7 @@ if install_action
                               install_size,install_type,install_locale,install_label,install_timezone,install_shell)]"
           else
             if install_vm.match(/none/)
-              if !install_method
+              if install_method.empty?
                 if install_ip.match(/[0-9]/)
                   check_local_config("client")
                   add_hosts_entry(install_client,install_ip)
@@ -1714,7 +1720,7 @@ if install_action
                   add_dhcp_client(install_client,install_mac,install_ip,install_arch,install_service)
                 end
               else
-                if !install_model
+                if install_model.empty?
                   install_model       = "vmware"
                   $default_slice_size = "4192"
                 end
@@ -1779,20 +1785,20 @@ if install_action
       install_action = install_action.gsub(/start/,"boot")
       install_action = install_action.gsub(/halt/,"stop")
     end
-    if install_client and install_vm and !install_vm.match(/none/)
+    if !install_client.empty? and !install_vm.empty? and !install_vm.match(/none/)
       if install_action.match(/boot/)
         eval"[#{install_action}_#{install_vm}_vm(install_client,install_type)]"
       else
         eval"[#{install_action}_#{install_vm}_vm(install_client)]"
       end
     else
-      if install_client and install_vm.match(/none/)
+      if !install_client.empty? and install_vm.match(/none/)
         install_vm = get_client_vm_type(install_client)
         check_local_config(install_mode)
         if install_vm.match(/vbox|fusion|parallels/)
           $use_sudo = 0
         end
-        if install_vm and !install_vm.match(/none/)
+        if !install_vm.empty? and !install_vm.match(/none/)
           if install_action.match(/boot/)
             eval"[#{install_action}_#{install_vm}_vm(install_client,install_type)]"
           else
@@ -1802,20 +1808,20 @@ if install_action
           print_valid_list("Warning:\tInvalid VM type",$valid_vm_list)
         end
       else
-        if !install_client
+        if install_client.empty?
           handle_output("Warning:\tClient name not specified")
         end
       end
     end
   when /restart|reboot/
-    if install_service
+    if !install_service.empty?
       eval"[restart_#{install_service}()]"
     else
-      if install_vm.match(/none/) and install_client
+      if install_vm.match(/none/) and !install_client.empty?
         install_vm = get_client_vm_type(install_client)
       end
-      if install_vm and !install_vm.match(/none/)
-        if install_client
+      if !install_vm.empty? and !install_vm.match(/none/)
+        if !install_client.empty?
           eval"[stop_#{install_vm}_vm(install_client)]"
           eval"[boot_#{install_vm}_vm(install_client,install_type)]"
         else
@@ -1826,7 +1832,7 @@ if install_action
       end
     end
   when /import/
-    if !install_file
+    if install_file.empty?
       if install_type.match(/packer/)
         eval"[import_packer_#{install_vm}_vm(install_client,install_vm)]"
       end
@@ -1847,13 +1853,13 @@ if install_action
       eval"[export_#{install_vm}_ova(install_client,install_file)]"
     end
   when /clone|copy/
-    if install_clone and install_client
+    if install_clone and !install_client.empty?
       eval"[clone_#{install_vm}_vm(install_client,install_clone,install_mac,install_ip)]"
     else
       handle_output("Warning:\tClient name or clone name not specified")
     end
   when /running|stopped|suspended|paused/
-    if install_vm and !install_vm.match(/none/)
+    if !install_vm.empty? and !install_vm.match(/none/)
       eval"[list_#{install_action}_#{install_vm}_vms]"
     end
   when /crypt/
@@ -1862,7 +1868,7 @@ if install_action
   when /post/
     eval"[execute_#{install_vm}_post(install_client)]"
   when /change|modify/
-    if install_client
+    if !install_client.empty?
       if install_memory.match(/[0-9]/)
         eval"[change_#{install_vm}_vm_mem(install_client,install_memory)]"
       end
@@ -1873,22 +1879,22 @@ if install_action
       handle_output("Warning:\tClient name not specified")
     end
   when /attach/
-    if install_vm and !install_vm.match(/none/)
+    if !install_vm.empty? and !install_vm.match(/none/)
       eval"[attach_file_to_#{install_vm}_vm(install_client,install_file,install_type)]"
     end
   when /detach/
-    if install_vm and install_client and !install_vm.match(/none/)
+    if !install_vm.empty? and !install_client.empty? and !install_vm.match(/none/)
       eval"[detach_file_from_#{install_vm}_vm(install_client,install_file,install_type)]"
     else
       handle_output("Warning:\tClient name or virtualisation platform not specified")
     end
   when /share/
-    if install_vm and !install_vm.match(/none/)
+    if !install_vm.empty? and !install_vm.match(/none/)
       eval"[add_shared_folder_to_#{install_vm}_vm(install_client,install_share,install_mount)]"
     end
   when /^snapshot|clone/
-    if install_vm and !install_vm.match(/none/)
-      if install_client
+    if !install_vm.empty? and !install_vm.match(/none/)
+      if !install_client.empty?
         eval"[snapshot_#{install_vm}_vm(install_client,install_clone)]"
       else
         handle_output("Warning:\tClient name not specified")
@@ -1909,24 +1915,24 @@ if install_action
                                     install_ipfamily,install_mode,install_ip,install_netmask,install_gateway,install_nameserver,install_service,install_file)]"
     end
   when /restore|revert/
-    if install_vm and !install_vm.match(/none/)
-      if install_client
+    if !install_vm.empty? and !install_vm.match(/none/)
+      if !install_client.empty?
         eval"[restore_#{install_vm}_vm_snapshot(install_client,install_clone)]"
       else
         handle_output("Warning:\tClient name not specified")
       end
     end
   when /set/
-    if install_vm
+    if !install_vm.empty?
       eval"[set_#{install_vm}_value(install_client,install_param,install_value)]"
     end
   when /get/
-    if install_vm
+    if !install_vm.empty?
       eval"[get_#{install_vm}_value(install_client,install_param)]"
     end
   when /console|serial/
-    if install_vm and !install_vm.match(/none/)
-      if install_client
+    if !install_vm.empty? and !install_vm.match(/none/)
+      if !install_client.empty?
         connect_to_virtual_serial(install_client,install_vm)
       else
         handle_output("Warning:\tClient name not specified")

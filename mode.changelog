@@ -789,3 +789,5 @@
 # Initial cleanup of command line option handling
 # 3.9.4: Sat 24 Sep 2016 13:58:33 AEST
 # Fixed bugs with determining windows service name from ISO
+# 3.9.5: Sat 24 Sep 2016 15:08:27 AEST
+# Fixed some command line handling bugs
