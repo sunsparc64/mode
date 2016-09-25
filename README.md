@@ -38,6 +38,7 @@ and HTTP based install services, eg:
   - Solaris 10 & 11
   - Windows 2008 R2 & 2012 R2
   - ESXi
+- Initial Docker support
 
 This script is a wrapper which sits on top of the exisitng tools. It changes
 defaults to be more suitable to customer environments, and sanity checks server
@@ -267,7 +268,11 @@ All:
 - Ruby
 	- Version 1.8 or greater
 		- Although it's been coded with 2.x I've avoided using 2.x features
-- Packer (If using Packer)
+- Packer (if using Packer)
+- Docker (if using Docker)
+  - docker
+  - docker-machine
+  - docker-compose
 - Required Gems
 	- rubygems
 	- getopt/long

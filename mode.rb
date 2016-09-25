@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.9.5
+# Version:      3.9.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1563,8 +1563,8 @@ if !install_action.empty?
       eval"[show_#{install_vm}_vm(install_client)]"
     end
   when /list/
-    if install_type.match(/packer/)
-      list_packer_clients(install_vm)
+    if install_type.match(/packer|docker/)
+      eval"[list_#{install_type}_clients]"
       quit()
     end
     if install_type.match(/service/) or install_mode.match(/server/)
@@ -1609,6 +1609,10 @@ if !install_action.empty?
     end
   when /delete|remove/
     if !install_client.empty?
+      if install_type.match(/docker/)
+        unconfigure_docker_client(install_client)
+        quit()
+      end
       if install_service.empty? and install_vm.match(/none/)
         if install_vm.match(/none/)
           install_vm = get_client_vm_type(install_client)
@@ -1651,7 +1655,7 @@ if !install_action.empty?
         end
       end
     else
-      if install_type.match(/packer/)
+      if install_type.match(/packer|docker/)
         eval"[unconfigure_#{install_type}_client(install_client)]"
       else
         if !install_service.empty?
@@ -1668,6 +1672,10 @@ if !install_action.empty?
       build_packer_config(install_client,install_vm)
     end
   when /add|create/
+    if install_type.match(/docker/)
+      configure_docker_client(install_vm,install_client,install_ip,install_network)
+      quit()
+    end
     if install_vm.match(/none/) and install_method.empty? and install_type.empty? and !install_mode.match(/server/)
       handle_output("Warning:\tNo VM, Method or given")
     end

@@ -71,6 +71,7 @@ def set_global_vars()
   $default_name_service     = "none"
   $default_security         = "none"
   $default_netmask          = "255.255.255.0"
+  $default_cidr             = "24"
   $default_domainname       = "lab.net"
   $default_search           = "local"
   $default_files            = "files"
@@ -135,6 +136,8 @@ def set_global_vars()
   $default_vm_network       = "hostonly"
   $default_vm_hw_version    = "8"
   $default_hostonly_ip      = "192.168.2.254"
+  $default_fusion_ip        = "192.168.2.1"
+  $default_vbox_ip          = "192.168.3.1"
   $default_server_size      = "small"
   $default_manifest_name    = "modest"
   $vbox_additions_iso       = "/Applications/VirtualBox.app//Contents/MacOS/VBoxGuestAdditions.iso"
@@ -150,7 +153,7 @@ def set_global_vars()
   $valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
   $valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
   $valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image', 'ldom', 'cdom', 'gdom' ]
-  $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer' ]
+  $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer', 'docker' ]
   $valid_mode_list          = [ 'client', 'server', 'osx' ]
   $valid_vm_list            = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'ldom', 'gdom', 'parallels' ]
   $execute_host             = "localhost"
@@ -2412,7 +2415,7 @@ def execute_command(message,command)
     end
   end
   if $test_mode == 1
-    if !command.match(/create|update|import|delete|svccfg|rsync|cp|touch|svcadm|VBoxManage|vmrun/)
+    if !command.match(/create|update|import|delete|svccfg|rsync|cp|touch|svcadm|VBoxManage|vmrun|docker/)
       execute = 1
     end
   else
@@ -2420,7 +2423,7 @@ def execute_command(message,command)
   end
   if execute == 1
     if $id != 0
-      if !command.match(/brew |hg|pip|VBoxManage|netstat|df|vmrun|noVNC/)
+      if !command.match(/brew |hg|pip|VBoxManage|netstat|df|vmrun|noVNC|docker/)
         if $use_sudo != 0
           command = "sudo sh -c '"+command+"'"
         end
