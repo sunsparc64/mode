@@ -35,6 +35,7 @@ end
 
 def configure_docker_client(install_vm,install_client,install_ip,install_network)
 	install_docker()
+	docker_dir = $client_base_dir+"/docker"
 	if install_vm.match(/box/)
 		if install_network.match(/hostonly/)
 			if install_ip.empty?

@@ -4,6 +4,11 @@
 
 def install_docker()
 	if $os_name.match(/Darwin/)
+		if !Dir.exist?("/Applications/Docker.app")
+			puts "Information:\tDocker no installed"
+			puts "Download:\thttps://docs.docker.com/docker-for-mac/"
+			exit
+		end
 		[ "docker", "docker-compose", "docker-machine" ].each do |check_file|
 			file_name = "/usr/local/bin/"+check_file
 			if !File.exist?(file_name) and !File.symlink?(file_name)
