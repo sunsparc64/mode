@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.9.6
+# Version:      3.9.7
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -132,7 +132,6 @@ begin
     [ "--client",         "-c", REQUIRED ], # Client name
     [ "--mode",           "-C", REQUIRED ], # Set mode to client or server
     [ "--datastore",      "-d", REQUIRED ], # Datastore to deploy to on remote server
-    [ "--nameserver",     "-d", REQUIRED ], # Delete client or VM
     [ "--server",         "-D", REQUIRED ], # Server name/IP (allow execution of commands on a remote host, or deploy to)
     [ "--mac",            "-e", REQUIRED ], # MAC Address
     [ "--vm",             "-E", REQUIRED ], # VM type
@@ -163,7 +162,6 @@ begin
     [ "--serverpassword", "-Q", REQUIRED ], # Admin password of server to deploy to
     [ "--release",        "-r", REQUIRED ], # OS Release
     [ "--mirror",         "-R", REQUIRED ], # Mirror / Repo
-    [ "--repo",           "-r", REQUIRED ], # Set repository
     [ "--copykeys",       "-s", BOOLEAN ],  # Copy SSH Keys
     [ "--share",          "-S", REQUIRED ], # Shared folder
     [ "--type",           "-t", REQUIRED ], # Install type (e.g. ISO, client, OVA, Network)
@@ -180,7 +178,10 @@ begin
     [ "--vncpassword",    "-Y", REQUIRED ], # VNC password
     [ "--shell",          "-z", REQUIRED ], # Install shell (used for packer, e.g. winrm, ssh)
     [ "--enable",         "-Z", REQUIRED ], # Mount point
-    [ "--changelog",      "-1", BOOLEAN ]   # Print changelog
+    [ "--command",        "-1", REQUIRED ], # Set repository
+    [ "--repo",           "-2", REQUIRED ], # Set repository
+    [ "--nameserver",     "-3", REQUIRED ], # Delete client or VM
+    [ "--changelog",      "-4", BOOLEAN ]   # Print changelog
   )
 rescue
   print_usage()
@@ -236,6 +237,14 @@ if option["verbose"]
   $verbose_mode = 1
 else
   $verbose_mode = 0
+end
+
+# Handle command switch
+
+if option["command"]
+  install_command = option["command"]
+else
+  install_command = ""
 end
 
 # Handle client name switch
@@ -1530,6 +1539,10 @@ end
 
 if !install_action.empty?
   case install_action
+  when /execute/
+    if install_type.match(/docker/)
+      execute_docker_command(install_client,install_command)
+    end
   when /screen/
     if !install_vm.empty?
       eval"[get_#{install_vm}_vm_screen(install_client)]"
@@ -1938,7 +1951,10 @@ if !install_action.empty?
     if !install_vm.empty?
       eval"[get_#{install_vm}_value(install_client,install_param)]"
     end
-  when /console|serial/
+  when /console|serial|connect/
+    if install_type.match(/docker/)
+      connect_to_docker_client(install_client)
+    end
     if !install_vm.empty? and !install_vm.match(/none/)
       if !install_client.empty?
         connect_to_virtual_serial(install_client,install_vm)

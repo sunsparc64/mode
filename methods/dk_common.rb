@@ -9,14 +9,6 @@ def install_docker()
 			puts "Download:\thttps://docs.docker.com/docker-for-mac/"
 			exit
 		end
-		[ "docker", "docker-compose", "docker-machine" ].each do |check_file|
-			file_name = "/usr/local/bin/"+check_file
-			if !File.exist?(file_name) and !File.symlink?(file_name)
-				message = "Information:\tInstalling #{check_file}"
-				command = "brew install #{check_file}"
-				execute_command(message,command)
-			end
-		end
 	end
 	return
 end

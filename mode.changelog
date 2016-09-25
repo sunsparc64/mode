@@ -793,3 +793,5 @@
 # Fixed some command line handling bugs
 # 3.9.6: Sun 25 Sep 2016 10:48:32 AEST
 # Added initial docker support
+# 3.9.7: Sun 25 Sep 2016 13:17:16 AEST
+# Added code to execute docker command on host

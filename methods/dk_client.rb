@@ -1,5 +1,30 @@
 # Docker client code
 
+# Execute command on docker client
+
+def execute_docker_command(install_client,guest_command)
+	exists = check_docker_exists(install_client)
+	if exists == "yes"
+		output = %x[docker-machine ssh #{install_client} "#{guest_command}"]
+		puts output
+	else
+		puts "Information:\tDocker instance #{install_client} does not exist"
+	end
+	return
+end
+
+# Connect to docker client
+
+def connect_to_docker_client(install_client)
+	exists = check_docker_exists(install_client)
+	if exists == "yes"
+		puts "Command:\tdocker ssh #{install_client}"
+	else
+		puts "Information:\tDocker instance #{install_client} does not exist"
+	end
+	return
+end
+
 # List docker VMs
 
 def list_docker_clients()
@@ -65,7 +90,7 @@ def configure_docker_client(install_vm,install_client,install_ip,install_network
 		end
 		execute_command(message,command)
 	else
-		handle_output("Information:\tDocker instance '#{install_client}' already exists")
+		puts "Information:\tDocker instance '#{install_client}' already exists"
 	end
 	return
 end
@@ -77,7 +102,7 @@ def unconfigure_docker_client(install_client)
 		command = "docker-machine rm --force #{install_client}"
 		execute_command(message,command)
 	else
-		handle_output("Information:\tDocker instance #{install_client} does not exist")
+		puts "Information:\tDocker instance #{install_client} does not exist"
 	end
 	return
 end
