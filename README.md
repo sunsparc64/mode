@@ -1,5 +1,5 @@
 
-![alt tag](https://raw.githubusercontent.com/lateralblast/mode/master/mode.jpg)
+![alt tag](https://raw.githubusercontent.com/lateralblast/mode/master/mode.png)
 
 MODE
 ====
