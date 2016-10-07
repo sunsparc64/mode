@@ -897,6 +897,17 @@ def stop_fusion_vm(install_client)
     command = "\"#{$vmrun_bin}\" -T fusion stop \"#{fusion_vmx_file}\""
     execute_command(message,command)
   else
+    fusion_vms = get_running_fusion_vms
+    fusion_vms.each do |fusion_vmx_file|
+      fusion_vmx_file = fusion_vmx_file.chomp
+      fusion_vm       = File.basename(fusion_vmx_file,".vmx")
+      if fusion_vm == install_client
+        message = "Stopping:\tVirtual Box VM "+install_client
+        command = "\"#{$vmrun_bin}\" -T fusion stop \"#{fusion_vmx_file}\""
+        execute_command(message,command)
+        return
+      end
+    end
     if $verbose_mode == 1
       handle_output("Information:\tVMware Fusion VM #{install_client} not running")
     end
@@ -1202,6 +1213,7 @@ end
 
 def unconfigure_fusion_vm(install_client)
   check_fusion_is_installed()
+  stop_fusion_vm(install_client)
   exists = check_fusion_vm_exists(install_client)
   if exists.match(/yes/)
     stop_fusion_vm(install_client)

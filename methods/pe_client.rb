@@ -83,10 +83,13 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
   end
   # Put in some Microsoft Eval Keys if no license specified
   if !install_license.match(/[0-9]/)
-    if install_label.match(/2008/)
+    case install_label
+    when /2008/
       install_license = "YC6KT-GKW9T-YTKYR-T4X34-R7VHC"
-    else
+    when /2012/
       install_license = "D2N9P-3P6X9-2R39C-7RTCD-MDVJX"
+    when /2016/
+      install_license = ""
     end
   end
   post_list = populate_pe_post_list(admin_username,admin_password,install_label,install_shell)
@@ -155,10 +158,12 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
             }
           }
           xml.UserData {
-            xml.ProductKey {
-              xml.Key("#{install_license}")
-              xml.WillShowUI("Never")
-            }
+            if install_license.match(/[A-Z]|[0-9]/)
+              xml.ProductKey {
+                xml.Key("#{install_license}")
+                xml.WillShowUI("Never")
+              }
+            end
             xml.AcceptEula("true")
             xml.FullName("#{admin_fullname}")
             xml.Organization("#{organisation}")
@@ -525,14 +530,14 @@ def populate_vmtools_psh()
   vmtools_psh.push("$isopath = \"C:\\Windows\\Temp\\windows.iso\"")
   vmtools_psh.push("Mount-DiskImage -ImagePath $isopath")
   vmtools_psh.push("function vmware {")
-  vmtools_psh.push("$exe = ((Get-DiskImage -ImagePath $isopath | Get-Volume).Driveletter + ':\setup.exe')")
+  vmtools_psh.push("$exe = ((Get-DiskImage -ImagePath $isopath | Get-Volume).Driveletter + ':\\setup.exe')")
   vmtools_psh.push("$parameters = '/S /v \"/qr REBOOT=R\"'")
   vmtools_psh.push("Start-Process $exe $parameters -Wait")
   vmtools_psh.push("}")
   vmtools_psh.push("function virtualbox {")
-  vmtools_psh.push("$certpath = ((Get-DiskImage -ImagePath $isopath | Get-Volume).Driveletter + ':\cert\oracle-vbox.cer')")
+  vmtools_psh.push("$certpath = ((Get-DiskImage -ImagePath $isopath | Get-Volume).Driveletter + ':\\cert\\oracle-vbox.cer')")
   vmtools_psh.push("certutil -addstore -f \"TrustedPublisher\" $certpath")
-  vmtools_psh.push("$exe = ((Get-DiskImage -ImagePath $isopath | Get-Volume).Driveletter + ':\VBoxWindowsAdditions.exe')")
+  vmtools_psh.push("$exe = ((Get-DiskImage -ImagePath $isopath | Get-Volume).Driveletter + ':\\VBoxWindowsAdditions.exe')")
   vmtools_psh.push("$parameters = '/S'")
   vmtools_psh.push("Start-Process $exe $parameters -Wait")
   vmtools_psh.push("}")

@@ -193,8 +193,10 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   end
   case install_service
   when /win/
-    tools_upload_flavor = "windows"
-    tools_upload_path   = "C:\\Windows\\Temp\\windows.iso"
+    if !install_label.match(/2016/)
+      tools_upload_flavor = "windows"
+      tools_upload_path   = "C:\\Windows\\Temp\\windows.iso"
+    end
     shutdown_command    = "shutdown /s /t 1 /c \"Packer Shutdown\" /f /d p:4:1"
     unattended_xml      = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/Autounattend.xml"
     post_install_psh    = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/post_install.ps1"

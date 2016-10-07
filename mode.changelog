@@ -797,3 +797,5 @@
 # Added code to execute docker command on host
 # 3.9.8: Fri  7 Oct 2016 16:26:59 AEDT
 # Fixed bugs with Autounattend.xml creation
+# 3.9.9: Sat  8 Oct 2016 08:33:45 AEDT
+# Added support of Windows 2016 PR5

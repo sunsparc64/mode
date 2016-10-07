@@ -37,6 +37,7 @@ and HTTP based install services, eg:
   - Linux (RHEL, OEL, SuSE, Ubuntu, CentOS, Fedora, Scientific)
   - Solaris 10 & 11
   - Windows 2008 R2 & 2012 R2
+  - Windows 2016 PR5 (No WM Tools and License Key support)
   - ESXi
 - Initial Docker support
 
