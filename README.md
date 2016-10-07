@@ -1,4 +1,6 @@
 
+![alt tag](https://raw.githubusercontent.com/lateralblast/mode/master/mode.svg)
+
 MODE
 ====
 
