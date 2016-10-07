@@ -194,6 +194,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   case install_service
   when /win/
     tools_upload_flavor = "windows"
+    tools_upload_path   = "C:\\Windows\\Temp\\windows.iso"
     shutdown_command    = "shutdown /s /t 1 /c \"Packer Shutdown\" /f /d p:4:1"
     unattended_xml      = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/Autounattend.xml"
     post_install_psh    = $client_base_dir+"/packer/"+install_vm+"/"+install_client+"/post_install.ps1"
@@ -1185,6 +1186,8 @@ def create_packer_pe_install_files(install_client,install_service,install_ip,pub
   else
     winrm_psh = populate_winrm_psh()
     output_psh(install_client,winrm_psh,output_file)
+    vmtools_psh = populate_vmtools_psh()
+    output_psh(install_client,vmtools_psh,output_file)
   end
   return
 end

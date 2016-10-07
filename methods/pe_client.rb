@@ -176,7 +176,7 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
                   }
                   xml.Identifier("#{network_name}")
                   xml.UnicastIpAddresses {
-                    xml.IpAddress("#{network_ip}#{$default_cidr}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
+                    xml.IpAddress("#{network_ip}/#{$default_cidr}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
                   }
                   xml.Routes {
                     xml.Route(:"wcm:action" => "add") {
@@ -424,7 +424,7 @@ def output_pe_client_profile(install_client,install_ip,install_mac,output_file,i
                   }
                   xml.Identifier("#{network_name}")
                   xml.UnicastIpAddresses {
-                    xml.IpAddress("#{network_ip}#{$default_cidr}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
+                    xml.IpAddress("#{network_ip}/#{$default_cidr}", :"wcm:action" => "add", :"wcm:keyValue" => "1")
                   }
                   xml.Routes {
                     xml.Route(:"wcm:action" => "add") {
@@ -515,6 +515,35 @@ def populate_winrm_psh()
   winrm_psh.push("sc.exe config winrm start= auto")
   winrm_psh.push("net start winrm")
   return winrm_psh
+end
+
+# Populate Windows VM Tools powershell script
+
+def populate_vmtools_psh()
+  vmtools_psh = []
+  vmtools_psh.push("")
+  vmtools_psh.push("$isopath = \"C:\\Windows\\Temp\\windows.iso\"")
+  vmtools_psh.push("Mount-DiskImage -ImagePath $isopath")
+  vmtools_psh.push("function vmware {")
+  vmtools_psh.push("$exe = ((Get-DiskImage -ImagePath $isopath | Get-Volume).Driveletter + ':\setup.exe')")
+  vmtools_psh.push("$parameters = '/S /v \"/qr REBOOT=R\"'")
+  vmtools_psh.push("Start-Process $exe $parameters -Wait")
+  vmtools_psh.push("}")
+  vmtools_psh.push("function virtualbox {")
+  vmtools_psh.push("$certpath = ((Get-DiskImage -ImagePath $isopath | Get-Volume).Driveletter + ':\cert\oracle-vbox.cer')")
+  vmtools_psh.push("certutil -addstore -f \"TrustedPublisher\" $certpath")
+  vmtools_psh.push("$exe = ((Get-DiskImage -ImagePath $isopath | Get-Volume).Driveletter + ':\VBoxWindowsAdditions.exe')")
+  vmtools_psh.push("$parameters = '/S'")
+  vmtools_psh.push("Start-Process $exe $parameters -Wait")
+  vmtools_psh.push("}")
+  vmtools_psh.push("if ($ENV:PACKER_BUILDER_TYPE -eq \"vmware-iso\") {")
+  vmtools_psh.push("    vmware")
+  vmtools_psh.push("} else {")
+  vmtools_psh.push("    virtualbox")
+  vmtools_psh.push("}")
+  vmtools_psh.push("Dismount-DiskImage -ImagePath $isopath")
+  vmtools_psh.push("Remove-Item $isopath")
+  return vmtools_psh
 end
 
 # Populate Windows OpenSSH powershell script
