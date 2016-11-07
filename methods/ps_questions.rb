@@ -219,6 +219,16 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
   $q_struct[name] = config
   $q_order.push(name)
 
+  if install_service.match(/ubuntu/)
+    if install_service.match(/16_10/)
+      if install_vm.match(/fusion/)
+        $default_debian_interface = "ens33"
+      else
+        $default_debian_interface = "enp0s3"
+      end
+    end
+  end
+
   name = "nic"
   config = Ks.new(
     type      = "",

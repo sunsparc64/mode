@@ -799,3 +799,5 @@
 # Fixed bugs with Autounattend.xml creation
 # 3.9.9: Sat  8 Oct 2016 08:33:45 AEDT
 # Added support of Windows 2016 PR5
+# 4.0.0: Mon  7 Nov 2016 19:05:30 AEDT
+# Improved automatic gem installation and added support for Ubuntu 16.10

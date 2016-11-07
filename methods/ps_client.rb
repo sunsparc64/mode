@@ -44,10 +44,16 @@ end
 
 # Populate first boot commands
 
-def populate_ps_first_boot_list()
+def populate_ps_first_boot_list(install_service)
   post_list        = []
   client_ip        = $q_struct["ip"].value
-  client_nic       = $q_struct["nic"].value
+  if install_service.match(/ubuntu/)
+    if install_service.match(/16_10/)
+      client_nic = "eth0"
+    end
+  else
+    client_nic = $q_struct["nic"].value
+  end
   client_gateway   = $q_struct["gateway"].value
   client_netmask   = $q_struct["netmask"].value
   client_network   = $q_struct["network_address"].value

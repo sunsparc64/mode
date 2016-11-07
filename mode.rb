@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      3.9.9
+# Version:      4.0.0
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -26,46 +26,47 @@ require 'uri'
 require 'socket'
 require 'net/http'
 
-def install_gem(gem_name)
-  puts "Information:\tInstalling #{gem_name}"
-  %x[gem install #{gem_name}]
+def install_gem(load_name,install_name)
+  puts "Information:\tInstalling #{install_name}"
+  %x[gem install #{install_name}]
   Gem.clear_paths
+  require "#{load_name}"
 end
 
 begin
   require 'getopt/long'
 rescue LoadError
-  install_gem("getopt")
+  install_gem("getopt","getopt")
 end
 begin
   require 'builder'
 rescue LoadError
-  install_gem("builder")
+  install_gem("builder","builder")
 end
 begin
   require 'parseconfig'
 rescue LoadError
-  install_gem("parseconfig")
+  install_gem("parseconfig","parseconfig")
 end
 begin
   require 'unix_crypt'
 rescue LoadError
-  install_gem("unix-crypt")
+  install_gem("unix_crypt","unix-crypt")
 end
 begin
   require 'netaddr'
 rescue LoadError
-  install_gem("netaddr")
+  install_gem("netaddr","netaddr")
 end
 begin
   require 'json'
 rescue LoadError
-  install_gem("json")
+  install_gem("json","json")
 end
 begin
   require 'fileutils'
 rescue LoadError
-  install_gem("fileutils")
+  install_gem("fileutils","fileutils")
 end
 
 begin

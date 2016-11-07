@@ -1221,7 +1221,7 @@ def create_packer_ps_install_files(install_client,install_service,install_ip,ins
   post_list   = populate_ps_post_list(install_client,install_service,install_type,install_vm)
   output_ks_post_list(install_client,post_list,output_file,install_service)
   output_file = client_dir+"/"+install_client+"_first_boot.sh"
-  post_list   = populate_ps_first_boot_list()
+  post_list   = populate_ps_first_boot_list(install_service)
   output_ks_post_list(install_client,post_list,output_file,install_service)
   return
 end

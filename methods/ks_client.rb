@@ -223,7 +223,7 @@ def configure_ks_client(install_client,install_arch,install_mac,install_ip,insta
         post_list   = populate_ps_post_list(install_client,install_service,install_type,install_vm)
         output_ks_post_list(install_client,post_list,output_file,install_service)
         output_file = client_dir+"/"+install_client+"_first_boot.sh"
-        post_list   = populate_ps_first_boot_list()
+        post_list   = populate_ps_first_boot_list(populate_ps_first_boot_list)
         output_ks_post_list(install_client,post_list,output_file,install_service)
       end
     end
