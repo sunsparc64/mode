@@ -238,7 +238,11 @@ end
 # Populate firstboot commands
 
 def populate_vs_firstboot_list(install_service,install_license,install_client)
-  post_list   = []
+  post_list = []
+  vm_network_name    = $q_struct["vm_network_name"].value 
+  vm_network_vswitch = $q_struct["vm_network_vswitch"].value
+  vm_network_vlanid  = $q_struct["vm_network_vlanid"].value
+  datastore_name     = $q_struct["datastore"].value
   #post_list.push("%pre --interpreter=busybox")
   #post_list.push("echo '127.0.0.1 localhost' >> /etc/resolv.conf")
   #post_list.push("")
@@ -274,9 +278,13 @@ def populate_vs_firstboot_list(install_service,install_license,install_client)
   post_list.push("# supress ESXi Shell shell warning ")
   post_list.push("esxcli system settings advanced set -o /UserVars/SuppressShellWarning -i 1")
 #  post_list.push("esxcli system settings advanced set -o /UserVars/ESXiShellTimeOut -i 1")
-  post_list.push("")
-  post_list.push("# rename local datastore to something more meaningful")
-  post_list.push("vim-cmd hostsvc/datastore/rename datastore1 \"$(hostname -s)-local-storage-1\"")
+#  post_list.push("")
+#  post_list.push("# rename local datastore to something more meaningful")
+#  post_list.push("vim-cmd hostsvc/datastore/rename datastore1 \"$(hostname -s)-local-storage-1\"")
+#  post_list.push("")
+#  post_list.push("# Server VM Network setup")
+#  post_list.push("esxcli network vswitch standard portgroup add --portgroup-name #{vm_network_name} --vswitch-name #{vm_network_vswitch}")
+#  post_list.push("esxcli network vswitch standard portgroup set --portgroup-name #{vm_network_name} --vlan-id #{vm_network_vlanid}")
   post_list.push("")
   if install_license.match(/[a-z,A-Z]/)
     post_list.push("# assign license")

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.0.1
+# Version:      4.0.2
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -575,6 +575,10 @@ else
 end
 
 # Handle size switch
+
+if install_os.match(/vmware/)
+  $default_vm_size = "40G"
+end
 
 if option["size"]
   install_size = option["size"]
@@ -1978,6 +1982,8 @@ if !install_action.empty?
     if install_vm.match(/fusion|vbox/)
       check_vm_network(install_vm,install_mode,install_network)
     end
+  else
+    handle_output("Warning:\tAction #{install_method}")
   end
 end
 

@@ -803,3 +803,5 @@
 # Improved automatic gem installation and added support for Ubuntu 16.10
 # 4.0.1: Mon  5 Dec 2016 15:44:40 AEDT
 # Added check for Packer version 0.12.0 or above to deal with VMware Fusion stalling
+# 4.0.2: Tue  6 Dec 2016 05:42:26 AEDT
+# Added vSphere and VCSA 6.5 support

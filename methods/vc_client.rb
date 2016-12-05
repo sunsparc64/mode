@@ -60,9 +60,13 @@ def deploy_vcsa_vm(install_server,install_datastore,install_server_admin,install
   if File.directory?(deployment_dir)
     message = "Information:\tDeploying VCSA OVA"
     if deployment_dir.match(/6_0_0_3040890/)
-      command = "cd #{deployment_dir} ; echo yes | ./vcsa-deploy #{vcsa_json_file} --accept-eula"
+      command = "cd #{deployment_dir} ; echo yes | ./vcsa-deploy install #{vcsa_json_file} --accept-eula -v"
     else
-      command = "cd #{deployment_dir} ; echo yes | ./vcsa-deploy #{vcsa_json_file}"
+      if deployment_dir.match(/6_5/)
+        command = "cd #{deployment_dir} ; echo 1 | ./vcsa-deploy install #{vcsa_json_file} --accept-eula -v"
+      else
+        command = "cd #{deployment_dir} ; echo yes | ./vcsa-deploy install #{vcsa_json_file} -v"
+      end
     end
     execute_command(message,command)
   end
@@ -152,54 +156,98 @@ def create_vcsa_json(install_server,install_datastore,install_server_admin,insta
                      install_size,install_root_password,install_timeserver,install_admin_password,install_domainname,install_sitename,
                      install_ipfamily,install_mode,install_ip,install_netmask,install_gateway,install_nameserver,install_service,install_file)
   install_netmask = install_netmask.gsub(/\//,"")
-  string = "{ 
-              \"__comments\":
-              [
-                \"VCSA deployment\"
-              ],
-
-              \"deployment\":
-              {
-                \"esx.hostname\":\"#{install_server}\",
-                \"esx.datastore\":\"#{install_datastore}\",
-                \"esx.username\":\"#{install_server_admin}\",
-                \"esx.password\":\"#{install_server_password}\",
-                \"deployment.option\":\"#{install_size}\",
-                \"deployment.network\":\"#{install_server_network}\",
-                \"appliance.name\":\"#{install_client}\",
-                \"appliance.thin.disk.mode\":#{$default_thindiskmode}
-              }, 
-
-
-              \"vcsa\":
-              {
-
-                \"system\":
-                {
-                  \"root.password\":\"#{install_root_password}\",
-                  \"ssh.enable\":true,
-                  \"ntp.servers\":\"#{install_timeserver}\"
+  if install_service.match(/6_5/)
+    string = "{
+                \"__version\": \"2.3.0\",
+                \"new.vcsa\": {
+                  \"esxi\": {
+                    \"hostname\": \"#{install_server}\",
+                    \"username\": \"#{install_server_admin}\",
+                    \"password\": \"#{install_server_password}\",
+                    \"deployment.network\": \"#{install_server_network}\",
+                    \"datastore\": \"#{install_datastore}\"
+                  },
+                  \"appliance\": {
+                    \"thin.disk.mode\": true,
+                    \"deployment.option\": \"tiny\",
+                    \"name\": \"#{install_client}\"
+                  },
+                  \"network\": {
+                    \"ip.family\": \"ipv4\",
+                    \"mode\": \"static\",
+                    \"ip\": \"#{install_ip}\",
+                    \"dns.servers\": \"#{install_nameserver}\",
+                    \"prefix\": \"#{install_netmask}\",
+                    \"gateway\": \"#{install_gateway}\",
+                    \"system.name\": \"#{install_ip}\"
+                  },
+                  \"os\": {
+                    \"password\": \"#{install_admin_password}\",
+                    \"ntp.servers\": \"#{install_timeserver}\",
+                    \"ssh.enable\": true
+                  },
+                  \"sso\": {
+                    \"password\": \"#{install_admin_password}\",
+                    \"domain-name\": \"#{install_domainname}\",
+                    \"site-name\": \"#{install_sitename}\"
+                  }
                 },
-
-                \"sso\":
-                {
-                  \"password\":\"#{install_admin_password}\",
-                  \"domain-name\":\"#{install_domainname}\",
-                  \"site-name\":\"#{install_sitename}\"
-                },
-
-                \"networking\":
-                {
-                  \"ip.family\":\"#{install_ipfamily}\",
-                  \"mode\":\"static\",
-                  \"ip\":\"#{install_ip}\",
-                  \"prefix\":\"#{install_netmask}\",
-                  \"gateway\":\"#{install_gateway}\",
-                  \"dns.servers\":\"#{install_nameserver}\",
-                  \"system.name\":\"#{install_ip}\"
+                \"ceip\": {
+                  \"settings\": {
+                    \"ceip.enabled\": false
+                  }
                 }
-              }
-            }"
+              }"
+  else
+    string = "{ 
+                \"__comments\":
+                [
+                  \"VCSA deployment\"
+                ],
+  
+                \"deployment\":
+                {
+                  \"esx.hostname\":\"#{install_server}\",
+                  \"esx.datastore\":\"#{install_datastore}\",
+                  \"esx.username\":\"#{install_server_admin}\",
+                  \"esx.password\":\"#{install_server_password}\",
+                  \"deployment.option\":\"#{install_size}\",
+                  \"deployment.network\":\"#{install_server_network}\",
+                  \"appliance.name\":\"#{install_client}\",
+                  \"appliance.thin.disk.mode\":#{$default_thindiskmode}
+               }, 
+  
+  
+                \"vcsa\":
+                {
+  
+                  \"system\":
+                  {
+                    \"root.password\":\"#{install_root_password}\",
+                    \"ssh.enable\":true,
+                    \"ntp.servers\":\"#{install_timeserver}\"
+                  },
+  
+                  \"sso\":
+                  {
+                    \"password\":\"#{install_admin_password}\",
+                    \"domain-name\":\"#{install_domainname}\",
+                    \"site-name\":\"#{install_sitename}\"
+                  },
+  
+                  \"networking\":
+                  {
+                    \"ip.family\":\"#{install_ipfamily}\",
+                    \"mode\":\"static\",
+                    \"ip\":\"#{install_ip}\",
+                    \"prefix\":\"#{install_netmask}\",
+                    \"gateway\":\"#{install_gateway}\",
+                    \"dns.servers\":\"#{install_nameserver}\",
+                    \"system.name\":\"#{install_ip}\"
+                  }
+                }
+             }"
+    end
     uid = %x[id -u].chomp
     check_dir_exists($client_base_dir)
     check_dir_owner($client_base_dir,uid)

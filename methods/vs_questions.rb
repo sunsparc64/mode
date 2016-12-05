@@ -56,7 +56,7 @@ def populate_vs_questions(install_service,install_client,install_ip)
   $q_struct = {}
   $q_order  = []
 
-  name = "ks_header"
+  name   = "ks_header"
   config = Vs.new(
     type      = "output",
     question  = "VSphere file header comment",
@@ -69,7 +69,7 @@ def populate_vs_questions(install_service,install_client,install_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  name = "vmaccepteula"
+  name   = "vmaccepteula"
   config = Vs.new(
     type      = "output",
     question  = "Accept EULA",
@@ -82,7 +82,7 @@ def populate_vs_questions(install_service,install_client,install_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  name = "install"
+  name   = "install"
   config = Vs.new(
     type      = "output",
     question  = "Install type",
@@ -95,7 +95,7 @@ def populate_vs_questions(install_service,install_client,install_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  name = "nic"
+  name   = "nic"
   config = Vs.new(
     type      = "",
     question  = "Primary Network Interface",
@@ -108,7 +108,7 @@ def populate_vs_questions(install_service,install_client,install_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  name = "bootproto"
+  name   = "bootproto"
   config = Vs.new(
     type      = "",
     question  = "Boot Protocol",
@@ -121,7 +121,7 @@ def populate_vs_questions(install_service,install_client,install_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  name = "hostname"
+  name   = "hostname"
   config = Vs.new(
     type      = "",
     question  = "Hostname",
@@ -134,7 +134,7 @@ def populate_vs_questions(install_service,install_client,install_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  name = "ip"
+  name   = "ip"
   config = Vs.new(
     type      = "",
     question  = "IP",
@@ -147,7 +147,7 @@ def populate_vs_questions(install_service,install_client,install_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  name = "network"
+  name   = "network"
   config = Vs.new(
     type      = "output",
     question  = "Network Configuration",
@@ -160,7 +160,59 @@ def populate_vs_questions(install_service,install_client,install_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  name = "root_password"
+  name   = "datastore"
+  config = Vs.new(
+    type      = "output",
+    question  = "Local datastore name",
+    ask       = "yes",
+    parameter = "",
+    value     = $default_datastore,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
+  name   = "vm_network_name"
+  config = Vs.new(
+    type      = "output",
+    question  = "VM network name",
+    ask       = "yes",
+    parameter = "",
+    value     = $default_server_network,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
+  name   = "vm_network_vlanid"
+  config = Vs.new(
+    type      = "output",
+    question  = "VM network VLAN ID",
+    ask       = "yes",
+    parameter = "",
+    value     = $default_server_vlanid,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
+  name   = "vm_network_vswitch"
+  config = Vs.new(
+    type      = "output",
+    question  = "VM network vSwitch",
+    ask       = "yes",
+    parameter = "",
+    value     = $default_server_vswitch,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
+  name   = "root_password"
   config = Vs.new(
     type      = "",
     question  = "Root Password",
@@ -173,7 +225,7 @@ def populate_vs_questions(install_service,install_client,install_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  name = "root_crypt"
+  name   = "root_crypt"
   config = Vs.new(
     type      = "",
     question  = "Root Password Crypt",
@@ -186,7 +238,7 @@ def populate_vs_questions(install_service,install_client,install_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  name = "rootpw"
+  name   = "rootpw"
   config = Vs.new(
     type      = "output",
     question  = "Root Password Configuration",
@@ -199,7 +251,7 @@ def populate_vs_questions(install_service,install_client,install_ip)
   $q_struct[name] = config
   $q_order.push(name)
 
-  name = "finish"
+  name   = "finish"
   config = Vs.new(
     type      = "output",
     question  = "Finish Command",
