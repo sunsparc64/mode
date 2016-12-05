@@ -52,8 +52,6 @@ I was also using a number of different OSes, e.g. Solaris, Windows, Linux, etc.
 I was also having issues with earlier versions of Packer and deploying Solaris and vSphere,
 where the install would stall part way through. This has since been fixed, and I've added Packer support.
 
-Packer 
-
 License
 -------
 
