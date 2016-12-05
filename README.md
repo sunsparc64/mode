@@ -4,15 +4,11 @@
 MODE
 ====
 
-Multi OS Deployment Engine
+MODE stands for: Multi OS Deployment Engine
 
-This tool is based on modest (Multi OS Deployment Engine Server Tool).
-It has a completely cleaned up command line interface allowing for
-additional functionality to be added that was becoming increasing
-difficult for the original script. It also greatly increased the usability.
+This tools is designed to greatly simplify the creation of VMs for testing purposes.
 
-Introduction
-------------
+With a single command line command you can create and manage VMware Fusion and VirtualBox VMs.
 
 A Ruby script to configure server and client configuration for Packer, PXE/DHCP, BOOTP
 and HTTP based install services, eg:
@@ -43,28 +39,20 @@ and HTTP based install services, eg:
   - ESXi
 - Initial Docker support
 
-This script is a wrapper which sits on top of the exisitng tools. It changes
-defaults to be more suitable to customer environments, and sanity checks server
-and client configuration to ensure the chance of human error is reduced.
+Introduction
+------------
 
-By doing this the script reduces the time lost debugging installations,
-which in complex environments can be time consuming. It also reduces the time
-to deploy servers and increases the consistency of installations.
+Why another OS/VM deployment tool? 
 
-I've added completely headless VM support via virtual serial port so that
-installs via serial over IPMI can also be tested for environments that do not
-have remove KVM capability. For example ESXi can be installed into a VM in
-completely headless mode, completely simulating driving the install via serial.
+Most of the other tools Packer, Vagrant, etc, concentrated on NAT based configurations.
+If they did have host-only network support, it didn't always work correctly (e.g. Packer and VirtualBox).
+Also I wanted a tool which I could use to build configurations for physical or virtual machines.
+In most cases I was using PXE to boot and install physical machines, or virtual machines.
+I was also using a number of different OSes, e.g. Solaris, Windows, Linux, etc.
+I was also having issues with earlier versions of Packer and deploying Solaris and vSphere,
+where the install would stall part way through. This has since been fixed, and I've added Packer support.
 
-This script will also provide the ability to install Solaris 2.6-10, Solaris 11,
-ESXi, and Linux (SuSE, Ubuntu, RedHat and Centos) all from one server and OS,
-consolidating and simplifying installation services. This can be hosted on a
-physical server or a VM.
-
-In particular it can be used with a laptop to provide installation services via
-a cross-over cable. This is expecially useful for resolving issues with servers
-and installing firmware. It can be used in combination with the firmware and
-patch repository script (goofball) to install patches, firmware and SRUs.
+Packer 
 
 License
 -------
@@ -358,11 +346,12 @@ use flar based installs as the performance of the OS X NFS is poor
 
 There is initial Parallels support for creating VMs
 
-Future Additions
-----------------
+Possible Future Additions
+-------------------------
 
 Some of the things I'd like to add support for:
 
+- Packer and AWS
 - Vagrant and Veewee
 - VMware API
 - OpenStack
