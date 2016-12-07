@@ -185,7 +185,7 @@ def set_global_vars()
   $default_aws_size         = "t2.micro"
   $default_aws_region       = "ap-southeast-2"
   $default_aws_ami          = "ami-fedafc9d"
-  $default_aws_creds        = $home_dir+"/.aws.creds"
+  $default_aws_creds        = $home_dir+"/.aws/credentials"
   $default_aws_suffix       = $script_name
 
   # VMware Fusion Global variables

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.0.3
+# Version:      4.0.4
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -67,6 +67,11 @@ begin
   require 'fileutils'
 rescue LoadError
   install_gem("fileutils","fileutils")
+end
+begin
+  require 'ruby-aws'
+rescue LoadError
+  install_gem("ruby-aws","ruby-aws")
 end
 
 begin
@@ -183,6 +188,7 @@ begin
     [ "--repo",           "-2", REQUIRED ], # Set repository
     [ "--nameserver",     "-3", REQUIRED ], # Delete client or VM
     [ "--changelog",      "-4", BOOLEAN ],  # Print changelog
+    [ "--search",               REQUIRED ], # Credentials file
     [ "--creds",                REQUIRED ], # Credentials file
     [ "--access",               REQUIRED ], # AWS Access Key
     [ "--secret",               REQUIRED ], # AWS Secret Key
@@ -1656,6 +1662,11 @@ if !install_action.empty?
       eval"[show_#{install_vm}_vm(install_client)]"
     end
   when /list/
+    if install_vm.match(/aws/)
+      if install_type.match(/images|ami/)
+        list_aws_images(install_search)
+      end
+    end
     if install_type.match(/packer|docker/)
       eval"[list_#{install_type}_clients]"
       quit()

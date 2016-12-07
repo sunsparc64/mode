@@ -807,3 +807,6 @@
 # Added vSphere and VCSA 6.5 support
 # 4.0.3: Wed  7 Dec 2016 16:08:10 AEDT
 # Initial Packer AWS support
+# 4.0.4: Thu  8 Dec 2016 08:30:25 AEDT
+# Updated AWS credential code
+

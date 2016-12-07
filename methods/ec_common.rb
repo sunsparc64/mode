@@ -74,11 +74,11 @@ def get_aws_creds(install_creds)
         if line.match(/:/)
           (install_access,install_secret) = line.split(/:/)
         end
-        if line.match(/AWS_ACCESS_KEY/)
-        	install_access = line.gsub(/export|AWS_ACCESS_KEY|=|"|\s+/,"")
+        if line.match(/AWS_ACCESS_KEY|aws_access_key_id/)
+        	install_access = line.gsub(/export|AWS_ACCESS_KEY|aws_access_key_id|=|"|\s+/,"")
         end
-        if line.match(/AWS_SECRET_KEY/)
-        	install_secret = line.gsub(/export|AWS_SECRET_KEY|=|"|\s+/,"")
+        if line.match(/AWS_SECRET_KEY|aws_secret_access_key/)
+        	install_secret = line.gsub(/export|AWS_SECRET_KEY|aws_secret_access_key|=|"|\s+/,"")
         end
       end
     end
