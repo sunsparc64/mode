@@ -3,7 +3,7 @@
 # Get packer version
 
 def get_packer_version()
-	packer_version = %x[$#{packer_bin} --version].chomp
+	packer_version = %x[#{$packer_bin} --version].chomp
 	return packer_version
 end
 
