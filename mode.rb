@@ -69,9 +69,9 @@ rescue LoadError
   install_gem("fileutils","fileutils")
 end
 begin
-  require 'ruby-aws'
+  require 'aws-sdk'
 rescue LoadError
-  install_gem("ruby-aws","ruby-aws")
+  install_gem("aws-sdk","aws-sdk")
 end
 
 begin
