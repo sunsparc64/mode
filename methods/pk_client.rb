@@ -1006,6 +1006,43 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   return communicator
 end
 
+# Create Packer JSON file for AWS
+
+def create_packer_aws_json()
+  install_type   = $q_struct["type"].value
+  install_access = $q_struct["access_key"].value
+  install_secret = $q_struct["secret_key"].value
+  install_ami    = $q_struct["source_ami"].value
+  install_region = $q_struct["region"].value
+  install_size   = $q_struct["instance_type"].value
+  install_admin  = $q_struct["ssh_username"].value
+  install_client = $q_struct["ami_name"].value
+  user_data_file = $q_struct["user_data_file"].value
+  packer_dir     = $client_base_dir+"/packer"
+  client_dir     = packer_dir+"/aws/"+install_client
+  json_file      = client_dir+"/"+install_client+".json"
+  check_dir_exists(client_dir)
+  json_data = {
+    :builders => [
+      :name             => "aws",
+      :type             => install_type,
+      :access_key       => install_access,
+      :secret_key       => install_secret,
+      :source_ami       => install_ami,
+      :region           => install_region,
+      :instance_type    => install_size,
+      :ssh_username     => install_admin,
+      :ami_name         => install_client,
+      :user_data_file   => user_data_file
+    ]
+  }
+  json_output = JSON.pretty_generate(json_data)
+  delete_file(json_file)
+  File.write(json_file,json_output)
+  print_contents_of_file("",json_file)
+  return
+end
+
 # Check if a packer image exists
 
 def check_packer_image_exists(install_client,install_vm)
@@ -1078,12 +1115,20 @@ def configure_packer_client(install_method,install_vm,install_os,install_client,
   check_dir_owner($client_base_dir,uid)
 	exists = eval"[check_#{install_vm}_vm_exists(install_client)]"
 	if exists == "yes"
-		handle_output("Warning:\tVirtualBox VM #{install_client} already exists")
+    if install_vm.match(/vbox/)
+  		handle_output("Warning:\tVirtualBox VM #{install_client} already exists")
+    else
+      handle_output("Warning:\tVMware Fusion VM #{install_client} already exists")
+    end
 		exit
 	end
 	exists = check_packer_image_exists(install_client,install_vm)
 	if exists == "yes"
-		handle_output("Warning:\tPacker image for VirtualBox VM #{install_client} already exists")
+    if install_vm.match(/vbox/)
+  		handle_output("Warning:\tPacker image for VirtualBox VM #{install_client} already exists")
+    else
+      handle_output("Warning:\tPacker image for VMware Fusion VM #{install_client} already exists")
+    end
 		exit
 	end
   (install_service,install_os,install_method,install_release,install_arch,install_label) = get_packer_install_service(install_file)
@@ -1101,7 +1146,11 @@ def build_packer_config(install_client,install_vm)
   kill_packer_processes(install_client)
   exists = eval"[check_#{install_vm}_vm_exists(install_client)]"
   if exists.to_s.match(/yes/)
-    handle_output("Warning:\t#{install_vm.capitalize} VM #{install_client} already exists ")
+    if install_vm.match(/vbox/)
+      handle_output("Warning:\tVirtualBox VM #{install_client} already exists")
+    else
+      handle_output("Warning:\tVMware Fusion VM #{install_client} already exists")
+    end
     exit
   end
   exists = check_packer_image_exists(install_client,install_vm)
@@ -1271,6 +1320,20 @@ def create_packer_ai_install_files(install_client,install_service,install_ip,ins
   return
 end
 
+# Create AWS client
+
+def create_packer_aws_install_files(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret)
+  client_dir     = $client_base_dir+"/packer/aws/"+install_client
+  user_data_file = client_dir+"/userdata.yaml"
+  check_dir_exists(client_dir)
+  populate_aws_questions(install_client,install_ami,install_region,install_size,install_access,install_secret,user_data_file)
+  install_service = "aws"
+  process_questions(install_service)
+  create_aws_user_data_file(user_data_file)
+  create_packer_aws_json()
+  return
+end
+
 # Copy package from package directory to packer client directory
 
 def copy_pkg_to_packer_client(pkg_name,install_client,install_vm)
@@ -1290,6 +1353,13 @@ def copy_pkg_to_packer_client(pkg_name,install_client,install_vm)
     command  = "cp #{source_pkg} #{dest_pkg}"
     execute_command(message,command)
   end
+  return
+end
+
+# Configure Packer AWS client
+
+def configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret)
+  create_packer_aws_install_files(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret)
   return
 end
 

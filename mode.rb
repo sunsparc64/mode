@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.0.2
+# Version:      4.0.3
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -182,7 +182,13 @@ begin
     [ "--command",        "-1", REQUIRED ], # Set repository
     [ "--repo",           "-2", REQUIRED ], # Set repository
     [ "--nameserver",     "-3", REQUIRED ], # Delete client or VM
-    [ "--changelog",      "-4", BOOLEAN ]   # Print changelog
+    [ "--changelog",      "-4", BOOLEAN ],  # Print changelog
+    [ "--creds",                REQUIRED ], # Credentials file
+    [ "--access",               REQUIRED ], # AWS Access Key
+    [ "--secret",               REQUIRED ], # AWS Secret Key
+    [ "--region",               REQUIRED ], # AWS Secret Key
+    [ "--suffix",               REQUIRED ], # AWS AMI Name suffix
+    [ "--ami",                  REQUIRED ]  # AWS AMI ID
   )
 rescue
   print_usage()
@@ -248,6 +254,66 @@ else
   install_command = ""
 end
 
+# Handle AWS credentials
+
+if option["vm"].match(/aws/)
+  if option["suffix"]
+    $default_aws_suffix = option["suffix"]
+  end
+  if option["creds"]
+    install_creds = option["creds"]
+    install_access,install_secret = get_aws_creds(install_creds)
+  else
+    install_creds = $default_aws_creds
+    if ENV["AWS_ACCESS_KEY"]
+      install_access = ENV["AWS_ACCESS_KEY"]
+    end
+    if ENV["AWS_SECRET_KEY"]
+      install_secret = ENV["AWS_SECRET_KEY"]
+    end
+    if !option["secret"] or !option["access"]
+      install_access,install_secret = get_aws_creds(install_creds)
+    else 
+      if option["secret"]
+        install_secret = option["secret"]
+      else
+        install_secret = ""
+      end
+      if option["access"]
+        install_access = option["access"]
+      else
+        install_access = ""
+      end
+    end
+  end
+  if !install_access.match(/[A-Z]/) or !install_secret.match(/[A-Z]|[a-z]|[0-9]/)
+    handle_output("Warning:\tAWS Access and Secret Keys not found")
+    exit
+  else
+    if !File.exist?(install_creds)
+      create_aws_creds_file(install_creds,install_access,install_secret)
+    end
+  end
+end
+
+# Handle AWS Region
+
+if option["region"]
+  install_region = option["region"]
+else
+  install_region = $default_aws_region
+end
+
+# Handle AWS AMI ID
+
+if option["ami"]
+  install_ami = option["ami"]
+else
+  install_ami = $default_aws_ami
+end
+
+
+
 # Handle client name switch
 
 if option["client"]
@@ -263,7 +329,7 @@ end
 # If given admin set admin user
 
 if option["admin"]
-  $default_admin_user = options["admin"]
+  $default_admin_user = option["admin"]
   if $verbose_mode == 1
     handle_output("Information:\tSetting admin user to #{$default_admin_user}")
   end
@@ -410,6 +476,11 @@ end
 if option["vm"]
   install_vm = option["vm"].downcase
   install_vm = install_vm.gsub(/virtualbox/,"vbox")
+  if install_vm.match(/aws/)
+    if !option["type"]
+      option["type"] = $default_aws_type
+    end
+  end
 else
   install_vm = ""
 end
@@ -591,10 +662,14 @@ if option["size"]
     handle_output("Information:\tSetting disk size to #{install_size}")
   end
 else
-  if install_type.match(/vcsa/)
-    install_size = $default_vcsa_size
+  if install_vm.match(/aws/)
+    install_size = $default_aws_size
   else
-    install_size = $default_vm_size
+    if install_type.match(/vcsa/)
+      install_size = $default_vcsa_size
+    else
+      install_size = $default_vm_size
+    end
   end
 end
 
@@ -777,7 +852,7 @@ if install_action.match(/build/)
     handle_output("Warning:\tVM type not specified")
     exit
   else
-    if !install_vm.match(/vbox|fusion/)
+    if !install_vm.match(/vbox|fusion|aws/)
       handle_output("Warning:\tInvalid VM type specified")
       exit
     end
@@ -1231,7 +1306,7 @@ if install_os.empty?
   if !install_vm.empty?
     if install_action.match(/add|create/)
       if install_method.empty?
-        if !install_vm.match(/ldom|cdom|gdom/)
+        if !install_vm.match(/ldom|cdom|gdom|aws/)
           handle_output("Warning:\tNo OS or install method specified when creating VM")
           exit
         end
@@ -1686,10 +1761,19 @@ if !install_action.empty?
       end
     end
   when /build/
-    if install_type.match(/packer/)
-      build_packer_config(install_client,install_vm)
+    if install_vm.match(/aws/)
+      install_client = get_aws_ami_name(install_client,install_region)
+      build_aws_config(install_client,install_creds)
+    else
+      if install_type.match(/packer/)
+        build_packer_config(install_client,install_vm)
+      end
     end
   when /add|create/
+    if install_vm.match(/aws/)
+      configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret)
+      quit()
+    end
     if install_type.match(/docker/)
       configure_docker_client(install_vm,install_client,install_ip,install_network)
       quit()

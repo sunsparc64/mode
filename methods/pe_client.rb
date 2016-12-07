@@ -568,10 +568,6 @@ def output_psh(install_client,output_psh,output_file)
     file.write(line)
   end
   file.close
-  if $verbose_mode == 1
-    message = "Information:\tContents of Windows powershell file: "+output_file+" for: "+install_client
-    command = "cat #{output_file}"
-    execute_command(message,command)
-  end
+  print_contents_of_file(output_file)
   return
 end

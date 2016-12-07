@@ -153,7 +153,7 @@ def set_global_vars()
   $valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
   $valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
   $valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image', 'ldom', 'cdom', 'gdom' ]
-  $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer', 'docker' ]
+  $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer', 'docker', 'amazon-ebs' ]
   $valid_mode_list          = [ 'client', 'server', 'osx' ]
   $valid_vm_list            = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'ldom', 'gdom', 'parallels' ]
   $execute_host             = "localhost"
@@ -181,6 +181,12 @@ def set_global_vars()
   $vnc_port                 = "5961"
   $novnc_dir                = $script_dir+"/noVNC"
   $novnc_url                = "git://github.com/kanaka/noVNC"
+  $default_aws_type         = "amazon-ebs"
+  $default_aws_size         = "t2.micro"
+  $default_aws_region       = "ap-southeast-2"
+  $default_aws_ami          = "ami-fedafc9d"
+  $default_aws_creds        = $home_dir+"/.aws.creds"
+  $default_aws_suffix       = $script_name
 
   # VMware Fusion Global variables
   
@@ -189,10 +195,11 @@ def set_global_vars()
 
   # Declare some package versions
 
-  $facter_version = "1.7.4"
-  $hiera_version  = "1.3.1"
-  $puppet_version = "3.4.2"
-  $packer_version = "0.12.0"
+  $facter_version  = "1.7.4"
+  $hiera_version   = "1.3.1"
+  $puppet_version  = "3.4.2"
+  $packer_version  = "0.12.0"
+  $vagrant_version = "1.8.1"
 
   # Set some global OS types
 
@@ -248,7 +255,7 @@ def set_global_vars()
       $os_info = %x[#{lsb_bin} -i -s].chomp
       $os_rel  = %x[#{lsb_bin} -r -s].chomp
     when /Darwin/
-      $valid_vm_list = [ 'vbox', 'fusion', 'parallels' ]
+      $valid_vm_list = [ 'vbox', 'fusion', 'parallels', 'aws' ]
     end
     case platform
     when /VMware/
@@ -321,6 +328,9 @@ def print_usage()
       switches     = line.split(/,/)
       long_switch  = switches[0].gsub(/\[/,"").gsub(/\s+/,"")
       short_switch = switches[1].gsub(/\s+/,"")
+      if short_switch.match(/REQ/)
+        short_switch = ""
+      end
       if long_switch.gsub(/\s+/,"").length < 7
         handle_output("#{long_switch},\t\t\t#{short_switch}\t#{help_info}")
       else
@@ -2425,7 +2435,7 @@ def execute_command(message,command)
   end
   if execute == 1
     if $id != 0
-      if !command.match(/brew |hg|pip|VBoxManage|netstat|df|vmrun|noVNC|docker/)
+      if !command.match(/brew |hg|pip|VBoxManage|netstat|df|vmrun|noVNC|docker|packer/)
         if $use_sudo != 0
           command = "sudo sh -c '"+command+"'"
         end
@@ -3145,3 +3155,13 @@ def clear_solaris_dhcpd()
   clear_service(smf_service)
   return
 end
+
+# Brew install a package on OS X
+
+def brew_install(pkg_name)
+  command = "brew install #{pkg_name}"
+  message = "Information:\tInstalling #{pkg_name}"
+  execute_command(message,command)
+  return
+end
+
