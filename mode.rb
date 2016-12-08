@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.0.4
+# Version:      4.0.5
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -188,7 +188,8 @@ begin
     [ "--repo",           "-2", REQUIRED ], # Set repository
     [ "--nameserver",     "-3", REQUIRED ], # Delete client or VM
     [ "--changelog",      "-4", BOOLEAN ],  # Print changelog
-    [ "--search",               REQUIRED ], # Credentials file
+    [ "--nosuffix",             BOOLEAN ],  # Don't add suffix to AWS AMI names
+    [ "--search",               REQUIRED ], # Search string
     [ "--creds",                REQUIRED ], # Credentials file
     [ "--access",               REQUIRED ], # AWS Access Key
     [ "--secret",               REQUIRED ], # AWS Secret Key
@@ -258,6 +259,14 @@ if option["command"]
   install_command = option["command"]
 else
   install_command = ""
+end
+
+# Handle nosuffix switch
+
+if option["nosuffix"]
+  $nosuffix = 1
+else
+  $nosuffix = 0
 end
 
 # Handle AWS credentials
@@ -1664,8 +1673,9 @@ if !install_action.empty?
   when /list/
     if install_vm.match(/aws/)
       if install_type.match(/images|ami/)
-        list_aws_images(install_search)
+        list_aws_images(install_access,install_secret,install_region)
       end
+      quit()
     end
     if install_type.match(/packer|docker/)
       eval"[list_#{install_type}_clients]"
@@ -1713,6 +1723,13 @@ if !install_action.empty?
     end
   when /delete|remove/
     if !install_client.empty?
+      if install_vm.match(/aws/)
+        if $nosuffix == 0
+          install_client = get_aws_ami_name(install_client,install_region)
+        end
+        delete_aws_image(install_client,install_access,install_secret,install_region)
+        quit()
+      end
       if install_type.match(/docker/)
         unconfigure_docker_client(install_client)
         quit()
@@ -1773,8 +1790,10 @@ if !install_action.empty?
     end
   when /build/
     if install_vm.match(/aws/)
-      install_client = get_aws_ami_name(install_client,install_region)
-      build_aws_config(install_client,install_creds)
+      if $nosuffix == 0
+        install_client = get_aws_ami_name(install_client,install_region)
+      end
+      build_aws_config(install_client,install_access,install_secret,install_region)
     else
       if install_type.match(/packer/)
         build_packer_config(install_client,install_vm)

@@ -29,8 +29,13 @@ end
 
 # Build AWS client
 
-def build_aws_config(install_client,install_creds)
+def build_aws_config(install_access,install_secret,install_region,install_client)
 	check_packer_is_installed()
+	exists = check_if_aws_image_exists(install_access,install_secret,install_region,install_client)
+	if exists == "yes"
+		handle_output("Warning:\tAWS image already exists for '#{install_client}'")
+		exit
+	end
 	client_dir = $client_base_dir+"/packer/aws/"+install_client
 	json_file  = client_dir+"/"+install_client+".json"
 	message    = "Information:\tBuilding Packer AWS instance '#{install_client}' using '#{json_file}'"

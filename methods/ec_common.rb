@@ -1,5 +1,88 @@
 # AWS common code
 
+# Initiate AWS EC2 Client connection
+
+def initiate_aws_ec2_client(install_access,install_secret,install_region)
+	ec2 = Aws::EC2::Client.new(
+		:region 						=>	install_region, 
+  	:access_key_id 			=>	install_access,
+  	:secret_access_key 	=>	install_secret
+	)
+	return ec2
+end
+
+# Initiates AWS EC2 Image connection
+
+def initiate_aws_ec2_image(install_access,install_secret,install_region)
+	ec2 = Aws::EC2::Image.new(
+		:region 						=>	install_region, 
+  	:access_key_id 			=>	install_access,
+  	:secret_access_key 	=>	install_secret
+	)
+	return ec2
+end
+
+# Get list of AWS images
+
+def get_aws_images(install_access,install_secret,install_region)
+	list   = []
+	ec2    = initiate_aws_ec2_client(install_access,install_secret,install_region)
+	images = ec2.describe_images({ owners: ["self"] }).images
+	return ec2,images
+end
+
+# List AWS images
+
+def list_aws_images(install_access,install_secret,install_region)
+	ec2,images = get_aws_images(install_access,install_secret,install_region)
+	images.each do |image|
+		puts image.name
+	end
+	return
+end
+
+# Get AWS image ID
+
+def get_aws_image(install_client,install_access,install_secret,install_region)
+	image_id 	 = "none"
+	ec2,images = get_aws_images(install_access,install_secret,install_region)
+	images.each do |image|
+		if image.name.match(/^#{install_client}/)
+			image_id = image.image_id
+			return ec2,image_id
+		end
+	end
+	return ec2,image_id
+end
+
+# Delete AWS image
+
+def delete_aws_image(install_client,install_access,install_secret,install_region)
+	ec2,image_id = get_aws_image(install_client,install_access,install_secret,install_region)
+	if image_id == "none"
+		handle_output("Warning:\tNo AWS Image exists for '#{install_client}'")
+		exit
+	else
+		handle_output("Information:\tDeleting Image ID #{image_id} for '#{install_client}'")
+		ec2.deregister_image({ dry_run: false, image_id: image_id, })
+	end
+	return
+end
+
+# Check if AWS image exists
+
+def check_if_aws_image_exists(install_client,install_access,install_secret,install_region)
+	exists     = "no"
+	ec2,images = get_aws_images(install_access,install_secret,install_region)
+	images.each do |image|
+		if image.name.match(/^#{install_client}/)
+			exists = "yes"
+			return exists
+		end
+	end
+	return exists
+end
+
 # Get vagrant version
 
 def get_vagrant_version()

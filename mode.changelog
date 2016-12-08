@@ -809,4 +809,6 @@
 # Initial Packer AWS support
 # 4.0.4: Thu  8 Dec 2016 08:30:25 AEDT
 # Updated AWS credential code
+# 4.0.5: Thu  8 Dec 2016 17:24:48 AEDT
+# Added code to list and delete AMIs
 
