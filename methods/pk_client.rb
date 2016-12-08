@@ -43,7 +43,7 @@ end
 def list_packer_clients(install_vm)
   packer_dir = $client_base_dir+"/packer"
   if !install_vm.match(/[a-z,A-Z]/) or install_vm.match(/none/)
-    vm_types = [ 'fusion', 'vbox' ]
+    vm_types = [ 'fusion', 'vbox', 'aws' ]
   else
     vm_types = []
     vm_types.push(install_vm)
@@ -52,8 +52,11 @@ def list_packer_clients(install_vm)
     vm_dir = packer_dir+"/"+vm_type
     if File.directory?(vm_dir)
       handle_output("")
-      if vm_type.match(/vbox/)
+      case vm_type
+      when /vbox/
         vm_title = "VirtualBox"
+      when /aws/
+        vm_title = "AWS"
       else
         vm_title = "VMware Fusion"
       end
@@ -75,7 +78,11 @@ def list_packer_clients(install_vm)
             json_file = vm_dir+"/"+vm_name+"/"+vm_name+".json"
             if File.exist?(json_file)
               json  = File.readlines(json_file)
-              vm_os = json.grep(/guest_os_type/)[0].split(/:/)[1].split(/"/)[1]
+              if vm_type.match(/aws/)
+                vm_os = "AMI"
+              else
+                vm_os = json.grep(/guest_os_type/)[0].split(/:/)[1].split(/"/)[1]
+              end
               if $output_format.match(/html/)
                 handle_output("<tr>")
                 handle_output("<td>#{vm_name}</td>")
@@ -1009,23 +1016,23 @@ end
 # Create Packer JSON file for AWS
 
 def create_packer_aws_json()
-  install_type   = $q_struct["type"].value
-  install_access = $q_struct["access_key"].value
-  install_secret = $q_struct["secret_key"].value
-  install_ami    = $q_struct["source_ami"].value
-  install_region = $q_struct["region"].value
-  install_size   = $q_struct["instance_type"].value
-  install_admin  = $q_struct["ssh_username"].value
-  install_client = $q_struct["ami_name"].value
-  user_data_file = $q_struct["user_data_file"].value
-  packer_dir     = $client_base_dir+"/packer"
-  client_dir     = packer_dir+"/aws/"+install_client
-  json_file      = client_dir+"/"+install_client+".json"
+  install_service = $q_struct["type"].value
+  install_access  = $q_struct["access_key"].value
+  install_secret  = $q_struct["secret_key"].value
+  install_ami     = $q_struct["source_ami"].value
+  install_region  = $q_struct["region"].value
+  install_size    = $q_struct["instance_type"].value
+  install_admin   = $q_struct["ssh_username"].value
+  install_client  = $q_struct["ami_name"].value
+  user_data_file  = $q_struct["user_data_file"].value
+  packer_dir      = $client_base_dir+"/packer"
+  client_dir      = packer_dir+"/aws/"+install_client
+  json_file       = client_dir+"/"+install_client+".json"
   check_dir_exists(client_dir)
   json_data = {
     :builders => [
       :name             => "aws",
-      :type             => install_type,
+      :type             => install_service,
       :access_key       => install_access,
       :secret_key       => install_secret,
       :source_ami       => install_ami,

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.0.5
+# Version:      4.0.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -271,42 +271,44 @@ end
 
 # Handle AWS credentials
 
-if option["vm"].match(/aws/)
-  if option["suffix"]
-    $default_aws_suffix = option["suffix"]
-  end
-  if option["creds"]
-    install_creds = option["creds"]
-    install_access,install_secret = get_aws_creds(install_creds)
-  else
-    install_creds = $default_aws_creds
-    if ENV["AWS_ACCESS_KEY"]
-      install_access = ENV["AWS_ACCESS_KEY"]
+if option["vm"]
+  if option["vm"].match(/aws/)
+    if option["suffix"]
+      $default_aws_suffix = option["suffix"]
     end
-    if ENV["AWS_SECRET_KEY"]
-      install_secret = ENV["AWS_SECRET_KEY"]
-    end
-    if !option["secret"] or !option["access"]
+    if option["creds"]
+      install_creds = option["creds"]
       install_access,install_secret = get_aws_creds(install_creds)
-    else 
-      if option["secret"]
-        install_secret = option["secret"]
-      else
-        install_secret = ""
+    else
+      install_creds = $default_aws_creds
+      if ENV["AWS_ACCESS_KEY"]
+        install_access = ENV["AWS_ACCESS_KEY"]
       end
-      if option["access"]
-        install_access = option["access"]
-      else
-        install_access = ""
+      if ENV["AWS_SECRET_KEY"]
+        install_secret = ENV["AWS_SECRET_KEY"]
+      end
+      if !option["secret"] or !option["access"]
+        install_access,install_secret = get_aws_creds(install_creds)
+      else 
+        if option["secret"]
+          install_secret = option["secret"]
+        else
+          install_secret = ""
+        end
+        if option["access"]
+          install_access = option["access"]
+        else
+          install_access = ""
+        end
       end
     end
-  end
-  if !install_access.match(/[A-Z]/) or !install_secret.match(/[A-Z]|[a-z]|[0-9]/)
-    handle_output("Warning:\tAWS Access and Secret Keys not found")
-    exit
-  else
-    if !File.exist?(install_creds)
-      create_aws_creds_file(install_creds,install_access,install_secret)
+    if !install_access.match(/[A-Z]/) or !install_secret.match(/[A-Z]|[a-z]|[0-9]/)
+      handle_output("Warning:\tAWS Access and Secret Keys not found")
+      exit
+    else
+      if !File.exist?(install_creds)
+        create_aws_creds_file(install_creds,install_access,install_secret)
+      end
     end
   end
 end
@@ -492,8 +494,8 @@ if option["vm"]
   install_vm = option["vm"].downcase
   install_vm = install_vm.gsub(/virtualbox/,"vbox")
   if install_vm.match(/aws/)
-    if !option["type"]
-      option["type"] = $default_aws_type
+    if !option["service"]
+      option["service"] = $default_aws_type
     end
   end
 else
@@ -1671,14 +1673,17 @@ if !install_action.empty?
       eval"[show_#{install_vm}_vm(install_client)]"
     end
   when /list/
+    if install_type.match(/packer|docker/)
+      eval"[list_#{install_type}_clients(install_vm)]"
+      quit()
+    end
     if install_vm.match(/aws/)
       if install_type.match(/images|ami/)
         list_aws_images(install_access,install_secret,install_region)
       end
-      quit()
-    end
-    if install_type.match(/packer|docker/)
-      eval"[list_#{install_type}_clients]"
+      if install_type.match(/packer/)
+        list_packer_aws_clients()
+      end
       quit()
     end
     if install_type.match(/service/) or install_mode.match(/server/)
