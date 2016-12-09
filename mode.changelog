@@ -813,4 +813,5 @@
 # Added code to list and delete AMIs
 # 4.0.6: Thu  8 Dec 2016 17:53:43 AEDT
 # Added code to list Packer AWS clients
-
+# 4.0.7: Fri  9 Dec 2016 17:33:44 AEDT
+# Added code to list, stop and start AWS instances

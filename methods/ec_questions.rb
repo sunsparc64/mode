@@ -13,7 +13,7 @@ end
 
 # Populate AWS questions
 
-def populate_aws_questions(install_client,install_ami,install_region,install_size,install_access,install_secret,user_data_file)
+def populate_aws_questions(install_client,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type)
   $q_struct = {}
   $q_order  = []
 

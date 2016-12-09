@@ -37,7 +37,11 @@ and HTTP based install services, eg:
   - Windows 2008 R2 & 2012 R2
   - Windows 2016 PR5 (No WM Tools and License Key support)
   - ESXi
-- Initial Packer AWS support
+  - Create AMIs
+- Initial AWS support
+  - List instances
+  - Stop instances
+  - Start instances
 - Initial Docker support
 
 Introduction

@@ -1,16 +1,5 @@
 # AWS common code
 
-# Initiate AWS EC2 Client connection
-
-def initiate_aws_ec2_client(install_access,install_secret,install_region)
-	ec2 = Aws::EC2::Client.new(
-		:region 						=>	install_region, 
-  	:access_key_id 			=>	install_access,
-  	:secret_access_key 	=>	install_secret
-	)
-	return ec2
-end
-
 # Initiates AWS EC2 Image connection
 
 def initiate_aws_ec2_image(install_access,install_secret,install_region)
@@ -22,10 +11,60 @@ def initiate_aws_ec2_image(install_access,install_secret,install_region)
 	return ec2
 end
 
+# Initiate AWS EC2 Instance connection
+
+def initiate_aws_ec2_instance(install_access,install_secret,install_region)
+	ec2 = Aws::EC2::Instance.new(
+		:region 						=>	install_region, 
+  	:access_key_id 			=>	install_access,
+  	:secret_access_key 	=>	install_secret
+	)
+	return ec2
+end
+
+# Initiate AWS EC2 Client connection
+
+def initiate_aws_ec2_client(install_access,install_secret,install_region)
+	ec2 = Aws::EC2::Client.new(
+		:region 						=>	install_region, 
+  	:access_key_id 			=>	install_access,
+  	:secret_access_key 	=>	install_secret
+	)
+	return ec2
+end
+
+# Get AWS reservations
+
+def get_aws_reservations(install_access,install_secret,install_region)
+	ec2    		   = initiate_aws_ec2_client(install_access,install_secret,install_region)
+	reservations = ec2.describe_instances({ }).reservations
+	return ec2,reservations
+end
+
+# List AWS instances
+
+def list_aws_instances(install_access,install_secret,install_region)
+	ec2,reservations = get_aws_reservations(install_access,install_secret,install_region)
+	reservations.each do |reservation|
+		reservation["instances"].each do |instance|
+			instance_id = instance.instance_id
+			image_id    = instance.image_id
+			status      = instance.state.name
+			if status.match(/running/)
+				public_ip = instance.public_ip_address
+			else
+				public_ip = "NA"
+			end
+			string = instance_id+" image="+image_id+" ip="+public_ip+" status="+status
+			handle_output(string)
+		end
+	end
+	return
+end
+
 # Get list of AWS images
 
 def get_aws_images(install_access,install_secret,install_region)
-	list   = []
 	ec2    = initiate_aws_ec2_client(install_access,install_secret,install_region)
 	images = ec2.describe_images({ owners: ["self"] }).images
 	return ec2,images

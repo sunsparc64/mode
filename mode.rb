@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.0.6
+# Version:      4.0.7
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -25,6 +25,7 @@ require 'ipaddr'
 require 'uri'
 require 'socket'
 require 'net/http'
+require 'pp'
 
 def install_gem(load_name,install_name)
   puts "Information:\tInstalling #{install_name}"
@@ -195,6 +196,7 @@ begin
     [ "--secret",               REQUIRED ], # AWS Secret Key
     [ "--region",               REQUIRED ], # AWS Secret Key
     [ "--suffix",               REQUIRED ], # AWS AMI Name suffix
+    [ "--id",                   REQUIRED ], # AWS Instance ID
     [ "--ami",                  REQUIRED ]  # AWS AMI ID
   )
 rescue
@@ -329,7 +331,13 @@ else
   install_ami = $default_aws_ami
 end
 
+# Handle AWS Instance ID
 
+if option["id"]
+  install_id = option["id"]
+else
+  install_id = ""
+end
 
 # Handle client name switch
 
@@ -1678,11 +1686,15 @@ if !install_action.empty?
       quit()
     end
     if install_vm.match(/aws/)
-      if install_type.match(/images|ami/)
+      case install_type
+      when /image|ami/
         list_aws_images(install_access,install_secret,install_region)
-      end
-      if install_type.match(/packer/)
+      when /packer/
         list_packer_aws_clients()
+      when /inst/
+        list_aws_instances(install_access,install_secret,install_region)
+      else
+        handle_output("Warning:\tType not specified")
       end
       quit()
     end
@@ -1806,7 +1818,11 @@ if !install_action.empty?
     end
   when /add|create/
     if install_vm.match(/aws/)
-      configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret)
+      if install_type.match(/packer/)
+        configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_type)
+      else
+        configure_sdk_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_type)
+      end
       quit()
     end
     if install_type.match(/docker/)
@@ -1926,9 +1942,10 @@ if !install_action.empty?
   when /^boot$|^stop$|^halt$|^suspend$|^resume$|^start$/
     install_mode   = "client"
     install_action = install_action.gsub(/start/,"boot")
-    if install_vm.match(/parallels|vbox/)
-      install_action = install_action.gsub(/start/,"boot")
-      install_action = install_action.gsub(/halt/,"stop")
+    install_action = install_action.gsub(/halt/,"stop")
+    if install_vm.match(/aws/)
+      eval"[#{install_action}_#{install_vm}_vm(install_client,install_access,install_secret,install_region,install_ami,install_id)]"
+      quit()
     end
     if !install_client.empty? and !install_vm.empty? and !install_vm.match(/none/)
       if install_action.match(/boot/)
