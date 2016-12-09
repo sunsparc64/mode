@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.0.7
+# Version:      4.0.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1740,13 +1740,6 @@ if !install_action.empty?
     end
   when /delete|remove/
     if !install_client.empty?
-      if install_vm.match(/aws/)
-        if $nosuffix == 0
-          install_client = get_aws_ami_name(install_client,install_region)
-        end
-        delete_aws_image(install_client,install_access,install_secret,install_region)
-        quit()
-      end
       if install_type.match(/docker/)
         unconfigure_docker_client(install_client)
         quit()
@@ -1793,6 +1786,14 @@ if !install_action.empty?
         end
       end
     else
+      if install_vm.match(/aws/)
+        if install_type.match(/instance/) or install_id.match(/[0-9]/)
+          delete_aws_vm(install_client,install_access,install_secret,install_region,install_ami,install_id)
+        else
+          delete_aws_image(install_client,install_access,install_secret,install_region)
+        end
+        quit()
+      end
       if install_type.match(/packer|docker/)
         eval"[unconfigure_#{install_type}_client(install_client)]"
       else

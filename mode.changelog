@@ -815,3 +815,5 @@
 # Added code to list Packer AWS clients
 # 4.0.7: Fri  9 Dec 2016 17:33:44 AEDT
 # Added code to list, stop and start AWS instances
+# 4.0.8: Fri  9 Dec 2016 19:27:55 AEDT
+# Added code to delete instances

@@ -40,8 +40,10 @@ and HTTP based install services, eg:
   - Create AMIs
 - Initial AWS support
   - List instances
+  - List AMIs
   - Stop instances
   - Start instances
+  - Terminate instances
 - Initial Docker support
 
 Introduction

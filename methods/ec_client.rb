@@ -51,9 +51,9 @@ def list_aws_vms()
 	return
 end
 
-# Stop AWS VM
+# Stop AWS instance
 
-def stop_aws_vm(install_client,install_access,install_secret,install_region,install_ami,install_id)
+def stop_aws_instance(install_client,install_access,install_secret,install_region,install_ami,install_id)
   if $nosuffix == 0
     install_client = get_aws_ami_name(install_client,install_region)
   end
@@ -72,7 +72,7 @@ def stop_aws_vm(install_client,install_access,install_secret,install_region,inst
   return
 end
 
-# Start AWS VM
+# Start AWS instance
 
 def boot_aws_vm(install_client,install_access,install_secret,install_region,install_ami,install_id)
   if $nosuffix == 0
@@ -91,6 +91,28 @@ def boot_aws_vm(install_client,install_access,install_secret,install_region,inst
 	  end
   end
   return
+end
+
+# Delete AWS instance
+
+
+def delete_aws_vm(install_client,install_access,install_secret,install_region,install_ami,install_id)
+  if $nosuffix == 0
+	  install_client = get_aws_ami_name(install_client,install_region)
+	end
+	if install_id.match(/[0-9]/)
+  	if install_id.match(/,/)
+  		install_ids = install_id.split(/,/)
+  	else
+  		install_ids = [install_id]
+  	end
+  	install_ids.each do |install_id|
+  		handle_output("Information\tDeleting Instance ID #{install_id}")
+	  	ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+	  	ec2.terminate_instances(instance_ids:[install_id])
+	  end
+  end
+	return
 end
 
 # Create JSON file for AWS SDK
