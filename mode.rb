@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.0.8
+# Version:      4.0.9
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1982,6 +1982,10 @@ if !install_action.empty?
     else
       if install_vm.match(/none/) and !install_client.empty?
         install_vm = get_client_vm_type(install_client)
+      end
+      if install_vm.match(/aws/)
+        reboot_aws_vm(install_client,install_access,install_secret,install_region,install_ami,install_id)
+        quit()
       end
       if !install_vm.empty? and !install_vm.match(/none/)
         if !install_client.empty?
