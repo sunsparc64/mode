@@ -64,7 +64,7 @@ def stop_aws_instance(install_client,install_access,install_secret,install_regio
   		install_ids = [install_id]
   	end
   	install_ids.each do |install_id|
-  		handle_output("Information\tStopping Instance ID #{install_id}")
+  		handle_output("Information:\tStopping Instance ID #{install_id}")
 	  	ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
 	  	ec2.stop_instances(instance_ids:[install_id])
 	  end
@@ -85,7 +85,7 @@ def boot_aws_vm(install_client,install_access,install_secret,install_region,inst
   		install_ids = [install_id]
   	end
   	install_ids.each do |install_id|
-  		handle_output("Information\tStarting Instance ID #{install_id}")
+  		handle_output("Information:\tStarting Instance ID #{install_id}")
 	  	ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
 	  	ec2.start_instances(instance_ids:[install_id])
 	  end
@@ -107,7 +107,7 @@ def delete_aws_vm(install_client,install_access,install_secret,install_region,in
   	end
   	install_ids.each do |install_id|
 	  	ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
-  		handle_output("Information\tTerminating Instance ID #{install_id}")
+  		handle_output("Information:\tTerminating Instance ID #{install_id}")
 	  	ec2.terminate_instances(instance_ids:[install_id])
 	  end
 	else
@@ -116,8 +116,13 @@ def delete_aws_vm(install_client,install_access,install_secret,install_region,in
 			reservations.each do |reservation|
 				reservation["instances"].each do |instance|
 					install_id = instance.instance_id
-		  		handle_output("Information\tTerminating Instance ID #{install_id}")
-			  	ec2.terminate_instances(instance_ids:[install_id])
+					status = instance.state.name
+					if !status.match(/terminated/)	
+			  		handle_output("Information:\tTerminating Instance ID #{install_id}")
+				  	ec2.terminate_instances(instance_ids:[install_id])
+				  else
+				  	handle_output("Information:\tInstance ID #{install_id} already terminated")
+				  end
 			  end
 			end
 		end
@@ -146,6 +151,30 @@ def reboot_aws_vm(install_client,install_access,install_secret,install_region,in
 	return
 end
 
+# Create AWS image from instance
+
+def create_sdk_aws_image(install_client,install_access,install_secret,install_region,install_id)
+	if !install_id.match(/[0-9]/)
+		handle_output("Warning:\tNo Instance ID specified")
+		exit()
+	end
+	if install_client.match(/[A-Z]|[a-z]|[0-9]/)
+		ec2,images = get_aws_images(install_access,install_secret,install_region)
+		images.each do |image|
+			image_name = image.name
+			if image_name.match(/^#{install_client}$/)
+				handle_output("Warning:\tImage with name '#{install_client}' already exists")
+				exit()
+			end
+		end
+	end
+	ec2   	 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+	image 	 = ec2.create_image({ dry_run: false, instance_id: install_id, name: install_client })
+	image_id = image.image_id
+	handle_output("Information:\tCreated image #{image_id} with name '#{install_client}' from instance #{install_id}")
+	return
+end
+
 # Create AWS instance string
 
 def create_sdk_aws_instance(install_client,install_access,install_secret,install_region)
@@ -158,7 +187,7 @@ def create_sdk_aws_instance(install_client,install_access,install_secret,install
   instances     = ec2_resource.create_instances(image_id:image_id, min_count:min_count, max_count:max_count, instance_type:instance_type, dry_run:dry_run)
   instances.each do |instance|
   	instance_id = instance.id
-	  handle_output("Information:\tInstance ID #{instance_id}")
+	  handle_output("Information:\tInstance ID:\t#{instance_id}")
   end
 end
 
@@ -181,7 +210,6 @@ def create_sdk_aws_install_files(install_client,install_type,install_ami,install
   populate_aws_questions(install_client,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number)
   install_service = "aws"
   process_questions(install_service)
-  instance = create_sdk_aws_instance(install_client,install_access,install_secret,install_region)
-  pp instance
+  create_sdk_aws_instance(install_client,install_access,install_secret,install_region)
   return
 end

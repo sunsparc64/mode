@@ -821,4 +821,6 @@
 # Added code to restart AWS instances
 # 4.1.1: Sun 11 Dec 2016 18:47:03 AEDT
 # Added code to create and terminate AWS instances
+# 4.1.2: Mon 12 Dec 2016 09:32:10 AEDT
+# Added code to create an AMI from an Instance
 

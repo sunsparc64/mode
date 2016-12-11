@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.1.0
+# Version:      4.1.2
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -193,6 +193,7 @@ begin
     [ "--dryrun",               BOOLEAN ],  # Dryrun flag
     [ "--search",               REQUIRED ], # Search string
     [ "--creds",                REQUIRED ], # Credentials file
+    [ "--name",                 REQUIRED ], # AWS Name
     [ "--access",               REQUIRED ], # AWS Access Key
     [ "--secret",               REQUIRED ], # AWS Secret Key
     [ "--region",               REQUIRED ], # AWS Secret Key
@@ -388,7 +389,17 @@ if option["client"]
     handle_output("Setting:\tClient name to #{install_client}")
   end
 else
-  install_client = ""
+  if option["vm"]
+    if option["vm"].match(/aws/)
+      if option["name"]
+        install_client = option["name"]
+      end
+    else
+      install_client = ""
+    end
+  else
+    install_client = ""
+  end
 end
 
 # If given admin set admin user
@@ -1866,7 +1877,11 @@ if !install_action.empty?
       if install_type.match(/packer/)
         configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number)
       else
-        configure_sdk_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number)
+        if install_type.match(/ami|image/)
+          create_sdk_aws_image(install_client,install_access,install_secret,install_region,install_id)
+        else
+          configure_sdk_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number)
+        end
       end
       quit()
     end
