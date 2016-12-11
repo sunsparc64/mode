@@ -177,7 +177,7 @@ def set_global_vars()
   $output_text              = []
   $default_output_format    = "text"
   $vbox_bin                 = "/usr/local/bin/VBoxManage"
-  $enable_vnc               =  1
+  $enable_vnc               = 1
   $vnc_port                 = "5961"
   $novnc_dir                = $script_dir+"/noVNC"
   $novnc_url                = "git://github.com/kanaka/noVNC"
@@ -187,6 +187,8 @@ def set_global_vars()
   $default_aws_ami          = "ami-fedafc9d"
   $default_aws_creds        = $home_dir+"/.aws/credentials"
   $default_aws_suffix       = $script_name
+  $default_aws_instances    = "1,1"
+  $default_aws_dryrun       = "false"
 
   # VMware Fusion Global variables
   

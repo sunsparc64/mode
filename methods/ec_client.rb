@@ -106,10 +106,21 @@ def delete_aws_vm(install_client,install_access,install_secret,install_region,in
   		install_ids = [install_id]
   	end
   	install_ids.each do |install_id|
-  		handle_output("Information\tDeleting Instance ID #{install_id}")
 	  	ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+  		handle_output("Information\tTerminating Instance ID #{install_id}")
 	  	ec2.terminate_instances(instance_ids:[install_id])
 	  end
+	else
+  	if install_id.match(/all/)
+  		ec2,reservations = get_aws_reservations(install_access,install_secret,install_region)
+			reservations.each do |reservation|
+				reservation["instances"].each do |instance|
+					install_id = instance.instance_id
+		  		handle_output("Information\tTerminating Instance ID #{install_id}")
+			  	ec2.terminate_instances(instance_ids:[install_id])
+			  end
+			end
+		end
   end
 	return
 end
@@ -135,59 +146,42 @@ def reboot_aws_vm(install_client,install_access,install_secret,install_region,in
 	return
 end
 
-# Create JSON file for AWS SDK
+# Create AWS instance string
 
-def create_sdk_aws_json()
-  install_service = $q_struct["type"].value
-  install_access  = $q_struct["access_key"].value
-  install_secret  = $q_struct["secret_key"].value
-  install_ami     = $q_struct["source_ami"].value
-  install_region  = $q_struct["region"].value
-  install_size    = $q_struct["instance_type"].value
-  install_admin   = $q_struct["ssh_username"].value
-  install_client  = $q_struct["ami_name"].value
-  user_data_file  = $q_struct["user_data_file"].value
-  client_dir      = $client_base_dir+"/aws/"+install_client
-  json_file       = client_dir+"/"+install_client+".json"
-  check_dir_exists(client_dir)
-  json_data = {
-    :builders => [
-      :name             => "aws",
-      :type             => install_service,
-      :access_key       => install_access,
-      :secret_key       => install_secret,
-      :source_ami       => install_ami,
-      :region           => install_region,
-      :instance_type    => install_size,
-      :ssh_username     => install_admin,
-      :ami_name         => install_client,
-      :user_data_file   => user_data_file
-    ]
-  }
-  json_output = JSON.pretty_generate(json_data)
-  delete_file(json_file)
-  File.write(json_file,json_output)
-  print_contents_of_file("",json_file)
-  return json_data
+def create_sdk_aws_instance(install_client,install_access,install_secret,install_region)
+  image_id      = $q_struct["source_ami"].value
+  min_count     = $q_struct["min_count"].value
+  max_count    	= $q_struct["max_count"].value
+  dry_run    		= $q_struct["dry_run"].value
+  instance_type = $q_struct["instance_type"].value
+  ec2_resource  = initiate_aws_ec2_resource(install_access,install_secret,install_region)
+  instances     = ec2_resource.create_instances(image_id:image_id, min_count:min_count, max_count:max_count, instance_type:instance_type, dry_run:dry_run)
+  instances.each do |instance|
+  	instance_id = instance.id
+	  handle_output("Information:\tInstance ID #{instance_id}")
+  end
 end
 
 # Configure Packer AWS client
 
-def configure_sdk_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret)
-  create_sdk_aws_install_files(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret)
+def configure_sdk_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number)
+  create_sdk_aws_install_files(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number)
   return
 end
 
 # Create AWS client
 
-def create_sdk_aws_install_files(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret)
-  client_dir     = $client_base_dir+"/aws/"+install_client
-  user_data_file = client_dir+"/userdata.yaml"
-  check_dir_exists(client_dir)
-  populate_aws_questions(install_client,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type)
+def create_sdk_aws_install_files(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number)
+	user_data_file = ""
+	if !install_ami.match(/^ami/)
+		if install_client.match(/[A-Z]|[a-z]|[0-9]/)
+			ec2,install_ami = get_aws_image(install_client,install_access,install_secret,install_region)
+		end
+	end
+  populate_aws_questions(install_client,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number)
   install_service = "aws"
   process_questions(install_service)
-  create_aws_user_data_file(user_data_file)
-  create_packer_aws_json()
+  instance = create_sdk_aws_instance(install_client,install_access,install_secret,install_region)
+  pp instance
   return
 end

@@ -33,6 +33,17 @@ def initiate_aws_ec2_client(install_access,install_secret,install_region)
 	return ec2
 end
 
+# Initiate and AWS EC2 Resource connection
+
+def initiate_aws_ec2_resource(install_access,install_secret,install_region)
+	ec2 = Aws::EC2::Resource.new(
+		:region 						=>	install_region, 
+  	:access_key_id 			=>	install_access,
+  	:secret_access_key 	=>	install_secret
+	)
+	return ec2
+end	
+
 # Get AWS reservations
 
 def get_aws_reservations(install_access,install_secret,install_region)

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.0.9
+# Version:      4.1.0
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -190,13 +190,17 @@ begin
     [ "--nameserver",     "-3", REQUIRED ], # Delete client or VM
     [ "--changelog",      "-4", BOOLEAN ],  # Print changelog
     [ "--nosuffix",             BOOLEAN ],  # Don't add suffix to AWS AMI names
+    [ "--dryrun",               BOOLEAN ],  # Dryrun flag
     [ "--search",               REQUIRED ], # Search string
     [ "--creds",                REQUIRED ], # Credentials file
     [ "--access",               REQUIRED ], # AWS Access Key
     [ "--secret",               REQUIRED ], # AWS Secret Key
     [ "--region",               REQUIRED ], # AWS Secret Key
+    [ "--key",                  REQUIRED ], # AWS Key Name
+    [ "--group",                REQUIRED ], # AWS Group Name
     [ "--suffix",               REQUIRED ], # AWS AMI Name suffix
     [ "--id",                   REQUIRED ], # AWS Instance ID
+    [ "--number",               REQUIRED ], # Number of AWS instances
     [ "--ami",                  REQUIRED ]  # AWS AMI ID
   )
 rescue
@@ -261,6 +265,42 @@ if option["command"]
   install_command = option["command"]
 else
   install_command = ""
+end
+
+#Handle key switch
+
+if option["key"]
+  install_key = option["key"]
+else
+  install_key = ""
+end
+
+# Handle group switch
+
+if option["group"]
+  install_group = option["group"]
+else
+  install_group = ""
+end
+
+# Handle number switch
+
+if option["number"]
+  install_number = option["number"]
+  if !install_number.match(/[0-9]/)
+    handle_output("Warning:\tInvalid number of instances given")
+  end
+  if !install_number.match(/,/)
+    install_number = install_number+","+install_number
+  end
+else
+  install_number = $default_aws_instances
+end
+
+# Handle dryrun switch
+
+if option["dryrun"]
+  $default_aws_dryrun = "true"
 end
 
 # Handle nosuffix switch
@@ -1738,7 +1778,7 @@ if !install_action.empty?
       end
       quit()
     end
-  when /delete|remove/
+  when /delete|remove|terminate/
     if !install_client.empty?
       if install_type.match(/docker/)
         unconfigure_docker_client(install_client)
@@ -1787,10 +1827,14 @@ if !install_action.empty?
       end
     else
       if install_vm.match(/aws/)
-        if install_type.match(/instance/) or install_id.match(/[0-9]/)
+        if install_type.match(/instance/) or install_id.match(/[0-9]|all/)
           delete_aws_vm(install_client,install_access,install_secret,install_region,install_ami,install_id)
         else
-          delete_aws_image(install_client,install_access,install_secret,install_region)
+          if install_ami.match(/[A-Z]|[a-z]|[0-9]/)
+            delete_aws_image(install_client,install_access,install_secret,install_region)
+          else
+            handle_output("Warning:\tNo AWS instance or image specified")
+          end
         end
         quit()
       end
@@ -1820,9 +1864,9 @@ if !install_action.empty?
   when /add|create/
     if install_vm.match(/aws/)
       if install_type.match(/packer/)
-        configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_type)
+        configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number)
       else
-        configure_sdk_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_type)
+        configure_sdk_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number)
       end
       quit()
     end

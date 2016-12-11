@@ -819,3 +819,6 @@
 # Added code to delete AWS instances
 # 4.0.9: Fri  9 Dec 2016 19:56:27 AEDT
 # Added code to restart AWS instances
+# 4.1.1: Sun 11 Dec 2016 18:47:03 AEDT
+# Added code to create and terminate AWS instances
+
