@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.1.3
+# Version:      4.1.4
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -362,7 +362,7 @@ if option["format"]
     print_valid_list("Warning:\tInvalid format specified",$valid_aws_format_list)
   end
 else
-  install_target = $default_aws_format
+  install_format = $default_aws_format
   if $verbose_mode == 1
     handle_output("Information:\tSetting format to #{install_format}")
   end
@@ -1795,7 +1795,7 @@ if !install_action.empty?
     if !install_vm.empty?
       eval"[get_#{install_vm}_vm_status(install_client)]"
     end
-  when /display|view|show|prop/
+  when /display|view|show|prop|get/
     if !install_client.empty?
       if !install_vm.empty? and !install_vm.match(/none/)
         eval"[show_#{install_vm}_vm_config(install_client)]"
@@ -1803,7 +1803,15 @@ if !install_action.empty?
         get_client_config(install_client,install_service,install_method,install_type,install_vm)
       end
     else
-      handle_output("Warning:\tClient name not specified")
+      if install_vm.match(/aws/)
+        if install_type.match(/acl/)
+          if install_bucket.match(/[A-Z]|[a-z]|[0-9]/)
+            show_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket)
+          end
+        end
+      else
+        handle_output("Warning:\tClient name not specified")
+      end
     end
   when /help/
     print_usage()

@@ -153,7 +153,7 @@ def set_global_vars()
   $valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
   $valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
   $valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image', 'ldom', 'cdom', 'gdom' ]
-  $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer', 'docker', 'amazon-ebs', 'image', 'ami', 'instance', 'bucket' ]
+  $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer', 'docker', 'amazon-ebs', 'image', 'ami', 'instance', 'bucket', 'acl' ]
   $valid_mode_list          = [ 'client', 'server', 'osx' ]
   $valid_vm_list            = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'ldom', 'gdom', 'parallels' ]
   $valid_aws_format_list    = [ 'VMDK', 'RAW', 'VHD' ]
@@ -190,7 +190,7 @@ def set_global_vars()
   $default_aws_ami          = "ami-fedafc9d"
   $default_aws_creds        = $home_dir+"/.aws/credentials"
   $default_aws_suffix       = $script_name
-  $default_aws_bucket       = $script_name
+  $default_aws_bucket       = $script_name+".bucket"
   $default_aws_instances    = "1,1"
   $default_aws_dryrun       = "false"
   $default_aws_format       = "VMDK"

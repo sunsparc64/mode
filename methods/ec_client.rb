@@ -184,7 +184,7 @@ def create_sdk_aws_instance(install_client,install_access,install_secret,install
   dry_run    		= $q_struct["dry_run"].value
   instance_type = $q_struct["instance_type"].value
   ec2_resource  = initiate_aws_ec2_resource(install_access,install_secret,install_region)
-  instances     = ec2_resource.create_instances(image_id:image_id, min_count:min_count, max_count:max_count, instance_type:instance_type, dry_run:dry_run)
+  instances     = ec2_resource.create_instances(image_id: image_id, min_count: min_count, max_count: max_count, instance_type: instance_type, dry_run: dry_run)
   instances.each do |instance|
   	instance_id = instance.id
 	  handle_output("Information:\tInstance ID:\t#{instance_id}")
@@ -194,11 +194,9 @@ end
 # Export AWS instance
 
 def export_sdk_aws_image(install_client,install_access,install_secret,install_region,install_ami,install_id,install_prefix,install_bucket,install_container,install_comment,install_target,install_format,install_acl)
-	s3 = initiate_aws_s3_client(install_access,install_secret,install_region)
-	handle_output("Information:\tCreating S3 bucket: #{install_bucket}")
-	location  = s3.create_bucket({ acl: install_acl, bucket: install_bucket, create_bucket_configuration: { location_constraint: install_region, }, }).location
-	handle_output("Information:\tBucket location: #{location}")
-#	ec2.create_instance_export_task({ description: install_comment, instance_id: install_id, target_environment: install_target, export_to_s3_task: { disk_image_format: install_format, container_format: install_container, s3_bucket: install_bucket, s3_prefix: install_prefix, }, })
+	s3  = create_aws_s3_bucket(install_access,install_secret,install_region,install_bucket)
+	ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+	ec2.create_instance_export_task({ description: install_comment, instance_id: install_id, target_environment: install_target, export_to_s3_task: { disk_image_format: install_format, container_format: install_container, s3_bucket: install_bucket, s3_prefix: install_prefix, }, })
 	return
 end
 

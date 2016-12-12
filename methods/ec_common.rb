@@ -47,13 +47,77 @@ end
 # Initiate an AWS S3 Bucket connection
 
 def initiate_aws_s3_client(install_access,install_secret,install_region)
-	ec2 = Aws::S3::Client.new(
+	s3 = Aws::S3::Client.new(
 		:region 						=>	install_region, 
   	:access_key_id 			=>	install_access,
   	:secret_access_key 	=>	install_secret
 	)
-	return ec2
+	return s3
 end	
+
+# Initiate an AWS S3 Resource connection
+
+def initiate_aws_s3_resource(install_access,install_secret,install_region)
+	s3 = Aws::S3::Resource.new(
+		:region 						=>	install_region, 
+  	:access_key_id 			=>	install_access,
+  	:secret_access_key 	=>	install_secret
+	)
+	return s3
+end	
+
+# Initiate an AWS S3 Resource connection
+
+def initiate_aws_s3_bucket(install_access,install_secret,install_region)
+	s3 = Aws::S3::Bucket.new(
+		:region 						=>	install_region, 
+  	:access_key_id 			=>	install_access,
+  	:secret_access_key 	=>	install_secret
+	)
+	return s3
+end	
+
+# Create AWS S3 bucket
+
+def create_aws_s3_bucket(install_access,install_secret,install_region,install_bucket)
+	s3 = initiate_aws_s3_resource(install_access,install_secret,install_region)
+	if s3.bucket(install_bucket).exists?
+		handle_output("Information:\tBucket: #{install_bucket} already exists")
+		s3 = initiate_aws_s3_client(install_access,install_secret,install_region)
+		begin
+			s3.head_bucket({ bucket: install_bucket, })
+		rescue
+			handle_output("Warning:\tDo not have permissions to access bucket: #{install_bucket}")
+			exit()
+		end
+	else
+		handle_output("Information:\tCreating S3 bucket: #{install_bucket}")
+		s3.create_bucket({ acl: install_acl, bucket: install_bucket, create_bucket_configuration: { location_constraint: install_region, }, })
+	end
+	return s3
+end
+
+def get_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket)
+	s3  = initiate_aws_s3_client(install_access,install_secret,install_region)
+	acl = s3.get_bucket_acl(bucket: install_bucket)
+	return acl
+end
+
+def show_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket)
+	acl    = get_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket)
+	owner  = acl.owner.display_name
+	handle_output("#{install_bucket}\towner=#{owner}")
+	acl.grants.each_with_index do |grantee,counter|
+		owner = grantee[0].display_name
+		email = grantee[0].email_address
+		type  = grantee[0].type
+		uri   = grantee[0].uri
+		perms = grantee.permission
+		handle_output("grants[#{counter}]\towner=#{owner}\temail=#{email}\ttype=#{type}\turi=#{uri}\tperms=#{perms}")
+	end
+	return
+end
+
 
 # Get AWS AMI name
 
@@ -126,6 +190,22 @@ def list_aws_buckets(install_access,install_secret,install_region)
 	end
 	return
 end
+
+# Check if AWS bucket exists
+
+def check_if_aws_bucket_exists(install_access,install_secret,install_region,install_bucket)
+	exists  = "no"
+	buckets = get_aws_buckets(install_access,install_secret,install_region)
+	buckets.buckets.each do |bucket|
+		bucket_name = bucket.name
+		if bucket_name.match(/#{install_bucket}/)
+			exists = "yes"
+			return exists
+		end
+	end
+	return exists
+end
+
 
 # Get list of AWS images
 
