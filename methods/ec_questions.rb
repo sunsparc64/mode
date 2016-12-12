@@ -1,16 +1,5 @@
 # Questions for AWS
 
-# Get AWS AMI name
-
-def get_aws_ami_name(install_client,install_region)
-	if !install_client.match(/#{$default_aws_suffix}/)
-	  value = install_client+"-"+$default_aws_suffix+"-"+install_region
-	else
-		value = install_client
-	end
-  return value
-end
-
 # Populate AWS questions
 
 def populate_aws_questions(install_client,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number)

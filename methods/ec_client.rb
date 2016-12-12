@@ -191,6 +191,17 @@ def create_sdk_aws_instance(install_client,install_access,install_secret,install
   end
 end
 
+# Export AWS instance
+
+def export_sdk_aws_image(install_client,install_access,install_secret,install_region,install_ami,install_id,install_prefix,install_bucket,install_container,install_comment,install_target,install_format,install_acl)
+	s3 = initiate_aws_s3_client(install_access,install_secret,install_region)
+	handle_output("Information:\tCreating S3 bucket: #{install_bucket}")
+	location  = s3.create_bucket({ acl: install_acl, bucket: install_bucket, create_bucket_configuration: { location_constraint: install_region, }, }).location
+	handle_output("Information:\tBucket location: #{location}")
+#	ec2.create_instance_export_task({ description: install_comment, instance_id: install_id, target_environment: install_target, export_to_s3_task: { disk_image_format: install_format, container_format: install_container, s3_bucket: install_bucket, s3_prefix: install_prefix, }, })
+	return
+end
+
 # Configure Packer AWS client
 
 def configure_sdk_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number)

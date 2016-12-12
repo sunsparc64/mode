@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.1.2
+# Version:      4.1.3
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -194,14 +194,21 @@ begin
     [ "--search",               REQUIRED ], # Search string
     [ "--creds",                REQUIRED ], # Credentials file
     [ "--name",                 REQUIRED ], # AWS Name
+    [ "--format",               REQUIRED ], # AWS disk format (e.g. VMDK, RAW, VHD)
+    [ "--target",               REQUIRED ], # AWS target format (e.g. citrix, vmware, windows)
     [ "--access",               REQUIRED ], # AWS Access Key
     [ "--secret",               REQUIRED ], # AWS Secret Key
     [ "--region",               REQUIRED ], # AWS Secret Key
     [ "--key",                  REQUIRED ], # AWS Key Name
     [ "--group",                REQUIRED ], # AWS Group Name
     [ "--suffix",               REQUIRED ], # AWS AMI Name suffix
+    [ "--prefix",               REQUIRED ], # AWS S3 prefix
+    [ "--bucket",               REQUIRED ], # AWS S3 bucket
     [ "--id",                   REQUIRED ], # AWS Instance ID
     [ "--number",               REQUIRED ], # Number of AWS instances
+    [ "--container",            REQUIRED ], # AWS AMI export container
+    [ "--comment",              REQUIRED ], # Comment
+    [ "--acl",                  REQUIRED ], # AWS ACL
     [ "--ami",                  REQUIRED ]  # AWS AMI ID
   )
 rescue
@@ -276,12 +283,89 @@ else
   install_key = ""
 end
 
+#Handle acl switch
+
+if option["acl"]
+  install_acl = option["acl"]
+  if $valid_aws_acl_list.match(/#{install_acl}/)
+    print_valid_list("Warning:\tInvalid target specified",$valid_aws_acl_list)
+  end
+else
+  install_acl = $default_aws_acl
+end
+
 # Handle group switch
 
 if option["group"]
   install_group = option["group"]
 else
   install_group = ""
+end
+
+# Handle prefix switch
+
+if option["prefix"]
+  install_prefix = option["prefix"]
+  if $verbose_mode == 1
+    handle_output("Information:\tSetting prefix to #{install_prefix}")
+  end
+else
+  install_prefix = ""
+end
+
+# Handle bucket switch
+
+if option["bucket"]
+  install_bucket = option["bucket"]
+  if $verbose_mode == 1
+    handle_output("Information:\tSetting bucket name to #{install_bucket}")
+  end
+else
+  install_bucket = $default_aws_bucket
+end
+
+# Handle container switch
+
+if option["container"]
+  install_container = option["container"]
+else
+  install_container = $default_aws_container
+end
+
+# Handle comment switch
+
+if option["comment"]
+  install_comment = option["comment"]
+else
+  install_comment = ""
+end
+
+# Handle target switch
+
+if option["target"]
+  install_target = option["target"].downcase
+  if $valid_aws_target_list.match(/#{install_target}/)
+    print_valid_list("Warning:\tInvalid target specified",$valid_aws_target_list)
+  end
+else
+  install_target = $default_aws_target
+  if $verbose_mode == 1
+    handle_output("Information:\tSetting target to #{install_target}")
+  end
+end
+
+# Handle format switch
+
+if option["format"]
+  install_format = option["format"].upcase
+  if $valid_aws_format_list.match(/#{install_format}/)
+    print_valid_list("Warning:\tInvalid format specified",$valid_aws_format_list)
+  end
+else
+  install_target = $default_aws_format
+  if $verbose_mode == 1
+    handle_output("Information:\tSetting format to #{install_format}")
+  end
 end
 
 # Handle number switch
@@ -1744,6 +1828,8 @@ if !install_action.empty?
         list_packer_aws_clients()
       when /inst/
         list_aws_instances(install_access,install_secret,install_region)
+      when /bucket/
+        list_aws_buckets(install_access,install_secret,install_region)
       else
         handle_output("Warning:\tType not specified")
       end
@@ -2075,8 +2161,11 @@ if !install_action.empty?
       end
     end
   when /export/
-    if install_vm(/fusion|vbox/)
+    if install_vm.match(/fusion|vbox/)
       eval"[export_#{install_vm}_ova(install_client,install_file)]"
+    end
+    if install_vm.match(/aws/)
+      export_sdk_aws_image(install_client,install_access,install_secret,install_region,install_ami,install_id,install_prefix,install_bucket,install_container,install_comment,install_target,install_format,install_acl)
     end
   when /clone|copy/
     if install_clone and !install_client.empty?

@@ -33,7 +33,7 @@ def initiate_aws_ec2_client(install_access,install_secret,install_region)
 	return ec2
 end
 
-# Initiate and AWS EC2 Resource connection
+# Initiate an AWS EC2 Resource connection
 
 def initiate_aws_ec2_resource(install_access,install_secret,install_region)
 	ec2 = Aws::EC2::Resource.new(
@@ -43,6 +43,40 @@ def initiate_aws_ec2_resource(install_access,install_secret,install_region)
 	)
 	return ec2
 end	
+
+# Initiate an AWS S3 Bucket connection
+
+def initiate_aws_s3_client(install_access,install_secret,install_region)
+	ec2 = Aws::S3::Client.new(
+		:region 						=>	install_region, 
+  	:access_key_id 			=>	install_access,
+  	:secret_access_key 	=>	install_secret
+	)
+	return ec2
+end	
+
+# Get AWS AMI name
+
+def get_aws_ami_name(install_client,install_region)
+	if !install_client.match(/#{$default_aws_suffix}/)
+	  value = install_client+"-"+$default_aws_suffix+"-"+install_region
+	else
+		value = install_client
+	end
+  return value
+end
+
+# Get AWS AMI name
+
+def get_aws_bucket_name(install_client,install_region)
+	if !install_buck.match(/#{$default_aws_suffix}/)
+	  value = install_client+"-"+$default_aws_suffix+"-"+install_region
+	else
+		value = install_client
+	end
+  return value
+end
+
 
 # Get AWS reservations
 
@@ -69,6 +103,26 @@ def list_aws_instances(install_access,install_secret,install_region)
 			string = instance_id+" image="+image_id+" ip="+public_ip+" status="+status
 			handle_output(string)
 		end
+	end
+	return
+end
+
+# Get buckets
+
+def get_aws_buckets(install_access,install_secret,install_region)
+	s3      = initiate_aws_s3_client(install_access,install_secret,install_region)
+	buckets = s3.list_buckets
+	return buckets
+end
+
+# List AWS buckets
+
+def list_aws_buckets(install_access,install_secret,install_region)
+	buckets = get_aws_buckets(install_access,install_secret,install_region)
+	buckets.buckets.each do |bucket|
+		bucket_name = bucket.name
+		bucket_date = bucket.creation_date
+		handle_output("#{bucket_name}\tcreated=#{bucket_date}")
 	end
 	return
 end

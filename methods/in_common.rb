@@ -153,9 +153,12 @@ def set_global_vars()
   $valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
   $valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
   $valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image', 'ldom', 'cdom', 'gdom' ]
-  $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer', 'docker', 'amazon-ebs', 'image', 'ami', 'instances' ]
+  $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer', 'docker', 'amazon-ebs', 'image', 'ami', 'instance', 'bucket' ]
   $valid_mode_list          = [ 'client', 'server', 'osx' ]
   $valid_vm_list            = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'ldom', 'gdom', 'parallels' ]
+  $valid_aws_format_list    = [ 'VMDK', 'RAW', 'VHD' ]
+  $valid_aws_target_list    = [ 'citrix', 'vmware', 'windows' ]
+  $valid_aws_acl_list       = [ 'private', 'public-read', 'public-read-write', 'authenticated-read' ]
   $execute_host             = "localhost"
   $default_options          = ""
   $do_checksums             = 0
@@ -187,8 +190,13 @@ def set_global_vars()
   $default_aws_ami          = "ami-fedafc9d"
   $default_aws_creds        = $home_dir+"/.aws/credentials"
   $default_aws_suffix       = $script_name
+  $default_aws_bucket       = $script_name
   $default_aws_instances    = "1,1"
   $default_aws_dryrun       = "false"
+  $default_aws_format       = "VMDK"
+  $default_aws_target       = "vmware"
+  $default_aws_container    = "ova"
+  $default_aws_acl          = "private"
 
   # VMware Fusion Global variables
   
