@@ -2,7 +2,7 @@
 
 # Populate AWS questions
 
-def populate_aws_questions(install_client,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number)
+def populate_aws_questions(install_client,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key)
   $q_struct = {}
   $q_order  = []
 
@@ -134,6 +134,19 @@ def populate_aws_questions(install_client,install_ami,install_region,install_siz
       ask       = "yes",
       parameter = "",
       value     = install_number.split(/,/)[1],
+      valid     = "",
+      eval      = "no"
+    )
+    $q_struct[name] = config
+    $q_order.push(name)  
+
+    name   = "key_name"
+    config = Ks.new(
+      type      = "",
+      question  = "Key Name",
+      ask       = "yes",
+      parameter = "",
+      value     = install_key,
       valid     = "",
       eval      = "no"
     )

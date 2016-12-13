@@ -153,7 +153,7 @@ def set_global_vars()
   $valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
   $valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
   $valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image', 'ldom', 'cdom', 'gdom' ]
-  $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer', 'docker', 'amazon-ebs', 'image', 'ami', 'instance', 'bucket', 'acl' ]
+  $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer', 'docker', 'amazon-ebs', 'image', 'ami', 'instance', 'bucket', 'acl', 'snapshot' ]
   $valid_mode_list          = [ 'client', 'server', 'osx' ]
   $valid_vm_list            = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'ldom', 'gdom', 'parallels' ]
   $valid_aws_format_list    = [ 'VMDK', 'RAW', 'VHD' ]
@@ -197,6 +197,8 @@ def set_global_vars()
   $default_aws_target       = "vmware"
   $default_aws_container    = "ova"
   $default_aws_acl          = "private"
+  $default_aws_grant        = "CanonicalUser"
+  $default_aws_import_id    = "c4d8eabf8db69dbe46bfe0e517100c554f01200b104d59cd408e777ba442a322"
 
   # VMware Fusion Global variables
   
@@ -338,7 +340,7 @@ def print_usage()
       switches     = line.split(/,/)
       long_switch  = switches[0].gsub(/\[/,"").gsub(/\s+/,"")
       short_switch = switches[1].gsub(/\s+/,"")
-      if short_switch.match(/REQ/)
+      if short_switch.match(/REQ|BOOL/)
         short_switch = ""
       end
       if long_switch.gsub(/\s+/,"").length < 7

@@ -77,6 +77,75 @@ def initiate_aws_s3_bucket(install_access,install_secret,install_region)
 	return s3
 end	
 
+# Initiate IAM client connection
+
+def initiate_aws_iam_client(install_access,install_secret,install_region)
+	iam = Aws::IAM::Client.new(
+		:region 						=>	install_region, 
+  	:access_key_id 			=>	install_access,
+  	:secret_access_key 	=>	install_secret
+	)
+	return iam
+end	
+
+
+# Get AWS snapshots
+
+def get_aws_snapshots(install_access,install_secret,install_region)
+	ec2 			= initiate_aws_ec2_client(install_access,install_secret,install_region)
+	snapshots = ec2.describe_snapshots.snapshots
+	return snapshots
+end
+
+# List AWS snapshots
+
+def list_aws_snapshots(install_access,install_secret,install_region,install_snapshot)
+	owner_id  = get_aws_owner_id(install_access,install_secret,install_region)
+	snapshots = get_aws_snapshots(install_access,install_secret,install_region)
+	snapshots.each do |snapshot|
+		snapshot_id    = snapshot.snapshot_id
+		snapshot_owner = snapshot.owner_id
+		if snapshot_owner == owner_id
+			if install_snapshot.match(/[0-9]/)
+				if snapshot_id.match(/^#{install_snapshot}$/)
+					handle_output("#{snapshot_id}")
+				end
+			else
+				handle_output("#{snapshot_id}")
+			end
+		end
+	end
+	return
+end
+
+# Delete AWS snapshot
+
+def delete_aws_snapshot(install_client,install_access,install_secret,install_region,install_snapshot)
+	if !install_snapshot.match(/[A-Z]|[a-z]|[0-9]/)
+		handle_output("Warning:\tNo Snapshot ID specified")
+		return
+	end
+	owner_id  = get_aws_owner_id(install_access,install_secret,install_region)
+	snapshots = get_aws_snapshots(install_access,install_secret,install_region)
+	ec2 			= initiate_aws_ec2_client(install_access,install_secret,install_region)
+	snapshots.each do |snapshot|
+		snapshot_id     = snapshot.snapshot_id
+		snapshot_owner  = snapshot.owner_id
+		if snapshot_owner == owner_id
+			if snapshot_id.match(/^#{install_snapshot}$/) or install_snapshot == "all"
+				handle_output("Information:\tDeleting Snapshot ID #{snapshot_id}")
+				begin
+					ec2.delete_snapshot({snapshot_id: snapshot_id})
+				rescue 
+					handle_output("Warning:\tUnable to delete Snapshot ID #{snapshot_id}")
+				end
+			end
+		end
+	end
+	return
+end
+
+
 # Create AWS S3 bucket
 
 def create_aws_s3_bucket(install_access,install_secret,install_region,install_bucket)
@@ -97,11 +166,15 @@ def create_aws_s3_bucket(install_access,install_secret,install_region,install_bu
 	return s3
 end
 
+# Get AWS S3 bucket ACL
+
 def get_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket)
 	s3  = initiate_aws_s3_client(install_access,install_secret,install_region)
 	acl = s3.get_bucket_acl(bucket: install_bucket)
 	return acl
 end
+
+# Show AWS S3 bucket ACL
 
 def show_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket)
 	acl    = get_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket)
@@ -110,14 +183,21 @@ def show_aws_s3_bucket_acl(install_access,install_secret,install_region,install_
 	acl.grants.each_with_index do |grantee,counter|
 		owner = grantee[0].display_name
 		email = grantee[0].email_address
+		id    = grantee[0].id
 		type  = grantee[0].type
 		uri   = grantee[0].uri
 		perms = grantee.permission
-		handle_output("grants[#{counter}]\towner=#{owner}\temail=#{email}\ttype=#{type}\turi=#{uri}\tperms=#{perms}")
+		handle_output("grants[#{counter}]\towner=#{owner}\temail=#{email}\ttype=#{type}\turi=#{uri}\tid=#{id}\tperms=#{perms}")
 	end
 	return
 end
 
+# Set AWS S3 bucket ACL
+
+def set_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket,install_email,install_grant,install_perms)
+	s3 = initiate_aws_s3_resource(install_access,install_secret,install_region)
+	return
+end
 
 # Get AWS AMI name
 
@@ -160,11 +240,13 @@ def list_aws_instances(install_access,install_secret,install_region)
 			image_id    = instance.image_id
 			status      = instance.state.name
 			if status.match(/running/)
-				public_ip = instance.public_ip_address
+				public_ip  = instance.public_ip_address
+				public_dns = instance.public_dns_name
 			else
-				public_ip = "NA"
+				public_ip  = "NA"
+				public_dns = "NA"
 			end
-			string = instance_id+" image="+image_id+" ip="+public_ip+" status="+status
+			string = instance_id+" image="+image_id+" ip="+public_ip+" dns="+public_dns+" status="+status
 			handle_output(string)
 		end
 	end
@@ -205,6 +287,16 @@ def check_if_aws_bucket_exists(install_access,install_secret,install_region,inst
 	end
 	return exists
 end
+
+# Get AWS owner ID
+
+def get_aws_owner_id(install_access,install_secret,install_region)
+	iam      = initiate_aws_iam_client(install_access,install_secret,install_region)
+	user     = iam.get_user()
+	owner_id = user[0].arn.split(/:/)[4]
+	return owner_id
+end
+
 
 
 # Get list of AWS images
@@ -373,8 +465,9 @@ end
 
 def create_aws_creds_file(install_creds,install_access,install_secret)
 	file = File.open(install_creds,"w")
-	file.write("export AWS_ACCESS_KEY=\"\"\n")
-	file.write("export AWS_SECRET_KEY=\"\"\n")
+	file.write("[default]\n")
+	file.write("aws_access_key_id = #{install_access}\n")
+	file.write("aws_secret_access_key = #{install_secret}\n")
 	file.close
 	return
 end

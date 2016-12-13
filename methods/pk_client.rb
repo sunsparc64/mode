@@ -1329,11 +1329,11 @@ end
 
 # Create AWS client
 
-def create_packer_aws_install_files(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number)
+def create_packer_aws_install_files(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key)
   client_dir     = $client_base_dir+"/packer/aws/"+install_client
   user_data_file = client_dir+"/userdata.yaml"
   check_dir_exists(client_dir)
-  populate_aws_questions(install_client,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number)
+  populate_aws_questions(install_client,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key)
   install_service = "aws"
   process_questions(install_service)
   create_aws_user_data_file(user_data_file)
@@ -1365,8 +1365,8 @@ end
 
 # Configure Packer AWS client
 
-def configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number)
-  create_packer_aws_install_files(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number)
+def configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key)
+  create_packer_aws_install_files(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key)
   return
 end
 

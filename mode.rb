@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.1.4
+# Version:      4.1.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -209,6 +209,10 @@ begin
     [ "--container",            REQUIRED ], # AWS AMI export container
     [ "--comment",              REQUIRED ], # Comment
     [ "--acl",                  REQUIRED ], # AWS ACL
+    [ "--grant",                REQUIRED ], # AWS ACL grant
+    [ "--perms",                REQUIRED ], # AWS ACL perms
+    [ "--email",                REQUIRED ], # AWS ACL email
+    [ "--snapshot",             REQUIRED ], # AWS snapshot
     [ "--ami",                  REQUIRED ]  # AWS AMI ID
   )
 rescue
@@ -267,6 +271,14 @@ else
   $verbose_mode = 0
 end
 
+# Handle snapshot switch
+
+if option["snapshot"]
+  install_snapshot = option["snapshot"]
+else
+  install_snapshot = ""
+end
+
 # Handle command switch
 
 if option["command"]
@@ -275,7 +287,7 @@ else
   install_command = ""
 end
 
-#Handle key switch
+# Handle key switch
 
 if option["key"]
   install_key = option["key"]
@@ -283,7 +295,31 @@ else
   install_key = ""
 end
 
-#Handle acl switch
+# Handle grant switch
+
+if option["grant"]
+  install_grant = option["grant"]
+else
+  install_grant = $default_aws_grant
+end
+
+# Handle perms switch
+
+if option["perms"]
+  install_perms = option["perms"]
+else
+  install_perms = ""
+end
+
+# Handle email switch
+
+if option["email"]
+  install_email = option["email"]
+else
+  install_email = ""
+end
+
+# Handle acl switch
 
 if option["acl"]
   install_acl = option["acl"]
@@ -1795,6 +1831,14 @@ if !install_action.empty?
     if !install_vm.empty?
       eval"[get_#{install_vm}_vm_status(install_client)]"
     end
+  when /set|put/
+    if install_vm.match(/aws/)
+      if install_type.match(/acl/)
+        if install_bucket.match(/[A-Z]|[a-z]|[0-9]/)
+          set_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket,install_email,install_grant,install_perms)
+        end
+      end
+    end
   when /display|view|show|prop|get/
     if !install_client.empty?
       if !install_vm.empty? and !install_vm.match(/none/)
@@ -1838,6 +1882,8 @@ if !install_action.empty?
         list_aws_instances(install_access,install_secret,install_region)
       when /bucket/
         list_aws_buckets(install_access,install_secret,install_region)
+      when /snapshot/
+        list_aws_snapshots(install_access,install_secret,install_region,install_snapshot)
       else
         handle_output("Warning:\tType not specified")
       end
@@ -1932,8 +1978,13 @@ if !install_action.empty?
       end
     else
       if install_vm.match(/aws/)
-        if install_type.match(/instance/) or install_id.match(/[0-9]|all/)
-          delete_aws_vm(install_client,install_access,install_secret,install_region,install_ami,install_id)
+        if install_type.match(/instance|snapshot/) or install_id.match(/[0-9]|all/)
+          case install_type
+          when /instance/
+            delete_aws_vm(install_client,install_access,install_secret,install_region,install_ami,install_id)
+          when /snapshot/
+            delete_aws_snapshot(install_client,install_access,install_secret,install_region,install_snapshot)
+          end
         else
           if install_ami.match(/[A-Z]|[a-z]|[0-9]/)
             delete_aws_image(install_client,install_access,install_secret,install_region)
@@ -1969,12 +2020,12 @@ if !install_action.empty?
   when /add|create/
     if install_vm.match(/aws/)
       if install_type.match(/packer/)
-        configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number)
+        configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key)
       else
         if install_type.match(/ami|image/)
           create_sdk_aws_image(install_client,install_access,install_secret,install_region,install_id)
         else
-          configure_sdk_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number)
+          configure_sdk_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key)
         end
       end
       quit()
