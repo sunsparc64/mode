@@ -412,6 +412,28 @@ def print_version()
   return
 end
 
+# Write array to file
+
+def write_array_to_file(file_array,file_name,file_mode)
+  dir_name = Pathname.new(file_name).dirname
+  FileUtils.mkpath(dir_name)
+  if file_mode.match(/a/)
+    file_mode = "a"
+  else
+    file_mode = "w"
+  end
+  file = File.open(file_name,file_mode)
+  file_array.each do |line|
+    if !line.match(/\n/)
+      line = line+"\m"
+    end
+    file.write(line)
+  end
+  file.close
+  print_contents_of_file("",file_name)
+  return
+end
+
 # Generate a client MAC address if not given one
 
 def create_install_mac(install_mac)

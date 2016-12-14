@@ -1024,6 +1024,8 @@ def create_packer_aws_json()
   install_size    = $q_struct["instance_type"].value
   install_admin   = $q_struct["ssh_username"].value
   install_client  = $q_struct["ami_name"].value
+  install_keyfile = install_client+".key.pub"
+  tmp_keyfile     = "/tmp/"+install_keyfile
   user_data_file  = $q_struct["user_data_file"].value
   packer_dir      = $client_base_dir+"/packer"
   client_dir      = packer_dir+"/aws/"+install_client
@@ -1031,16 +1033,38 @@ def create_packer_aws_json()
   check_dir_exists(client_dir)
   json_data = {
     :builders => [
-      :name             => "aws",
-      :type             => install_service,
-      :access_key       => install_access,
-      :secret_key       => install_secret,
-      :source_ami       => install_ami,
-      :region           => install_region,
-      :instance_type    => install_size,
-      :ssh_username     => install_admin,
-      :ami_name         => install_client,
-      :user_data_file   => user_data_file
+      {
+        :name             => "aws",
+        :type             => install_service,
+        :access_key       => install_access,
+        :secret_key       => install_secret,
+        :source_ami       => install_ami,
+        :region           => install_region,
+        :instance_type    => install_size,
+        :ssh_username     => install_admin,
+        :ami_name         => install_client,
+        :user_data_file   => user_data_file
+      }
+    ],
+    :provisioners => [
+      {
+        :type             => "file",
+        :source           => install_keyfile,
+        :destination      => tmp_keyfile
+      },
+      {
+        :type             => "shell",
+        :execute_command  => "{{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+        :scripts          => [
+          "scripts/vagrant.sh"
+        ]
+      }
+    ],
+    :"post-processors"    => [
+      {
+        :output           => "builds/packer_{{.BuildName}}_{{.Provider}}.box",
+        :type             => "vagrant"
+      }
     ]
   }
   json_output = JSON.pretty_generate(json_data)
@@ -1327,17 +1351,75 @@ def create_packer_ai_install_files(install_client,install_service,install_ip,ins
   return
 end
 
+# Populate vagrant.sh array
+
+def populate_packer_vagrant_sh(install_name)
+  tmp_keyfile = "/tmp/"+install_name+".key.pub"
+  file_array  = []
+  file_array.push("#!/usr/bin/env bash\n")
+  file_array.push("\n")
+  file_array.push("groupadd vagrant\n")
+  file_array.push("useradd vagrant -g vagrant -G wheel\n")
+  file_array.push("echo \"vagrant\" | passwd --stdin vagrant\n")
+  file_array.push("echo \"vagrant        ALL=(ALL)       NOPASSWD: ALL\" >> /etc/sudoers.d/99-vagrant\n")
+  file_array.push("\n")
+  file_array.push("mkdir /home/vagrant/.ssh\n")
+  file_array.push("\n")
+  file_array.push("# Use my own private key\n")
+  file_array.push("cat  #{tmp_keyfile} >> /home/vagrant/.ssh/authorized_key\n")
+  file_array.push("chown -R vagrant /home/vagrant/.ssh\n")
+  file_array.push("chmod -R go-rwsx /home/vagrant/.ssh\n")
+  return file_array
+end
+
+# Create vagrant.sh array
+
+def create_packer_vagrant_sh(install_name,file_name)
+  file_array = populate_packer_vagrant_sh(install_name)
+  write_array_to_file(file_array,file_name,"w")
+  return
+end
+
 # Create AWS client
 
-def create_packer_aws_install_files(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key)
-  client_dir     = $client_base_dir+"/packer/aws/"+install_client
-  user_data_file = client_dir+"/userdata.yaml"
+def create_packer_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile)
+  if !install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
+    handle_output("Warning:\tNo Key file specified")
+    exit
+  end
+  if !install_name.match(/[A-Z]|[a-z]|[0-9]/)
+    handle_output("Warning:\tNo AWS AMI name specified")
+    exit
+  end
+  exists = check_if_aws_image_exists(install_name,install_access,install_secret,install_region)
+  if exists == "yes"
+    handle_output("Warning:\tAWS AMI already exists with name #{install_name}")
+    exit
+  end
+  if !install_ami.match(/^ami/)
+    old_install_ami = install_ami
+    ec2,install_ami = get_aws_image(old_install_ami,install_access,install_secret,install_region)
+    handle_output("Information:\tFound AWS AMI ID #{install_ami} for #{old_install_ami}")
+  end
+  client_dir     = $client_base_dir+"/packer/aws/"+install_name
+  script_dir     = client_dir+"/scripts"
+  build_dir      = client_dir+"/builds"
+  user_data_file = "userdata.yml"
   check_dir_exists(client_dir)
-  populate_aws_questions(install_client,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key)
+  check_dir_exists(script_dir)
+  check_dir_exists(build_dir)
+  populate_aws_questions(install_name,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key,install_keyfile)
   install_service = "aws"
   process_questions(install_service)
+  user_data_file = client_dir+"/userdata.yml"
   create_aws_user_data_file(user_data_file)
   create_packer_aws_json()
+  file_name = script_dir+"/vagrant.sh"
+  create_packer_vagrant_sh(install_name,file_name)
+  key_file = client_dir+"/"+install_name+".key.pub"
+  message  = "Copying Key file '#{install_keyfile}' to '#{key_file}'"
+  command  = "cp #{install_keyfile} #{key_file}"
+  execute_command(message,command)
   return
 end
 
@@ -1363,10 +1445,36 @@ def copy_pkg_to_packer_client(pkg_name,install_client,install_vm)
   return
 end
 
+# Build AWS client
+
+def build_packer_aws_config(install_name,install_access,install_secret,install_region)
+  check_packer_is_installed()
+  exists = check_if_aws_image_exists(install_name,install_access,install_secret,install_region)
+  if exists == "yes"
+    handle_output("Warning:\tAWS image already exists for '#{install_name}'")
+    exit
+  end
+  client_dir = $client_base_dir+"/packer/aws/"+install_name
+  json_file  = client_dir+"/"+install_name+".json"
+  key_file   = client_dir+"/"+install_name+".key.pub"
+  if !File.exist?(json_file)
+    handle_output("Warning:\tPacker AWS config file '#{json_file}' does not exist")
+    exit
+  end
+  if !File.exist?(key_file) and !File.symlink?(key_file)
+    handle_output("Warning:\tPacker AWS key file '#{key_file}' does not exist")
+    exit
+  end
+  message    = "Information:\tBuilding Packer AWS instance using AMI name '#{install_name}' using '#{json_file}'"
+  command    = "cd #{client_dir} ; packer build #{json_file}"
+  execute_command(message,command)
+  return
+end
+
 # Configure Packer AWS client
 
-def configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key)
-  create_packer_aws_install_files(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key)
+def configure_packer_aws_client(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile)
+  create_packer_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile)
   return
 end
 

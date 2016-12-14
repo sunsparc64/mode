@@ -88,6 +88,12 @@ def initiate_aws_iam_client(install_access,install_secret,install_region)
 	return iam
 end	
 
+# Check AWS VM exists - Dummy function for packer
+
+def check_aws_vm_exists(install_name)
+	exists = "no"
+	return exists
+end
 
 # Get AWS snapshots
 
@@ -201,22 +207,22 @@ end
 
 # Get AWS AMI name
 
-def get_aws_ami_name(install_client,install_region)
-	if !install_client.match(/#{$default_aws_suffix}/)
-	  value = install_client+"-"+$default_aws_suffix+"-"+install_region
+def get_aws_ami_name(install_name,install_region)
+	if !install_name.match(/#{$default_aws_suffix}/)
+	  value = install_name+"-"+$default_aws_suffix+"-"+install_region
 	else
-		value = install_client
+		value = install_name
 	end
   return value
 end
 
-# Get AWS AMI name
+# Get AWS bucket name
 
-def get_aws_bucket_name(install_client,install_region)
+def get_aws_bucket_name(install_name,install_region)
 	if !install_buck.match(/#{$default_aws_suffix}/)
-	  value = install_client+"-"+$default_aws_suffix+"-"+install_region
+	  value = install_name+"-"+$default_aws_suffix+"-"+install_region
 	else
-		value = install_client
+		value = install_name
 	end
   return value
 end
@@ -312,7 +318,9 @@ end
 def list_aws_images(install_access,install_secret,install_region)
 	ec2,images = get_aws_images(install_access,install_secret,install_region)
 	images.each do |image|
-		puts image.name
+		image_name = image.name
+		image_id   = image.image_id
+		handle_output("#{image_name}\tid=#{image_id}")
 	end
 	return
 end
@@ -323,7 +331,8 @@ def get_aws_image(install_client,install_access,install_secret,install_region)
 	image_id 	 = "none"
 	ec2,images = get_aws_images(install_access,install_secret,install_region)
 	images.each do |image|
-		if image.name.match(/^#{install_client}/)
+		image_name = image.image_location.split(/\//)[1]
+		if image_name.match(/^#{install_client}/)
 			image_id = image.image_id
 			return ec2,image_id
 		end

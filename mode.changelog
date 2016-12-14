@@ -829,4 +829,6 @@
 # Added code to get ACLs on AWS bucket
 # 4.1.5: Wed 14 Dec 2016 07:49:28 AEDT
 # Added code to list and delete AWS snapshots
+# 4.1.6: Thu 15 Dec 2016 09:18:34 AEDT
+# Fixed Packer AWS code and general code cleanup
 

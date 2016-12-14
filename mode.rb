@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.1.5
+# Version:      4.1.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -21,6 +21,7 @@
 
 require 'rubygems'
 require 'pathname'
+require 'fileutils'
 require 'ipaddr'
 require 'uri'
 require 'socket'
@@ -200,6 +201,7 @@ begin
     [ "--secret",               REQUIRED ], # AWS Secret Key
     [ "--region",               REQUIRED ], # AWS Secret Key
     [ "--key",                  REQUIRED ], # AWS Key Name
+    [ "--keyfile",              REQUIRED ], # AWS Keyfile
     [ "--group",                REQUIRED ], # AWS Group Name
     [ "--suffix",               REQUIRED ], # AWS AMI Name suffix
     [ "--prefix",               REQUIRED ], # AWS S3 prefix
@@ -279,6 +281,14 @@ else
   install_snapshot = ""
 end
 
+# Handle name switch
+
+if option["name"]
+  install_name = option["name"]
+else
+  install_name = ""
+end
+
 # Handle command switch
 
 if option["command"]
@@ -293,6 +303,18 @@ if option["key"]
   install_key = option["key"]
 else
   install_key = ""
+end
+
+# Handle keyfile switch
+
+if option["keyfile"]
+  install_keyfile = option["keyfile"]
+  if !File.exist?(install_keyfile)
+    handle_output("Warning:\tKey file '#{install_keyfile}' does not exist")
+    exit
+  end
+else
+  install_keyfile = ""
 end
 
 # Handle grant switch
@@ -489,7 +511,11 @@ end
 if option["ami"]
   install_ami = option["ami"]
 else
-  install_ami = $default_aws_ami
+  if !option["action"].match(/delete|list/)
+    install_ami = $default_aws_ami
+  else
+    install_ami = ""
+  end
 end
 
 # Handle AWS Instance ID
@@ -513,6 +539,11 @@ else
     if option["vm"].match(/aws/)
       if option["name"]
         install_client = option["name"]
+        if $verbose_mode == 1
+          handle_output("Setting:\tAWS AMI Name to #{install_client}")
+        end
+      else
+        install_client = ""
       end
     else
       install_client = ""
@@ -820,14 +851,6 @@ if option["method"]
   install_method = option["method"]
 else
   install_method = ""
-end
-
-# Handle client switch
-
-if option["client"]
-  install_client = option["client"]
-else
-  install_client = ""
 end
 
 # Handle install type switch
@@ -1367,7 +1390,7 @@ if !install_service.empty?
   if install_type.match(/^packer$/)
     check_packer_is_installed()
     install_mode    = "client"
-    if install_method.empty? and install_os.empty? and !install_action.match(/build|list|import|delete/)
+    if install_method.empty? and install_os.empty? and !install_action.match(/build|list|import|delete/) and !install_vm.match(/aws/)
       handle_output("Warning:\tNo OS, or Install Method specified for build type #{install_service}")
       exit
     end
@@ -1375,15 +1398,15 @@ if !install_service.empty?
       handle_output("Warning:\tNo VM type specified for build type #{install_service}")
       exit
     end
-    if install_client.empty? and !install_action.match(/list/)
+    if install_client.empty? and !install_action.match(/list/) and !install_vm.match(/aws/)
       handle_output("Warning:\tNo Client name specified for build type #{install_service}")
       exit
     end
-    if install_file.empty? and !install_action.match(/build|list|import|delete/)
+    if install_file.empty? and !install_action.match(/build|list|import|delete/) and !install_vm.match(/aws/)
       handle_output("Warning:\tNo ISO file specified for build type #{install_service}")
       exit
     end
-    if !install_ip.match(/[0-9]/) and !install_action.match(/build|list|import|delete/)
+    if !install_ip.match(/[0-9]/) and !install_action.match(/build|list|import|delete/) and !install_vm.match(/aws/)
       handle_output("Warning:\tNo IP Address given ")
       exit
     end
@@ -1981,13 +2004,13 @@ if !install_action.empty?
         if install_type.match(/instance|snapshot/) or install_id.match(/[0-9]|all/)
           case install_type
           when /instance/
-            delete_aws_vm(install_client,install_access,install_secret,install_region,install_ami,install_id)
+            delete_aws_vm(install_access,install_secret,install_region,install_ami,install_id)
           when /snapshot/
-            delete_aws_snapshot(install_client,install_access,install_secret,install_region,install_snapshot)
+            delete_aws_snapshot(install_access,install_secret,install_region,install_snapshot)
           end
         else
           if install_ami.match(/[A-Z]|[a-z]|[0-9]/)
-            delete_aws_image(install_client,install_access,install_secret,install_region)
+            delete_aws_image(install_ami,install_access,install_secret,install_region)
           else
             handle_output("Warning:\tNo AWS instance or image specified")
           end
@@ -2007,20 +2030,17 @@ if !install_action.empty?
       end
     end
   when /build/
-    if install_vm.match(/aws/)
-      if $nosuffix == 0
-        install_client = get_aws_ami_name(install_client,install_region)
-      end
-      build_aws_config(install_client,install_access,install_secret,install_region)
-    else
-      if install_type.match(/packer/)
+    if install_type.match(/packer/)
+      if install_vm.match(/aws/)
+        build_packer_aws_config(install_client,install_access,install_secret,install_region)
+      else
         build_packer_config(install_client,install_vm)
       end
     end
   when /add|create/
     if install_vm.match(/aws/)
       if install_type.match(/packer/)
-        configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key)
+        configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile)
       else
         if install_type.match(/ami|image/)
           create_sdk_aws_image(install_client,install_access,install_secret,install_region,install_id)
@@ -2149,7 +2169,7 @@ if !install_action.empty?
     install_action = install_action.gsub(/start/,"boot")
     install_action = install_action.gsub(/halt/,"stop")
     if install_vm.match(/aws/)
-      eval"[#{install_action}_#{install_vm}_vm(install_client,install_access,install_secret,install_region,install_ami,install_id)]"
+      eval"[#{install_action}_#{install_vm}_vm(install_access,install_secret,install_region,install_ami,install_id)]"
       quit()
     end
     if !install_client.empty? and !install_vm.empty? and !install_vm.match(/none/)
@@ -2188,7 +2208,7 @@ if !install_action.empty?
         install_vm = get_client_vm_type(install_client)
       end
       if install_vm.match(/aws/)
-        reboot_aws_vm(install_client,install_access,install_secret,install_region,install_ami,install_id)
+        reboot_aws_vm(install_access,install_secret,install_region,install_ami,install_id)
         quit()
       end
       if !install_vm.empty? and !install_vm.match(/none/)
@@ -2224,7 +2244,7 @@ if !install_action.empty?
       eval"[export_#{install_vm}_ova(install_client,install_file)]"
     end
     if install_vm.match(/aws/)
-      export_sdk_aws_image(install_client,install_access,install_secret,install_region,install_ami,install_id,install_prefix,install_bucket,install_container,install_comment,install_target,install_format,install_acl)
+      export_sdk_aws_image(install_access,install_secret,install_region,install_ami,install_id,install_prefix,install_bucket,install_container,install_comment,install_target,install_format,install_acl)
     end
   when /clone|copy/
     if install_clone and !install_client.empty?
