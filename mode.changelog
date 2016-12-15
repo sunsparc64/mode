@@ -835,4 +835,6 @@
 # Improved AWS Instance creation code and add AWS connect code
 # 4.1.8: Fri 16 Dec 2016 08:03:05 AEDT
 # Added code to list key pairs
+# 4.1.9: Fri 16 Dec 2016 10:58:28 AEDT
+# Added code to create and delete AWS key pairs
 

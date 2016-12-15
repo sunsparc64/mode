@@ -173,7 +173,7 @@ def create_aws_s3_bucket(install_access,install_secret,install_region,install_bu
 			s3.head_bucket({ bucket: install_bucket, })
 		rescue
 			handle_output("Warning:\tDo not have permissions to access bucket: #{install_bucket}")
-			exit()
+			quit()
 		end
 	else
 		handle_output("Information:\tCreating S3 bucket: #{install_bucket}")
@@ -215,21 +215,10 @@ def set_aws_s3_bucket_acl(install_access,install_secret,install_region,install_b
 	return
 end
 
-# Get AWS AMI name
+# Get AWS unique name
 
-def get_aws_ami_name(install_name,install_region)
+def get_aws_uniq_name(install_name,install_region)
 	if !install_name.match(/#{$default_aws_suffix}/)
-	  value = install_name+"-"+$default_aws_suffix+"-"+install_region
-	else
-		value = install_name
-	end
-  return value
-end
-
-# Get AWS bucket name
-
-def get_aws_bucket_name(install_name,install_region)
-	if !install_buck.match(/#{$default_aws_suffix}/)
 	  value = install_name+"-"+$default_aws_suffix+"-"+install_region
 	else
 		value = install_name
@@ -378,7 +367,7 @@ def delete_aws_image(install_client,install_access,install_secret,install_region
 	ec2,image_id = get_aws_image(install_client,install_access,install_secret,install_region)
 	if image_id == "none"
 		handle_output("Warning:\tNo AWS Image exists for '#{install_client}'")
-		exit
+		quit()	
 	else
 		handle_output("Information:\tDeleting Image ID #{image_id} for '#{install_client}'")
 		ec2.deregister_image({ dry_run: false, image_id: image_id, })
@@ -516,14 +505,66 @@ end
 # Check if AWS Key Pair exists
 
 def check_if_aws_key_pair_exists(install_access,install_secret,install_region,install_key)
+	exists = "no"
 	ec2,key_pairs = get_aws_key_pairs(install_access,install_secret,install_region)
+	key_pairs.each do |key_pair|
+		key_name = key_pair.key_name
+		if key_name.match(/^#{install_key}$/)
+			exists = "yes"
+		end
+	end
 	return exists
 end
 
 # Create AWS Key Pair
 
 def create_aws_key_pair(install_access,install_secret,install_region,install_key)
+	aws_ssh_dir = $home_dir+"/.ssh/aws"
+	check_my_dir_exists(aws_ssh_dir)
+	if $nosuffix == 0
+		install_key = get_aws_uniq_name(install_key,install_region)
+	end
 	exists = check_if_aws_key_pair_exists(install_access,install_secret,install_region,install_key)
+	if exists == "yes"
+		handle_output("Warning:\tKey Pair '#{install_key}' already exists")
+		quit()
+	else
+		handle_output("Information:\tCreating Key Pair '#{install_key}'")
+		ec2      = initiate_aws_ec2_client(install_access,install_secret,install_region)
+		key_pair = ec2.create_key_pair({ key_name: install_key }).key_material
+		key_file = aws_ssh_dir+"/"+install_key+".pem"
+		handle_output("Information:\tSaving Key Pair '#{install_key}' to '#{key_file}'")
+		file = File.open(key_file,"w")
+		file.write(key_pair)
+		file.close
+		message = "Information:\tSetting permissions on '#{key_file}' to 400"
+		command = "chmod 400 #{key_file}"
+		execute_command(message,command)
+	end
+	return
+end
+
+# Delete AWS Key Pair
+
+def delete_aws_key_pair(install_access,install_secret,install_region,install_key)
+	aws_ssh_dir = $home_dir+"/.ssh/aws"
+	if $nosuffix == 0
+		install_key = get_aws_uniq_name(install_key,install_region)
+	end
+	exists = check_if_aws_key_pair_exists(install_access,install_secret,install_region,install_key)
+	if exists == "no"
+		handle_output("Warning:\tAWS Key Pair '#{install_key}' does not exist")
+		quit()
+	else
+		handle_output("Information:\tDeleting AWS Key Pair '#{install_key}'")
+		ec2      = initiate_aws_ec2_client(install_access,install_secret,install_region)
+		key_pair = ec2.delete_key_pair({ key_name: install_key })
+		key_file = aws_ssh_dir+"/"+install_key+".pem"
+		if File.exist?(key_file)
+			handle_output("Information:\tDeleting AWS Key Pair file '#{key_file}'")
+			File.delete(key_file)
+		end
+	end
 	return
 end
 

@@ -3005,6 +3005,22 @@ def mount_iso(iso_file)
   return
 end
 
+# Check my directory exists
+
+def check_my_dir_exists(dir_name)
+  if !File.directory?(dir_name) and !File.symlink?(dir_name)
+    if $verbose_mode == 1
+      handle_output("Information:\tCreating directory '#{dir_name}'")
+    end
+    system("mkdir #{dir_name}")
+  else
+    if $verbose_mode == 1
+      handle_output("Information:\tDirectory '#{dir_name}' already exists")
+    end
+  end
+  return
+end
+
 # Check ISO mounted for OS X based server
 
 def check_osx_iso_mount(mount_dir,iso_file)

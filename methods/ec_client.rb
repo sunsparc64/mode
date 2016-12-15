@@ -34,7 +34,7 @@ def build_aws_config(install_name,install_access,install_secret,install_region)
 	exists = check_if_aws_image_exists(install_name,install_secret,install_region)
 	if exists == "yes"
 		handle_output("Warning:\tAWS image already exists for '#{install_name}'")
-		exit()
+		quit()
 	end
 	client_dir = $client_base_dir+"/packer/aws/"+install_name
 	json_file  = client_dir+"/"+install_name+".json"
@@ -56,15 +56,15 @@ end
 def connect_to_aws_vm(install_access,install_secret,install_region,install_id,install_ip,install_key,install_keyfile,install_admin)
 	if !install_admin.match(/[A-Z]|[a-z]|[0-9]/)
 		handle_output("Warning:\tNo user given")
-		exit()
+		quit()
 	end
 	if !install_key.match(/[A-Z]|[a-z]|[0-9]/) and !install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
 		handle_output("Warning:\tNo key given")
-		exit()
+		quit()
 	end
 	if !install_id.match(/[0-9]/) and !install_id.match(/[A-Z]|[a-z]|[0-9]/)
 		handle_output("Warning:\tNo IP or Instance ID given")
-		exit()
+		quit()
 	end
 	if !install_ip.match(/[0-9]/)
 		install_ip = get_aws_instance_ip(install_access,install_secret,install_region,install_id)
@@ -174,7 +174,7 @@ end
 def create_aws_image(install_name,install_access,install_secret,install_region,install_id)
 	if !install_id.match(/[0-9]/)
 		handle_output("Warning:\tNo Instance ID specified")
-		exit()
+		quit()
 	end
 	if install_name.match(/[A-Z]|[a-z]|[0-9]/)
 		ec2,images = get_aws_images(install_access,install_secret,install_region)
@@ -182,7 +182,7 @@ def create_aws_image(install_name,install_access,install_secret,install_region,i
 			image_name = image.name
 			if image_name.match(/^#{install_name}$/)
 				handle_output("Warning:\tImage with name '#{install_name}' already exists")
-				exit()
+				quit()
 			end
 		end
 	end
@@ -210,7 +210,7 @@ def create_aws_instance(install_access,install_secret,install_region)
   end
   if !key_name.match(/[A-Z]|[a-z]|[0-9]/)
   	handle_output("Warning:\tNo key specified")
-  	exit()
+  	quit()
   end
   if !image_id.match(/^ami/)
   	old_image_id = image_id
@@ -229,7 +229,7 @@ end
 
 def export_aws_image(install_access,install_secret,install_region,install_ami,install_id,install_prefix,install_bucket,install_container,install_comment,install_target,install_format,install_acl)
 	if $nosuffix == 0
-		install_bucket = get_aws_bucket_name(install_name,install_region)
+		install_bucket = get_aws_uniq_name(install_name,install_region)
 	end
 	s3  = create_aws_s3_bucket(install_access,install_secret,install_region,install_bucket)
 	ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
@@ -248,7 +248,7 @@ def configure_aws_client(install_name,install_type,install_ami,install_region,in
 		handle_output("Warning:\tNo name specified for AWS image")
 	end
 	if $nosuffix == 0
-		install_name = get_aws_ami_name(install_name,install_region)
+		install_name = get_aws_uniq_name(install_name,install_region)
 	end
   create_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_group)
   return

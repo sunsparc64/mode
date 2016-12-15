@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.1.8
+# Version:      4.1.9
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -2028,12 +2028,14 @@ if !install_action.empty?
       end
     else
       if install_vm.match(/aws/)
-        if install_type.match(/instance|snapshot/) or install_id.match(/[0-9]|all/)
+        if install_type.match(/instance|snapshot|key/) or install_id.match(/[0-9]|all/)
           case install_type
           when /instance/
             delete_aws_vm(install_access,install_secret,install_region,install_ami,install_id)
           when /snapshot/
             delete_aws_snapshot(install_access,install_secret,install_region,install_snapshot)
+          when /key/
+            delete_aws_key_pair(install_access,install_secret,install_region,install_key)
           end
         else
           if install_ami.match(/[A-Z]|[a-z]|[0-9]/)
@@ -2072,7 +2074,7 @@ if !install_action.empty?
       when /ami|image/
         create_aws_image(install_client,install_access,install_secret,install_region,install_id)
       when /key/
-        create_aws_key_pair(install_client,install_access,install_secret,install_region)
+        create_aws_key_pair(install_access,install_secret,install_region,install_key)
       else
         configure_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_group)
       end
