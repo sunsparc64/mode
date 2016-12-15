@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.1.6
+# Version:      4.1.7
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -357,7 +357,15 @@ end
 if option["group"]
   install_group = option["group"]
 else
-  install_group = ""
+  if option["vm"]
+    if option["vm"].match(/aws/)
+      install_group = $default_aws_group
+    else
+      install_group = ""
+    end
+  else
+    install_group = ""
+  end
 end
 
 # Handle prefix switch
@@ -556,9 +564,21 @@ end
 # If given admin set admin user
 
 if option["admin"]
-  $default_admin_user = option["admin"]
-  if $verbose_mode == 1
-    handle_output("Information:\tSetting admin user to #{$default_admin_user}")
+  if option["action"]
+    if option["action"].match(/connect/)
+      install_admin = option["admin"]
+    else
+      $default_admin_user = option["admin"]
+      if $verbose_mode == 1
+        handle_output("Information:\tSetting admin user to #{$default_admin_user}")
+      end
+    end
+  end
+else
+  if option["action"]
+    if option["action"].match(/connect/)
+      install_admin = %x[whoami].chomp
+    end
   end
 end
 
@@ -2040,12 +2060,12 @@ if !install_action.empty?
   when /add|create/
     if install_vm.match(/aws/)
       if install_type.match(/packer/)
-        configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile)
+        configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
       else
         if install_type.match(/ami|image/)
           create_sdk_aws_image(install_client,install_access,install_secret,install_region,install_id)
         else
-          configure_sdk_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key)
+          configure_sdk_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_group)
         end
       end
       quit()
@@ -2325,6 +2345,10 @@ if !install_action.empty?
       eval"[get_#{install_vm}_value(install_client,install_param)]"
     end
   when /console|serial|connect/
+    if install_vm.match(/aws/)
+      connect_to_aws_vm(install_access,install_secret,install_region,install_id,install_ip,install_key,install_keyfile,install_admin)
+      quit()
+    end
     if install_type.match(/docker/)
       connect_to_docker_client(install_client)
     end

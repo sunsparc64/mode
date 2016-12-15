@@ -259,6 +259,23 @@ def list_aws_instances(install_access,install_secret,install_region)
 	return
 end
 
+# Get instance IP
+
+def get_aws_instance_ip(install_access,install_secret,install_region,install_id)
+	public_ip = "none"
+	ec2,reservations = get_aws_reservations(install_access,install_secret,install_region)
+	reservations.each do |reservation|
+		reservation["instances"].each do |instance|
+			instance_id = instance.instance_id
+			public_ip  = instance.public_ip_address
+			if instance_id.match(/#{install_id}/)
+				return public_ip
+			end
+		end
+	end
+	return public_ip
+end
+
 # Get buckets
 
 def get_aws_buckets(install_access,install_secret,install_region)

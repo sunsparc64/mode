@@ -2,7 +2,7 @@
 
 # Populate AWS questions
 
-def populate_aws_questions(install_client,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key,install_keyfile)
+def populate_aws_questions(install_client,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key,install_keyfile,install_group)
   $q_struct = {}
   $q_order  = []
 
@@ -165,6 +165,19 @@ def populate_aws_questions(install_client,install_ami,install_region,install_siz
     )
     $q_struct[name] = config
     $q_order.push(name)  
+
+    name   = "security_groups"
+    config = Ks.new(
+      type      = "",
+      question  = "Security Groups",
+      ask       = "yes",
+      parameter = "",
+      value     = install_group,
+      valid     = "",
+      eval      = "no"
+    )
+    $q_struct[name] = config
+    $q_order.push(name) 
 
     name   = "dry_run"
     config = Ks.new(

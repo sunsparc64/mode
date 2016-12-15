@@ -1382,7 +1382,7 @@ end
 
 # Create AWS client
 
-def create_packer_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile)
+def create_packer_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
   if !install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
     handle_output("Warning:\tNo Key file specified")
     exit
@@ -1408,7 +1408,7 @@ def create_packer_aws_install_files(install_name,install_type,install_ami,instal
   check_dir_exists(client_dir)
   check_dir_exists(script_dir)
   check_dir_exists(build_dir)
-  populate_aws_questions(install_name,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key,install_keyfile)
+  populate_aws_questions(install_name,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key,install_keyfile,install_group)
   install_service = "aws"
   process_questions(install_service)
   user_data_file = client_dir+"/userdata.yml"
@@ -1473,8 +1473,8 @@ end
 
 # Configure Packer AWS client
 
-def configure_packer_aws_client(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile)
-  create_packer_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile)
+def configure_packer_aws_client(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
+  create_packer_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
   return
 end
 

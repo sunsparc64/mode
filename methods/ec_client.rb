@@ -34,7 +34,7 @@ def build_aws_config(install_name,install_access,install_secret,install_region)
 	exists = check_if_aws_image_exists(install_name,install_secret,install_region)
 	if exists == "yes"
 		handle_output("Warning:\tAWS image already exists for '#{install_name}'")
-		exit
+		exit()
 	end
 	client_dir = $client_base_dir+"/packer/aws/"+install_name
 	json_file  = client_dir+"/"+install_name+".json"
@@ -48,6 +48,36 @@ end
 
 def list_aws_vms()
 	check_aws_cli_is_installed()
+	return
+end
+
+# Connect to AWS VM
+
+def connect_to_aws_vm(install_access,install_secret,install_region,install_id,install_ip,install_key,install_keyfile,install_admin)
+	if !install_admin.match(/[A-Z]|[a-z]|[0-9]/)
+		handle_output("Warning:\tNo user given")
+		exit()
+	end
+	if !install_key.match(/[A-Z]|[a-z]|[0-9]/) and !install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
+		handle_output("Warning:\tNo key given")
+		exit()
+	end
+	if !install_id.match(/[0-9]/) and !install_id.match(/[A-Z]|[a-z]|[0-9]/)
+		handle_output("Warning:\tNo IP or Instance ID given")
+		exit()
+	end
+	if !install_ip.match(/[0-9]/)
+		install_ip = get_aws_instance_ip(install_access,install_secret,install_region,install_id)
+	end
+	if install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
+		command = "ssh -i #{install_keyfile} #{install_admin}@#{install_ip}"	
+	else
+		command = "ssh -i #{install_key} #{install_admin}@#{install_ip}"	
+	end
+	if $verbos_mode == 1
+		handle_output("Information:\tExecuting '#{command}'")
+	end
+	exec "#{command}"
 	return
 end
 
@@ -166,20 +196,29 @@ end
 # Create AWS instance string
 
 def create_sdk_aws_instance(install_access,install_secret,install_region)
-  image_id      = $q_struct["source_ami"].value
-  min_count     = $q_struct["min_count"].value
-  max_count    	= $q_struct["max_count"].value
-  dry_run    		= $q_struct["dry_run"].value
-  instance_type = $q_struct["instance_type"].value
-  key_name      = $q_struct["key_name"].value
+  image_id      	= $q_struct["source_ami"].value
+  min_count     	= $q_struct["min_count"].value
+  max_count    		= $q_struct["max_count"].value
+  dry_run    			= $q_struct["dry_run"].value
+  instance_type 	= $q_struct["instance_type"].value
+  key_name      	= $q_struct["key_name"].value
+  security_groups = $q_struct["security_groups"].value
+  if security_groups.match(/,/)
+  	security_groups = security_groups.split(/,/)
+  else
+  	security_groups = [ security_groups ]
+  end
+  if !key_name.match(/[A-Z]|[a-z]|[0-9]/)
+  	handle_output("Warning:\tNo key specified")
+  	exit()
+  end
   if !image_id.match(/^ami/)
   	old_image_id = image_id
   	ec2,image_id = get_aws_image(image_id,install_access,install_secret,install_region)
   	handle_output("Information:\tFound Image ID #{image_id} for #{old_image_id}")
   end
-  exit
   ec2_resource  = initiate_aws_ec2_resource(install_access,install_secret,install_region)
-  instances     = ec2_resource.create_instances(image_id: image_id, min_count: min_count, max_count: max_count, instance_type: instance_type, dry_run: dry_run, key_name: key_name,)
+  instances     = ec2_resource.create_instances(image_id: image_id, min_count: min_count, max_count: max_count, instance_type: instance_type, dry_run: dry_run, key_name: key_name, security_groups: security_groups,)
   instances.each do |instance|
   	instance_id = instance.id
 	  handle_output("Information:\tInstance ID:\t#{instance_id}")
@@ -204,26 +243,26 @@ end
 
 # Configure Packer AWS client
 
-def configure_sdk_aws_client(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key)
+def configure_sdk_aws_client(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_group)
 	if !install_name.match(/[A-Z]|[a-z]|[0-9]/) or install_name.match(/^none$/)
 		handle_output("Warning:\tNo name specified for AWS image")
 	end
 	if $nosuffix == 0
 		install_name = get_aws_ami_name(install_name,install_region)
 	end
-  create_sdk_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key)
+  create_sdk_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_group)
   return
 end
 
 # Create AWS client
 
-def create_sdk_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key)
+def create_sdk_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_group)
 	install_keyfile = ""
 	user_data_file  = ""
 	if !install_ami.match(/^ami/)
 		ec2,install_ami = get_aws_image(install_ami,install_access,install_secret,install_region)
 	end
-  populate_aws_questions(install_name,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key,install_keyfile)
+  populate_aws_questions(install_name,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key,install_keyfile,install_group)
   install_service = "aws"
   process_questions(install_service)
   create_sdk_aws_instance(install_access,install_secret,install_region)

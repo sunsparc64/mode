@@ -831,4 +831,6 @@
 # Added code to list and delete AWS snapshots
 # 4.1.6: Thu 15 Dec 2016 09:18:34 AEDT
 # Fixed Packer AWS code and general code cleanup
+# 4.1.7: Thu 15 Dec 2016 14:32:49 AEDT
+# Improved AWS Instance creation code and add AWS connect code
 
