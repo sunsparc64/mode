@@ -44,6 +44,17 @@ def initiate_aws_ec2_resource(install_access,install_secret,install_region)
 	return ec2
 end	
 
+# Initiate an EWS EC2 KeyPair connection
+
+def initiate_aws_ec2_resource(install_access,install_secret,install_region)
+	ec2 = Aws::EC2::KeyPair.new(
+		:region 						=>	install_region, 
+  	:access_key_id 			=>	install_access,
+  	:secret_access_key 	=>	install_secret
+	)
+	return ec2
+end	
+
 # Initiate an AWS S3 Bucket connection
 
 def initiate_aws_s3_client(install_access,install_secret,install_region)
@@ -151,7 +162,6 @@ def delete_aws_snapshot(install_client,install_access,install_secret,install_reg
 	return
 end
 
-
 # Create AWS S3 bucket
 
 def create_aws_s3_bucket(install_access,install_secret,install_region,install_bucket)
@@ -227,13 +237,20 @@ def get_aws_bucket_name(install_name,install_region)
   return value
 end
 
-
 # Get AWS reservations
 
 def get_aws_reservations(install_access,install_secret,install_region)
 	ec2    		   = initiate_aws_ec2_client(install_access,install_secret,install_region)
 	reservations = ec2.describe_instances({ }).reservations
 	return ec2,reservations
+end
+
+# Get AWS Key Pairs
+
+def get_aws_key_pairs(install_access,install_secret,install_region)
+	ec2       = initiate_aws_ec2_client(install_access,install_secret,install_region)
+	key_pairs = ec2.describe_key_pairs({ }).key_pairs
+	return ec2,key_pairs
 end
 
 # List AWS instances
@@ -319,8 +336,6 @@ def get_aws_owner_id(install_access,install_secret,install_region)
 	owner_id = user[0].arn.split(/:/)[4]
 	return owner_id
 end
-
-
 
 # Get list of AWS images
 
@@ -498,3 +513,33 @@ def create_aws_creds_file(install_creds,install_access,install_secret)
 	return
 end
 
+# Check if AWS Key Pair exists
+
+def check_if_aws_key_pair_exists(install_access,install_secret,install_region,install_key)
+	ec2,key_pairs = get_aws_key_pairs(install_access,install_secret,install_region)
+	return exists
+end
+
+# Create AWS Key Pair
+
+def create_aws_key_pair(install_access,install_secret,install_region,install_key)
+	exists = check_if_aws_key_pair_exists(install_access,install_secret,install_region,install_key)
+	return
+end
+
+# List AWS Key Pairs
+
+def list_aws_key_pairs(install_access,install_secret,install_region,install_key)
+	ec2,key_pairs = get_aws_key_pairs(install_access,install_secret,install_region)
+	key_pairs.each do |key_pair|
+		key_name = key_pair.key_name
+		if install_key.match(/[A-Z]|[a-z]|[0-9]/)
+			if key_name.match(/^#{install_key}$/)
+				handle_output(key_name)
+			end
+		else
+			handle_output(key_name)
+		end
+	end
+	return
+end

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.1.7
+# Version:      4.1.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -74,6 +74,11 @@ begin
   require 'aws-sdk'
 rescue LoadError
   install_gem("aws-sdk","aws-sdk")
+end
+begin
+  require 'ssh-config'
+rescue LoadError
+  install_gem("ssh-config","ssh-config")
 end
 
 begin
@@ -1927,6 +1932,8 @@ if !install_action.empty?
         list_aws_buckets(install_access,install_secret,install_region)
       when /snapshot/
         list_aws_snapshots(install_access,install_secret,install_region,install_snapshot)
+      when /key/
+        list_aws_key_pairs(install_access,install_secret,install_region,install_key)
       else
         handle_output("Warning:\tType not specified")
       end
@@ -2059,14 +2066,15 @@ if !install_action.empty?
     end
   when /add|create/
     if install_vm.match(/aws/)
-      if install_type.match(/packer/)
+      case install_type
+      when /packer/
         configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
+      when /ami|image/
+        create_aws_image(install_client,install_access,install_secret,install_region,install_id)
+      when /key/
+        create_aws_key_pair(install_client,install_access,install_secret,install_region)
       else
-        if install_type.match(/ami|image/)
-          create_sdk_aws_image(install_client,install_access,install_secret,install_region,install_id)
-        else
-          configure_sdk_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_group)
-        end
+        configure_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_group)
       end
       quit()
     end
@@ -2264,7 +2272,7 @@ if !install_action.empty?
       eval"[export_#{install_vm}_ova(install_client,install_file)]"
     end
     if install_vm.match(/aws/)
-      export_sdk_aws_image(install_access,install_secret,install_region,install_ami,install_id,install_prefix,install_bucket,install_container,install_comment,install_target,install_format,install_acl)
+      export_aws_image(install_access,install_secret,install_region,install_ami,install_id,install_prefix,install_bucket,install_container,install_comment,install_target,install_format,install_acl)
     end
   when /clone|copy/
     if install_clone and !install_client.empty?

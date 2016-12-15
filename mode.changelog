@@ -833,4 +833,6 @@
 # Fixed Packer AWS code and general code cleanup
 # 4.1.7: Thu 15 Dec 2016 14:32:49 AEDT
 # Improved AWS Instance creation code and add AWS connect code
+# 4.1.8: Fri 16 Dec 2016 08:03:05 AEDT
+# Added code to list key pairs
 
