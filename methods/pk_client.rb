@@ -1070,6 +1070,9 @@ def create_packer_aws_json()
   json_output = JSON.pretty_generate(json_data)
   delete_file(json_file)
   File.write(json_file,json_output)
+  message = "Information:\tModifying permissions on '#{json_file}' so if it not readable by others"
+  command = "chmod 400 #{json_file}"
+  execute_command(message,command)
   print_contents_of_file("",json_file)
   return
 end
@@ -1417,7 +1420,7 @@ def create_packer_aws_install_files(install_name,install_type,install_ami,instal
   file_name = script_dir+"/vagrant.sh"
   create_packer_vagrant_sh(install_name,file_name)
   key_file = client_dir+"/"+install_name+".key.pub"
-  message  = "Copying Key file '#{install_keyfile}' to '#{key_file}'"
+  message  = "Copying Key file '#{install_keyfile}' to '#{key_file}' ; chmod 400 #{key_file}"
   command  = "cp #{install_keyfile} #{key_file}"
   execute_command(message,command)
   return
