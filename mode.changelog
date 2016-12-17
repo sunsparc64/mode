@@ -837,4 +837,6 @@
 # Added code to list key pairs
 # 4.1.9: Fri 16 Dec 2016 10:58:28 AEDT
 # Added code to create and delete AWS key pairs
+# 4.2.0: Sat 17 Dec 2016 20:55:49 AEDT
+# Added stop/start all AWS instance capability
 

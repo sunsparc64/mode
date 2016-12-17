@@ -83,17 +83,32 @@ end
 
 # Stop AWS instance
 
-def stop_aws_instance(install_access,install_secret,install_region,install_ami,install_id)
-  if install_id.match(/[0-9]/)
-  	if install_id.match(/,/)
-  		install_ids = install_id.split(/,/)
-  	else
-  		install_ids = [install_id]
-  	end
-  	install_ids.each do |install_id|
-  		handle_output("Information:\tStopping Instance ID #{install_id}")
-	  	ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
-	  	ec2.stop_instances(instance_ids:[install_id])
+def stop_aws_vm(install_access,install_secret,install_region,install_ami,install_id)
+	if install_id == "all"
+		ec2,reservations = get_aws_reservations(install_access,install_secret,install_region)
+		reservations.each do |reservation|
+			reservation["instances"].each do |instance|
+				install_id = instance.instance_id
+				status     = instance.state.name
+				if status.match(/running/)
+		  		handle_output("Information:\tStopping Instance ID #{install_id}")
+			  	ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+			  	ec2.stop_instances(instance_ids:[install_id])
+				end
+			end
+		end
+	else
+	  if install_id.match(/[0-9]/)
+	  	if install_id.match(/,/)
+	  		install_ids = install_id.split(/,/)
+	  	else
+	  		install_ids = [install_id]
+	  	end
+	  	install_ids.each do |install_id|
+	  		handle_output("Information:\tStopping Instance ID #{install_id}")
+		  	ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+		  	ec2.stop_instances(instance_ids:[install_id])
+		  end
 	  end
   end
   return
@@ -102,6 +117,19 @@ end
 # Start AWS instance
 
 def boot_aws_vm(install_access,install_secret,install_region,install_ami,install_id)
+	if install_id == "all"
+		ec2,reservations = get_aws_reservations(install_access,install_secret,install_region)
+		reservations.each do |reservation|
+			reservation["instances"].each do |instance|
+				install_id = instance.instance_id
+				status     = instance.state.name
+				if !status.match(/running|terminated/)
+		  		handle_output("Information:\tStarting Instance ID #{install_id}")
+			  	ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+			  	ec2.start_instances(instance_ids:[install_id])
+				end
+			end
+		end
   if install_id.match(/[0-9]/)
   	if install_id.match(/,/)
   		install_ids = install_id.split(/,/)
@@ -249,6 +277,7 @@ def configure_aws_client(install_name,install_type,install_ami,install_region,in
 	end
 	if $nosuffix == 0
 		install_name = get_aws_uniq_name(install_name,install_region)
+		install_key  = get_aws_uniq_name(install_name,install_key)
 	end
   create_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_group)
   return
@@ -265,6 +294,16 @@ def create_aws_install_files(install_name,install_type,install_ami,install_regio
   populate_aws_questions(install_name,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key,install_keyfile,install_group)
   install_service = "aws"
   process_questions(install_service)
+	exists = check_if_aws_key_pair_exists(install_access,install_secret,install_region,install_key)
+	if exits == "no"
+		create_aws_key_pair(install_access,install_secret,install_region,install_key)
+	else
+		exists = check_if_aws_ssh_key_file_exists(install_key)
+		if exists == "no"
+			handle_output("Warning:\tSSH Key file '#{aws_ssh_key_file}' for AWS Key Pair '#{install_key}' does not exist")
+			quit()
+		end
+	end
   create_aws_instance(install_access,install_secret,install_region)
   return
 end
