@@ -130,16 +130,18 @@ def boot_aws_vm(install_access,install_secret,install_region,install_ami,install
 				end
 			end
 		end
-  if install_id.match(/[0-9]/)
-  	if install_id.match(/,/)
-  		install_ids = install_id.split(/,/)
-  	else
-  		install_ids = [install_id]
-  	end
-  	install_ids.each do |install_id|
-  		handle_output("Information:\tStarting Instance ID #{install_id}")
-	  	ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
-	  	ec2.start_instances(instance_ids:[install_id])
+  else
+    if install_id.match(/[0-9]/)
+    	if install_id.match(/,/)
+    		install_ids = install_id.split(/,/)
+    	else
+    		install_ids = [install_id]
+    	end
+    	install_ids.each do |install_id|
+    		handle_output("Information:\tStarting Instance ID #{install_id}")
+  	  	ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+  	  	ec2.start_instances(instance_ids:[install_id])
+      end
 	  end
   end
   return
