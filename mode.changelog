@@ -843,3 +843,5 @@
 # Added code to create ssh config aliases/entries
 # 4.2.2: Mon 19 Dec 2016 17:25:34 AEDT
 # Fixed bug with listing terminated instances
+# 4.2.3: Mon 19 Dec 2016 19:39:28 AEDT
+# Fixed bugs with AWS instance creation

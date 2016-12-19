@@ -244,27 +244,32 @@ end
 
 # List AWS instances
 
-def list_aws_instances(install_access,install_secret,install_region)
+def list_aws_instances(install_access,install_secret,install_region,install_id)
+	if !install_id.match(/[0-9]/)
+		install_id = "all"
+	end
 	ec2,reservations = get_aws_reservations(install_access,install_secret,install_region)
 	reservations.each do |reservation|
 		reservation["instances"].each do |instance|
 			instance_id = instance.instance_id
-			image_id    = instance.image_id
-			status      = instance.state.name
-			if !status.match(/terminated/)
-				group       = instance.security_groups[0].group_name
-				if status.match(/running/)
-					public_ip  = instance.public_ip_address
-					public_dns = instance.public_dns_name
+			if instance_id.match(/#{install_id}/) or install_id == "all"
+				image_id    = instance.image_id
+				status      = instance.state.name
+				if !status.match(/terminated|shut/)
+					group       = instance.security_groups[0].group_name
+					if status.match(/running/)
+						public_ip  = instance.public_ip_address
+						public_dns = instance.public_dns_name
+					else
+						public_ip  = "NA"
+						public_dns = "NA"
+					end
+					string = instance_id+" image="+image_id+" group="+group+" ip="+public_ip+" dns="+public_dns+" status="+status
 				else
-					public_ip  = "NA"
-					public_dns = "NA"
+					string = instance_id+" image="+image_id+" status="+status
 				end
-				string = instance_id+" image="+image_id+" group="+group+" ip="+public_ip+" dns="+public_dns+" status="+status
-			else
-				string = instance_id+" image="+image_id+" status="+status
+				handle_output(string)
 			end
-			handle_output(string)
 		end
 	end
 	return
@@ -534,6 +539,19 @@ def check_if_aws_key_pair_exists(install_access,install_secret,install_region,in
 		if key_name.match(/^#{install_key}$/)
 			exists = "yes"
 		end
+	end
+	return exists
+end
+
+# Check if AWS key file exists
+
+def check_if_aws_ssh_key_file_exists(install_key)
+	aws_ssh_dir = $home_dir+"/.ssh/aws"
+	aws_ssh_key = aws_ssh_dir+"/"+install_key+".pem"
+	if File.exists?(aws_ssh_key)
+		exists = "yes"
+	else
+		exists = "no"
 	end
 	return exists
 end

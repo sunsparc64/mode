@@ -264,12 +264,17 @@ def create_aws_instance(install_access,install_secret,install_region)
   	ec2,image_id = get_aws_image(image_id,install_access,install_secret,install_region)
   	handle_output("Information:\tFound Image ID #{image_id} for #{old_image_id}")
   end
-  ec2_resource  = initiate_aws_ec2_resource(install_access,install_secret,install_region)
-  instances     = ec2_resource.create_instances(image_id: image_id, min_count: min_count, max_count: max_count, instance_type: instance_type, dry_run: dry_run, key_name: key_name, security_groups: security_groups,)
-  instances.each do |instance|
-  	instance_id = instance.id
-	  handle_output("Information:\tInstance ID:\t#{instance_id}")
-  end
+  ec2          = initiate_aws_ec2_client(install_access,install_secret,install_region)
+  instances    = []
+  reservations = ec2.run_instances(image_id: image_id, min_count: min_count, max_count: max_count, instance_type: instance_type, dry_run: dry_run, key_name: key_name, security_groups: security_groups,)
+	reservations["instances"].each do |instance|
+		instance_id = instance.instance_id
+		instances.push(instance_id)
+	end
+	instances.each do |install_id|
+		list_aws_instances(install_access,install_secret,install_region,install_id)
+	end
+	return
 end
 
 # Export AWS instance
@@ -293,6 +298,7 @@ end
 def configure_aws_client(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_group)
 	if !install_name.match(/[A-Z]|[a-z]|[0-9]/) or install_name.match(/^none$/)
 		handle_output("Warning:\tNo name specified for AWS image")
+		quit()
 	end
 	if $nosuffix == 0
 		install_name = get_aws_uniq_name(install_name,install_region)
@@ -314,7 +320,7 @@ def create_aws_install_files(install_name,install_type,install_ami,install_regio
   install_service = "aws"
   process_questions(install_service)
 	exists = check_if_aws_key_pair_exists(install_access,install_secret,install_region,install_key)
-	if exits == "no"
+	if exists == "no"
 		create_aws_key_pair(install_access,install_secret,install_region,install_key)
 	else
 		exists = check_if_aws_ssh_key_file_exists(install_key)

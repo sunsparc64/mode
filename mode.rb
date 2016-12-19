@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.2.2
+# Version:      4.2.3
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1951,7 +1951,7 @@ if !install_action.empty?
       when /packer/
         list_packer_aws_clients()
       when /inst/
-        list_aws_instances(install_access,install_secret,install_region)
+        list_aws_instances(install_access,install_secret,install_region,install_id)
       when /bucket/
         list_aws_buckets(install_access,install_secret,install_region)
       when /snapshot/
@@ -2104,7 +2104,12 @@ if !install_action.empty?
       when /key/
         create_aws_key_pair(install_access,install_secret,install_region,install_key)
       else
-        configure_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_group)
+        if !install_key.match(/[A-Z]|[a-z]|[0-9]/)
+          handle_output("Warning:\tKey pair not given")
+          quit()
+        else
+          configure_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_group)
+        end
       end
       quit()
     end
