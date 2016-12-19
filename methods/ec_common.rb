@@ -251,6 +251,7 @@ def list_aws_instances(install_access,install_secret,install_region)
 			instance_id = instance.instance_id
 			image_id    = instance.image_id
 			status      = instance.state.name
+			group       = instance.security_groups[0].group_name
 			if status.match(/running/)
 				public_ip  = instance.public_ip_address
 				public_dns = instance.public_dns_name
@@ -258,11 +259,28 @@ def list_aws_instances(install_access,install_secret,install_region)
 				public_ip  = "NA"
 				public_dns = "NA"
 			end
-			string = instance_id+" image="+image_id+" ip="+public_ip+" dns="+public_dns+" status="+status
+			string = instance_id+" image="+image_id+" group="+group+" ip="+public_ip+" dns="+public_dns+" status="+status
 			handle_output(string)
 		end
 	end
 	return
+end
+
+# Get instance security group 
+
+def get_aws_instance_security_group(install_access,install_secret,install_region,install_id)
+	group = "none"
+	ec2,reservations = get_aws_reservations(install_access,install_secret,install_region)
+	reservations.each do |reservation|
+		reservation["instances"].each do |instance|
+			instance_id = instance.instance_id
+			group       = instance.security_groups[0].group_name
+			if instance_id.match(/#{install_id}/)
+				return group
+			end
+		end
+	end
+	return group
 end
 
 # Get instance IP
