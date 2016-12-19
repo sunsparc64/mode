@@ -251,15 +251,19 @@ def list_aws_instances(install_access,install_secret,install_region)
 			instance_id = instance.instance_id
 			image_id    = instance.image_id
 			status      = instance.state.name
-			group       = instance.security_groups[0].group_name
-			if status.match(/running/)
-				public_ip  = instance.public_ip_address
-				public_dns = instance.public_dns_name
+			if !status.match(/terminated/)
+				group       = instance.security_groups[0].group_name
+				if status.match(/running/)
+					public_ip  = instance.public_ip_address
+					public_dns = instance.public_dns_name
+				else
+					public_ip  = "NA"
+					public_dns = "NA"
+				end
+				string = instance_id+" image="+image_id+" group="+group+" ip="+public_ip+" dns="+public_dns+" status="+status
 			else
-				public_ip  = "NA"
-				public_dns = "NA"
+				string = instance_id+" image="+image_id+" status="+status
 			end
-			string = instance_id+" image="+image_id+" group="+group+" ip="+public_ip+" dns="+public_dns+" status="+status
 			handle_output(string)
 		end
 	end

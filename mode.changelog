@@ -841,3 +841,5 @@
 # Added stop/start all AWS instance capability
 # 4.2.1: Mon 19 Dec 2016 14:17:08 AEDT
 # Added code to create ssh config aliases/entries
+# 4.2.2: Mon 19 Dec 2016 17:25:34 AEDT
+# Fixed bug with listing terminated instances
