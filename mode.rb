@@ -196,6 +196,7 @@ begin
     [ "--nameserver",     "-3", REQUIRED ], # Delete client or VM
     [ "--changelog",      "-4", BOOLEAN ],  # Print changelog
     [ "--nosuffix",             BOOLEAN ],  # Don't add suffix to AWS AMI names
+    [ "--strict",               BOOLEAN ],  # Ignore SSH keys
     [ "--dryrun",               BOOLEAN ],  # Dryrun flag
     [ "--search",               REQUIRED ], # Search string
     [ "--creds",                REQUIRED ], # Credentials file
@@ -270,12 +271,20 @@ end
 
 set_global_vars()
 
-#  Set verbose mode
+# Set verbose mode
 
 if option["verbose"]
   $verbose_mode = 1
 else
   $verbose_mode = 0
+end
+
+# Handle strict switch
+
+if option["strict"]
+  $strict_mode = 1
+else
+  $strict_mode = 0
 end
 
 # Handle snapshot switch
@@ -548,7 +557,7 @@ if option["client"]
     handle_output("Setting:\tClient name to #{install_client}")
   end
 else
-  if option["vm"]
+  if option["vm"] 
     if option["vm"].match(/aws/)
       if option["name"]
         install_client = option["name"]
@@ -562,7 +571,19 @@ else
       install_client = ""
     end
   else
-    install_client = ""
+    if option["type"]
+      if option["type"].match(/ssh/)
+        if option["name"]
+          install_client = option["name"]
+        else
+          install_client = ""
+        end
+      else
+        install_client = ""
+      end
+    else
+      install_client = ""
+    end
   end
 end
 
@@ -570,7 +591,7 @@ end
 
 if option["admin"]
   if option["action"]
-    if option["action"].match(/connect/)
+    if option["action"].match(/connect|ssh/)
       install_admin = option["admin"]
     else
       $default_admin_user = option["admin"]
@@ -581,7 +602,7 @@ if option["admin"]
   end
 else
   if option["action"]
-    if option["action"].match(/connect/)
+    if option["action"].match(/connect|ssh/)
       install_admin = %x[whoami].chomp
     end
   end
@@ -1920,6 +1941,9 @@ if !install_action.empty?
       eval"[list_#{install_type}_clients(install_vm)]"
       quit()
     end
+    if install_type.match(/ssh/)
+      list_user_ssh_config(install_ip,install_id,install_client)
+    end
     if install_vm.match(/aws/)
       case install_type
       when /image|ami/
@@ -1980,6 +2004,10 @@ if !install_action.empty?
       quit()
     end
   when /delete|remove|terminate/
+    if install_type.match(/ssh/)
+      delete_user_ssh_config(install_ip,install_id,install_client)
+      quit()
+    end
     if !install_client.empty?
       if install_type.match(/docker/)
         unconfigure_docker_client(install_client)
@@ -2354,9 +2382,9 @@ if !install_action.empty?
     if !install_vm.empty?
       eval"[get_#{install_vm}_value(install_client,install_param)]"
     end
-  when /console|serial|connect/
+  when /console|serial|connect|ssh/
     if install_vm.match(/aws/)
-      connect_to_aws_vm(install_access,install_secret,install_region,install_id,install_ip,install_key,install_keyfile,install_admin)
+      connect_to_aws_vm(install_access,install_secret,install_region,install_client,install_id,install_ip,install_key,install_keyfile,install_admin)
       quit()
     end
     if install_type.match(/docker/)

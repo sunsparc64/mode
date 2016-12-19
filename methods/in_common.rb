@@ -153,7 +153,7 @@ def set_global_vars()
   $valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
   $valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
   $valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image', 'ldom', 'cdom', 'gdom' ]
-  $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer', 'docker', 'amazon-ebs', 'image', 'ami', 'instance', 'bucket', 'acl', 'snapshot', 'key', 'keypair' ]
+  $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer', 'docker', 'amazon-ebs', 'image', 'ami', 'instance', 'bucket', 'acl', 'snapshot', 'key', 'keypair', 'ssh' ]
   $valid_mode_list          = [ 'client', 'server', 'osx' ]
   $valid_vm_list            = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'ldom', 'gdom', 'parallels' ]
   $valid_aws_format_list    = [ 'VMDK', 'RAW', 'VHD' ]
@@ -181,6 +181,7 @@ def set_global_vars()
   $default_output_format    = "text"
   $vbox_bin                 = "/usr/local/bin/VBoxManage"
   $enable_vnc               = 1
+  $enable_strict            = 0
   $vnc_port                 = "5961"
   $novnc_dir                = $script_dir+"/noVNC"
   $novnc_url                = "git://github.com/kanaka/noVNC"
@@ -200,6 +201,9 @@ def set_global_vars()
   $default_aws_grant        = "CanonicalUser"
   $default_aws_import_id    = "c4d8eabf8db69dbe46bfe0e517100c554f01200b104d59cd408e777ba442a322"
   $default_aws_group        = "default"
+  $default_user_ssh_config  = $home_dir+"/.ssh/config"
+  $default_ssh_key_dir      = $home_dir+"/.ssh"
+  $default_aws_ssh_key_dir  = $home_dir+"/.ssh/aws"
 
   # VMware Fusion Global variables
   
@@ -432,6 +436,105 @@ def write_array_to_file(file_array,file_name,file_mode)
   end
   file.close
   print_contents_of_file("",file_name)
+  return
+end
+
+# Get SSH config
+
+def get_user_ssh_config(install_ip,install_id,install_client)
+  user_ssh_config = ConfigFile.new
+  if install_ip.match(/[0-9]/)
+    host_list = user_ssh_config.search(/#{install_id}/)
+  end
+  if install_id.match(/[0-9]/)
+    host_list = user_ssh_config.search(/#{install_ip}/)
+  end
+  if install_client.match(/[0-9]|[a-z]/)
+    host_list = user_ssh_config.search(/#{install_client}/)
+  end
+  if !host_list
+    host_list = "none"
+  else
+    if !host_list.match(/[A-Z]|[a-z]|[0-9]/)
+      host_list = "none"
+    end
+  end
+  return host_list
+end
+
+
+# List hosts in SSH config
+
+def list_user_ssh_config(install_ip,install_id,install_client)
+  host_list = get_user_ssh_config(install_ip,install_id,install_client)
+  if !host_list.match(/none/)
+    handle_output(host_list)
+  end
+  return
+end
+
+# Update SSH config
+
+def update_user_ssh_config(install_ip,install_id,install_client,install_keyfile,install_admin)
+  host_list   = get_user_ssh_config(install_ip,install_id,install_client)
+  if host_list.match(/none/)
+    host_string = "Host "
+    ssh_config  = $default_user_ssh_config
+    if install_client.match(/[A-Z]|[a-z]|[0-9]/)
+      host_string = host_string+" "+install_client
+    end
+    if install_id.match(/[A-Z]|[a-z]|[0-9]/)
+      host_string = host_string+" "+install_id
+    end
+    if !File.exist?(ssh_config)
+      file = File.open(ssh_config,"w")
+    else
+      file = File.open(ssh_config,"a")
+    end
+    file.write(host_string+"\n")
+    if install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
+      file.write("    IdentityFile "+install_keyfile+"\n")
+    end
+    if install_admin.match(/[A-Z]|[a-z]|[0-9]/)
+      file.write("    User "+install_admin+"\n")
+    end
+    if install_ip.match(/[A-Z]|[a-z]|[0-9]/)
+      file.write("    HostName "+install_ip+"\n")
+    end
+    file.close
+  end
+  return
+end
+
+# Remove SSH config
+
+def delete_user_ssh_config(install_ip,install_id,install_client)
+  host_list   = get_user_ssh_config(install_ip,install_id,install_client)
+  if !host_list.match(/none/)
+    host_info  = host_list.split(/\n/)[0].chomp
+    handle_output("Warning:\tRemoving entries for '#{host_info}'")
+    ssh_config = $default_user_ssh_config
+    ssh_data   = File.readlines(ssh_config)
+    new_data   = []
+    found_host = 0
+    ssh_data.each do |line|
+      if line.match(/^Host/)
+        if line.match(/#{install_client}|#{install_id}|#{install_ip}/) 
+          found_host = 1
+        else
+          found_host = 0
+        end
+      end
+      if found_host == 0
+        new_data.push(line)
+      end
+    end
+    file = File.open(ssh_config,"w")
+    new_data.each do |line|
+      file.write(line)
+    end
+    file.close
+  end
   return
 end
 

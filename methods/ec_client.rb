@@ -53,30 +53,47 @@ end
 
 # Connect to AWS VM
 
-def connect_to_aws_vm(install_access,install_secret,install_region,install_id,install_ip,install_key,install_keyfile,install_admin)
+def connect_to_aws_vm(install_access,install_secret,install_region,install_client,install_id,install_ip,install_key,install_keyfile,install_admin)
+	if $strict_mode == 1
+		ssh_command = "ssh"
+	else
+		ssh_command = "ssh -o StrictHostKeyChecking=no"
+	end	
+  if !install_id.match(/[0-9]/) and !install_id.match(/[A-Z]|[a-z]|[0-9]/)
+    handle_output("Warning:\tNo IP or Instance ID given")
+    quit()
+  end
 	if !install_admin.match(/[A-Z]|[a-z]|[0-9]/)
 		handle_output("Warning:\tNo user given")
 		quit()
 	end
 	if !install_key.match(/[A-Z]|[a-z]|[0-9]/) and !install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
-		handle_output("Warning:\tNo key given")
-		quit()
-	end
-	if !install_id.match(/[0-9]/) and !install_id.match(/[A-Z]|[a-z]|[0-9]/)
-		handle_output("Warning:\tNo IP or Instance ID given")
-		quit()
+    if install_id.match(/[0-9]/)
+      install_key = get_aws_instance_security_group(install_access,install_secret,install_region,install_id)
+      handle_output("Information:\tFound key '#{install_key}' from Instance ID '#{install_id}'")
+    else
+  		handle_output("Warning:\tNo key given")
+  		quit()
+    end
 	end
 	if !install_ip.match(/[0-9]/)
 		install_ip = get_aws_instance_ip(install_access,install_secret,install_region,install_id)
 	end
-	if install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
-		command = "ssh -i #{install_keyfile} #{install_admin}@#{install_ip}"	
-	else
-		command = "ssh -i #{install_key} #{install_admin}@#{install_ip}"	
+	if !install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
+    install_keyfile = $default_aws_ssh_key_dir+"/"+install_key+".pem"
 	end
+  if !File.exist?(install_keyfile)
+    handle_output("Warning:\tCould not find AWS SSH Key file '#{aws_ssh_key_file}'")
+    quit()
+  end
+	command = "#{ssh_command} -i #{install_keyfile} #{install_admin}@#{install_ip}"	
+	update_user_ssh_config(install_ip,install_id,install_client,install_keyfile,install_admin)
 	if $verbos_mode == 1
 		handle_output("Information:\tExecuting '#{command}'")
 	end
+  if $verbos_mode == 1
+    handle_output("Information:\tExecuting '#{command}'")
+  end
 	exec "#{command}"
 	return
 end
