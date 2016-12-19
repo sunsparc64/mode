@@ -839,4 +839,5 @@
 # Added code to create and delete AWS key pairs
 # 4.2.0: Sat 17 Dec 2016 20:55:49 AEDT
 # Added stop/start all AWS instance capability
-
+# 4.2.1: Mon 19 Dec 2016 14:17:08 AEDT
+# Added initial code to create/delete ssh config aliases/entries
