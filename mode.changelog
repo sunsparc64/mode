@@ -851,3 +851,5 @@
 # Added code to download from S3 bucket
 # 4.2.6: Tue 20 Dec 2016 18:18:24 AEDT
 # Added code to list AWS CF stacks
+# 4.2.7: Wed 21 Dec 2016 07:53:40 AEDT
+# Added code to list AWS S3 bucket objects and upload contents of a URL to a bucket

@@ -11,6 +11,8 @@ def initiate_aws_cf_client(install_access,install_secret,install_region)
   return cf
 end 
 
+# Get list of AWS CF stacks
+
 def get_aws_cf_stacks(install_access,install_secret,install_region)
   cf = initiate_aws_cf_client(install_access,install_secret,install_region)
   begin
@@ -21,3 +23,19 @@ def get_aws_cf_stacks(install_access,install_secret,install_region)
   end
   return stacks
 end
+
+# Check if AWS CF Stack exists
+
+def check_if_aws_cf_stack_exists(install_client,install_access,install_secret,install_region)
+  exists = "no"
+  stacks = get_aws_cf_stacks(install_access,install_secret,install_region)
+  stacks.each do |stack|
+    stack_name  = stack.stack_name
+    if stack_name.match(/#{install_client}/)
+      exists = "yes"
+      return exists
+    end
+  end
+  return exists
+end
+

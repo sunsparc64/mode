@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.2.6
+# Version:      4.2.7
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -27,6 +27,7 @@ require 'uri'
 require 'socket'
 require 'net/http'
 require 'pp'
+require 'open-uri'
 
 def install_gem(load_name,install_name)
   puts "Information:\tInstalling #{install_name}"
@@ -225,7 +226,6 @@ begin
     [ "--perms",                REQUIRED ], # AWS ACL perms
     [ "--email",                REQUIRED ], # AWS ACL email
     [ "--snapshot",             REQUIRED ], # AWS snapshot
-    [ "--url",                  REQUIRED ], # URL
     [ "--ami",                  REQUIRED ]  # AWS AMI ID
   )
 rescue
@@ -414,7 +414,11 @@ if option["bucket"]
     handle_output("Information:\tSetting bucket name to #{install_bucket}")
   end
 else
-  install_bucket = $default_aws_bucket
+  if option["action"].match(/list/)
+    install_bucket = "all"
+  else
+    install_bucket = $default_aws_bucket
+  end
 end
 
 # Handle container switch
@@ -959,7 +963,7 @@ if option["file"]
     install_file = $vbox_additions_iso
   end
   if !install_action.match(/download/)
-    if !File.exist?(install_file)
+    if !File.exist?(install_file) and !install_file.match(/^http/)
       handle_output("Warning:\tFile doesn't exist: #{install_file}")
       exit
     end
@@ -1964,7 +1968,9 @@ if !install_action.empty?
       when /inst/
         list_aws_instances(install_access,install_secret,install_region,install_id)
       when /bucket/
-        list_aws_buckets(install_access,install_secret,install_region)
+        list_aws_buckets(install_bucket,install_access,install_secret,install_region)
+      when /object/
+        list_aws_bucket_objects(install_bucket,install_access,install_secret,install_region)
       when /snapshot/
         list_aws_snapshots(install_access,install_secret,install_region,install_snapshot)
       when /key/
@@ -2117,7 +2123,7 @@ if !install_action.empty?
       when /key/
         create_aws_key_pair(install_access,install_secret,install_region,install_key)
       when /cf|cloud/
-        configure_aws_cf_stack(install_client,install_access,install_secret,install_region)
+        configure_aws_cf_stack(install_client,install_access,install_secret,install_region,install_file)
       else
         if !install_key.match(/[A-Z]|[a-z]|[0-9]/)
           handle_output("Warning:\tKey pair not given")

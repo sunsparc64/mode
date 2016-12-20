@@ -61,6 +61,12 @@ end
 # Upload file to S3 bucker
 
 def upload_file_to_aws_bucket(install_access,install_secret,install_region,install_file,install_key,install_bucket)
+  if install_file.match(/^http/)
+    download_file = "/tmp/"+File.basename(install_file)
+    download_http = open(install_file)
+    IO.copy_stream(download_http,download_file)
+    install_file = download_file
+  end
   if !File.exist?(install_file)
     handle_output("Warning:\tFile '#{install_file}' does not exist")
     quit()
@@ -112,7 +118,7 @@ end
 def get_aws_buckets(install_access,install_secret,install_region)
   s3 = initiate_aws_s3_client(install_access,install_secret,install_region)
   begin
-    buckets = s3.list_buckets
+    buckets = s3.list_buckets.buckets
   rescue Aws::S3::Errors::AccessDenied
     handle_output("Warning:\tUser needs to be given appropriate rights in AWS IAM")
     quit()
@@ -122,12 +128,37 @@ end
 
 # List AWS buckets
 
-def list_aws_buckets(install_access,install_secret,install_region)
+def list_aws_buckets(install_bucket,install_access,install_secret,install_region)
+  if !install_bucket.match(/[A-Z]|[a-z]|[0-9]/)
+    install_bucket = "all"
+  end
   buckets = get_aws_buckets(install_access,install_secret,install_region)
-  buckets.buckets.each do |bucket|
+  buckets.each do |bucket|
     bucket_name = bucket.name
-    bucket_date = bucket.creation_date
-    handle_output("#{bucket_name}\tcreated=#{bucket_date}")
+    if install_bucket.match(/^all$|#{bucket_name}/)
+      bucket_date = bucket.creation_date
+      handle_output("#{bucket_name}\tcreated=#{bucket_date}")
+    end
+  end
+  return
+end
+
+# List AWS bucket objects
+
+def list_aws_bucket_objects(install_bucket,install_access,install_secret,install_region)
+  buckets = get_aws_buckets(install_access,install_secret,install_region)
+  buckets.each do |bucket|
+    bucket_name = bucket.name
+    if install_bucket.match(/^all$|#{bucket_name}/)
+      handle_output("")
+      handle_output("#{bucket_name}:")
+      s3 = initiate_aws_s3_client(install_access,install_secret,install_region)
+      objects = s3.list_objects_v2({ bucket: bucket_name })
+      objects.contents.each do |object|
+        object_key = object.key
+        handle_output(object_key)
+      end
+    end
   end
   return
 end
@@ -137,7 +168,7 @@ end
 def check_if_aws_bucket_exists(install_access,install_secret,install_region,install_bucket)
   exists  = "no"
   buckets = get_aws_buckets(install_access,install_secret,install_region)
-  buckets.buckets.each do |bucket|
+  buckets.each do |bucket|
     bucket_name = bucket.name
     if bucket_name.match(/#{install_bucket}/)
       exists = "yes"
