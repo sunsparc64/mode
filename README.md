@@ -44,6 +44,13 @@ and HTTP based install services, eg:
   - Stop instances
   - Start instances
   - Terminate instances
+  - List buckets
+  - List bucket ACLs
+  - Create buckets
+  - Delete buckets
+  - Upload files to buckets
+  - Download files from buckets
+  - List CloudFormation stacks
 - Initial Docker support
 
 Introduction
