@@ -55,39 +55,6 @@ def initiate_aws_ec2_resource(install_access,install_secret,install_region)
   return ec2
 end 
 
-# Initiate an AWS S3 Bucket connection
-
-def initiate_aws_s3_client(install_access,install_secret,install_region)
-  s3 = Aws::S3::Client.new(
-    :region             =>  install_region, 
-    :access_key_id      =>  install_access,
-    :secret_access_key  =>  install_secret
-  )
-  return s3
-end 
-
-# Initiate an AWS S3 Resource connection
-
-def initiate_aws_s3_resource(install_access,install_secret,install_region)
-  s3 = Aws::S3::Resource.new(
-    :region             =>  install_region, 
-    :access_key_id      =>  install_access,
-    :secret_access_key  =>  install_secret
-  )
-  return s3
-end 
-
-# Initiate an AWS S3 Resource connection
-
-def initiate_aws_s3_bucket(install_access,install_secret,install_region)
-  s3 = Aws::S3::Bucket.new(
-    :region             =>  install_region, 
-    :access_key_id      =>  install_access,
-    :secret_access_key  =>  install_secret
-  )
-  return s3
-end 
-
 # Initiate IAM client connection
 
 def initiate_aws_iam_client(install_access,install_secret,install_region)
@@ -110,7 +77,12 @@ end
 
 def get_aws_snapshots(install_access,install_secret,install_region)
   ec2       = initiate_aws_ec2_client(install_access,install_secret,install_region)
-  snapshots = ec2.describe_snapshots.snapshots
+  begin
+    snapshots = ec2.describe_snapshots.snapshots
+  rescue Aws::EC2::Errors::AccessDenied
+    handle_output("Warning:\tUser needs to be given appropriate rights in AWS IAM")
+    quit()
+  end
   return snapshots
 end
 
@@ -162,108 +134,6 @@ def delete_aws_snapshot(install_client,install_access,install_secret,install_reg
   return
 end
 
-# Create AWS S3 bucket
-
-def create_aws_s3_bucket(install_access,install_secret,install_region,install_bucket)
-  s3 = initiate_aws_s3_resource(install_access,install_secret,install_region)
-  if s3.bucket(install_bucket).exists?
-    handle_output("Information:\tBucket: #{install_bucket} already exists")
-    s3 = initiate_aws_s3_client(install_access,install_secret,install_region)
-    begin
-      s3.head_bucket({ bucket: install_bucket, })
-    rescue
-      handle_output("Warning:\tDo not have permissions to access bucket: #{install_bucket}")
-      quit()
-    end
-  else
-    handle_output("Information:\tCreating S3 bucket: #{install_bucket}")
-    s3.create_bucket({ acl: install_acl, bucket: install_bucket, create_bucket_configuration: { location_constraint: install_region, }, })
-  end
-  return s3
-end
-
-# Get AWS S3 bucket ACL
-
-def get_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket)
-  s3  = initiate_aws_s3_client(install_access,install_secret,install_region)
-  acl = s3.get_bucket_acl(bucket: install_bucket)
-  return acl
-end
-
-# Show AWS S3 bucket ACL
-
-def show_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket)
-  acl    = get_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket)
-  owner  = acl.owner.display_name
-  handle_output("#{install_bucket}\towner=#{owner}")
-  acl.grants.each_with_index do |grantee,counter|
-    owner = grantee[0].display_name
-    email = grantee[0].email_address
-    id    = grantee[0].id
-    type  = grantee[0].type
-    uri   = grantee[0].uri
-    perms = grantee.permission
-    handle_output("grants[#{counter}]\towner=#{owner}\temail=#{email}\ttype=#{type}\turi=#{uri}\tid=#{id}\tperms=#{perms}")
-  end
-  return
-end
-
-# Set AWS S3 bucket ACL
-
-def set_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket,install_email,install_grant,install_perms)
-  s3 = initiate_aws_s3_resource(install_access,install_secret,install_region)
-  return
-end
-
-# Upload file to S3 bucker
-
-def upload_file_to_aws_bucket(install_access,install_secret,install_region,install_file,install_key,install_bucket)
-  if !File.exist?(install_file)
-    handle_output("Warning:\tFile '#{install_file}' does not exist")
-    quit()
-  end
-  if !install_bucket.match(/[A-Z]|[a-z]|[0-9]/)
-    handle_output("Warning:\tNo Bucket name given")
-    install_bucket =  $default_aws_bucket 
-    handle_output("Information:\tSetting Bucket to default bucket '#{install_bucket}'")
-  end
-  exists = check_if_aws_bucket_exists(install_access,install_secret,install_region,install_bucket)
-  if exists == "no"
-     s3 = create_aws_s3_bucket(install_access,install_secret,install_region,install_bucket)
-  end
-  if !install_key.match(/[A-Z]|[a-z]|[0-9]/)
-    install_key = $default_aws_base_object+"/"+File.basename(install_file)
-  end
-  s3 = initiate_aws_s3_resource(install_access,install_secret,install_region)
-  handle_output("Information:\tUploading: File '#{install_file}' with key: '#{install_key}' to bucket: '#{install_bucket}'")
-  s3.bucket(install_bucket).object(install_key).upload_file(install_file)
-  return
-end
-
-# Download file from S3 bucket
-
-def download_file_from_aws_bucket(install_access,install_secret,install_region,install_file,install_key,install_bucket)
-  if !install_bucket.match(/[A-Z]|[a-z]|[0-9]/)
-    handle_output("Warning:\tNo Bucket name given")
-    install_bucket =  $default_aws_bucket 
-    handle_output("Information:\tSetting Bucket to default bucket '#{install_bucket}'")
-  end
-  if !install_key.match(/[A-Z]|[a-z]|[0-9]/)
-    install_key = $default_aws_base_object+"/"+File.basename(install_file)
-  end
-  if install_file.match(/\//)
-    dir_name = Pathname.new(install_file)
-    dir_name = dir_name.dirname
-    if !File.directory?(dir_name) and !File.symlink?(dir_name)
-      FileUtils.mkdir_p(dir_name)
-    end
-  end
-  s3 = initiate_aws_s3_client(install_access,install_secret,install_region)
-  handle_output("Information:\tDownloading: Key '#{install_key}' from bucket: '#{install_bucket}' to file: '#{install_file}'")
-  s3.get_object({ bucket: install_bucket, key: install_key, }, target: install_file )
-  return
-end
-
 # Get AWS unique name
 
 def get_aws_uniq_name(install_name,install_region)
@@ -278,50 +148,27 @@ end
 # Get AWS reservations
 
 def get_aws_reservations(install_access,install_secret,install_region)
-  ec2          = initiate_aws_ec2_client(install_access,install_secret,install_region)
-  reservations = ec2.describe_instances({ }).reservations
+  ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+  begin
+    reservations = ec2.describe_instances({ }).reservations
+  rescue Aws::EC2::Errors::AccessDenied
+    handle_output("Warning:\tUser needs to be given appropriate rights in AWS IAM")
+    quit()
+  end
   return ec2,reservations
 end
 
 # Get AWS Key Pairs
 
 def get_aws_key_pairs(install_access,install_secret,install_region)
-  ec2       = initiate_aws_ec2_client(install_access,install_secret,install_region)
-  key_pairs = ec2.describe_key_pairs({ }).key_pairs
+  ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+  begin
+    key_pairs = ec2.describe_key_pairs({ }).key_pairs
+  rescue Aws::EC2::Errors::AccessDenied
+    handle_output("Warning:\tUser needs to be given appropriate rights in AWS IAM")
+    quit()
+  end
   return ec2,key_pairs
-end
-
-# List AWS instances
-
-def list_aws_instances(install_access,install_secret,install_region,install_id)
-  if !install_id.match(/[0-9]/)
-    install_id = "all"
-  end
-  ec2,reservations = get_aws_reservations(install_access,install_secret,install_region)
-  reservations.each do |reservation|
-    reservation["instances"].each do |instance|
-      instance_id = instance.instance_id
-      if instance_id.match(/#{install_id}/) or install_id == "all"
-        image_id    = instance.image_id
-        status      = instance.state.name
-        if !status.match(/terminated|shut/)
-          group       = instance.security_groups[0].group_name
-          if status.match(/running/)
-            public_ip  = instance.public_ip_address
-            public_dns = instance.public_dns_name
-          else
-            public_ip  = "NA"
-            public_dns = "NA"
-          end
-          string = instance_id+" image="+image_id+" group="+group+" ip="+public_ip+" dns="+public_dns+" status="+status
-        else
-          string = instance_id+" image="+image_id+" status="+status
-        end
-        handle_output(string)
-      end
-    end
-  end
-  return
 end
 
 # Get instance security group 
@@ -358,46 +205,16 @@ def get_aws_instance_ip(install_access,install_secret,install_region,install_id)
   return public_ip
 end
 
-# Get buckets
-
-def get_aws_buckets(install_access,install_secret,install_region)
-  s3      = initiate_aws_s3_client(install_access,install_secret,install_region)
-  buckets = s3.list_buckets
-  return buckets
-end
-
-# List AWS buckets
-
-def list_aws_buckets(install_access,install_secret,install_region)
-  buckets = get_aws_buckets(install_access,install_secret,install_region)
-  buckets.buckets.each do |bucket|
-    bucket_name = bucket.name
-    bucket_date = bucket.creation_date
-    handle_output("#{bucket_name}\tcreated=#{bucket_date}")
-  end
-  return
-end
-
-# Check if AWS bucket exists
-
-def check_if_aws_bucket_exists(install_access,install_secret,install_region,install_bucket)
-  exists  = "no"
-  buckets = get_aws_buckets(install_access,install_secret,install_region)
-  buckets.buckets.each do |bucket|
-    bucket_name = bucket.name
-    if bucket_name.match(/#{install_bucket}/)
-      exists = "yes"
-      return exists
-    end
-  end
-  return exists
-end
-
 # Get AWS owner ID
 
 def get_aws_owner_id(install_access,install_secret,install_region)
-  iam      = initiate_aws_iam_client(install_access,install_secret,install_region)
-  user     = iam.get_user()
+  iam = initiate_aws_iam_client(install_access,install_secret,install_region)
+  begin
+    user = iam.get_user()
+  rescue Aws::EC2::Errors::AccessDenied
+    handle_output("Warning:\tUser needs to be given appropriate rights in AWS IAM")
+    quit()
+  end
   owner_id = user[0].arn.split(/:/)[4]
   return owner_id
 end
@@ -405,8 +222,13 @@ end
 # Get list of AWS images
 
 def get_aws_images(install_access,install_secret,install_region)
-  ec2    = initiate_aws_ec2_client(install_access,install_secret,install_region)
-  images = ec2.describe_images({ owners: ["self"] }).images
+  ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+  begin
+    images = ec2.describe_images({ owners: ["self"] }).images
+  rescue Aws::EC2::Errors::AccessDenied
+    handle_output("Warning:\tUser needs to be given appropriate rights in AWS IAM")
+    quit()
+  end
   return ec2,images
 end
 

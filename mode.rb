@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.2.5
+# Version:      4.2.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -225,6 +225,7 @@ begin
     [ "--perms",                REQUIRED ], # AWS ACL perms
     [ "--email",                REQUIRED ], # AWS ACL email
     [ "--snapshot",             REQUIRED ], # AWS snapshot
+    [ "--url",                  REQUIRED ], # URL
     [ "--ami",                  REQUIRED ]  # AWS AMI ID
   )
 rescue
@@ -321,6 +322,14 @@ if option["key"]
   install_key = option["key"]
 else
   install_key = ""
+end
+
+# Handle URL switch
+
+if option["url"]
+  install_url = option["url"]
+else
+  install_url = ""
 end
 
 # Handle keyfile switch
@@ -1960,6 +1969,8 @@ if !install_action.empty?
         list_aws_snapshots(install_access,install_secret,install_region,install_snapshot)
       when /key/
         list_aws_key_pairs(install_access,install_secret,install_region,install_key)
+      when /stack/
+        list_aws_cf_stacks(install_client,install_access,install_secret,install_region)
       else
         handle_output("Warning:\tType not specified")
       end
@@ -2105,6 +2116,8 @@ if !install_action.empty?
         create_aws_image(install_client,install_access,install_secret,install_region,install_id)
       when /key/
         create_aws_key_pair(install_access,install_secret,install_region,install_key)
+      when /cf|cloud/
+        configure_aws_cf_stack(install_client,install_access,install_secret,install_region)
       else
         if !install_key.match(/[A-Z]|[a-z]|[0-9]/)
           handle_output("Warning:\tKey pair not given")
