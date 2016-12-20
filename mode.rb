@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.2.3
+# Version:      4.2.4
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -97,6 +97,7 @@ $output_format = "text"
 # Declare array for text output (used for webserver)
 
 $output_text = []
+$debug_mode  = 0
 
 # Load methods
 
@@ -104,6 +105,9 @@ if File.directory?("./methods")
   file_list = Dir.entries("./methods")
   for file in file_list
     if file =~ /rb$/
+      if $debug_mode == 1
+        puts "Information:\tImporting #{file}"
+      end
       require "./methods/#{file}"
     end
   end
@@ -1907,6 +1911,10 @@ if !install_action.empty?
           set_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket,install_email,install_grant,install_perms)
         end
       end
+    end
+  when /upload/
+    if install_bucket.match(/[A-Z]|[a-z]|[0-9]/)
+      upload_file_to_aws_bucket(install_access,install_secret,install_region,install_file,install_key,install_bucket)
     end
   when /display|view|show|prop|get/
     if !install_client.empty?

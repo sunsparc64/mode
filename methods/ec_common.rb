@@ -215,6 +215,31 @@ def set_aws_s3_bucket_acl(install_access,install_secret,install_region,install_b
 	return
 end
 
+# Upload file to S3 bucker
+
+def upload_file_to_aws_bucket(install_access,install_secret,install_region,install_file,install_key,install_bucket)
+	if !File.exist?(install_file)
+		handle_output("Warning:\tFile '#{install_file}' does not exist")
+		quit()
+	end
+	if !install_bucket.match(/[A-Z]|[a-z]|[0-9]/)
+		handle_output("Warning:\tNo Bucket name given")
+		install_bucket =  $default_aws_bucket 
+		handle_output("Information:\tSetting Bucket to default bucket '#{install_bucket}'")
+	end
+	exists = check_if_aws_bucket_exists(install_access,install_secret,install_region,install_bucket)
+	if exists == "no"
+		 s3 = create_aws_s3_bucket(install_access,install_secret,install_region,install_bucket)
+	end
+	if !install_key.match(/[A-Z]|[a-z]|[0-9]/)
+		install_key = $default_aws_base_object+"/"+File.basename(install_file)
+	end
+	s3 = initiate_aws_s3_resource(install_access,install_secret,install_region)
+	handle_output("Information:\tUploading: '#{install_file}' with key: '#{install_key}' to bucket: '#{install_bucket}'")
+	s3.bucket(install_bucket).object(install_key).upload_file(install_file)
+	return
+end
+
 # Get AWS unique name
 
 def get_aws_uniq_name(install_name,install_region)

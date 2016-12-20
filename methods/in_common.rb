@@ -204,6 +204,7 @@ def set_global_vars()
   $default_user_ssh_config  = $home_dir+"/.ssh/config"
   $default_ssh_key_dir      = $home_dir+"/.ssh"
   $default_aws_ssh_key_dir  = $home_dir+"/.ssh/aws"
+  $default_aws_base_object  = "uploads"
 
   # VMware Fusion Global variables
   

@@ -845,3 +845,5 @@
 # Fixed bug with listing terminated instances
 # 4.2.3: Mon 19 Dec 2016 19:39:28 AEDT
 # Fixed bugs with AWS instance creation
+# 4.2.4: Tue 20 Dec 2016 11:17:28 AEDT
+# Added code to upload file to S3 bucket
