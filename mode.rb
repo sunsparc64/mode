@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.2.4
+# Version:      4.2.5
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -949,9 +949,16 @@ if option["file"]
   if install_vm == "vbox" and install_file == "tools"
     install_file = $vbox_additions_iso
   end
-  if !File.exist?(install_file)
-    handle_output("Warning:\tFile doesn't exist: #{install_file}")
-    exit
+  if !install_action.match(/download/)
+    if !File.exist?(install_file)
+      handle_output("Warning:\tFile doesn't exist: #{install_file}")
+      exit
+    end
+  end
+  if install_action.match(/deploy/)
+    if install_type.empty?
+      install_type = get_install_type_from_file(install_file)
+    end
   end
   if !install_file.empty? and install_action.match(/create|add/)
     if install_method.empty?
@@ -1132,23 +1139,6 @@ end
 
 if option["enable"]
   $default_options = option["enable"]
-end
-
-# Handle file
-
-if option["file"]
-  install_file = option["file"]
-  if !File.exist?(install_file)
-    handle_output("Warning:\tFile "+install_file+" does not exist")
-    exit
-  end
-  if install_action.match(/deploy/)
-    if install_type.empty?
-      install_type = get_install_type_from_file(install_file)
-    end
-  end
-else
-  install_file = ""
 end
 
 # Get password
@@ -1912,9 +1902,13 @@ if !install_action.empty?
         end
       end
     end
-  when /upload/
+  when /upload|download/
     if install_bucket.match(/[A-Z]|[a-z]|[0-9]/)
-      upload_file_to_aws_bucket(install_access,install_secret,install_region,install_file,install_key,install_bucket)
+      if install_action.match(/upload/)
+        upload_file_to_aws_bucket(install_access,install_secret,install_region,install_file,install_key,install_bucket)
+      else
+        download_file_from_aws_bucket(install_access,install_secret,install_region,install_file,install_key,install_bucket)
+      end
     end
   when /display|view|show|prop|get/
     if !install_client.empty?

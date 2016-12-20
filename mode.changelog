@@ -847,3 +847,6 @@
 # Fixed bugs with AWS instance creation
 # 4.2.4: Tue 20 Dec 2016 11:17:28 AEDT
 # Added code to upload file to S3 bucket
+# 4.2.5: Tue 20 Dec 2016 13:30:18 AEDT
+# Added code to download from S3 bucket
+
