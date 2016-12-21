@@ -148,12 +148,15 @@ def set_global_vars()
   $puppet_rpm_base_url      = "http://yum.puppetlabs.com"
   $centos_rpm_base_url      = "http://"+$local_centos_mirror+"/centos"
   $default_vm_utc           = "off"
-  $valid_os_list            = [ 'Solaris', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'Ubuntu', 'Debian', 'Fedora', 'RHEL', 'SL', 'Purity', 'Windows', 'JeOS' ]
+  $valid_os_list            = [ 'Solaris', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'SLES', 'openSUSE',
+                                'Ubuntu', 'Debian', 'Fedora', 'RHEL', 'SL', 'Purity', 'Windows', 'JeOS' ]
   $valid_linux_os_list      = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'Ubuntu', 'Debian', 'Fedora', 'RHEL', 'SL', 'Purity' ]
   $valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
   $valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
   $valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image', 'ldom', 'cdom', 'gdom' ]
-  $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'vcsa', 'packer', 'docker', 'amazon-ebs', 'image', 'ami', 'instance', 'bucket', 'acl', 'snapshot', 'key', 'keypair', 'ssh', 'stack', 'object', 'cf', 'cloudformation' ]
+  $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server',
+                                'vcsa', 'packer', 'docker', 'amazon-ebs', 'image', 'ami', 'instance', 'bucket', 'acl', 'snapshot', 'key',
+                                'keypair', 'ssh', 'stack', 'object', 'cf', 'cloudformation', 'public', 'private' ]
   $valid_mode_list          = [ 'client', 'server', 'osx' ]
   $valid_vm_list            = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'ldom', 'gdom', 'parallels' ]
   $valid_aws_format_list    = [ 'VMDK', 'RAW', 'VHD' ]

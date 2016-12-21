@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.3.0
+# Version:      4.3.1
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -227,6 +227,7 @@ begin
     [ "--email",                REQUIRED ], # AWS ACL email
     [ "--snapshot",             REQUIRED ], # AWS snapshot
     [ "--stack",                REQUIRED ], # AWS CF Stack
+    [ "--object",               REQUIRED ], # AWS S3 object
     [ "--ami",                  REQUIRED ]  # AWS AMI ID
   )
 rescue
@@ -330,7 +331,11 @@ end
 if option["key"]
   install_key = option["key"]
 else
-  install_key = ""
+  if option["object"]
+    install_key = option["object"]
+  else
+    install_key = ""
+  end
 end
 
 # Handle URL switch
@@ -1904,6 +1909,10 @@ end
 
 if !install_action.empty?
   case install_action
+  when /billing/
+    get_aws_billing(install_access,install_secret,install_region)
+  when /geturl|showurl/
+    show_s3_bucket_url(install_access,install_secret,install_region,install_bucket,install_key,install_type)
   when /execute/
     if install_type.match(/docker/)
       execute_docker_command(install_client,install_command)

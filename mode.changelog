@@ -855,4 +855,10 @@
 # Added code to list AWS S3 bucket objects and upload contents of a URL to a bucket
 # 4.2.8: Wed 21 Dec 2016 16:26:24 AEDT
 # Added initial code to create and delete AWS CF stacks
+# 4.2.9: Wed 21 Dec 2016 18:35:47 AEDT
+# Fixed AWS EC2 SSH connection code
+# 4.3.0: Wed 21 Dec 2016 18:47:06 AEDT
+# Added Stack Status to AWS CF list output
+# 4.3.1: Thu 22 Dec 2016 09:16:32 AEDT
+# Added code to generate private and public URLs for AWS S3 bucket objects
 

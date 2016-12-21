@@ -66,11 +66,40 @@ def initiate_aws_iam_client(install_access,install_secret,install_region)
   return iam
 end 
 
+# Initiate IAM client connection
+
+def initiate_aws_cw_client(install_access,install_secret,install_region)
+  cw = Aws::CloudWatch::Client.new(
+    :region             =>  install_region, 
+    :access_key_id      =>  install_access,
+    :secret_access_key  =>  install_secret
+  )
+  return cw
+end
+
+
 # Check AWS VM exists - Dummy function for packer
 
 def check_aws_vm_exists(install_name)
   exists = "no"
   return exists
+end
+
+# Get AWS billing
+
+def get_aws_billing(install_access,install_secret,install_region)
+  cw    = initiate_aws_cw_client(install_access,install_secret,install_region)
+  stats = cw.get_metric_statistics({
+   :namespace   => 'AWS/Billing',
+   :metric_name => 'EstimatedCharges',
+   :statistics  => ['Maximum'],
+   :dimensions  => [{ :name => 'Currency', :value => 'AUD' }],
+   :start_time  => (Time.now - (8*60*60)).iso8601,
+   :end_time    => Time.now.iso8601,
+   :period      => 300
+  })
+  pp stats
+  return
 end
 
 # Get AWS snapshots
