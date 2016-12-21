@@ -75,7 +75,7 @@ def create_aws_cf_stack(install_access,install_secret,install_region)
   cf = initiate_aws_cf_client(install_access,install_secret,install_region)
   handle_output("Information:\tCreating AWS CloudFormation Stack '#{stack_name}'")
   begin
-    cf.create_stack({
+    stack_id = cf.create_stack({
       stack_name:   stack_name,
       template_url: template_url,
       parameters: [
@@ -97,6 +97,7 @@ def create_aws_cf_stack(install_access,install_secret,install_region)
     handle_output("Warning:\tUser needs to be given appropriate rights in AWS IAM")
     quit()
   end
+  handle_output("Information:\tStack created with ID: #{stack_id}")
   return
 end
 
@@ -126,12 +127,6 @@ end
 # Create AWS CF Stack from template
 
 def configure_aws_cf_stack(install_name,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group)
-  if install_file.match(/^http/)
-#    download_file = "/tmp/"+File.basename(install_file)
-#    download_http = open(install_file)
-#    IO.copy_stream(download_http,download_file)
-#    install_file = download_file
-  end
   if !install_name.match(/[A-Z]|[a-z]|[0-9]/) or install_name.match(/^none$/)
     handle_output("Warning:\tNo name specified for AWS CloudFormation Stack")
     quit()
