@@ -853,3 +853,6 @@
 # Added code to list AWS CF stacks
 # 4.2.7: Wed 21 Dec 2016 07:53:40 AEDT
 # Added code to list AWS S3 bucket objects and upload contents of a URL to a bucket
+# 4.2.8: Wed 21 Dec 2016 16:26:24 AEDT
+# Added initial code to create and delete AWS CF stacks
+

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.2.7
+# Version:      4.2.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -226,6 +226,7 @@ begin
     [ "--perms",                REQUIRED ], # AWS ACL perms
     [ "--email",                REQUIRED ], # AWS ACL email
     [ "--snapshot",             REQUIRED ], # AWS snapshot
+    [ "--stack",                REQUIRED ], # AWS CF Stack
     [ "--ami",                  REQUIRED ]  # AWS AMI ID
   )
 rescue
@@ -306,6 +307,14 @@ if option["name"]
   install_name = option["name"]
 else
   install_name = ""
+end
+
+# Handle stack switch
+
+if option["stack"]
+  install_stack = option["stack"]
+else
+  install_stack = ""
 end
 
 # Handle command switch
@@ -2075,7 +2084,7 @@ if !install_action.empty?
       end
     else
       if install_vm.match(/aws/)
-        if install_type.match(/instance|snapshot|key/) or install_id.match(/[0-9]|all/)
+        if install_type.match(/instance|snapshot|key|stack|cf|cloud/) or install_id.match(/[0-9]|all/)
           case install_type
           when /instance/
             delete_aws_vm(install_access,install_secret,install_region,install_ami,install_id)
@@ -2083,6 +2092,8 @@ if !install_action.empty?
             delete_aws_snapshot(install_access,install_secret,install_region,install_snapshot)
           when /key/
             delete_aws_key_pair(install_access,install_secret,install_region,install_key)
+          when /stack|cf|cloud/
+            delete_aws_cf_stack(install_access,install_secret,install_region,install_stack)
           end
         else
           if install_ami.match(/[A-Z]|[a-z]|[0-9]/)
@@ -2122,11 +2133,11 @@ if !install_action.empty?
         create_aws_image(install_client,install_access,install_secret,install_region,install_id)
       when /key/
         create_aws_key_pair(install_access,install_secret,install_region,install_key)
-      when /cf|cloud/
-        configure_aws_cf_stack(install_client,install_access,install_secret,install_region,install_file)
+      when /cf|cloud|stack/
+        configure_aws_cf_stack(install_client,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group)
       else
         if !install_key.match(/[A-Z]|[a-z]|[0-9]/)
-          handle_output("Warning:\tKey pair not given")
+          handle_output("Warning:\tKey Pair not given")
           quit()
         else
           configure_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_group)

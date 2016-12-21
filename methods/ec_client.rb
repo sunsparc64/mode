@@ -83,7 +83,7 @@ def connect_to_aws_vm(install_access,install_secret,install_region,install_clien
     install_keyfile = $default_aws_ssh_key_dir+"/"+install_key+".pem"
   end
   if !File.exist?(install_keyfile)
-    handle_output("Warning:\tCould not find AWS SSH Key file '#{aws_ssh_key_file}'")
+    handle_output("Warning:\tCould not find AWS SSH Key file '#{install_keyfile}'")
     quit()
   end
   command = "#{ssh_command} -i #{install_keyfile} #{install_admin}@#{install_ip}" 
@@ -266,7 +266,12 @@ def create_aws_instance(install_access,install_secret,install_region)
   end
   ec2          = initiate_aws_ec2_client(install_access,install_secret,install_region)
   instances    = []
-  reservations = ec2.run_instances(image_id: image_id, min_count: min_count, max_count: max_count, instance_type: instance_type, dry_run: dry_run, key_name: key_name, security_groups: security_groups,)
+  begin
+    reservations = ec2.run_instances(image_id: image_id, min_count: min_count, max_count: max_count, instance_type: instance_type, dry_run: dry_run, key_name: key_name, security_groups: security_groups,)
+  rescue Aws::EC2::Errors::AccessDenied
+    handle_output("Warning:\tUser needs to be given appropriate rights in AWS IAM")
+    quit()
+  end
   reservations["instances"].each do |instance|
     instance_id = instance.instance_id
     instances.push(instance_id)
@@ -295,28 +300,42 @@ end
 
 # Configure Packer AWS client
 
-def configure_aws_client(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_group)
+def configure_aws_client(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
   if !install_name.match(/[A-Z]|[a-z]|[0-9]/) or install_name.match(/^none$/)
     handle_output("Warning:\tNo name specified for AWS image")
     quit()
   end
+  if !install_key.match(/[A-Z]|[a-z]|[0-9]/)
+    handle_output("Warning:\tNo Key Name given")
+    if !install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
+      install_key = install_name
+    else
+      install_key = File.basename(install_keyfile)
+      install_key = install_key.split(/\./)[0..-2].join
+    end
+    handle_output("Information:\tSetting Key Name to #{install_key}")
+  end
   if $nosuffix == 0
     install_name = get_aws_uniq_name(install_name,install_region)
-    install_key  = get_aws_uniq_name(install_name,install_key)
+    install_key  = get_aws_uniq_name(install_key,install_region)
   end
-  create_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_group)
+  if !install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
+    install_keyfile = $default_aws_ssh_key_dir+"/"+install_key+".pem"
+    handle_output("Information:\tSetting Key file to #{install_keyfile}")
+  end
+  create_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
   return
 end
 
 # Create AWS client
 
-def create_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_group)
+def create_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
   install_keyfile = ""
   user_data_file  = ""
   if !install_ami.match(/^ami/)
     ec2,install_ami = get_aws_image(install_ami,install_access,install_secret,install_region)
   end
-  populate_aws_questions(install_name,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key,install_keyfile,install_group)
+  populate_aws_questions(install_name,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key,install_keyfile,install_keyfile,install_group)
   install_service = "aws"
   process_questions(install_service)
   exists = check_if_aws_key_pair_exists(install_access,install_secret,install_region,install_key)

@@ -26,12 +26,12 @@ end
 
 # Check if AWS CF Stack exists
 
-def check_if_aws_cf_stack_exists(install_client,install_access,install_secret,install_region)
+def check_if_aws_cf_stack_exists(install_access,install_secret,install_region,install_name)
   exists = "no"
   stacks = get_aws_cf_stacks(install_access,install_secret,install_region)
   stacks.each do |stack|
     stack_name  = stack.stack_name
-    if stack_name.match(/#{install_client}/)
+    if stack_name.match(/#{install_name}/)
       exists = "yes"
       return exists
     end

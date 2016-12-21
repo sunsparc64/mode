@@ -417,8 +417,7 @@ end
 # Check if AWS key file exists
 
 def check_if_aws_ssh_key_file_exists(install_key)
-  aws_ssh_dir = $home_dir+"/.ssh/aws"
-  aws_ssh_key = aws_ssh_dir+"/"+install_key+".pem"
+  aws_ssh_key = $default_aws_ssh_key_dir+"/"+install_key+".pem"
   if File.exists?(aws_ssh_key)
     exists = "yes"
   else

@@ -1,4 +1,4 @@
-# Questions for AWS
+# Questions for AWS EC2 creation
 
 # Populate AWS questions
 
