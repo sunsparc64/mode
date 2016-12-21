@@ -10,13 +10,14 @@ def list_aws_cf_stacks(install_client,install_access,install_secret,install_regi
   stacks.each do |stack|
     stack_name  = stack.stack_name
     if install_client.match(/all/) or stack_name.match(/#{install_client}/)
-      stack_id    = stack.stack_id
-      name_length = stack_name.length
-      name_spacer = ""
+      stack_id     = stack.stack_id
+      stack_status = stack.stack_status
+      name_length  = stack_name.length
+      name_spacer  = ""
       name_length.times do
         name_spacer = name_spacer+" "
       end
-      handle_output("#{stack_name} id=#{stack_id}") 
+      handle_output("#{stack_name} id=#{stack_id} stack_status=#{stack_status}") 
       instance_id = ""
       public_ip   = ""
       region_id   = ""
