@@ -188,6 +188,23 @@ def get_aws_instance_security_group(install_access,install_secret,install_region
   return group
 end
 
+# Get instance key pair
+
+def get_aws_instance_key_name(install_access,install_secret,install_region,install_id)
+  key_name = "none"
+  ec2,reservations = get_aws_reservations(install_access,install_secret,install_region)
+  reservations.each do |reservation|
+    reservation["instances"].each do |instance|
+      instance_id = instance.instance_id
+      key_name    = instance.key_name
+      if instance_id.match(/#{install_id}/)
+        return key_name
+      end
+    end
+  end
+  return key_name
+end
+
 # Get instance IP
 
 def get_aws_instance_ip(install_access,install_secret,install_region,install_id)

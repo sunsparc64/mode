@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.2.8
+# Version:      4.2.9
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -629,7 +629,11 @@ if option["admin"]
 else
   if option["action"]
     if option["action"].match(/connect|ssh/)
-      install_admin = %x[whoami].chomp
+      if option["vm"].match(/aws/)
+        install_admin = $default_aws_user
+      else
+        install_admin = %x[whoami].chomp
+      end
     end
   end
 end

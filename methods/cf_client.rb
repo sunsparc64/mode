@@ -67,11 +67,12 @@ end
 # Create AWS CF Stack
 
 def create_aws_cf_stack(install_access,install_secret,install_region)
-  stack_name    = $q_struct["stack_name"].value
-  instance_type = $q_struct["instance_type"].value
-  key_name      = $q_struct["key_name"].value
-  ssh_location  = $q_struct["ssh_location"].value
-  template_url  = $q_struct["template_url"].value
+  stack_name      = $q_struct["stack_name"].value
+  instance_type   = $q_struct["instance_type"].value
+  key_name        = $q_struct["key_name"].value
+  ssh_location    = $q_struct["ssh_location"].value
+  template_url    = $q_struct["template_url"].value
+  security_groups = $q_struct["security_groups"].value
   cf = initiate_aws_cf_client(install_access,install_secret,install_region)
   handle_output("Information:\tCreating AWS CloudFormation Stack '#{stack_name}'")
   begin
@@ -91,12 +92,17 @@ def create_aws_cf_stack(install_access,install_secret,install_region)
           parameter_key:    "SSHLocation",
           parameter_value:  ssh_location,
         },
+        #{
+        #  parameter_key:    "SecurityGroups",
+        #  parameter_value:  security_groups,
+        #},
       ],
     })
   rescue Aws::CloudFormation::Errors::AccessDenied
     handle_output("Warning:\tUser needs to be given appropriate rights in AWS IAM")
     quit()
   end
+  stack_id = stack_id.stack_id
   handle_output("Information:\tStack created with ID: #{stack_id}")
   return
 end
@@ -141,9 +147,13 @@ def configure_aws_cf_stack(install_name,install_ami,install_region,install_size,
     end
     handle_output("Information:\tSetting Key Name to #{install_key}")
   end
+  if !install_key.match(/[A-Z]|[a-z]|[0-9]/)
+    install_group = install_name
+  end
   if $nosuffix == 0
-    install_name = get_aws_uniq_name(install_name,install_region)
-    install_key  = get_aws_uniq_name(install_key,install_region)
+    install_name  = get_aws_uniq_name(install_name,install_region)
+    install_key   = get_aws_uniq_name(install_key,install_region)
+    install_group = get_aws_uniq_name(install_group,install_region)
   end
   if !install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
     install_keyfile = $default_aws_ssh_key_dir+"/"+install_key+".pem"

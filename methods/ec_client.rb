@@ -69,7 +69,7 @@ def connect_to_aws_vm(install_access,install_secret,install_region,install_clien
   end
   if !install_key.match(/[A-Z]|[a-z]|[0-9]/) and !install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
     if install_id.match(/[0-9]/)
-      install_key = get_aws_instance_security_group(install_access,install_secret,install_region,install_id)
+      install_key = get_aws_instance_key_name(install_access,install_secret,install_region,install_id)
       handle_output("Information:\tFound key '#{install_key}' from Instance ID '#{install_id}'")
     else
       handle_output("Warning:\tNo key given")

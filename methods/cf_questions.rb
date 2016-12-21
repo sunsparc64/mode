@@ -71,5 +71,18 @@ def populate_aws_cf_questions(install_name,install_ami,install_region,install_si
   $q_struct[name] = config
   $q_order.push(name)
 
+  name   = "security_groups"
+  config = Ks.new(
+    type      = "",
+    question  = "Security Groups",
+    ask       = "yes",
+    parameter = "",
+    value     = install_group,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
   return
 end
