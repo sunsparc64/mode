@@ -867,4 +867,6 @@
 # Fixed handling of types and objects for AWS
 # 4.3.4: Fri 23 Dec 2016 06:47:44 AEDT
 # Added code to list EC2 security groups
+# 4.3.5: Fri 23 Dec 2016 08:37:47 AEDT
+# Added code to create and delete EC2 security groups
 

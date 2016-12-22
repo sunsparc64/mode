@@ -217,6 +217,22 @@ def get_aws_instance_security_group(install_access,install_secret,install_region
   return group
 end
 
+# Check if AWS EC2 security group exists
+
+
+def check_if_aws_security_group_exists(install_access,install_secret,install_region,install_group)
+  exists = "no"
+  groups = get_aws_security_groups(install_access,install_secret,install_region)
+  groups.each do |group|
+    group_name = group.group_name
+    if install_group.match(/^#{group_name}$/)
+      exists = "yes"
+      return exists
+    end
+  end
+  return exists
+end
+
 # Get AWS EC2 security groups
 
 def get_aws_security_groups(install_access,install_secret,install_region)
@@ -225,10 +241,42 @@ def get_aws_security_groups(install_access,install_secret,install_region)
   return groups
 end
 
+# Create AWS EC2 security group
+
+def create_aws_security_group(install_access,install_secret,install_region,install_group,install_desc)
+  if !install_desc.match(/[A-Z]|[a-z]|[0-9]/)
+    handle_output("Information:\tNo description given, using group name '#{install_group}'")
+    install_desc = install_group
+  end
+  exists = check_if_aws_security_group_exists(install_access,install_secret,install_region,install_group)
+  if exists == "yes"
+    handle_output("Warning:\tSecurity group '#{install_group}' already exists")
+  else
+    handle_output("Information:\tCreating security group '#{install_group}'")
+    ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+    ec2.create_security_group({ group_name: install_group, description: install_desc })
+  end
+  return
+end
+
+# Delete AWS EC2 security group
+
+def delete_aws_security_group(install_access,install_secret,install_region,install_group)
+  exists = check_if_aws_security_group_exists(install_access,install_secret,install_region,install_group)
+  if exists == "yes"
+    handle_output("Information:\tDeleting security group '#{install_group}'")
+    ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+    ec2.delete_security_group({ group_name: install_group })
+  else
+    handle_output("Warning:\tSecurity group '#{install_group}' doesn't exist")
+  end
+  return
+end
+
 # List AWS EC2 security groups
 
 def list_aws_security_groups(install_access,install_secret,install_region,install_group)
-  if !install_group.match(/[A-Z]|[a-z]|[0-9]/)
+  if !install_group.match(/[a-z]|[a-z]|[0-9]/)
     install_group = "all"
   end
   groups = get_aws_security_groups(install_access,install_secret,install_region)
@@ -263,6 +311,7 @@ def list_aws_security_groups(install_access,install_secret,install_region,instal
   end
   return
 end
+
 
 # Get instance key pair
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.3.4
+# Version:      4.3.5
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -205,6 +205,7 @@ begin
     [ "--dryrun",               BOOLEAN ],  # Dryrun flag
     [ "--search",               REQUIRED ], # Search string
     [ "--creds",                REQUIRED ], # Credentials file
+    [ "--desc",                 REQUIRED ], # Description
     [ "--name",                 REQUIRED ], # AWS Name
     [ "--format",               REQUIRED ], # AWS disk format (e.g. VMDK, RAW, VHD)
     [ "--target",               REQUIRED ], # AWS target format (e.g. citrix, vmware, windows)
@@ -292,6 +293,14 @@ if option["strict"]
   $strict_mode = 1
 else
   $strict_mode = 0
+end
+
+# Handle Description switch
+
+if option["desc"]
+  install_desc = option["desc"]
+else
+  install_desc = ""
 end
 
 # Handle snapshot switch
@@ -2104,7 +2113,7 @@ if !install_action.empty?
         end
       end
     else
-      if install_type.match(/instance|snapshot|key|stack|cf|cloud/) or install_id.match(/[0-9]|all/)
+      if install_type.match(/instance|snapshot|key|stack|cf|cloud|securitygroup/) or install_id.match(/[0-9]|all/)
         case install_type
         when /instance/
           delete_aws_vm(install_access,install_secret,install_region,install_ami,install_id)
@@ -2114,6 +2123,8 @@ if !install_action.empty?
           delete_aws_key_pair(install_access,install_secret,install_region,install_key)
         when /stack|cf|cloud/
           delete_aws_cf_stack(install_access,install_secret,install_region,install_stack)
+        when /securitygroup/
+          delete_aws_security_group(install_access,install_secret,install_region,install_group)
         else
           if install_ami.match(/[A-Z]|[a-z]|[0-9]/)
             delete_aws_image(install_ami,install_access,install_secret,install_region)
@@ -2144,7 +2155,7 @@ if !install_action.empty?
       end
     end
   when /add|create/
-    if install_type.match(/ami|image|key|cloud|cf|stack/)
+    if install_type.match(/ami|image|key|cloud|cf|stack|securitygroup/)
       case install_type
       when /ami|image/
         create_aws_image(install_client,install_access,install_secret,install_region,install_id)
@@ -2152,6 +2163,8 @@ if !install_action.empty?
         create_aws_key_pair(install_access,install_secret,install_region,install_key)
       when /cf|cloud|stack/
         configure_aws_cf_stack(install_client,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group,install_bucket,install_object)
+      when /securitygroup/
+        create_aws_security_group(install_access,install_secret,install_region,install_group,install_desc)
       end
       quit()
     end
