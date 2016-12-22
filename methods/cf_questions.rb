@@ -2,7 +2,7 @@
 
 # Populate AWS CF questions
 
-def populate_aws_cf_questions(install_name,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group)
+def populate_aws_cf_questions(install_name,install_size,install_key,install_file,install_group)
   $q_struct = {}
   $q_order  = []
 
@@ -25,7 +25,7 @@ def populate_aws_cf_questions(install_name,install_ami,install_region,install_si
     question  = "Instance Type",
     ask       = "yes",
     parameter = "",
-    value     = $default_aws_size,
+    value     = install_size,
     valid     = "",
     eval      = "no"
     )

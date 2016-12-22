@@ -861,4 +861,6 @@
 # Added Stack Status to AWS CF list output
 # 4.3.1: Thu 22 Dec 2016 09:16:32 AEDT
 # Added code to generate private and public URLs for AWS S3 bucket objects
+# 4.3.2: Thu 22 Dec 2016 10:58:35 AEDT
+# Improved command line processing for AWS functions
 

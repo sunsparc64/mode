@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.3.1
+# Version:      4.3.2
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1909,10 +1909,6 @@ end
 
 if !install_action.empty?
   case install_action
-  when /billing/
-    get_aws_billing(install_access,install_secret,install_region)
-  when /geturl|showurl/
-    show_s3_bucket_url(install_access,install_secret,install_region,install_bucket,install_key,install_type)
   when /execute/
     if install_type.match(/docker/)
       execute_docker_command(install_client,install_command)
@@ -1930,11 +1926,9 @@ if !install_action.empty?
       eval"[get_#{install_vm}_vm_status(install_client)]"
     end
   when /set|put/
-    if install_vm.match(/aws/)
-      if install_type.match(/acl/)
-        if install_bucket.match(/[A-Z]|[a-z]|[0-9]/)
-          set_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket,install_email,install_grant,install_perms)
-        end
+    if install_type.match(/acl/)
+      if install_bucket.match(/[A-Z]|[a-z]|[0-9]/)
+        set_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket,install_email,install_grant,install_perms)
       end
     end
   when /upload|download/
@@ -1945,22 +1939,24 @@ if !install_action.empty?
         download_file_from_aws_bucket(install_access,install_secret,install_region,install_file,install_key,install_bucket)
       end
     end
-  when /display|view|show|prop|get/
-    if !install_client.empty?
-      if !install_vm.empty? and !install_vm.match(/none/)
-        eval"[show_#{install_vm}_vm_config(install_client)]"
+  when /display|view|show|prop|get|billing/
+    if install_type.match(/acl|url/) or install_action.match(/acl|url/)
+      if install_bucket.match(/[A-Z]|[a-z]|[0-9]/)
+        show_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket)
       else
-        get_client_config(install_client,install_service,install_method,install_type,install_vm)
+        if install_type.match(/url/) or install_action.match(/url/)
+          show_s3_bucket_url(install_access,install_secret,install_region,install_bucket,install_key,install_type)
+        else
+          get_aws_billing(install_access,install_secret,install_region)
+        end
       end
     else
-      if install_vm.match(/aws/)
-        if install_type.match(/acl/)
-          if install_bucket.match(/[A-Z]|[a-z]|[0-9]/)
-            show_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket)
-          end
+      if !install_client.empty?
+        if !install_vm.empty? and !install_vm.match(/none/)
+          eval"[show_#{install_vm}_vm_config(install_client)]"
+        else
+          get_client_config(install_client,install_service,install_method,install_type,install_vm)
         end
-      else
-        handle_output("Warning:\tClient name not specified")
       end
     end
   when /help/
@@ -1974,75 +1970,71 @@ if !install_action.empty?
       eval"[show_#{install_vm}_vm(install_client)]"
     end
   when /list/
-    if install_type.match(/packer|docker/)
-      eval"[list_#{install_type}_clients(install_vm)]"
-      quit()
-    end
-    if install_type.match(/ssh/)
+    case install_type
+    when /ssh/
       list_user_ssh_config(install_ip,install_id,install_client)
-    end
-    if install_vm.match(/aws/)
-      case install_type
-      when /image|ami/
-        list_aws_images(install_access,install_secret,install_region)
-      when /packer/
+    when /image|ami/
+      list_aws_images(install_access,install_secret,install_region)
+    when /packer|docker/
+      if install_vm.match(/aws/)
         list_packer_aws_clients()
-      when /inst/
-        list_aws_instances(install_access,install_secret,install_region,install_id)
-      when /bucket/
-        list_aws_buckets(install_bucket,install_access,install_secret,install_region)
-      when /object/
-        list_aws_bucket_objects(install_bucket,install_access,install_secret,install_region)
-      when /snapshot/
-        list_aws_snapshots(install_access,install_secret,install_region,install_snapshot)
-      when /key/
-        list_aws_key_pairs(install_access,install_secret,install_region,install_key)
-      when /stack/
-        list_aws_cf_stacks(install_client,install_access,install_secret,install_region)
       else
-        handle_output("Warning:\tType not specified")
+        eval"[list_#{install_type}_clients(install_vm)]"
+        quit()
       end
-      quit()
-    end
-    if install_type.match(/service/) or install_mode.match(/server/)
-      if !install_method.empty?
-        eval"[list_#{install_method}_services]"
-        handle_output("")
-      else
-        list_all_services()
+    when /inst/
+      list_aws_instances(install_access,install_secret,install_region,install_id)
+    when /bucket/
+      list_aws_buckets(install_bucket,install_access,install_secret,install_region)
+    when /object/
+      list_aws_bucket_objects(install_bucket,install_access,install_secret,install_region)
+    when /snapshot/
+      list_aws_snapshots(install_access,install_secret,install_region,install_snapshot)
+    when /key/
+      list_aws_key_pairs(install_access,install_secret,install_region,install_key)
+    when /stack/
+      list_aws_cf_stacks(install_client,install_access,install_secret,install_region)
+    else
+      if install_type.match(/service/) or install_mode.match(/server/)
+        if !install_method.empty?
+          eval"[list_#{install_method}_services]"
+          handle_output("")
+        else
+          list_all_services()
+        end
+        quit()
       end
-      quit()
-    end
-    if install_type.match(/iso/)
-      if !install_method.empty?
-        eval"[list_#{install_method}_isos]"
-      else
-        list_os_isos(install_os)
+      if install_type.match(/iso/)
+        if !install_method.empty?
+          eval"[list_#{install_method}_isos]"
+        else
+          list_os_isos(install_os)
+        end
+        quit()
       end
-      quit()
-    end
-    if install_mode.match(/client/) or install_type.match(/client/)
-      install_mode = "client"
-      check_local_config(install_mode)
-      list_clients(install_service)
-      list_vms(install_vm,install_type)
-      quit()
-    end
-    if !install_method.empty? and install_vm.match(/none/)
-      eval"[list_#{install_method}_clients()]"
-      qui()
-    end
-    if install_type.match(/ova/)
-      list_ovas()
-      quit()
-    end
-    if !install_vm.empty? and !install_vm.match(/none/)
-      if install_type.match(/snapshot/)
-        list_vm_snapshots(install_vm,install_os,install_method,install_client)
-      else
-        list_vm(install_vm,install_os,install_method)
+      if install_mode.match(/client/) or install_type.match(/client/)
+        install_mode = "client"
+        check_local_config(install_mode)
+        list_clients(install_service)
+        list_vms(install_vm,install_type)
+        quit()
       end
-      quit()
+      if !install_method.empty? and install_vm.match(/none/)
+        eval"[list_#{install_method}_clients()]"
+        qui()
+      end
+      if install_type.match(/ova/)
+        list_ovas()
+        quit()
+      end
+      if !install_vm.empty? and !install_vm.match(/none/)
+        if install_type.match(/snapshot/)
+          list_vm_snapshots(install_vm,install_os,install_method,install_client)
+        else
+          list_vm(install_vm,install_os,install_method)
+        end
+        quit()
+      end
     end
   when /delete|remove|terminate/
     if install_type.match(/ssh/)
@@ -2096,18 +2088,16 @@ if !install_action.empty?
         end
       end
     else
-      if install_vm.match(/aws/)
-        if install_type.match(/instance|snapshot|key|stack|cf|cloud/) or install_id.match(/[0-9]|all/)
-          case install_type
-          when /instance/
-            delete_aws_vm(install_access,install_secret,install_region,install_ami,install_id)
-          when /snapshot/
-            delete_aws_snapshot(install_access,install_secret,install_region,install_snapshot)
-          when /key/
-            delete_aws_key_pair(install_access,install_secret,install_region,install_key)
-          when /stack|cf|cloud/
-            delete_aws_cf_stack(install_access,install_secret,install_region,install_stack)
-          end
+      if install_type.match(/instance|snapshot|key|stack|cf|cloud/) or install_id.match(/[0-9]|all/)
+        case install_type
+        when /instance/
+          delete_aws_vm(install_access,install_secret,install_region,install_ami,install_id)
+        when /snapshot/
+          delete_aws_snapshot(install_access,install_secret,install_region,install_snapshot)
+        when /key/
+          delete_aws_key_pair(install_access,install_secret,install_region,install_key)
+        when /stack|cf|cloud/
+          delete_aws_cf_stack(install_access,install_secret,install_region,install_stack)
         else
           if install_ami.match(/[A-Z]|[a-z]|[0-9]/)
             delete_aws_image(install_ami,install_access,install_secret,install_region)
@@ -2147,7 +2137,7 @@ if !install_action.empty?
       when /key/
         create_aws_key_pair(install_access,install_secret,install_region,install_key)
       when /cf|cloud|stack/
-        configure_aws_cf_stack(install_client,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group)
+        configure_aws_cf_stack(install_client,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group,install_bucket)
       else
         if !install_key.match(/[A-Z]|[a-z]|[0-9]/)
           handle_output("Warning:\tKey Pair not given")

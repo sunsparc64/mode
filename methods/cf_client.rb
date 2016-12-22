@@ -110,8 +110,8 @@ end
 
 # Create AWS CF Stack Config
 
-def create_aws_cf_stack_config(install_name,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group)
-  populate_aws_cf_questions(install_name,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group)
+def create_aws_cf_stack_config(install_name,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group,install_bucket)
+  populate_aws_cf_questions(install_name,install_size,install_key,install_file,install_group)
   install_service = "aws"
   process_questions(install_service)
   exists = check_if_aws_cf_stack_exists(install_access,install_secret,install_region,install_name)
@@ -133,10 +133,20 @@ end
 
 # Create AWS CF Stack from template
 
-def configure_aws_cf_stack(install_name,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group)
+def configure_aws_cf_stack(install_name,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group,install_bucket)
   if !install_name.match(/[A-Z]|[a-z]|[0-9]/) or install_name.match(/^none$/)
     handle_output("Warning:\tNo name specified for AWS CloudFormation Stack")
     quit()
+  end
+  if !install_file.match(/[A-Z]|[a-z]|[0-9]/)
+    if !install_bucket.match(/[A-Z]|[a-z]|[0-9]/)
+      if !install_object.match(/[A-Z]|[a-z]|[0-9]/)
+        handle_output("Warning:\tNo file, bucket, or object specified for AWS CloudFormation Stack")
+        quit()
+      end
+    else
+      install_file = get_s3_bucket_private_url(install_access,install_secret,install_region,install_bucket,install_key)
+    end
   end
   if !install_key.match(/[A-Z]|[a-z]|[0-9]/)
     handle_output("Warning:\tNo Key Name given")
@@ -160,7 +170,7 @@ def configure_aws_cf_stack(install_name,install_ami,install_region,install_size,
     install_keyfile = $default_aws_ssh_key_dir+"/"+install_key+".pem"
     handle_output("Information:\tSetting Key file to #{install_keyfile}")
   end
-  create_aws_cf_stack_config(install_name,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group)
+  create_aws_cf_stack_config(install_name,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group,install_bucket)
   create_aws_cf_stack(install_access,install_secret,install_region)
   return
 end
