@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.3.2
+# Version:      4.3.3
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -331,11 +331,15 @@ end
 if option["key"]
   install_key = option["key"]
 else
-  if option["object"]
-    install_key = option["object"]
-  else
-    install_key = ""
-  end
+  install_key = ""
+end
+
+# Handle object switch
+
+if option["object"]
+  install_object = option["object"]
+else
+  install_object = ""
 end
 
 # Handle URL switch
@@ -603,7 +607,7 @@ else
     end
   else
     if option["type"]
-      if option["type"].match(/ssh/)
+      if option["type"].match(/ssh|ami|image|key|cloud|cf|stack/)
         if option["name"]
           install_client = option["name"]
         else
@@ -962,7 +966,7 @@ if option["size"]
     handle_output("Information:\tSetting disk size to #{install_size}")
   end
 else
-  if install_vm.match(/aws/)
+  if install_vm.match(/aws/) or install_type.match(/cloud|cf|stack/)
     install_size = $default_aws_size
   else
     if install_type.match(/vcsa/)
@@ -1934,9 +1938,9 @@ if !install_action.empty?
   when /upload|download/
     if install_bucket.match(/[A-Z]|[a-z]|[0-9]/)
       if install_action.match(/upload/)
-        upload_file_to_aws_bucket(install_access,install_secret,install_region,install_file,install_key,install_bucket)
+        upload_file_to_aws_bucket(install_access,install_secret,install_region,install_file,install_object,install_bucket)
       else
-        download_file_from_aws_bucket(install_access,install_secret,install_region,install_file,install_key,install_bucket)
+        download_file_from_aws_bucket(install_access,install_secret,install_region,install_file,install_object,install_bucket)
       end
     end
   when /display|view|show|prop|get|billing/
@@ -1945,7 +1949,7 @@ if !install_action.empty?
         show_aws_s3_bucket_acl(install_access,install_secret,install_region,install_bucket)
       else
         if install_type.match(/url/) or install_action.match(/url/)
-          show_s3_bucket_url(install_access,install_secret,install_region,install_bucket,install_key,install_type)
+          show_s3_bucket_url(install_access,install_secret,install_region,install_bucket,install_object,install_type)
         else
           get_aws_billing(install_access,install_secret,install_region)
         end
@@ -2128,16 +2132,21 @@ if !install_action.empty?
       end
     end
   when /add|create/
-    if install_vm.match(/aws/)
+    if install_type.match(/ami|image|key|cloud|cf|stack/)
       case install_type
-      when /packer/
-        configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
       when /ami|image/
         create_aws_image(install_client,install_access,install_secret,install_region,install_id)
       when /key/
         create_aws_key_pair(install_access,install_secret,install_region,install_key)
       when /cf|cloud|stack/
-        configure_aws_cf_stack(install_client,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group,install_bucket)
+        configure_aws_cf_stack(install_client,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group,install_bucket,install_object)
+      end
+      quit()
+    end
+    if install_vm.match(/aws/)
+      case install_type
+      when /packer/
+        configure_packer_aws_client(install_client,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
       else
         if !install_key.match(/[A-Z]|[a-z]|[0-9]/)
           handle_output("Warning:\tKey Pair not given")

@@ -110,7 +110,7 @@ end
 
 # Create AWS CF Stack Config
 
-def create_aws_cf_stack_config(install_name,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group,install_bucket)
+def create_aws_cf_stack_config(install_name,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group,install_bucket,install_object)
   populate_aws_cf_questions(install_name,install_size,install_key,install_file,install_group)
   install_service = "aws"
   process_questions(install_service)
@@ -133,7 +133,7 @@ end
 
 # Create AWS CF Stack from template
 
-def configure_aws_cf_stack(install_name,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group,install_bucket)
+def configure_aws_cf_stack(install_name,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group,install_bucket,install_object)
   if !install_name.match(/[A-Z]|[a-z]|[0-9]/) or install_name.match(/^none$/)
     handle_output("Warning:\tNo name specified for AWS CloudFormation Stack")
     quit()
@@ -145,7 +145,12 @@ def configure_aws_cf_stack(install_name,install_ami,install_region,install_size,
         quit()
       end
     else
-      install_file = get_s3_bucket_private_url(install_access,install_secret,install_region,install_bucket,install_key)
+      if !install_object.match(/[A-Z]|[a-z]|[0-9]/)
+        handle_output("Warning:\tNo object specified for AWS CloudFormation Stack")
+        quit()
+      else
+        install_file = get_s3_bucket_private_url(install_access,install_secret,install_region,install_bucket,install_object)
+      end
     end
   end
   if !install_key.match(/[A-Z]|[a-z]|[0-9]/)
@@ -170,7 +175,7 @@ def configure_aws_cf_stack(install_name,install_ami,install_region,install_size,
     install_keyfile = $default_aws_ssh_key_dir+"/"+install_key+".pem"
     handle_output("Information:\tSetting Key file to #{install_keyfile}")
   end
-  create_aws_cf_stack_config(install_name,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group,install_bucket)
+  create_aws_cf_stack_config(install_name,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group,install_bucket,install_object)
   create_aws_cf_stack(install_access,install_secret,install_region)
   return
 end

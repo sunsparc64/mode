@@ -863,4 +863,6 @@
 # Added code to generate private and public URLs for AWS S3 bucket objects
 # 4.3.2: Thu 22 Dec 2016 10:58:35 AEDT
 # Improved command line processing for AWS functions
+# 4.3.3: Thu 22 Dec 2016 12:27:51 AEDT
+# Fixed handling of types and objects for AWS
 
