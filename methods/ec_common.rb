@@ -217,6 +217,53 @@ def get_aws_instance_security_group(install_access,install_secret,install_region
   return group
 end
 
+# Get AWS EC2 security groups
+
+def get_aws_security_groups(install_access,install_secret,install_region)
+  ec2    = initiate_aws_ec2_client(install_access,install_secret,install_region)
+  groups = ec2.describe_security_groups.security_groups 
+  return groups
+end
+
+# List AWS EC2 security groups
+
+def list_aws_security_groups(install_access,install_secret,install_region,install_group)
+  if !install_group.match(/[A-Z]|[a-z]|[0-9]/)
+    install_group = "all"
+  end
+  groups = get_aws_security_groups(install_access,install_secret,install_region)
+  groups.each do |group|
+    group_name = group.group_name
+    if install_group.match(/^all$|^#{group_name}$/)
+      description = group.description
+      name_length = group_name.length
+      name_spacer = ""
+      name_length.times do
+        name_spacer = name_spacer+" "
+      end
+      handle_output("#{group_name} desc=\"#{description}\"")
+      ip_perms = group.ip_permissions
+      ip_perms.each do |ip_perm|
+        ip_protocol = ip_perm.ip_protocol
+        from_port   = ip_perm.from_port.to_s
+        to_port     = ip_perm.to_port.to_s
+        cidr_ip     = []
+        ip_ranges   = ip_perm.ip_ranges
+        ip_ranges.each do |ip_range|
+          range = ip_range.cidr_ip
+          cidr_ip.push(range)
+        end
+        cidr_ip = cidr_ip.join(",")
+        if ip_protocol and from_port and to_port
+          ip_rule = ip_protocol+","+from_port+","+to_port
+          handle_output("#{name_spacer} rule=#{ip_rule} range=#{cidr_ip}")
+        end
+      end
+    end
+  end
+  return
+end
+
 # Get instance key pair
 
 def get_aws_instance_key_name(install_access,install_secret,install_region,install_id)

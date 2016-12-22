@@ -865,4 +865,6 @@
 # Improved command line processing for AWS functions
 # 4.3.3: Thu 22 Dec 2016 12:27:51 AEDT
 # Fixed handling of types and objects for AWS
+# 4.3.4: Fri 23 Dec 2016 06:47:44 AEDT
+# Added code to list EC2 security groups
 

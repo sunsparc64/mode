@@ -156,7 +156,7 @@ def set_global_vars()
   $valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image', 'ldom', 'cdom', 'gdom' ]
   $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server',
                                 'vcsa', 'packer', 'docker', 'amazon-ebs', 'image', 'ami', 'instance', 'bucket', 'acl', 'snapshot', 'key',
-                                'keypair', 'ssh', 'stack', 'object', 'cf', 'cloudformation', 'public', 'private' ]
+                                'keypair', 'ssh', 'stack', 'object', 'cf', 'cloudformation', 'public', 'private', 'securitygroup' ]
   $valid_mode_list          = [ 'client', 'server', 'osx' ]
   $valid_vm_list            = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'ldom', 'gdom', 'parallels' ]
   $valid_aws_format_list    = [ 'VMDK', 'RAW', 'VHD' ]

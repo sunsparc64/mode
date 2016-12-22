@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.3.3
+# Version:      4.3.4
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -638,12 +638,22 @@ if option["admin"]
 else
   if option["action"]
     if option["action"].match(/connect|ssh/)
-      if option["vm"].match(/aws/)
-        install_admin = $default_aws_user
+      if option["vm"]
+        if option["vm"].match(/aws/)
+          install_admin = $default_aws_user
+        else
+          install_admin = %x[whoami].chomp
+        end
       else
-        install_admin = %x[whoami].chomp
+        if option["id"]
+          install_admin = $default_aws_user
+        else
+          install_admin = %x[whoami].chomp
+        end
       end
     end
+  else
+    install_admin = %x[whoami].chomp
   end
 end
 
@@ -1996,8 +2006,10 @@ if !install_action.empty?
       list_aws_snapshots(install_access,install_secret,install_region,install_snapshot)
     when /key/
       list_aws_key_pairs(install_access,install_secret,install_region,install_key)
-    when /stack/
+    when /stack|cloud|cf/
       list_aws_cf_stacks(install_client,install_access,install_secret,install_region)
+    when /securitygroup/
+      list_aws_security_groups(install_access,install_secret,install_region,install_group)
     else
       if install_type.match(/service/) or install_mode.match(/server/)
         if !install_method.empty?
@@ -2432,7 +2444,7 @@ if !install_action.empty?
       eval"[get_#{install_vm}_value(install_client,install_param)]"
     end
   when /console|serial|connect|ssh/
-    if install_vm.match(/aws/)
+    if install_vm.match(/aws/) or install_id.match(/[0-9]/)
       connect_to_aws_vm(install_access,install_secret,install_region,install_client,install_id,install_ip,install_key,install_keyfile,install_admin)
       quit()
     end
