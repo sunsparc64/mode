@@ -154,9 +154,9 @@ def set_global_vars()
   $valid_arch_list          = [ 'x86_64', 'i386', 'sparc' ]
   $valid_console_list       = [ 'text', 'console', 'x11', 'headless' ]
   $valid_method_list        = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image', 'ldom', 'cdom', 'gdom' ]
-  $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server',
+  $valid_type_list          = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'sg',
                                 'vcsa', 'packer', 'docker', 'amazon-ebs', 'image', 'ami', 'instance', 'bucket', 'acl', 'snapshot', 'key',
-                                'keypair', 'ssh', 'stack', 'object', 'cf', 'cloudformation', 'public', 'private', 'securitygroup' ]
+                                'keypair', 'ssh', 'stack', 'object', 'cf', 'cloudformation', 'public', 'private', 'securitygroup', 'iprule' ]
   $valid_mode_list          = [ 'client', 'server', 'osx' ]
   $valid_vm_list            = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'ldom', 'gdom', 'parallels' ]
   $valid_aws_format_list    = [ 'VMDK', 'RAW', 'VHD' ]
@@ -186,6 +186,7 @@ def set_global_vars()
   $enable_vnc               = 1
   $enable_strict            = 0
   $vnc_port                 = "5961"
+  $default_protocol         = "tcp"
   $novnc_dir                = $script_dir+"/noVNC"
   $novnc_url                = "git://github.com/kanaka/noVNC"
   $default_aws_type         = "amazon-ebs"
@@ -209,6 +210,7 @@ def set_global_vars()
   $default_aws_ssh_key_dir  = $home_dir+"/.ssh/aws"
   $default_aws_base_object  = "uploads"
   $default_cf_ssh_location  = "0.0.0.0/0"
+  $default_aws_cidr         = $default_cf_ssh_location
   $default_aws_user         = "ec2-user"
 
   # VMware Fusion Global variables

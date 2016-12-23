@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.3.5
+# Version:      4.3.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -229,6 +229,11 @@ begin
     [ "--snapshot",             REQUIRED ], # AWS snapshot
     [ "--stack",                REQUIRED ], # AWS CF Stack
     [ "--object",               REQUIRED ], # AWS S3 object
+    [ "--proto",                REQUIRED ], # Protocol
+    [ "--from",                 REQUIRED ], # From
+    [ "--to",                   REQUIRED ], # To
+    [ "--port",                 REQUIRED ], # Port (makes to and from the same in the case of and IP rule)
+    [ "--dir",                  REQUIRED ], # Directory / Direction 
     [ "--ami",                  REQUIRED ]  # AWS AMI ID
   )
 rescue
@@ -303,6 +308,56 @@ else
   install_desc = ""
 end
 
+# Handle cidr switch
+
+if option["cidr"]
+  install_cidr = option["cidr"]
+else
+  install_cidr = $default_aws_cidr
+end
+
+# Handle port switch
+
+if option["port"]
+  install_port = option["port"]
+else
+  install_port = ""
+end
+
+# Handle Protocol switch
+
+if option["proto"]
+  install_proto = option["proto"]
+else
+  install_proto = $default_protocol
+end
+
+# Handle from switch
+
+if option["from"]
+  install_from = option["from"]
+else
+  if install_port.match(/[0-9]/)
+    option["from"] = install_port
+    install_from   = install_port
+  else
+    install_from = ""
+  end
+end
+
+# Handle to switch
+
+if option["to"]
+  install_to = option["to"]
+else
+  if install_port.match(/[0-9]/)
+    option["to"] = install_port
+    install_to   = install_port
+  else
+    install_to = ""
+  end
+end
+
 # Handle snapshot switch
 
 if option["snapshot"]
@@ -357,6 +412,14 @@ if option["url"]
   install_url = option["url"]
 else
   install_url = ""
+end
+
+# Handle URL switch
+
+if option["dir"]
+  install_dir = option["dir"]
+else
+  install_dir = ""
 end
 
 # Handle keyfile switch
@@ -2113,7 +2176,7 @@ if !install_action.empty?
         end
       end
     else
-      if install_type.match(/instance|snapshot|key|stack|cf|cloud|securitygroup/) or install_id.match(/[0-9]|all/)
+      if install_type.match(/instance|snapshot|key|stack|cf|cloud|securitygroup|iprule|sg/) or install_id.match(/[0-9]|all/)
         case install_type
         when /instance/
           delete_aws_vm(install_access,install_secret,install_region,install_ami,install_id)
@@ -2125,6 +2188,8 @@ if !install_action.empty?
           delete_aws_cf_stack(install_access,install_secret,install_region,install_stack)
         when /securitygroup/
           delete_aws_security_group(install_access,install_secret,install_region,install_group)
+        when /iprule/
+          remove_rule_from_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir)
         else
           if install_ami.match(/[A-Z]|[a-z]|[0-9]/)
             delete_aws_image(install_ami,install_access,install_secret,install_region)
@@ -2155,7 +2220,7 @@ if !install_action.empty?
       end
     end
   when /add|create/
-    if install_type.match(/ami|image|key|cloud|cf|stack|securitygroup/)
+    if install_type.match(/ami|image|key|cloud|cf|stack|securitygroup|iprule|sg/)
       case install_type
       when /ami|image/
         create_aws_image(install_client,install_access,install_secret,install_region,install_id)
@@ -2164,7 +2229,9 @@ if !install_action.empty?
       when /cf|cloud|stack/
         configure_aws_cf_stack(install_client,install_ami,install_region,install_size,install_access,install_secret,install_type,install_number,install_key,install_keyfile,install_file,install_group,install_bucket,install_object)
       when /securitygroup/
-        create_aws_security_group(install_access,install_secret,install_region,install_group,install_desc)
+        create_aws_security_group(install_access,install_secret,install_region,install_group,install_desc,install_dir)
+      when /iprule/
+        add_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir)
       end
       quit()
     end

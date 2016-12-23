@@ -85,6 +85,15 @@ def check_aws_vm_exists(install_name)
   return exists
 end
 
+# Get Prefix List ID
+
+
+def get_aws_prefix_list_id(install_access,install_secret,install_region)
+  ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+  id  = ec2.describe_prefix_lists.prefix_lists[0].prefix_list_id
+  return id
+end
+
 # Get AWS billing
 
 def get_aws_billing(install_access,install_secret,install_region)
@@ -105,7 +114,7 @@ end
 # Get AWS snapshots
 
 def get_aws_snapshots(install_access,install_secret,install_region)
-  ec2       = initiate_aws_ec2_client(install_access,install_secret,install_region)
+  ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
   begin
     snapshots = ec2.describe_snapshots.snapshots
   rescue Aws::EC2::Errors::AccessDenied
@@ -241,6 +250,153 @@ def get_aws_security_groups(install_access,install_secret,install_region)
   return groups
 end
 
+# Get AWS EC2 security group IF
+
+def get_aws_security_group_id(install_access,install_secret,install_region,install_group)
+  group_id = "none"
+  groups   = get_aws_security_groups(install_access,install_secret,install_region)
+  groups.each do |group|
+    group_name = group.group_name
+    group_id   = group.group_id
+    if install_group.match(/^#{group_name}$/)
+      return group_id
+    end
+  end
+  return group_id
+end
+
+# Add ingress rule to AWS EC2 security group
+
+def remove_ingress_rule_from_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr)
+  ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+  prefix_list_id = get_aws_prefix_list_id(install_access,install_secret,install_region)
+  handle_output("Information:\tDeleting ingress rule to security group #{install_group} (Protocol: #{install_proto} From: #{install_from} To: #{install_to} CIDR: #{install_cidr})")
+  ec2.revoke_security_group_ingress({
+    group_id: install_group,
+    ip_permissions: [
+      {
+        ip_protocol:  install_proto,
+        from_port:    install_from,
+        to_port:      install_to,
+        ip_ranges: [
+          {
+            cidr_ip: install_cidr,
+          },
+        ],
+      },
+    ],
+  })
+  return
+end
+
+# Add egress rule to AWS EC2 security group
+
+def remove_egress_rule_from_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr)
+  ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+  prefix_list_id = get_aws_prefix_list_id(install_access,install_secret,install_region)
+  handle_output("Information:\tDeleting egress rule to security group #{install_group} (Protocol: #{install_proto} From: #{install_from} To: #{install_to} CIDR: #{install_cidr})")
+  ec2.revoke_security_group_egress({
+    group_id: install_group,
+    ip_permissions: [
+      {
+        ip_protocol:  install_proto,
+        from_port:    install_from,
+        to_port:      install_to,
+        ip_ranges: [
+          {
+            cidr_ip: install_cidr,
+          },
+        ],
+      },
+    ],
+  })
+  return
+end
+
+# Add rule to AWS EC2 security group
+
+def remove_rule_from_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir)
+  if !install_group.match(/^sg/)
+    install_group = get_aws_security_group_id(install_access,install_secret,install_region,install_group)
+  end
+  if install_dir.match(/egress/)
+    remove_egress_rule_from_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr)
+  else
+    remove_ingress_rule_from_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr)
+  end
+  return
+end
+
+# Add ingress rule to AWS EC2 security group
+
+def add_ingress_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr)
+  ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+  prefix_list_id = get_aws_prefix_list_id(install_access,install_secret,install_region)
+  handle_output("Information:\tAdding ingress rule to security group #{install_group} (Protocol: #{install_proto} From: #{install_from} To: #{install_to} CIDR: #{install_cidr})")
+  begin
+    ec2.authorize_security_group_ingress({
+      group_id: install_group,
+      ip_permissions: [
+        {
+          ip_protocol:  install_proto,
+          from_port:    install_from,
+          to_port:      install_to,
+          ip_ranges: [
+            {
+              cidr_ip: install_cidr,
+            },
+          ],
+        },
+      ],
+    })
+  rescue Aws::EC2::Errors::InvalidPermissionDuplicate
+    handle_output("Warning:\tRule already exists")
+  end
+  return
+end
+
+# Add egress rule to AWS EC2 security group
+
+def add_egress_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr)
+  ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
+  prefix_list_id = get_aws_prefix_list_id(install_access,install_secret,install_region)
+  handle_output("Information:\tAdding egress rule to security group #{install_group} (Protocol: #{install_proto} From: #{install_from} To: #{install_to} CIDR: #{install_cidr})")
+  begin
+    ec2.authorize_security_group_egress({
+      group_id: install_group,
+      ip_permissions: [
+        {
+          ip_protocol:  install_proto,
+          from_port:    install_from,
+          to_port:      install_to,
+          ip_ranges: [
+            {
+              cidr_ip: install_cidr,
+            },
+          ],
+        },
+      ],
+    })
+  rescue Aws::EC2::Errors::InvalidPermissionDuplicate
+    handle_output("Warning:\tRule already exists")
+  end
+  return
+end
+
+# Add rule to AWS EC2 security group
+
+def add_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir)
+  if !install_group.match(/^sg/)
+    install_group = get_aws_security_group_id(install_access,install_secret,install_region,install_group)
+  end
+  if install_dir.match(/egress/)
+    add_egress_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr)
+  else
+    add_ingress_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr)
+  end
+  return
+end
+
 # Create AWS EC2 security group
 
 def create_aws_security_group(install_access,install_secret,install_region,install_group,install_desc)
@@ -273,6 +429,46 @@ def delete_aws_security_group(install_access,install_secret,install_region,insta
   return
 end
 
+def handle_ip_perms(ip_perms,type,group_name)
+  name_length = group_name.length
+  name_spacer = ""
+  name_length.times do
+    name_spacer = name_spacer+" "
+  end
+  ip_perms.each do |ip_perm|
+    ip_protocol  = ip_perm.ip_protocol
+    from_port    = ip_perm.from_port.to_s
+    to_port      = ip_perm.to_port.to_s
+    cidr_ip      = []
+    ip_ranges    = ip_perm.ip_ranges
+    ipv_6_ranges = ip_perm.ipv_6_ranges
+    ip_ranges.each do |ip_range|
+      range = ip_range.cidr_ip
+      cidr_ip.push(range)
+    end
+    cidr_ip = cidr_ip.join(",")
+    if ip_protocol and from_port and to_port
+      if ip_protocol.match(/[a-z]/) and cidr_ip.match(/[0-9]/)
+        ip_rule = ip_protocol+","+from_port+","+to_port
+        handle_output("#{name_spacer} rule=#{ip_rule} range=#{cidr_ip} (IPv4 #{type})")
+      end
+    end
+    cidr_ip = []
+    ipv_6_ranges.each do |ip_range|
+      range = ip_range.cidr_ip
+      cidr_ip.push(range)
+    end
+    cidr_ip = cidr_ip.join(",")
+    if ip_protocol and from_port and to_port
+      if ip_protocol.match(/[a-z]/) and cidr_ip.match(/[0-9]/)
+        ip_rule = ip_protocol+","+from_port+","+to_port
+        handle_output("#{name_spacer} rule=#{ip_rule} range=#{cidr_ip} (IPv4 #{type})")
+      end
+    end
+  end
+  return
+end
+
 # List AWS EC2 security groups
 
 def list_aws_security_groups(install_access,install_secret,install_region,install_group)
@@ -284,29 +480,11 @@ def list_aws_security_groups(install_access,install_secret,install_region,instal
     group_name = group.group_name
     if install_group.match(/^all$|^#{group_name}$/)
       description = group.description
-      name_length = group_name.length
-      name_spacer = ""
-      name_length.times do
-        name_spacer = name_spacer+" "
-      end
       handle_output("#{group_name} desc=\"#{description}\"")
       ip_perms = group.ip_permissions
-      ip_perms.each do |ip_perm|
-        ip_protocol = ip_perm.ip_protocol
-        from_port   = ip_perm.from_port.to_s
-        to_port     = ip_perm.to_port.to_s
-        cidr_ip     = []
-        ip_ranges   = ip_perm.ip_ranges
-        ip_ranges.each do |ip_range|
-          range = ip_range.cidr_ip
-          cidr_ip.push(range)
-        end
-        cidr_ip = cidr_ip.join(",")
-        if ip_protocol and from_port and to_port
-          ip_rule = ip_protocol+","+from_port+","+to_port
-          handle_output("#{name_spacer} rule=#{ip_rule} range=#{cidr_ip}")
-        end
-      end
+      handle_ip_perms(ip_perms,"Ingress",group_name)
+      ip_perms = group.ip_permissions_egress
+      handle_ip_perms(ip_perms,"Egress",group_name)
     end
   end
   return

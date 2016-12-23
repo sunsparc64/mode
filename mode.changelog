@@ -869,4 +869,6 @@
 # Added code to list EC2 security groups
 # 4.3.5: Fri 23 Dec 2016 08:37:47 AEDT
 # Added code to create and delete EC2 security groups
+# 4.3.6: Fri 23 Dec 2016 22:11:02 AEDT
+# Added code to add and delete EC2 security group rules
 
