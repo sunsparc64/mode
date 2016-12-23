@@ -38,19 +38,14 @@ and HTTP based install services, eg:
   - Windows 2016 PR5 (No WM Tools and License Key support)
   - ESXi
   - Create AMIs
-- Initial AWS support
-  - List instances
-  - List AMIs
-  - Stop instances
-  - Start instances
-  - Terminate instances
-  - List buckets
+- AWS support
+  - List, stop, start, create, and delete instances
+  - List and delete AMIs
+  - List, create and delete buckets 
   - List bucket ACLs
-  - Create buckets
-  - Delete buckets
-  - Upload files to buckets
-  - Download files from buckets
-  - List CloudFormation stacks
+  - Upload and download files to/from buckets
+  - List, create, and delete CloudFormation stacks
+  - List, create and delete EC2 security groups and rules
 - Initial Docker support
 
 Introduction
