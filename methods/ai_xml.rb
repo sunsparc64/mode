@@ -309,7 +309,7 @@ def create_ai_manifest(output_file)
           xml.name("pkg:/runtime/ruby-18")
         }
       }
-      if $use_alt_repo == 1 and $default_options.match(/puppet/)
+      if $altrepo_mode == true and $default_options.match(/puppet/)
         xml.software(:type => "IPS") {
           xml.destination {
             xml.image {

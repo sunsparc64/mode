@@ -41,7 +41,7 @@ def unconfigure_ai_server(install_service)
     remove_apache_proxy(install_service)
     repo_version_dir = $repo_base_dir+"/"+service_base_name
     test_dir = repo_version_dir+"/publisher"
-    if File.directory?(test_dir) and $yes_to_all == 1
+    if File.directory?(test_dir) and $yes_mode == true
       destroy_zfs_fs(repo_version_dir)
     end
   else
@@ -72,7 +72,7 @@ end
 def check_dhcpd4_conf()
   if $os_name.match(/SunOS/)
     file="/etc/inet/dhcpd4.conf"
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Checking:\t#{file} exists")
     end
     if !File.exist?(file)
@@ -93,7 +93,7 @@ end
 # Eg /export/auto_install
 
 def check_ai_base_dir()
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Checking:\t#{$ai_base_dir}")
   end
   output = check_fs_exists($ai_base_dir)
@@ -332,7 +332,7 @@ def configure_ai_server(client_arch,publisher_host,publisher_port,install_servic
     read_only = "true"
     publisher_port = check_publisher_port(publisher_port)
     configure_ai_pkg_repo(publisher_host,publisher_port,service_base_name,repo_version_dir,read_only)
-    if $use_alt_repo == 1
+    if $altrepo_mode == true
       alt_install_service=check_alt_install_service(install_service)
       configure_ai_alt_pkg_repo(publisher_host,publisher_port,alt_install_service)
     end

@@ -56,7 +56,7 @@ def check_osx_pfctl(gw_if_name,if_name)
       File.delete(pf_file)
     end
     output = File.open(pf_file,"w")
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Information:\tEnabling forwarding between #{gw_if_name} and #{if_name}")
     end
     output.write("nat on #{gw_if_name} from #{if_name}:network to any -> (#{gw_if_name})\n")
@@ -488,7 +488,7 @@ def check_osx_service_is_enabled(service)
   end
   output    = execute_command(message,command)
   if !output.match(/true/)
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Information:\t#{service} enabled")
     end
   else

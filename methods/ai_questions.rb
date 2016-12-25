@@ -51,7 +51,7 @@ def populate_ai_manifest_questions(publisher_host,publisher_port)
   $q_struct[name]=config
   $q_order.push(name)
 
-  if $use_alt_repo == 1 and $default_options.match(/puppet/)
+  if $altrepo_mode == true and $default_options.match(/puppet/)
     name="alt_publisher_url"
     alt_publisher_url=get_alt_publisher_url(publisher_host,publisher_port)
     config=Ai.new(

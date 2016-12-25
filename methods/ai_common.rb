@@ -11,7 +11,7 @@ Ai=Struct.new(:question, :ask, :value, :valid, :eval)
 
 def get_ai_repo_version(publisher_url,publisher_host,publisher_port)
   publisher_url = get_ai_publisher_url(publisher_host,publisher_port)
-  if $test_mode == 1 or $os_name.match(/Darwin/)
+  if $test_mode == true or $os_name.match(/Darwin/)
   repo_version  = "0.175.1"
   else
     message      = "Information:\tDetermining if available repository version from "+publisher_url
@@ -30,7 +30,7 @@ def check_publisher_port(publisher_port)
   command      = "svcprop -a pkg/server |grep 'port count'"
   ports_in_use = execute_command(message,command)
   if ports_in_use.match(/#{publisher_port}/)
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Warning:\tPublisher port #{publisher_port} is in use")
       handle_output("Information:\tFinding free publisher port")
     end
@@ -39,7 +39,7 @@ def check_publisher_port(publisher_port)
     publisher_port = publisher_port.to_i+1
     publisher_port = publisher_port.to_s
   end
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Setting:\tPublisher port to #{publisher_port}")
   end
   return publisher_port

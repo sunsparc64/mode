@@ -45,7 +45,7 @@ end
 # Handle a package
 
 def handle_pkg(p_struct,pkg_name,build_type,pkg_repo_dir)
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Information:\tHandling Package #{pkg_name}")
   end
   depend_list     = []
@@ -65,7 +65,7 @@ def handle_pkg(p_struct,pkg_name,build_type,pkg_repo_dir)
         end
       end
       if !depend_pkg_name.match(/#{pkg_name}/)
-        if $verbose_mode == 1
+        if $verbose_mode == true
           handle_output("Information:\tHandling dependency #{depend_pkg_name}")
         end
         build_pkg(p_struct,depend_pkg_name,build_type,pkg_repo_dir)

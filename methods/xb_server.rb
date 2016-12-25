@@ -29,7 +29,7 @@ def configure_xb_repo(iso_file,repo_version_dir,install_service)
   when /coreos/
     check_dir = repo_version_dir+"/coreos"
   end
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Checking:\tDirectory #{check_dir} exits")
   end
   if !File.directory?(check_dir)

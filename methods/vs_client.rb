@@ -79,18 +79,18 @@ def configure_vs_pxe_client(install_client,install_mac,install_service)
   #ks_url       = "http://"+$default_host+"/"+install_service+"/"+install_client+".cfg"
   ks_url       = "http://"+$default_host+"/clients/"+install_service+"/"+install_client+"/"+install_client+".cfg"
   mboot_file   = "/"+install_service+"/mboot.c32"
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Information:\tCreating Menu config file #{pxe_cfg_file}")
   end
   file = File.open(pxe_cfg_file,"w")
-  if $serial_mode == 1
+  if $serial_mode == true
     file.write("serial 0 115200\n")
   end
   file.write("DEFAULT ESX\n")
   file.write("LABEL ESX\n")
   file.write("KERNEL #{mboot_file}\n")
-  if $text_mode == 1
-    if $serial_mode == 1
+  if $text_mode == true
+    if $serial_mode == true
       file.write("APPEND -c #{tftp_boot_file} text gdbPort=none logPort=none tty2Port=com1 ks=#{ks_url} +++\n")
     else
       file.write("APPEND -c #{tftp_boot_file} text ks=#{ks_url} +++\n")
@@ -103,21 +103,21 @@ def configure_vs_pxe_client(install_client,install_mac,install_service)
   print_contents_of_file("",pxe_cfg_file)
   tftp_boot_file=$tftp_dir+"/"+tftp_boot_file
   esx_boot_file=$tftp_dir+"/"+install_service+"/boot.cfg"
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Creating:\tBoot config file #{tftp_boot_file}")
   end
   copy=[]
   file=IO.readlines(esx_boot_file)
   file.each do |line|
     line=line.gsub(/\//,"")
-    if $text_mode == 1
+    if $text_mode == true
       if line.match(/^kernelopt/)
         if !line.match(/text/)
           line = line.chomp+" text\n"
         end
       end
     end
-    if $serial_mode == 1
+    if $serial_mode == true
       if line.match(/^kernelopt/)
         if !line.match(/nofb/)
           line = line.chomp+" nofb com1_baud=115200 com1_Port=0x3f8 tty2Port=com1 gdbPort=none logPort=none\n"
@@ -343,7 +343,7 @@ def populate_vs_firstboot_list(install_service,install_license,install_client)
   post_list.push("cp /var/log/hostd.log \"/vmfs/volumes/$(hostname -s)-local-storage-1/firstboot-hostd.log\"")
   post_list.push("cp /var/log/esxi_install.log \"/vmfs/volumes/$(hostname -s)-local-storage-1/firstboot-esxi_install.log\"")
   post_list.push("")
-  if $serial_mode == 1
+  if $serial_mode == true
     post_list.push("# Fix bootloader to run in serial mode")
     post_list.push("sed -i '/no-auto-partition/ s/$/ text nofb com1_baud=115200 com1_Port=0x3f8 tty2Port=com1 gdbPort=none logPort=none/' /bootbank/boot.cfg")
     post_list.push("")
@@ -363,7 +363,7 @@ end
 # Output the VSphere file header
 
 def output_vs_header(output_file)
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Information:\tCreating vSphere file #{output_file}")
   end
   file=File.open(output_file, 'w')
@@ -373,7 +373,7 @@ def output_vs_header(output_file)
         output=$q_struct[key].value+"\n"
       else
         output=$q_struct[key].parameter+" "+$q_struct[key].value+"\n"
-        if $verbose_mode == 1
+        if $verbose_mode == true
           handle_output(output)
         end
       end

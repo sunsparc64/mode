@@ -3,7 +3,7 @@
 
 def process_questions(install_service)
   $q_order.each do |key|
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Information:\tProcessing value for #{key}")
     end
     correct = 0
@@ -14,7 +14,7 @@ def process_questions(install_service)
           new_value            = eval"[#{new_value}]"
           $q_struct[key].value = new_value.join
         end
-        if $use_defaults == 0
+        if $defaults_mode == false
           question = $q_struct[key].question+"? [ "+$q_struct[key].value+" ] "
           print question
           answer = $stdin.gets.chomp
@@ -84,7 +84,7 @@ def evaluate_answer(key,answer,install_service)
     end
   end
   answer = answer.to_s
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Information:\tSetting parameter #{key} to #{answer}")
   end
   return correct

@@ -185,7 +185,7 @@ def populate_aws_questions(install_client,install_ami,install_region,install_siz
       question  = "Dry run",
       ask       = "yes",
       parameter = "",
-      value     = $default_aws_dryrun,
+      value     = $default_dryrun,
       valid     = "",
       eval      = "no"
     )

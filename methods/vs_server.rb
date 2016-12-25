@@ -70,7 +70,7 @@ def configure_vs_repo(iso_file,repo_version_dir,install_service)
     end
   end
   check_dir = repo_version_dir+"/upgrade"
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Information:\tChecking directory #{check_dir} exists")
   end
   if !File.directory?(check_dir)

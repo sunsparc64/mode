@@ -76,22 +76,18 @@ def set_global_vars()
   $default_search           = "local"
   $default_files            = "files"
   $default_hosts            = "files dns"
-  $default_root_password    = "P455w0rd"
-  $default_admin_password   = "P455w0rd"
   $default_maas_admin       = "root"
   $default_maas_email       = $default_maas_admin+"@"+$default_host
   $default_mass_password    = $default_admin_password
-  $default_server_admin     = "root"
-  $default_server_password  = "P455w0rd"
+  $default_serveradmin     = "root"
+  $default_serverpassword  = "P455w0rd"
   $default_vnc_password     = "P455w0rd"
   $use_alt_repo             = 0
-  $destroy_fs               = "n"
   $use_defaults             = 0
   $default_apache_allow     = ""
   $default_admin_name       = "Sys Admin"
   $default_admin_user       = "sysadmin"
   $default_organisation     = "Multi OS Deployment Server"
-  $default_server_admin     = "root"
   $default_admin_group      = "wheel"
   $default_admin_home       = "/home/"+$default_admin_user
   $default_admin_shell      = "/bin/bash"
@@ -171,7 +167,6 @@ def set_global_vars()
   $default_server_vlanid    = "0"
   $default_server_vswitch   = "vSwitch0"
   $default_diskmode         = "thin"
-  $default_sitename         = $default_domainname.split(".")[0]
   $default_vcsa_size        = "tiny"
   $default_thindiskmode     = "true"
   $default_sshenable        = "true"
@@ -186,13 +181,13 @@ def set_global_vars()
   $enable_vnc               = 1
   $enable_strict            = 0
   $vnc_port                 = "5961"
-  $default_protocol         = "tcp"
   $novnc_dir                = $script_dir+"/noVNC"
   $novnc_url                = "git://github.com/kanaka/noVNC"
   $default_aws_type         = "amazon-ebs"
   $default_aws_size         = "t2.micro"
   $default_aws_region       = "ap-southeast-2"
-  $default_aws_ami          = "ami-fedafc9d"
+  $default_aws_centos_ami   = "ami-fedafc9d"
+  $default_aws_linux_ami    = "ami-28cff44b"
   $default_aws_creds        = $home_dir+"/.aws/credentials"
   $default_aws_suffix       = $script_name
   $default_aws_bucket       = $script_name+".bucket"
@@ -212,6 +207,26 @@ def set_global_vars()
   $default_cf_ssh_location  = "0.0.0.0/0"
   $default_aws_cidr         = $default_cf_ssh_location
   $default_aws_user         = "ec2-user"
+
+  # New defaults (cleaning up after commandline handling cleanup)
+
+  $default_ami            = $default_aws_linux_ami
+  $default_format         = "text"
+  $default_proto          = "tcp"
+  $default_serveradmin    = "root"
+  $default_serverpassword = "root"
+  $default_nosuffix       = false
+  $default_dryrun         = false
+  $default_strict         = false
+  $default_verbose        = false
+  $default_yes            = false
+  $default_defaults       = false
+  $default_copykeys       = false
+  $default_password       = "P455w0rd"
+  $default_serverpassword = "P455w0rd"
+  $default_sitename       = $default_domainname.split(".")[0]
+  $default_rootpassword   = "P455w0rd"
+  $default_adminpassword  = "P455w0rd"
 
   # VMware Fusion Global variables
   
@@ -284,22 +299,22 @@ def set_global_vars()
     end
     case platform
     when /VMware/
-      $default_gateway_ip  = "130.194.2.254"
-      $default_hostonly_ip = "130.194.2.254"
+      $default_gateway  = "130.194.2.254"
+      $default_hostonly = "130.194.2.254"
       if $os_name.match(/Linux/)
         $default_net = "eth0"
       end
     when /VirtualBox/
-      $default_gateway_ip  = "130.194.3.254"
-      $default_hostonly_ip = "130.194.3.254"
+      $default_gateway  = "130.194.3.254"
+      $default_hostonly = "130.194.3.254"
       if $os_info.match(/RedHat|CentOS/) and $os_rel.match(/^7/)
         $default_net = "enp0s3"
       else
         $default_net = "eth0"
       end
     else
-      $default_gateway_ip  = "130.194.3.254"
-      $default_hostonly_ip = "130.194.3.254"
+      $default_gateway  = "130.194.3.254"
+      $default_hostonly = "130.194.3.254"
       if $os_name.match(/Linux/)
         $default_net = "eth0"
         network_test = %x[ifconfig -a |grep eth0].chomp
@@ -337,7 +352,7 @@ end
 
 # Print script usage information
 
-def print_usage()
+def print_help()
   switches     = []
   long_switch  = ""
   short_switch = ""
@@ -551,7 +566,7 @@ end
 def create_install_mac(install_mac)
   if !install_mac.match(/[0-9]/)
     install_mac = (1..6).map{"%0.2X"%rand(256)}.join(":")
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Information:\tGenerated MAC address #{install_mac}")
     end
   end
@@ -620,10 +635,10 @@ end
 def check_local_config(install_mode)
   set_vmrun_bin()
   set_vboxmanage_bin()
-  if $do_ssh_keys == 1
+  if $mode_copykeys == true
     check_ssh_keys()
   end
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Information:\tHome directory #{$home_dir}")
   end
   if !$work_dir.match(/[a-z,A-Z,0-9]/)
@@ -634,13 +649,13 @@ def check_local_config(install_mode)
       $work_dir = $home_dir+"/."+dir_name
     end
   end
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Information:\tSetting work directory to #{$work_dir}")
   end
   if !$tmp_dir.match(/[a-z,A-Z,0-9]/)
     $tmp_dir = $work_dir+"/tmp"
   end
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Information:\tSetting temporary directory to #{$work_dir}")
   end
   # Get OS name and set system settings appropriately
@@ -678,7 +693,7 @@ def check_local_config(install_mode)
     if $os_name.match(/SunOS/) and !$os_rel.match(/11/)
       check_dir_exists("/tftpboot")
     end
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Information:\tSetting apache allow range to #{$default_apache_allow}")
     end
     if $os_name.match(/SunOS/)
@@ -740,7 +755,7 @@ def check_local_config(install_mode)
   check_dir_exists(bin_dir)
   $rpm2cpio_bin=bin_dir+"/rpm2cpio"
   if !File.exist?($rpm2cpio_bin)
-    if $download_mode == 1
+    if $download_mode == true
       wget_file($rpm2cpio_url,$rpm2cpio_bin)
       if File.exist?($rpm2cpio_bin)
         system("chmod +x #{$rpm2cpio_bin}")
@@ -887,7 +902,7 @@ end
 # SCP file to remote host
 
 def scp_file(install_server,install_serveradmin,install_serverpassword,local_file,remote_file)
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Information:\tCopying file \""+local_file+"\" to \""+install_server+":"+remote_file+"\"")
   end
   Net::SCP.start(install_server,install_serveradmin,:password => install_serverpassword, :paranoid => false) do |scp|
@@ -899,7 +914,7 @@ end
 # Execute SSH command
 
 def execute_ssh_command(install_server,install_serveradmin,install_serverpassword,command)
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Information:\tExecuting command \""+command+"\" on server "+install_server)
   end
   Net::SSH.start(install_server,install_serveradmin,:password => install_serverpassword, :paranoid => false) do |ssh|
@@ -976,7 +991,7 @@ def get_install_method(install_client,install_service)
   end
   service_dir = $repo_base_dir+"/"+install_service
   if File.directory?(service_dir) or File.symlink?(service_dir)
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Information:\tFound directory #{service_dir}")
       handle_output("Information:\tDetermining service type")
     end
@@ -1193,7 +1208,7 @@ def get_install_service_from_file(install_file)
   end
   install_os      = install_service
   install_service = install_os+"_"+service_version.gsub(/__/,"_")
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Information:\tSetting service name to #{install_service}")
     handle_output("Information:\tSetting OS name to #{install_os}")
   end
@@ -1477,7 +1492,7 @@ def get_install_service_from_client_name(install_client)
   message    = "Information:\tFinding client configuration directory for #{install_client}"
   command    = "find #{$client_base_dir} -name #{install_client} |grep '#{install_client}$'"
   client_dir = execute_command(message,command).chomp
-  if $verbose_mode == 1
+  if $verbose_mode == true
     if File.directory?(client_dir)
       handle_output("Information:\tNo client directory found for #{install_client}")
     else
@@ -1497,7 +1512,7 @@ def get_client_dir(install_client)
   message    = "Information:\tFinding client configuration directory for #{install_client}"
   command    = "find #{$client_base_dir} -name #{install_client} |grep '#{install_client}$'"
   client_dir = execute_command(message,command).chomp
-  if $verbose_mode == 1
+  if $verbose_mode == true
     if File.directory?(client_dir)
       handle_output("Information:\tNo client directory found for #{install_client}")
     else
@@ -1638,7 +1653,7 @@ end
 # Print contents of file
 
 def print_contents_of_file(message,file_name)
-  if $verbose_mode == 1 or $output_format.match(/html/)
+  if $verbose_mode == true or $output_format.match(/html/)
     if File.exist?(file_name)
       output = %x[cat '#{file_name}']
       if $output_format.match(/html/)
@@ -1658,7 +1673,7 @@ def print_contents_of_file(message,file_name)
         handle_output("</tr>")
         handle_output("</table>")
       else
-        if $verbose_mode == 1
+        if $verbose_mode == true
           handle_output("")
           if message.length > 1
             handle_output("Information:\t#{message}")
@@ -1693,7 +1708,7 @@ def show_output_of_command(message,output)
     handle_output("</tr>")
     handle_output("</table>")
   else
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("")
       handle_output("Information:\t#{message}:")
       handle_output("")
@@ -1768,7 +1783,7 @@ def remove_nfs_export(export_dir)
       command = "zfs set sharenfs=off #{$default_zpool}#{export_dir}"
       execute_command(message,command)
     else
-      if $verbose_mode == 1
+      if $verbose_mode == true
         handle_output("Information:\tZFS filesystem #{$default_zpool}#{export_dir} does not exist")
       end
     end
@@ -1838,7 +1853,7 @@ end
 def check_ssh_keys()
   ssh_key = $home_dir+"/.ssh/id_rsa.pub"
   if !File.exist?(ssh_key)
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Generating:\tPublic SSH key file #{ssh_key}")
     end
     system("ssh-keygen -t rsa")
@@ -2402,7 +2417,7 @@ end
 # Wget a file
 
 def wget_file(file_url,file_name)
-  if $download_mode == 1
+  if $download_mode == true
     wget_test = %[which wget].chomp
     if wget_test.match(/bin/)
       command  = "wget #{file_url} -O #{file_name}"
@@ -2523,13 +2538,7 @@ def destroy_zfs_fs(dir_name)
   zfs_list = %x[zfs list |grep -v NAME |awk '{print $5}' |grep "^#{dir_name}$"].chomp
   if zfs_list.match(/#{dir_name}/)
     zfs_name = %x[zfs list |grep -v NAME |grep "#{dir_name}$" |awk '{print $1}'].chomp
-    if $destroy_fs !~ /y|n/
-      while $destroy_fs !~ /y|n/
-        print "Destroy ZFS filesystem "+zfs_name+" [y/n]: "
-        $destroy_fs = gets.chomp
-      end
-    end
-    if $destroy_fs.match(/y|Y/)
+    if $yes_mode == true
       if File.directory?(dir_name)
         if dir_name.match(/netboot/)
           install_service = "svc:/network/tftp/udp6:default"
@@ -2567,12 +2576,12 @@ def execute_command(message,command)
   end
   output  = ""
   execute = 0
-  if $verbose_mode == 1
+  if $verbose_mode == true
     if message.match(/[a-z,A-Z,0-9]/)
       handle_output(message)
     end
   end
-  if $test_mode == 1
+  if $test_mode == true
     if !command.match(/create|update|import|delete|svccfg|rsync|cp|touch|svcadm|VBoxManage|vmrun|docker/)
       execute = 1
     end
@@ -2587,7 +2596,7 @@ def execute_command(message,command)
         end
       end
     end
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Executing:\t#{command}")
     end
     if $execute_host.match(/localhost/)
@@ -2604,7 +2613,7 @@ def execute_command(message,command)
       end
     end
   end
-  if $verbose_mode == 1
+  if $verbose_mode == true
     if output.length > 1
       if !output.match(/\n/)
         handle_output("Output:\t\t#{output}")
@@ -2628,7 +2637,7 @@ def get_date_string()
   date_string = date.to_s.gsub(/\s+/,"_")
   date_string = date_string.gsub(/:/,"_")
   date_string = date_string.gsub(/-/,"_")
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Information:\tSetting date string to #{date_string}")
   end
   return date_string
@@ -2790,7 +2799,7 @@ end
 
 def check_iso_base_dir(search_string)
   iso_list = []
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Checking:\t#{$iso_base_dir}")
   end
   check_fs_exists($iso_base_dir)
@@ -2970,7 +2979,7 @@ def add_apache_alias(service_base_name)
       message = "Archiving:\tApache config file "+apache_config_file+" to "+apache_config_file+".no_"+service_base_name
       command = "cp #{apache_config_file} #{apache_config_file}.no_#{service_base_name}"
       execute_command(message,command)
-      if $verbose_mode == 1
+      if $verbose_mode == true
         handle_output("Adding:\t\tDirectory and Alias entry to #{apache_config_file}")
       end
       message = "Copying:\tApache config file so it can be edited"
@@ -3041,7 +3050,7 @@ def mount_iso(iso_file)
   end
   if $os_name.match(/Darwin/)
     command = "sudo hdiutil attach -nomount \"#{iso_file}\" |head -1 |awk '{print $1}'"
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Executing:\t#{command}")
     end
     disk_id = %x[#{command}]
@@ -3059,7 +3068,7 @@ def mount_iso(iso_file)
       umount_iso()
       if $os_name.match(/Darwin/)
         command = "sudo hdiutil attach -nomount \"#{iso_file}\" |head -1 |awk '{print $1}'"
-        if $verbose_mode == 1
+        if $verbose_mode == true
           handle_output("Executing:\t#{command}")
         end
         disk_id = %x[#{command}]
@@ -3120,12 +3129,12 @@ end
 
 def check_my_dir_exists(dir_name)
   if !File.directory?(dir_name) and !File.symlink?(dir_name)
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Information:\tCreating directory '#{dir_name}'")
     end
     system("mkdir #{dir_name}")
   else
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Information:\tDirectory '#{dir_name}' already exists")
     end
   end
@@ -3148,7 +3157,7 @@ end
 # Copy repository from ISO to local filesystem
 
 def copy_iso(iso_file,repo_version_dir)
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Checking:\tIf we can copy data from full repo ISO")
   end
   if iso_file.match(/sol/)
@@ -3276,7 +3285,7 @@ end
 def umount_iso()
   if $os_name.match(/Darwin/)
     command = "df |grep '#{$iso_mount_dir}$' |head -1 |awk '{print $1}'"
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Executing:\t#{command}")
     end
     disk_id = %x[#{command}]

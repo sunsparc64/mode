@@ -375,7 +375,7 @@ def boot_parallels_vm(install_client)
     exit
   end
   message = "Starting:\tVM "+install_client
-  if $text_mode == 1 or $serial_mode == 1
+  if $text_mode == true or $serial_mode == true
     handle_output("") 
     handle_output("Information:\tBooting and connecting to virtual serial port of #{install_client}")
     handle_output("") 
@@ -391,7 +391,7 @@ def boot_parallels_vm(install_client)
     command = "prlctl start #{install_client} ; open \"/Applications/Parallels Desktop.app\" &"
     execute_command(message,command)
   end
-  if $serial_mode == 1
+  if $serial_mode == true
     system("socat UNIX-CONNECT:/tmp/#{install_client} STDIO,raw,echo=0,escape=0x11,icanon=0")
   else
     handle_output("") 

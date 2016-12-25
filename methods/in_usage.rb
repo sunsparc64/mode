@@ -108,7 +108,7 @@ def print_md(md_file)
         end
       end
     else
-      if $verbose_mode == 1
+      if $verbose_mode == true
         handle_output("Warning:\tFile: #{md_file} contains no information")
       end
     end

@@ -10,21 +10,21 @@ def list_cdom_services()
         ldom_command = "ldm list |grep ^primary |awk '{print $1}'"
         list_doms(ldom_type,ldom_command)
       else
-        if $verbose_mode == 1
+        if $verbose_mode == true
           handle_output("") 
           handle_output("Warning:\tThis service is only available on the Sun4v platform")
           handle_output("") 
         end
       end
     else
-      if $verbose_mode == 1
+      if $verbose_mode == true
         handle_output("") 
         handle_output("Warning:\tThis service is only available on Solaris 10 or later")
         handle_output("") 
       end
     end
   else
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("") 
       handle_output("Warning:\tThis service is only available on Solaris")
       handle_output("") 
@@ -136,7 +136,7 @@ def check_cdom_config()
     command = "ldm add-config #{config}"
     execute_command(message,command)
     command = "shutdown -y -g0 -i6"
-    if $yes_to_all == 1
+    if $yes_mode == true
       message = "Warning:\tRebooting primary domain to enable settings"
       execute_command(message,command)
     else

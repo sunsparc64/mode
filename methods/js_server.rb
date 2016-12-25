@@ -129,7 +129,7 @@ def configure_js_repo(iso_file,repo_version_dir,os_version,os_update)
     check_dir_exists(repo_version_dir)
   end
   check_dir = repo_version_dir+"/boot"
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Checking:\tDirectory #{check_dir} exists")
   end
   if !File.directory?(check_dir)
@@ -140,7 +140,7 @@ def configure_js_repo(iso_file,repo_version_dir,os_version,os_update)
       else
         check_dir = $iso_mount_dir+"/installer"
       end
-      if $verbose_mode == 1
+      if $verbose_mode == true
         handle_output("Checking:\tDirectory #{check_dir} exists")
       end
       if File.directory?(check_dir) or File.exist?(check_dir)

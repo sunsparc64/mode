@@ -416,7 +416,7 @@ def create_zone(install_client,install_ip,zone_dir,client_rel,image_file,install
       end
     end
   end
-  if $serial_mode == 1
+  if $serial_mode == true
     boot_zone(install_client)
   end
   add_hosts_entry(install_client,install_ip)
@@ -442,7 +442,7 @@ def unconfigure_zone(install_client)
   message = "Information:\tDeleting Zone "+install_client+" configuration"
   command = "zonecfg -z #{install_client} delete -F"
   execute_command(message,command)
-  if $yes_to_all == 1
+  if $yes_mode == true
     zone_dir = $zone_base_dir+"/"+install_client
     destroy_zfs_fs(zone_dir)
   end
@@ -466,7 +466,7 @@ def boot_zone(install_client)
   message = "Information:\tBooting Zone "+install_client
   command = "zoneadm -z #{install_client} boot"
   execute_command(message,command)
-  if $serial_mode == 1
+  if $serial_mode == true
     system("zlogin #{install_client}")
   end
   return

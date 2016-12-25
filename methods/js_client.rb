@@ -200,8 +200,8 @@ def configure_js_pxe_client(install_client,install_mac,install_arch,install_serv
     file.write("default 0\n")
     file.write("timeout 3\n")
     file.write("title Oracle Solaris\n")
-    if $text_mode == 1
-      if $serial_mode == 1
+    if $text_mode == true
+      if $serial_mode == true
         file.write("\tkernel$ #{install_service}/boot/multiboot kernel/$ISADIR/unix - install nowin -B console=ttya,keyboard-layout=US-English,install_media=#{install_url},install_config=#{sysid_url},sysid_config=#{sysid_url}\n")
       else
         file.write("\tkernel$ #{install_service}/boot/multiboot kernel/$ISADIR/unix - install nowin -B keyboard-layout=US-English,install_media=#{install_url},install_config=#{sysid_url},sysid_config=#{sysid_url}\n")

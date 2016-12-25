@@ -84,7 +84,7 @@ def create_vm(install_method,install_vm,install_client,install_mac,install_os,in
     install_mac = check_fusion_vm_mac(install_mac)
   end
   if !install_method.match(/[a-z]/) and !install_os.match(/[a-z]/)
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Warning:\tInstall method or OS not specified")
       handle_output("Information:\tSetting OS to other")
     end

@@ -75,7 +75,7 @@ def configure_ks_pxe_client(install_client,install_ip,install_mac,install_arch,i
   autoyast_url = "http://"+host_info+"/clients/"+install_service+"/"+install_client+"/"+install_client+".xml"
   install_url  = "http://"+host_info+"/"+install_service
   file         = File.open(tmp_file,"w")
-  if $serial_mode == 1
+  if $serial_mode == true
     file.write("serial 0 115200\n")
     file.write("prompt 0\n")
   end
@@ -107,14 +107,14 @@ def configure_ks_pxe_client(install_client,install_ip,install_mac,install_arch,i
       end
     end
   end
-  if $text_mode == 1
+  if $text_mode == true
     if install_service.match(/sles/)
       append_string = append_string+" textmode=1"
     else
       append_string = append_string+" text"
     end
   end
-  if $serial_mode == 1
+  if $serial_mode == true
     append_string = append_string+" serial console=ttyS0"
   end
   append_string = append_string+"\n"
@@ -414,7 +414,7 @@ def populate_ks_post_list(install_arch,install_service,publisher_host,install_cl
     post_list.push("echo 'HOSTNAME=#{install_client}' >> /etc/sysconfig/network")
     post_list.push("")
   end
-  if $do_ssh_keys == 1
+  if $mode_copykeys == true
     post_list.push("# Copy SSH keys")
     post_list.push("")
     ssh_key = $home_dir+"/.ssh/id_rsa.pub"
@@ -466,13 +466,13 @@ def populate_ks_post_list(install_arch,install_service,publisher_host,install_cl
     post_list.push("grubby --update-kernel=ALL --args=\"console=ttyS0\"")
     post_list.push("")
   end
-  if $use_alt_repo == 1
+  if $altrepo_mode == true
     post_list.push("mkdir /tmp/rpms")
     post_list.push("cd /tmp/rpms")
     alt_url  = "http://"+$default_host
     rpm_list = build_ks_alt_rpm_list(install_service)
     alt_dir  = $repo_base_dir+"/"+install_service+"/alt"
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Checking:\tAdditional packages")
     end
     if File.directory?(alt_dir)

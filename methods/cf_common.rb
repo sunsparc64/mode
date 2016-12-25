@@ -1,3 +1,4 @@
+
 # Cloud Formation common code
 
 # Initiate Cloud Formation Stack

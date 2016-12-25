@@ -161,7 +161,7 @@ def update_ai_client_grub_cfg(install_mac)
   netboot_mac = "01"+netboot_mac
   netboot_mac = netboot_mac.upcase
   grub_file   = $tftp_dir+"/grub.cfg."+netboot_mac
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Updating:\tGrub config file #{grub_file}")
   end
   if File.exists?(grub_file)
@@ -257,7 +257,7 @@ def check_ai_client_doesnt_exist(install_client,install_mac,install_service)
   output      = execute_command(message,command)
   if output.match(/#{install_client}/)
     handle_output("Warning:\tProfile already exists for #{install_client}")
-    if $yes_to_all == 1
+    if $yes_mode == true
       handle_output("Deleting:\rtClient #{install_client}")
       unconfigure_ai_client(install_client,install_mac,install_service)
     else

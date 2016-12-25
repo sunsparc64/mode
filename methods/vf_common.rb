@@ -236,7 +236,7 @@ def get_fusion_vm_vmx_file_value(install_client,install_search)
       vm_value = "File Not Readable"
     end
   else
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Warning:\tWMware configuration file \"#{vmx_file}\" not found for client")
     end
   end
@@ -681,7 +681,7 @@ def attach_file_to_fusion_vm(install_client,install_file,install_type)
     handle_output("Warning:\tFusion VM #{install_client} does not exist ")
     exit
   end
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Information:\tAttaching file #{install_file} to #{install_client}")
     handle_output("Information:\tModifying file \"#{fusion_vmx_file}\"")
   end
@@ -706,7 +706,7 @@ end
 # Detach VMware Fusion VM CDROM
 
 def detach_file_from_fusion_vm(install_client)
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Information:\tDetaching CDROM from #{install_client}")
   end
   fusion_vm_dir    = $fusion_dir+"/"+install_client+".vmwarevm"
@@ -838,14 +838,14 @@ def boot_fusion_vm(install_client,install_type)
     fusion_vm_dir    = $fusion_dir+"/"+install_client+".vmwarevm"
     fusion_vmx_file  = fusion_vm_dir+"/"+install_client+".vmx"
     message          = "Starting:\tVM "+install_client
-    if $text_mode == 1
+    if $text_mode == true
       command = "\"#{$vmrun_bin}\" -T fusion start \"#{fusion_vmx_file}\" nogui &"
     else
       command = "\"#{$vmrun_bin}\" -T fusion start \"#{fusion_vmx_file}\" &"
     end
     execute_command(message,command)
-    if $serial_mode == 1
-      if $verbose_mode == 1
+    if $serial_mode == true
+      if $verbose_mode == true
         handle_output("Information:\tConnecting to serial port of #{install_client}")
       end
       begin
@@ -875,7 +875,7 @@ def add_shared_folder_to_fusion_vm(install_client,install_share,install_mount)
     command = "'#{$vmrun_bin}' -T fusion addSharedFolder '#{fusion_vmx_file}' #{install_mount} #{install_share}"
     execute_command(message,command)
   else
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Information:\tVMware Fusion VM #{install_client} not running")
     end
   end
@@ -908,7 +908,7 @@ def stop_fusion_vm(install_client)
         return
       end
     end
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Information:\tVMware Fusion VM #{install_client} not running")
     end
   end
@@ -930,7 +930,7 @@ def reset_fusion_vm(install_client)
     command = "'#{$vmrun_bin}' -T fusion reset '#{fusion_vmx_file}'"
     execute_command(message,command)
   else
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Information:\tVMware Fusion VM #{install_client} not running")
     end
   end
@@ -948,7 +948,7 @@ def suspend_fusion_vm(install_client)
     command = "'#{$vmrun_bin}' -T fusion suspend '#{fusion_vmx_file}'"
     execute_command(message,command)
   else
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Information:\tVMware Fusion VM #{install_client} not running")
     end
   end
@@ -978,12 +978,12 @@ def check_fusion_vm_exists(install_client)
   fusion_vm_dir   = $fusion_dir+"/"+install_client+".vmwarevm"
   fusion_vmx_file = fusion_vm_dir+"/"+install_client+".vmx"
   if !File.exist?(fusion_vmx_file)
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Information:\tVMware Fusion VM #{install_client} does not exist")
     end
     exists = "no"
   else
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Information:\tVMware Fusion VM #{install_client} exists")
     end
     exists = "yes"
@@ -1227,7 +1227,7 @@ def unconfigure_fusion_vm(install_client)
     command  = "cd '#{$fusion_dir}' ; rm -rf '#{vm_dir}'"
     execute_command(message,command)
   else
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("Warning:\tVMware Fusion VM #{install_client} does not exist")
     end
   end

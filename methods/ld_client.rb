@@ -46,21 +46,21 @@ def list_gdoms()
         ldom_command = "ldm list |grep -v NAME |grep -v primary |awk '{print $1}'"
         list_doms(ldom_type,ldom_command)
       else
-        if $verbose_mode == 1
+        if $verbose_mode == true
           handle_output("") 
           handle_output("Warning:\tThis service is only available on the Sun4v platform")
           handle_output("") 
         end
       end
     else
-      if $verbose_mode == 1
+      if $verbose_mode == true
         handle_output("") 
         handle_output("Warning:\tThis service is only available on Solaris 10 or later")
         handle_output("") 
       end
     end
   else
-    if $verbose_mode == 1
+    if $verbose_mode == true
       handle_output("") 
       handle_output("Warning:\tThis service is only available on Solaris")
       handle_output("") 

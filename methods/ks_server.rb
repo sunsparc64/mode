@@ -78,7 +78,7 @@ def configure_ks_repo(install_service,iso_file,repo_version_dir)
   else
     check_dir = repo_version_dir+"/isolinux"
   end
-  if $verbose_mode == 1
+  if $verbose_mode == true
     handle_output("Information:\tChecking directory #{check_dir} exits")
   end
   if !File.directory?(check_dir)
@@ -256,7 +256,7 @@ def configure_ks_vmware_repo(install_service,install_arch)
     vmware_url   = vmware_url+"/rhel6/"+install_arch+"/"
     repodata_url = vmware_url+"repodata/"
   end
-  if $download_mode == 1
+  if $download_mode == true
     if !File.directory?(vmware_dir)
       check_dir_exists(vmware_dir)
       message = "Information:\tFetching VMware RPMs"
@@ -307,7 +307,7 @@ def configure_ks_puppet_repo(install_service,iso_arch)
         pkg_url    = puppet_rpm_url+pkg_file
         local_file = puppet_local_dir+"/"+pkg_file
         if !File.exist?(local_file) or File.size(local_file) == 0
-          if $verbose_mode == 1
+          if $verbose_mode == true
             handle_output("Fetching #{pkg_url} to #{local_file}")
           end
           agent = Mechanize.new

@@ -19,7 +19,7 @@ def boot_lxc(install_client)
     message = "Information:\tStarting client "+install_client
     command = "lxc-start -n #{install_client} -d"
     execute_command(message,command)
-    if $serial_mode == 1
+    if $serial_mode == true
       system("lxc-console -n #{install_client}")
     end
   end

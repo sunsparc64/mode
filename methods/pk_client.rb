@@ -1095,7 +1095,7 @@ end
 # Delete a packer image
 
 def unconfigure_packer_client(install_client,install_vm)
-	if $verbose_mode == 1
+	if $verbose_mode == true
 		handle_output("Information:\tDeleting Packer Image for #{install_client}")
 	end
 	packer_dir = $client_base_dir+"/packer/"+install_vm
@@ -1107,14 +1107,14 @@ def unconfigure_packer_client(install_client,install_vm)
   disk_file  = image_dir+"/"+install_client+"-disk1.vmdk"
   [ ovf_file, cfg_file, json_file, disk_file ].each do |file_name|
     if File.exist?(file_name)
-    	if $verbose_mode == 1
+    	if $verbose_mode == true
     		handle_output("Information:\tDeleting file #{file_name}")
     	end
     	File.delete(file_name)
     end
   end
   if Dir.exist?(image_dir)
-  	if $verbose_mode == 1
+  	if $verbose_mode == true
   		handle_output("Information:\tDeleting directory #{image_dir}")
   	end
     if image_dir.match(/[a-z]/)
