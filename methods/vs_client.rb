@@ -192,7 +192,7 @@ end
 
 # Configure VSphere client
 
-def configure_vs_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
+def configure_vs_client(install_client,install_arch,install_mac,install_ip,install_model,publisherhost,install_service,
                         install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type,install_vm)
   repo_version_dir=$repo_base_dir+"/"+install_service
   if !File.directory?(repo_version_dir) and !File.symlink?(repo_version_dir)
@@ -299,7 +299,7 @@ def populate_vs_firstboot_list(install_service,install_license,install_client)
   post_list.push("")
   post_list.push("url = \"https://localhost/mob/?moid=ha-vnic-mgr&method=selectVnic\"")
   post_list.push("username = \"root\"")
-  post_list.push("password = \"#{$default_root_password}\"")
+  post_list.push("password = \"#{$default_rootpassword}\"")
   post_list.push("")
   post_list.push("# Create global variables")
   post_list.push("global passman,authhandler,opener,req,page,page_content,nonce,headers,cookie,params,e_params")

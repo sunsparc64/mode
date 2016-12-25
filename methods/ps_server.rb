@@ -3,9 +3,9 @@
 
 # Configure Preseed server
 
-def configure_ps_server(install_arch,publisher_host,publisher_port,install_service,install_file)
+def configure_ps_server(install_arch,publisherhost,publisherport,install_service,install_file)
   search_string = "ubuntu"
-  configure_linux_server(install_arch,publisher_host,publisher_port,install_service,install_file,search_string)
+  configure_linux_server(install_arch,publisherhost,publisherport,install_service,install_file,search_string)
   return
 end
 

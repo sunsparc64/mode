@@ -141,7 +141,7 @@ def populate_pe_questions(install_service,install_client,install_ip,install_mirr
     question  = "Admin Password",
     ask       = "yes",
     parameter = "",
-    value     = $default_admin_password,
+    value     = $default_adminpassword,
     valid     = "",
     eval      = "no"
     )
@@ -236,7 +236,7 @@ def populate_pe_questions(install_service,install_client,install_ip,install_mirr
       question  = "Gateway Address",
       ask       = "yes",
       parameter = "",
-      value     = $default_gateway_ip,
+      value     = $default_gateway,
       valid     = "",
       eval      = "no"
       )

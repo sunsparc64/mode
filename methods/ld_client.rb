@@ -230,7 +230,7 @@ end
 
 # Configure Guest domain
 
-def configure_gdom(install_client,install_ip,install_mac,install_arch,install_os,install_release,publisher_host,install_file,install_service)
+def configure_gdom(install_client,install_ip,install_mac,install_arch,install_os,install_release,publisherhost,install_file,install_service)
   service_name = ""
   check_dpool()
   check_gdom_doesnt_exist(install_client)
@@ -255,13 +255,13 @@ def configure_gdom(install_client,install_ip,install_mac,install_arch,install_os
   return
 end
 
-def configure_gdom_client(install_client,install_ip,install_mac,install_arch,install_os,install_release,publisher_host,install_file,install_service)
-  configure_gdom(install_client,install_ip,install_mac,install_arch,install_os,install_release,publisher_host,install_file,install_service)
+def configure_gdom_client(install_client,install_ip,install_mac,install_arch,install_os,install_release,publisherhost,install_file,install_service)
+  configure_gdom(install_client,install_ip,install_mac,install_arch,install_os,install_release,publisherhost,install_file,install_service)
   return
 end
 
-def configure_ldom_client(install_client,install_ip,install_mac,install_arch,install_os,install_release,publisher_host,install_file,install_service)
-  configure_gdom(install_client,install_ip,install_mac,install_arch,install_os,install_release,publisher_host,install_file,install_service)
+def configure_ldom_client(install_client,install_ip,install_mac,install_arch,install_os,install_release,publisherhost,install_file,install_service)
+  configure_gdom(install_client,install_ip,install_mac,install_arch,install_os,install_release,publisherhost,install_file,install_service)
   return
 end
 

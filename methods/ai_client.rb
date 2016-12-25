@@ -182,14 +182,14 @@ end
 # Main code to configure AI client services
 # Called from main code
 
-def configure_ai_client_services(client_arch,publisher_host,publisher_port,install_service)
+def configure_ai_client_services(client_arch,publisherhost,publisherport,install_service)
   handle_output("")
   handle_output("You will be presented with a set of questions followed by the default output")
   handle_output("If you are happy with the default output simply hit enter")
   handle_output("")
   service_list = []
   # Populate questions for AI manifest
-  populate_ai_manifest_questions(publisher_host,publisher_port)
+  populate_ai_manifest_questions(publisherhost,publisherport)
   # Process questions
   process_questions(install_service)
   # Set name of AI manifest file to create and import
@@ -269,7 +269,7 @@ end
 
 # Main code to actually add a client
 
-def configure_ai_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
+def configure_ai_client(install_client,install_arch,install_mac,install_ip,install_model,publisherhost,install_service,
                         install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type,install_vm)
   # Populate questions for AI profile
   if !install_service.match(/i386|sparc/)

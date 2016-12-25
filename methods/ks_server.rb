@@ -220,7 +220,7 @@ end
 
 # Configure Kickstart server
 
-def configure_ks_server(install_arch,publisher_host,publisher_port,install_service,iso_file)
+def configure_ks_server(install_arch,publisherhost,publisherport,install_service,iso_file)
   if install_service.match(/[a-z,A-Z]/)
     if install_service.downcase.match(/centos/)
       search_string = "CentOS"
@@ -237,7 +237,7 @@ def configure_ks_server(install_arch,publisher_host,publisher_port,install_servi
   else
     search_string = "CentOS|rhel|SL|OracleLinux|Fedora"
   end
-  configure_linux_server(install_arch,publisher_host,publisher_port,install_service,iso_file,search_string)
+  configure_linux_server(install_arch,publisherhost,publisherport,install_service,iso_file,search_string)
   return
 end
 
@@ -323,10 +323,10 @@ end
 
 # Configue Linux server
 
-def configure_linux_server(install_arch,publisher_host,publisher_port,install_service,iso_file,search_string)
+def configure_linux_server(install_arch,publisherhost,publisherport,install_service,iso_file,search_string)
   iso_list = []
   check_fs_exists($client_base_dir)
-  check_dhcpd_config(publisher_host)
+  check_dhcpd_config(publisherhost)
   if iso_file.match(/[a-z,A-Z]/)
     if File.exist?(iso_file)
       if !iso_file.match(/CentOS|rhel|Fedora|SL|OracleLinux|ubuntu/)

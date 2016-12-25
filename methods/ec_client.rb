@@ -54,7 +54,7 @@ end
 # Connect to AWS VM
 
 def connect_to_aws_vm(install_access,install_secret,install_region,install_client,install_id,install_ip,install_key,install_keyfile,install_admin)
-  if $strict_mode == 1
+  if $strict_mode == true
     ssh_command = "ssh"
   else
     ssh_command = "ssh -o StrictHostKeyChecking=no"
@@ -88,10 +88,10 @@ def connect_to_aws_vm(install_access,install_secret,install_region,install_clien
   end
   command = "#{ssh_command} -i #{install_keyfile} #{install_admin}@#{install_ip}" 
   update_user_ssh_config(install_ip,install_id,install_client,install_keyfile,install_admin)
-  if $verbos_mode == 1
+  if $verbos_mode == true
     handle_output("Information:\tExecuting '#{command}'")
   end
-  if $verbos_mode == 1
+  if $verbos_mode == true
     handle_output("Information:\tExecuting '#{command}'")
   end
   exec "#{command}"
@@ -285,7 +285,7 @@ end
 # Export AWS instance
 
 def export_aws_image(install_access,install_secret,install_region,install_ami,install_id,install_prefix,install_bucket,install_container,install_comment,install_target,install_format,install_acl)
-  if $nosuffix == 0
+  if $nosuffix_mode == false
     install_bucket = get_aws_uniq_name(install_name,install_region)
   end
   s3  = create_aws_s3_bucket(install_access,install_secret,install_region,install_bucket)
@@ -315,7 +315,7 @@ def configure_aws_client(install_name,install_type,install_ami,install_region,in
     end
     handle_output("Information:\tSetting Key Name to #{install_key}")
   end
-  if $nosuffix == 0
+  if $nosuffix_mode == false
     install_name = get_aws_uniq_name(install_name,install_region)
     install_key  = get_aws_uniq_name(install_key,install_region)
   end

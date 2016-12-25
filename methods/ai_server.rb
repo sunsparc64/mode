@@ -238,10 +238,10 @@ end
 
 # Fix entry for client so it is given a fixed IP rather than one from the range
 
-def fix_server_dhcpd_range(publisher_host)
+def fix_server_dhcpd_range(publisherhost)
   copy        = []
   dhcp_file  = "/etc/inet/dhcpd4.conf"
-  dhcpd_range = publisher_host.split(/\./)[0..2]
+  dhcpd_range = publisherhost.split(/\./)[0..2]
   dhcpd_range = dhcpd_range.join(".")
   backup_file(dhcp_file)
   text        = File.readlines(dhcp_file)
@@ -259,7 +259,7 @@ end
 
 # Main server routine called from modest main code
 
-def configure_ai_server(client_arch,publisher_host,publisher_port,install_service,file_name)
+def configure_ai_server(client_arch,publisherhost,publisherport,install_service,file_name)
   # Enable default package service
   clear_service("svc:/system/install/server:default")
   enable_service("svc:/system/install/server:default")
@@ -268,7 +268,7 @@ def configure_ai_server(client_arch,publisher_host,publisher_port,install_servic
   check_default_route()
   # Check that we have a DHCPd config file to write to
   check_dhcpd4_conf()
-  check_dhcpd_config(publisher_host)
+  check_dhcpd_config(publisherhost)
   # Get a list of installed services
   services_list = get_ai_install_services()
   # If given a service name check the service doesn't already exist
@@ -330,17 +330,17 @@ def configure_ai_server(client_arch,publisher_host,publisher_port,install_servic
     end
     check_ai_base_dir()
     read_only = "true"
-    publisher_port = check_publisher_port(publisher_port)
-    configure_ai_pkg_repo(publisher_host,publisher_port,service_base_name,repo_version_dir,read_only)
+    publisherport = check_publisherport(publisherport)
+    configure_ai_pkg_repo(publisherhost,publisherport,service_base_name,repo_version_dir,read_only)
     if $altrepo_mode == true
       alt_install_service=check_alt_install_service(install_service)
-      configure_ai_alt_pkg_repo(publisher_host,publisher_port,alt_install_service)
+      configure_ai_alt_pkg_repo(publisherhost,publisherport,alt_install_service)
     end
-    publisher_url = get_ai_publisher_url(publisher_host,publisher_port)
+    publisher_url = get_ai_publisher_url(publisherhost,publisherport)
     configure_ai_services(iso_repo_version,publisher_url,client_arch)
-    configure_ai_client_services(client_arch,publisher_host,publisher_port,service_base_name)
+    configure_ai_client_services(client_arch,publisherhost,publisherport,service_base_name)
   end
-  fix_server_dhcpd_range(publisher_host)
+  fix_server_dhcpd_range(publisherhost)
 end
 
 # List AI services

@@ -173,7 +173,7 @@ def check_osx_puppet_install()
         command = "which ruby"
         output  = execute_command(message,command)
         if output.match(/rvm/)
-          use_rvm  = 1
+          use_rvm  = true
           message  = "Information:\tStoring RVM Ruby version"
           command  = "rvm current"
           output   = execute_command(message,command)
@@ -196,7 +196,7 @@ def check_osx_puppet_install()
         message = "Information:\tFixing Puppet permissions"
         command = "chown -R puppet:puppet  /var/lib/puppet ; chown -R puppet:puppet  /etc/puppet"
         execute_command(message,command)
-        if use_rvm == 1
+        if use_rvm == true
           message = "Information:\tReverting RVM to use "+rvm_ruby
           command = "rvm use rvm_ruby"
           execute_command(message,command)
@@ -494,16 +494,16 @@ def check_osx_service_is_enabled(service)
   else
     backup_file(plist_file)
     copy      = []
-    check     = 0
+    check     = false
     file_info = IO.readlines(plist_file)
     file_info.each do |line|
       if line.match(/Disabled/)
-        check = 1
+        check = true
       end
       if line.match(/Label/)
-        check = 0
+        check = false
       end
-      if check == 1 and line.match(/true/)
+      if check == true and line.match(/true/)
         copy.push(line.gsub(/true/,"false"))
       else
         copy.push(line)

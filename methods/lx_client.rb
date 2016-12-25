@@ -348,7 +348,7 @@ end
 
 # Configure a container
 
-def configure_lxc(install_client,install_ip,install_mac,install_arch,client_os,client_rel,publisher_host,image_file,install_service)
+def configure_lxc(install_client,install_ip,install_mac,install_arch,client_os,client_rel,publisherhost,image_file,install_service)
   check_lxc_doesnt_exist(install_client)
   if !install_service.match(/[a-z,A-Z]/) and !image_file.match(/[a-z,A-Z]/)
     handle_output("Warning:\tImage file or Service name not specified")

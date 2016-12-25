@@ -8,7 +8,7 @@ end
 
 # Configure client PXE boot
 
-def configure_xb_pxe_client(install_client,client_ip,install_mac,client_arch,install_service,publisher_host)
+def configure_xb_pxe_client(install_client,client_ip,install_mac,client_arch,install_service,publisherhost)
   os_version    = install_service.split(/_/)[1..2].join(".")
   tftp_pxe_file = install_mac.gsub(/:/,"")
   tftp_pxe_file = tftp_pxe_file.upcase
@@ -40,7 +40,7 @@ def configure_xb_pxe_client(install_client,client_ip,install_mac,client_arch,ins
     end
     client_dir   = $client_base_dir+"/"+install_service+"/"+install_client
     client_file  = client_dir+"/"+install_client+".yml"
-    client_url   = "http://"+publisher_host+"/clients/"+install_service+"/"+install_client+"/"+install_client+".yml"
+    client_url   = "http://"+publisherhost+"/clients/"+install_service+"/"+install_client+"/"+install_client+".yml"
     pxe_cfg_dir  = $tftp_dir+"/pxelinux.cfg"
     pxe_cfg_file = install_mac.gsub(/:/,"-")
     pxe_cfg_file = "01-"+pxe_cfg_file
@@ -150,7 +150,7 @@ end
 
 # Configure BSD client
 
-def configure_xb_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
+def configure_xb_client(install_client,install_arch,install_mac,install_ip,install_model,publisherhost,install_service,
                         install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)
   repo_version_dir = $repo_base_dir+"/"+install_service
   if !File.directory?(repo_version_dir)
@@ -164,7 +164,7 @@ def configure_xb_client(install_client,install_arch,install_mac,install_ip,insta
     process_questions(install_service)
     output_coreos_client_profile(install_client,install_service)
   end
-  configure_xb_pxe_client(install_client,install_ip,install_mac,install_arch,install_service,publisher_host)
+  configure_xb_pxe_client(install_client,install_ip,install_mac,install_arch,install_service,publisherhost)
   configure_xb_dhcp_client(install_client,install_mac,install_ip,install_arch,install_service)
   add_hosts_entry(install_client,install_ip)
   return

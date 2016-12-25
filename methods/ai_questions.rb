@@ -1,7 +1,7 @@
 
 # Populate array of structs containing AI manifest questions
 
-def populate_ai_manifest_questions(publisher_host,publisher_port)
+def populate_ai_manifest_questions(publisherhost,publisherport)
   $q_struct={}
   $q_order=[]
 
@@ -17,7 +17,7 @@ def populate_ai_manifest_questions(publisher_host,publisher_port)
   $q_order.push(name)
 
   name="publisher_url"
-  publisher_url=get_ai_publisher_url(publisher_host,publisher_port)
+  publisher_url=get_ai_publisher_url(publisherhost,publisherport)
   config=Ai.new(
     question  = "Publisher URL",
     ask       = "yes",
@@ -40,7 +40,7 @@ def populate_ai_manifest_questions(publisher_host,publisher_port)
   $q_order.push(name)
 
   name="repo_url"
-  repo_url=get_ai_repo_url(publisher_url,publisher_host,publisher_port)
+  repo_url=get_ai_repo_url(publisher_url,publisherhost,publisherport)
   config=Ai.new(
     question  = "Solaris repository version",
     ask       = "yes",
@@ -53,7 +53,7 @@ def populate_ai_manifest_questions(publisher_host,publisher_port)
 
   if $altrepo_mode == true and $default_options.match(/puppet/)
     name="alt_publisher_url"
-    alt_publisher_url=get_alt_publisher_url(publisher_host,publisher_port)
+    alt_publisher_url=get_alt_publisher_url(publisherhost,publisherport)
     config=Ai.new(
       question  = "Alternate publisher URL",
       ask       = "yes",
@@ -88,7 +88,7 @@ def populate_ai_client_profile_questions(client_ip,client_name)
   config=Ai.new(
     question  = "Root Password",
     ask       = "yes",
-    value     = $default_root_password,
+    value     = $default_rootpassword,
     valid     = "",
     eval      = "no"
     )
@@ -143,7 +143,7 @@ def populate_ai_client_profile_questions(client_ip,client_name)
   config=Ai.new(
     question  = "Admin Account Password",
     ask       = "yes",
-    value     = $default_admin_password,
+    value     = $default_adminpassword,
     valid     = "",
     eval      = "no"
     )

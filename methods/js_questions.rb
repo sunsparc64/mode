@@ -263,7 +263,7 @@ end
 
 # Populate Jumpstart machine file
 
-def populate_js_machine_questions(client_model,client_karch,publisher_host,install_service,os_version,os_update,image_file)
+def populate_js_machine_questions(client_model,client_karch,publisherhost,install_service,os_version,os_update,image_file)
   $q_struct = {}
   $q_order  = []
 
@@ -399,7 +399,7 @@ def populate_js_machine_questions(client_model,client_karch,publisher_host,insta
 
   if image_file.match(/flar/)
 
-    archive_url = "http://"+publisher_host+image_file
+    archive_url = "http://"+publisherhost+image_file
 
     name = "archive_location"
     config = Js.new(
@@ -856,7 +856,7 @@ def populate_js_sysid_questions(install_client,install_ip,install_arch,client_mo
     question  = "Root password",
     ask       = "yes",
     parameter = "",
-    value     = $default_root_password,
+    value     = $default_rootpassword,
     valid     = "",
     eval      = "set_js_password_crypt(answer)"
     )

@@ -872,4 +872,6 @@
 # 4.3.6: Fri 23 Dec 2016 22:11:02 AEDT
 # Added code to add and delete EC2 security group rules
 # 4.3.7: Sun 25 Dec 2016 20:59:07 AEDT
-# Initial rewrite of commandline argument handling
+# Initial rewrite of command line argument handling
+# 4.3.8: Mon 26 Dec 2016 10:56:52 AEDT
+# Further cleanup of command line argument handling

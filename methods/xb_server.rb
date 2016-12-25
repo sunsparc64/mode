@@ -2,7 +2,7 @@
 
 # Configure BSD server
 
-def configure_xb_server(install_client,publisher_host,publisher_port,install_service,iso_file)
+def configure_xb_server(install_client,publisherhost,publisherport,install_service,iso_file)
   if install_service.match(/[a-z,A-Z]/)
     case install_service
     when /openbsd/
@@ -15,7 +15,7 @@ def configure_xb_server(install_client,publisher_host,publisher_port,install_ser
   else
     search_string = "install|FreeBSD|coreos"
   end
-  configure_other_server(install_client,publisher_host,publisher_port,install_service,iso_file,search_string)
+  configure_other_server(install_client,publisherhost,publisherport,install_service,iso_file,search_string)
   return
 end
 
@@ -72,9 +72,9 @@ end
 
 # Configue BSD server
 
-def configure_other_server(install_client,publisher_host,publisher_port,install_service,iso_file,search_string)
+def configure_other_server(install_client,publisherhost,publisherport,install_service,iso_file,search_string)
   iso_list = []
-  check_dhcpd_config(publisher_host)
+  check_dhcpd_config(publisherhost)
   if iso_file.match(/[a-z,A-Z]/)
     if File.exist?(iso_file)
       if !iso_file.match(/install|FreeBSD|coreos/)

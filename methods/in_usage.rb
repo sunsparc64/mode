@@ -115,9 +115,9 @@ def print_md(md_file)
   else
     $verbose_mode = 1
     handle_output("Warning:\tWiki directory '#{$wiki_dir}' does not exist")
-    $use_sudo = 0
-    message   = "Attempting to clone Wiki dir from: '"+$wiki_url+"' to: '"+$wiki_dir
-    command   = "cd #{$script_dir} ; git clone #{$wiki_url}"
+    $sudo_mode = false
+    message    = "Attempting to clone Wiki dir from: '"+$wiki_url+"' to: '"+$wiki_dir
+    command    = "cd #{$script_dir} ; git clone #{$wiki_url}"
     execute_command(message,command)
     handle_output("")
     ptint_md(md_file)

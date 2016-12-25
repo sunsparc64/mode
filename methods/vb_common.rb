@@ -1247,7 +1247,7 @@ def configure_vbox_vm(install_client,install_mac,install_os,install_size,install
     configure_vmware_esxi_vbox_vm(install_client)
   end
   add_cpu_to_vbox_vm(install_client,install_cpu)
-  if $enable_vnc == 1
+  if $vnc_mode == true
     configure_vbox_vnc(install_client)
   end
   handle_output("Information:\tCreated VirtualBox VM #{install_client} with MAC address #{install_mac}")

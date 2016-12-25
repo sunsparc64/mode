@@ -751,7 +751,7 @@ end
 def create_aws_key_pair(install_access,install_secret,install_region,install_key)
   aws_ssh_dir = $home_dir+"/.ssh/aws"
   check_my_dir_exists(aws_ssh_dir)
-  if $nosuffix == 0
+  if $nosuffix_mode == false
     install_key = get_aws_uniq_name(install_key,install_region)
   end
   exists = check_if_aws_key_pair_exists(install_access,install_secret,install_region,install_key)
@@ -778,7 +778,7 @@ end
 
 def delete_aws_key_pair(install_access,install_secret,install_region,install_key)
   aws_ssh_dir = $home_dir+"/.ssh/aws"
-  if $nosuffix == 0
+  if $nosuffix_mode == false
     install_key = get_aws_uniq_name(install_key,install_region)
   end
   exists = check_if_aws_key_pair_exists(install_access,install_secret,install_region,install_key)

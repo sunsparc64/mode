@@ -150,7 +150,7 @@ end
 
 # Configure VSphere server
 
-def configure_vs_server(install_arch,publisher_host,publisher_port,install_service,iso_file)
+def configure_vs_server(install_arch,publisherhost,publisherport,install_service,iso_file)
   search_string = "VMvisor"
   iso_list      = []
   if iso_file.match(/[a-z,A-Z]/)

@@ -67,7 +67,7 @@ def configure_ks_pxe_client(install_client,install_ip,install_mac,install_arch,i
     initrd_file  = initrd_file.gsub(/^\//,"")
   end
   if install_service.match(/packer/)
-    host_info = $default_gateway_ip+":"+$default_httpd_port
+    host_info = $default_gateway+":"+$default_httpd_port
   else
     host_info = $default_host
   end
@@ -174,7 +174,7 @@ end
 
 # Configure Kickstart client
 
-def configure_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
+def configure_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisherhost,install_service,
                         install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type,install_vm)
   if !install_arch.match(/[a-z]/)
     if install_service.match(/i386/)
@@ -207,7 +207,7 @@ def configure_ks_client(install_client,install_arch,install_mac,install_ip,insta
     output_ks_header(install_client,output_file)
     pkg_list = populate_ks_pkg_list(install_service)
     output_ks_pkg_list(install_client,pkg_list,output_file,install_service)
-    post_list = populate_ks_post_list(install_arch,install_service,publisher_host,install_client,install_ip,install_vm)
+    post_list = populate_ks_post_list(install_arch,install_service,publisherhost,install_client,install_ip,install_vm)
     output_ks_post_list(install_client,post_list,output_file,install_service)
   else
     if install_service.match(/sles/)
@@ -244,8 +244,8 @@ end
 
 # Populate post commands
 
-def populate_ks_post_list(install_arch,install_service,publisher_host,install_client,install_ip,install_vm)
-  gateway_ip  = $default_gateway_ip
+def populate_ks_post_list(install_arch,install_service,publisherhost,install_client,install_ip,install_vm)
+  gateway_ip  = $default_gateway
   post_list   = []
   admin_group = $q_struct["admin_group"].value
   admin_user  = $q_struct["admin_username"].value
@@ -345,19 +345,19 @@ def populate_ks_post_list(install_arch,install_service,publisher_host,install_cl
     rpm_file  = rpm_list.grep(/facter/)[0]
     if rpm_file
       rpm_file  = rpm_file.split(/\//)[1..-1].join("/")
-      local_url = "http://"+publisher_host+"/puppet/"+rpm_file
+      local_url = "http://"+publisherhost+"/puppet/"+rpm_file
       post_list.push("rpm -i #{local_url}")
     end
     rpm_file  = rpm_list.grep(/hiera/)[0]
     if rpm_file
       rpm_file  = rpm_file.split(/\//)[1..-1].join("/")
-      local_url = "http://"+publisher_host+"/puppet/"+rpm_file
+      local_url = "http://"+publisherhost+"/puppet/"+rpm_file
       post_list.push("rpm -i #{local_url}")
     end
     rpm_list.each do |rpm_file|
       if !rpm_file.match(/facter|hiera/)
         rpm_file  = rpm_file.split(/\//)[1..-1].join("/")
-        local_url = "http://"+publisher_host+"/puppet/"+rpm_file
+        local_url = "http://"+publisherhost+"/puppet/"+rpm_file
         post_list.push("rpm -i #{local_url}")
       end
     end
@@ -374,7 +374,7 @@ def populate_ks_post_list(install_arch,install_service,publisher_host,install_cl
   post_list.push("export OSARCH=`uname -p`")
   post_list.push("if [ \"`dmidecode |grep VMware`\" ]; then")
   post_list.push("  echo 'Installing VMware RPMs'")
-  post_list.push("  echo -e \"[vmware-tools]\\nname=VMware Tools\\nbaseurl=http://#{publisher_host}/vmware\\nenabled=1\\ngpgcheck=0\" >> /etc/yum.repos.d/vmware-tools.repo")
+  post_list.push("  echo -e \"[vmware-tools]\\nname=VMware Tools\\nbaseurl=http://#{publisherhost}/vmware\\nenabled=1\\ngpgcheck=0\" >> /etc/yum.repos.d/vmware-tools.repo")
   post_list.push("  yum -y install vmware-tools-core")
   post_list.push("fi")
   post_list.push("")
@@ -425,7 +425,7 @@ def populate_ks_post_list(install_arch,install_service,publisher_host,install_cl
     command   = "cp #{ssh_key} #{auth_file}"
     execute_command(message,command)
     ssh_dir   = admin_home+"/.ssh"
-    ssh_url   = "http://#{publisher_host}/#{install_service}/keys/authorized_keys"
+    ssh_url   = "http://#{publisherhost}/#{install_service}/keys/authorized_keys"
     auth_file = ssh_dir+"/authorized_keys"
     post_list.push("mkdir #{ssh_dir}/.ssh")
     post_list.push("chown #{admin_uid}:#{admin_gid} #{ssh_dir}")

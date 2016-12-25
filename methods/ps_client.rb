@@ -9,9 +9,9 @@ end
 
 # Configure Preseed client
 
-def configure_ps_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
+def configure_ps_client(install_client,install_arch,install_mac,install_ip,install_model,publisherhost,install_service,
                         install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)
-  configure_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
+  configure_ks_client(install_client,install_arch,install_mac,install_ip,install_model,publisherhost,install_service,
                       install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type)
   return
 end
@@ -166,7 +166,7 @@ end
 def populate_ps_post_list(client_name,service_name,install_type,install_vm)
   post_list  = []
   if install_type.match(/packer/)
-    script_url = "http://"+$default_gateway_ip+":"+$default_httpd_port+"/"+install_vm+"/"+client_name+"/"+client_name+"_first_boot.sh"
+    script_url = "http://"+$default_gateway+":"+$default_httpd_port+"/"+install_vm+"/"+client_name+"/"+client_name+"_first_boot.sh"
   else
     script_url = "http://"+$default_host+"/"+service_name+"/"+client_name+"_first_boot.sh"
   end

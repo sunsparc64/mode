@@ -9,8 +9,8 @@ Ai=Struct.new(:question, :ask, :value, :valid, :eval)
 # If running in test mode use a default version so client creation
 # code can be tested
 
-def get_ai_repo_version(publisher_url,publisher_host,publisher_port)
-  publisher_url = get_ai_publisher_url(publisher_host,publisher_port)
+def get_ai_repo_version(publisher_url,publisherhost,publisherport)
+  publisher_url = get_ai_publisher_url(publisherhost,publisherport)
   if $test_mode == true or $os_name.match(/Darwin/)
   repo_version  = "0.175.1"
   else
@@ -25,29 +25,29 @@ end
 
 # Check the publisher port isn't being used
 
-def check_publisher_port(publisher_port)
-  message      = "Information:\tDetermining if publisher port "+publisher_port+" is in use"
+def check_publisherport(publisherport)
+  message      = "Information:\tDetermining if publisher port "+publisherport+" is in use"
   command      = "svcprop -a pkg/server |grep 'port count'"
   ports_in_use = execute_command(message,command)
-  if ports_in_use.match(/#{publisher_port}/)
+  if ports_in_use.match(/#{publisherport}/)
     if $verbose_mode == true
-      handle_output("Warning:\tPublisher port #{publisher_port} is in use")
+      handle_output("Warning:\tPublisher port #{publisherport} is in use")
       handle_output("Information:\tFinding free publisher port")
     end
   end
-  while ports_in_use.match(/#{publisher_port}/)
-    publisher_port = publisher_port.to_i+1
-    publisher_port = publisher_port.to_s
+  while ports_in_use.match(/#{publisherport}/)
+    publisherport = publisherport.to_i+1
+    publisherport = publisherport.to_s
   end
   if $verbose_mode == true
-    handle_output("Setting:\tPublisher port to #{publisher_port}")
+    handle_output("Setting:\tPublisher port to #{publisherport}")
   end
-  return publisher_port
+  return publisherport
 end
 
 # Get publisher port for service
 
-def get_publisher_port(install_service)
+def get_publisherport(install_service)
   message     = "Information:\tDetermining publisher port for service "+install_service
   command     = "svcprop -a pkg/server |grep 'port count'"
   port_in_use = execute_command(message,command)
@@ -56,8 +56,8 @@ end
 
 # Get the repository URL
 
-def get_ai_repo_url(publisher_url,publisher_host,publisher_port)
-  repo_version = get_ai_repo_version(publisher_url,publisher_host,publisher_port)
+def get_ai_repo_url(publisher_url,publisherhost,publisherport)
+  repo_version = get_ai_repo_version(publisher_url,publisherhost,publisherport)
   repo_url     = "pkg:/entire@0.5.11-"+repo_version
   return repo_url
 end
@@ -65,17 +65,17 @@ end
 # Get the publisher URL
 # If running in test mode use the default Oracle one
 
-def get_ai_publisher_url(publisher_host,publisher_port)
-  publisher_url = "http://"+publisher_host+":"+publisher_port
+def get_ai_publisher_url(publisherhost,publisherport)
+  publisher_url = "http://"+publisherhost+":"+publisherport
   return publisher_url
 end
 
 # Get alternate publisher url
 
-def get_ai_alt_publisher_url(publisher_host,publisher_port)
-  publisher_port = publisher_port.to_i+1
-  publisher_port = publisher_port.to_s
-  publisher_url  = "http://"+publisher_host+":"+publisher_port
+def get_ai_alt_publisher_url(publisherhost,publisherport)
+  publisherport = publisherport.to_i+1
+  publisherport = publisherport.to_s
+  publisher_url  = "http://"+publisherhost+":"+publisherport
   return publisher_url
 end
 
@@ -93,7 +93,7 @@ end
 
 # Configure a package repository
 
-def configure_ai_pkg_repo(publisher_host,publisher_port,install_service,repo_version_dir,read_only)
+def configure_ai_pkg_repo(publisherhost,publisherport,install_service,repo_version_dir,read_only)
   if $os_name.match(/SunOS/)
     smf_name = "pkg/server:#{install_service}"
     message  = "Information:\tChecking if service "+smf_name+" exists"
@@ -108,18 +108,18 @@ def configure_ai_pkg_repo(publisher_host,publisher_port,install_service,repo_ver
       commands = []
       commands.push("svccfg -s pkg/server add #{install_service}")
       commands.push("svccfg -s #{smf_name} addpg pkg application")
-      commands.push("svccfg -s #{smf_name} setprop pkg/port=#{publisher_port}")
+      commands.push("svccfg -s #{smf_name} setprop pkg/port=#{publisherport}")
       commands.push("svccfg -s #{smf_name} setprop pkg/inst_root=#{repo_version_dir}")
       commands.push("svccfg -s #{smf_name} addpg general framework")
       commands.push("svccfg -s #{smf_name} addpropvalue general/complete astring: #{install_service}")
       commands.push("svccfg -s #{smf_name} setprop pkg/readonly=#{read_only}")
-      commands.push("svccfg -s #{smf_name} setprop pkg/proxy_base = astring: http://#{publisher_host}/#{install_service}")
+      commands.push("svccfg -s #{smf_name} setprop pkg/proxy_base = astring: http://#{publisherhost}/#{install_service}")
       commands.push("svccfg -s #{smf_name} addpropvalue general/enabled boolean: true")
       commands.each do |temp_command|
         execute_command(message,temp_command)
       end
       refresh_smf_service(smf_name)
-      add_apache_proxy(publisher_host,publisher_port,install_service)
+      add_apache_proxy(publisherhost,publisherport,install_service)
     end
   end
   return

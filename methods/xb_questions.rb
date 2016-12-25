@@ -122,7 +122,7 @@ def populate_coreos_questions(install_service,install_client,install_ip)
     question  = "Root Password",
     ask       = "yes",
     parameter = "",
-    value     = $default_root_password,
+    value     = $default_rootpassword,
     valid     = "",
     eval      = "no"
     )
@@ -238,7 +238,7 @@ def populate_coreos_questions(install_service,install_client,install_ip)
     question  = "Admin User Password",
     ask       = "yes",
     parameter = "",
-    value     = $default_admin_password,
+    value     = $default_adminpassword,
     valid     = "",
     eval      = "no"
     )

@@ -2,7 +2,7 @@
 
 # Deploy Fusion VM
 
-def deploy_fusion_vm(install_server,install_datastore,install_server_admin,install_server_password,install_server_network,install_client,
+def deploy_fusion_vm(install_server,install_datastore,install_serveradmin,install_serverpassword,install_server_network,install_client,
                      install_size,install_root_password,install_timeserver,install_admin_password,install_domainname,install_sitename,
                      install_ipfamily,install_mode,install_ip,install_netmask,install_gateway,install_nameserver,install_service,install_file)
   return
@@ -1469,7 +1469,7 @@ def populate_fusion_vm_vmx_info(install_client,install_mac,install_os,install_me
     vmx_info.push("sharedFolder0.expiration,never")
     vmx_info.push("sharedFolder.maxNum,1")
   end
-  if $enable_vnc == 1
+  if $vnc_mode == true
     vmx_info.push("RemoteDisplay.vnc.enabled,TRUE")
     vmx_info.push("RemoteDisplay.vnc.port,5900")
     vmx_info.push("RemoteDisplay.vnc.password,#{$default_vnc_password}")

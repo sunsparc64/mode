@@ -312,7 +312,7 @@ end
 # Create zone config
 
 def create_zone_config(install_client,install_ip)
-  virtual  = 0
+  virtual  = false
   zone_nic = $q_struct["ipv4_interface_name"].value
   gateway  = $q_struct["ipv4_default_route"].value
   zone_nic = zone_nic.split(/\//)[0]
@@ -323,7 +323,7 @@ def create_zone_config(install_client,install_ip)
       command = "prtdiag -v |grep 'VMware'"
       output  = execute_command(message,command)
       if output.match(/VMware/)
-        virtual = 1
+        virtual = true
       end
     end
     zone_dir = $zone_base_dir+"/"+install_client
@@ -333,7 +333,7 @@ def create_zone_config(install_client,install_ip)
     file.write("set brand=solaris\n")
     file.write("set zonepath=#{zone_dir}\n")
     file.write("set autoboot=false\n")
-    if virtual == 1
+    if virtual == true
       file.write("set ip-type=shared\n")
       file.write("add net\n")
       file.write("set address=#{install_ip}/24\n")
@@ -371,12 +371,12 @@ end
 # Create zone
 
 def create_zone(install_client,install_ip,zone_dir,client_rel,image_file,install_service)
-  virtual = 0
+  virtual = false
   message = "Information:\tChecking Platform"
   command = "prtdiag -v |grep 'VMware'"
   output  = execute_command(message,command)
   if output.match(/VMware/)
-    virtual = 1
+    virtual = true
   end
   if install_service.match(/[a-z,A-Z]/)
     image_info    = install_service.split(/_/)
@@ -408,7 +408,7 @@ def create_zone(install_client,install_ip,zone_dir,client_rel,image_file,install
         print_branded_zone_info()
       end
       create_zone_config(install_client,install_ip)
-      if $os_rel.match(/11/) and virtual == 1
+      if $os_rel.match(/11/) and virtual == true
         handle_output("Warning:\tCan't create branded zones with exclusive IPs in VMware")
         exit
       else
@@ -488,7 +488,7 @@ end
 
 # Configure zone
 
-def configure_zone(install_client,install_ip,client_mac,client_arch,client_os,client_rel,publisher_host,image_file,install_service)
+def configure_zone(install_client,install_ip,client_mac,client_arch,client_os,client_rel,publisherhost,image_file,install_service)
   if client_arch.match(/[a-z,A-Z]/)
     check_same_arch(client_arch)
   end

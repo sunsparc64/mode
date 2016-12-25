@@ -6,9 +6,9 @@ def process_questions(install_service)
     if $verbose_mode == true
       handle_output("Information:\tProcessing value for #{key}")
     end
-    correct = 0
+    correct = false
     if $q_struct[key].ask.match(/yes/)
-      while correct != 1 do
+      while correct == false do
         if $q_struct[key].value.match(/^get_/)
           new_value            = $q_struct[key].value
           new_value            = eval"[#{new_value}]"
@@ -21,32 +21,32 @@ def process_questions(install_service)
         else
           answer = $q_struct[key].value
           evaluate_answer(key,answer,install_service)
-          correct = 1
+          correct = true
         end
         if answer != ""
           if answer != $q_struct[key].value
             if $q_struct[key].valid.match(/[a-z,A-Z,0-9]/)
               if $q_struct[key].valid.match(/#{answer}/)
                 correct = evaluate_answer(key,answer)
-                if correct == 1
+                if correct == true
                   $q_struct[key].value = answer
                 end
               end
             else
               correct = evaluate_answer(key,answer,install_service)
-              if correct == 1
+              if correct == true
                 $q_struct[key].value = answer
               end
             end
           else
-            if correct == 1
+            if correct == true
               $q_struct[key].value = answer
             end
           end
         else
           answer = $q_struct[key].value
           correct = evaluate_answer(key,answer,install_service)
-          correct = 1
+          correct = true
         end
       end
     else
@@ -63,7 +63,7 @@ end
 # Code to check answers
 
 def evaluate_answer(key,answer,install_service)
-  correct = 1
+  correct = false
   if $q_struct[key].eval != "no"
     new_value = $q_struct[key].eval
     if new_value.match(/^get|^set/)
@@ -75,10 +75,10 @@ def evaluate_answer(key,answer,install_service)
         $q_struct[key].value = answer
         eval"[#{new_value}]"
       end
-      correct = 1
+      correct = true
     else
       correct = eval"[#{new_value}]"
-      if correct == 1
+      if correct == true
         $q_struct[key].value = answer
       end
     end

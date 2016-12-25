@@ -218,7 +218,7 @@ def populate_vs_questions(install_service,install_client,install_ip)
     question  = "Root Password",
     ask       = "yes",
     parameter = "",
-    value     = $default_root_password,
+    value     = $default_rootpassword,
     valid     = "",
     eval      = "no"
     )

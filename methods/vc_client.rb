@@ -20,17 +20,17 @@ end
 
 # Deploy VCSA image
 
-def deploy_vcsa_vm(install_server,install_datastore,install_server_admin,install_server_password,install_server_network,install_client,
+def deploy_vcsa_vm(install_server,install_datastore,install_serveradmin,install_serverpassword,install_server_network,install_client,
                    install_size,install_root_password,install_timeserver,install_admin_password,install_domainname,install_sitename,
                    install_ipfamily,install_mode,install_ip,install_netmask,install_gateway,install_nameserver,install_service,install_file)
-  populate_vcsa_questions(install_server,install_datastore,install_server_admin,install_server_password,install_server_network,install_client,
+  populate_vcsa_questions(install_server,install_datastore,install_serveradmin,install_serverpassword,install_server_network,install_client,
                           install_size,install_root_password,install_timeserver,install_admin_password,install_domainname,install_sitename,
                           install_ipfamily,install_mode,install_ip,install_netmask,install_gateway,install_nameserver,install_service,install_file)
   process_questions(install_service)
   install_server          = $q_struct["esx.hostname"].value
   install_datastore       = $q_struct["esx.datastore"].value
-  install_server_admin    = $q_struct["esx.username"].value
-  install_server_password = $q_struct["esx.password"].value
+  install_serveradmin    = $q_struct["esx.username"].value
+  install_serverpassword = $q_struct["esx.password"].value
   install_size            = $q_struct["deployment.option"].value
   install_server_network  = $q_struct["deployment.network"].value
   install_client          = $q_struct["appliance.name"].value
@@ -44,10 +44,10 @@ def deploy_vcsa_vm(install_server,install_datastore,install_server_admin,install
   install_netmask         = $q_struct["prefix"].value
   install_gateway         = $q_struct["gateway"].value
   install_nameserver      = $q_struct["dns.servers"].value
-  vcsa_json_file = create_vcsa_json(install_server,install_datastore,install_server_admin,install_server_password,install_server_network,install_client,
+  vcsa_json_file = create_vcsa_json(install_server,install_datastore,install_serveradmin,install_serverpassword,install_server_network,install_client,
                                     install_size,install_root_password,install_timeserver,install_admin_password,install_domainname,install_sitename,
                                     install_ipfamily,install_mode,install_ip,install_netmask,install_gateway,install_nameserver,install_service,install_file)
-  #create_cvsa_deploy_script(install_server,install_datastore,install_server_admin,install_server_password,install_server_network,install_client,
+  #create_cvsa_deploy_script(install_server,install_datastore,install_serveradmin,install_serverpassword,install_server_network,install_client,
   #                          install_size,install_root_password,install_timeserver,install_admin_password,install_domainname,install_sitename,
   #                          install_ipfamily,install_mode,install_ip,install_netmask,install_gateway,install_nameserver,install_service,install_file)
   repo_version_dir = $repo_base_dir+"/"+install_service
@@ -75,7 +75,7 @@ end
 
 # Create deployment script
 
-def create_cvsa_deploy_script(install_server,install_datastore,install_server_admin,install_server_password,install_server_network,install_client,
+def create_cvsa_deploy_script(install_server,install_datastore,install_serveradmin,install_serverpassword,install_server_network,install_client,
                               install_size,install_root_password,install_timeserver,install_admin_password,install_domainname,install_sitename,
                               install_ipfamily,install_mode,install_ip,install_netmask,install_gateway,install_nameserver,install_service,install_file)
   install_netmask = install_netmask.gsub(/\//,"")
@@ -95,8 +95,8 @@ def create_cvsa_deploy_script(install_server,install_datastore,install_server_ad
   file.write("VCSA_OVA=#{install_file}\n")
   file.write("\n")
   file.write("ESXI_HOST=#{install_server}\n")
-  file.write("ESXI_USERNAME=#{install_server_admin}\n")
-  file.write("ESXI_PASSWORD=#{install_server_password}\n")
+  file.write("ESXI_USERNAME=#{install_serveradmin}\n")
+  file.write("ESXI_PASSWORD=#{install_serverpassword}\n")
   file.write("VM_NETWORK=\"#{install_server_network}\"\n")
   file.write("VM_DATASTORE=#{install_datastore}\n")
   file.write("\n")
@@ -152,7 +152,7 @@ end
 
 # Create VCSA JSON file
 
-def create_vcsa_json(install_server,install_datastore,install_server_admin,install_server_password,install_server_network,install_client,
+def create_vcsa_json(install_server,install_datastore,install_serveradmin,install_serverpassword,install_server_network,install_client,
                      install_size,install_root_password,install_timeserver,install_admin_password,install_domainname,install_sitename,
                      install_ipfamily,install_mode,install_ip,install_netmask,install_gateway,install_nameserver,install_service,install_file)
   install_netmask = install_netmask.gsub(/\//,"")
@@ -162,8 +162,8 @@ def create_vcsa_json(install_server,install_datastore,install_server_admin,insta
                 \"new.vcsa\": {
                   \"esxi\": {
                     \"hostname\": \"#{install_server}\",
-                    \"username\": \"#{install_server_admin}\",
-                    \"password\": \"#{install_server_password}\",
+                    \"username\": \"#{install_serveradmin}\",
+                    \"password\": \"#{install_serverpassword}\",
                     \"deployment.network\": \"#{install_server_network}\",
                     \"datastore\": \"#{install_datastore}\"
                   },
@@ -209,8 +209,8 @@ def create_vcsa_json(install_server,install_datastore,install_server_admin,insta
                 {
                   \"esx.hostname\":\"#{install_server}\",
                   \"esx.datastore\":\"#{install_datastore}\",
-                  \"esx.username\":\"#{install_server_admin}\",
-                  \"esx.password\":\"#{install_server_password}\",
+                  \"esx.username\":\"#{install_serveradmin}\",
+                  \"esx.password\":\"#{install_serverpassword}\",
                   \"deployment.option\":\"#{install_size}\",
                   \"deployment.network\":\"#{install_server_network}\",
                   \"appliance.name\":\"#{install_client}\",

@@ -202,15 +202,15 @@ end
 # Create a local repository for packages not in the Oracle Solaris repository
 # This service instance is used for service out packages like puppet to clients
 
-def configure_ai_alt_repo(publisher_host,publisher_port,service_name,client_arch)
+def configure_ai_alt_repo(publisherhost,publisherport,service_name,client_arch)
   build_type="ips"
   read_only="false"
   alt_service_name=check_alt_service_name(service_name)
   pkg_repo_dir=$repo_base_dir+"/"+alt_service_name
   create_ai_alt_repo(pkg_repo_dir)
-  publisher_port=publisher_port.to_i+1
-  publisher_port=publisher_port.to_s
-  configure_ai_pkg_repo(publisher_host,publisher_port,alt_service_name,pkg_repo_dir,read_only)
+  publisherport=publisherport.to_i+1
+  publisherport=publisherport.to_s
+  configure_ai_pkg_repo(publisherhost,publisherport,alt_service_name,pkg_repo_dir,read_only)
   p_struct=populate_pkg_info()
   process_ai_pkgs(p_struct,pkg_repo_dir,build_type)
   return

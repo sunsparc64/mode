@@ -10,9 +10,6 @@ def set_global_vars()
   $script_dir               = File.dirname($script_file)
   $wiki_dir                 = $script_dir+"/"+File.basename($script,".rb")+".wiki"
   $wiki_url                 = "https://github.com/lateralblast/mode.wiki.git"
-  $verbose_mode             = 0
-  $test_mode                = 0
-  $download_mode            = 1
   $iso_base_dir             = "/export/isos"
   $repo_base_dir            = "/export/repo"
   $image_base_dir           = "/export/images"
@@ -78,7 +75,7 @@ def set_global_vars()
   $default_hosts            = "files dns"
   $default_maas_admin       = "root"
   $default_maas_email       = $default_maas_admin+"@"+$default_host
-  $default_mass_password    = $default_admin_password
+  $default_mass_password    = $default_adminpassword
   $default_serveradmin     = "root"
   $default_serverpassword  = "P455w0rd"
   $default_vnc_password     = "P455w0rd"
@@ -102,7 +99,6 @@ def set_global_vars()
   $default_auto_reg         = "disable"
   $q_struct                 = {}
   $q_order                  = []
-  $text_mode                = 1
   $backup_dir               = ""
   $openssh_win_url          = "http://www.mls-software.com/files/setupssh-7.2p2-1-v1.exe"
   $ovftool_tar_url          = "https://github.com/richardatlateralblast/ottar/blob/master/vmware-ovftools.tar.gz?raw=true"
@@ -114,9 +110,7 @@ def set_global_vars()
   $default_vm_size          = "20G"
   $default_vm_mem           = "1024"
   $default_vm_vcpu          = "1"
-  $serial_mode              = 0
   $os_name                  = ""
-  $yes_to_all               = 0
   $default_cdom_mau         = "1"
   $default_gdom_mau         = "1"
   $default_cdom_vcpu        = "8"
@@ -127,7 +121,6 @@ def set_global_vars()
   $default_cdom_name        = "initial"
   $default_dpool            = "dpool"
   $default_gdom_vnet        = "vnet0"
-  $use_sudo                 = 1
   $do_ssh_keys              = 0
   $default_vm_network       = "hostonly"
   $default_vm_hw_version    = "8"
@@ -160,7 +153,6 @@ def set_global_vars()
   $valid_aws_acl_list       = [ 'private', 'public-read', 'public-read-write', 'authenticated-read' ]
   $execute_host             = "localhost"
   $default_options          = ""
-  $do_checksums             = 0
   $default_ipfamily         = "ipv4"
   $default_datastore        = "datastore1"
   $default_server_network   = "vmnetwork1"
@@ -178,8 +170,6 @@ def set_global_vars()
   $output_text              = []
   $default_output_format    = "text"
   $vbox_bin                 = "/usr/local/bin/VBoxManage"
-  $enable_vnc               = 1
-  $enable_strict            = 0
   $vnc_port                 = "5961"
   $novnc_dir                = $script_dir+"/noVNC"
   $novnc_url                = "git://github.com/kanaka/noVNC"
@@ -210,6 +200,8 @@ def set_global_vars()
 
   # New defaults (cleaning up after commandline handling cleanup)
 
+  $empty_value            = "none"
+
   $default_ami            = $default_aws_linux_ami
   $default_format         = "text"
   $default_proto          = "tcp"
@@ -227,6 +219,16 @@ def set_global_vars()
   $default_sitename       = $default_domainname.split(".")[0]
   $default_rootpassword   = "P455w0rd"
   $default_adminpassword  = "P455w0rd"
+
+  $verbose_mode           = false
+  $test_mode              = false
+  $download_mode          = false
+  $nosuffix_mode          = false
+  $checksum_mode          = false
+  $vnc_mode               = true
+  $serial_mode            = false
+  $text_mode              = false
+  $sudo_mode              = true
 
   # VMware Fusion Global variables
   
@@ -543,12 +545,12 @@ def delete_user_ssh_config(install_ip,install_id,install_client)
     ssh_data.each do |line|
       if line.match(/^Host/)
         if line.match(/#{install_client}|#{install_id}|#{install_ip}/) 
-          found_host = 1
+          found_host = true
         else
           found_host = 0
         end
       end
-      if found_host == 0
+      if found_host == false
         new_data.push(line)
       end
     end
@@ -643,7 +645,7 @@ def check_local_config(install_mode)
   end
   if !$work_dir.match(/[a-z,A-Z,0-9]/)
     dir_name = File.basename($script,".*")
-    if $id == 0
+    if $id == false
       $work_dir = "/opt/"+dir_name
     else
       $work_dir = $home_dir+"/."+dir_name
@@ -873,7 +875,7 @@ def attach_dmg(ovftool_dmg)
     tmp_dir = %x[ls -rt /Volumes |grep "#{app_name}" |tail -1].chomp
     tmp_dir = "/Volumes/"+tmp_dir
   end
-  if $werbose_mode == 1
+  if $werbose_mode == true
     handle_output("Information:\tDMG mounted on #{tmp_dir}")
   end
   return tmp_dir
@@ -1242,7 +1244,7 @@ end
 
 # Configure a service
 
-def configure_server(install_method,install_arch,publisher_host,publisher_port,install_service,install_file)
+def configure_server(install_method,install_arch,publisherhost,publisherport,install_service,install_file)
   if !install_method.match(/[a-z,A-Z]/)
     if !install_file.match(/[a-z,A-Z]/)
       handle_output("Warning:\tCould not determine service name")
@@ -1251,7 +1253,7 @@ def configure_server(install_method,install_arch,publisher_host,publisher_port,i
       install_method = get_install_method_from_iso(install_file)
     end
   end
-  eval"[configure_#{install_method}_server(install_arch,publisher_host,publisher_port,install_service,install_file)]"
+  eval"[configure_#{install_method}_server(install_arch,publisherhost,publisherport,install_service,install_file)]"
   return
 end
 
@@ -1294,14 +1296,14 @@ def check_ip(install_ip)
   invalid_ip = 0
   ip_fields  = install_ip.split(/\./)
   if !ip_fields.length == 4
-    invalid_ip = 1
+    invalid_ip = true
   end
   ip_fields.each do |ip_field|
     if ip_field.match(/[a-z,A-Z]/) or ip_field.to_i > 255
-      invalid_ip = 1
+      invalid_ip = true
     end
   end
-  if invalid_ip == 1
+  if invalid_ip == true
     handle_output("Warning:\tInvalid IP Address")
     exit
   end
@@ -1721,8 +1723,8 @@ end
 
 # Add NFS export
 
-def add_nfs_export(export_name,export_dir,publisher_host)
-  network_address  = publisher_host.split(/\./)[0..2].join(".")+".0"
+def add_nfs_export(export_name,export_dir,publisherhost)
+  network_address  = publisherhost.split(/\./)[0..2].join(".")+".0"
   if $os_name.match(/SunOS/)
     if $os_rel.match(/11/)
       message  = "Enabling:\tNFS share on "+export_dir
@@ -1882,7 +1884,7 @@ end
 
 # Check DHCPd config
 
-def check_dhcpd_config(publisher_host)
+def check_dhcpd_config(publisherhost)
   get_default_host()
   network_address   = $default_host.split(/\./)[0..2].join(".")+".0"
   broadcast_address = $default_host.split(/\./)[0..2].join(".")+".255"
@@ -1930,7 +1932,7 @@ def check_dhcpd_config(publisher_host)
       file.write("\n")
       file.write("class \"SPARC\" {\n")
       file.write("  match if not (substring(option vendor-class-identifier, 0, 9) = \"PXEClient\");\n")
-      file.write("  filename \"http://#{publisher_host}:5555/cgi-bin/wanboot-cgi\";\n")
+      file.write("  filename \"http://#{publisherhost}:5555/cgi-bin/wanboot-cgi\";\n")
       file.write("}\n")
       file.write("\n")
       file.write("allow booting;\n")
@@ -2252,9 +2254,9 @@ def get_install_mac(install_client)
     file_array.each do |line|
       line = line.chomp
       if line.match(/#{install_client} /)
-        found_client = 1
+        found_client = true
       end
-      if line.match(/hardware ethernet/) and found_client == 1
+      if line.match(/hardware ethernet/) and found_client == true
         install_mac = line.split(/\s+/)[3].gsub(/\;/,"")
         return install_mac
       end
@@ -2388,12 +2390,12 @@ def remove_dhcp_client(install_client)
     file_info = IO.readlines($dhcpd_file)
     file_info.each do |line|
       if line.match(/^host #{install_client}/)
-        found = 1
+        found = true
       end
-      if found == 0
+      if found == false
         copy.push(line)
       end
-      if found == 1 and line.match(/\}/)
+      if found == true and line.match(/\}/)
         found=0
       end
     end
@@ -2450,7 +2452,7 @@ def get_install_mac(install_client)
       if line.match(/#{install_client}/)
         found=1
       end
-      if found == 1
+      if found == true
         if line.match(/ethernet/)
           install_mac = line.split(/ ethernet /)[1]
           install_mac = install_mac.gsub(/\;/,"")
@@ -2583,15 +2585,15 @@ def execute_command(message,command)
   end
   if $test_mode == true
     if !command.match(/create|update|import|delete|svccfg|rsync|cp|touch|svcadm|VBoxManage|vmrun|docker/)
-      execute = 1
+      execute = true
     end
   else
-    execute = 1
+    execute = true
   end
-  if execute == 1
+  if execute == true
     if $id != 0
       if !command.match(/brew |hg|pip|VBoxManage|netstat|df|vmrun|noVNC|docker|packer/)
-        if $use_sudo != 0
+        if $sudo_mode == true
           command = "sudo sh -c '"+command+"'"
         end
       end
@@ -2896,7 +2898,7 @@ end
 
 # Add apache proxy
 
-def add_apache_proxy(publisher_host,publisher_port,service_base_name)
+def add_apache_proxy(publisherhost,publisherport,service_base_name)
   if $os_name.match(/SunOS/)
     apache_config_file = "/etc/apache2/2.2/httpd.conf"
   end
@@ -2912,7 +2914,7 @@ def add_apache_proxy(publisher_host,publisher_port,service_base_name)
     command = "cp #{apache_config_file} #{apache_config_file}.no_#{service_base_name}"
     execute_command(message,command)
     message = "Adding:\t\tProxy entry to "+apache_config_file
-    command = "echo 'ProxyPass /"+service_base_name+" http://"+publisher_host+":"+publisher_port+" nocanon max=200' >>"+apache_config_file
+    command = "echo 'ProxyPass /"+service_base_name+" http://"+publisherhost+":"+publisherport+" nocanon max=200' >>"+apache_config_file
     execute_command(message,command)
     install_service = "apache"
     enable_service(install_service)

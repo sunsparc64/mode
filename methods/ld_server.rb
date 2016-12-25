@@ -158,9 +158,9 @@ end
 
 # Configure LDom Control (primary) domain
 
-def configure_cdom(publisher_host)
+def configure_cdom(publisherhost)
   service_name = ""
-  check_dhcpd_config(publisher_host)
+  check_dhcpd_config(publisherhost)
   populate_cdom_questions()
   process_questions(service_name)
   check_cdom_install()
@@ -174,13 +174,13 @@ end
 
 # Configure LDom Server (calls configure_cdom)
 
-def configure_ldom_server(install_arch,publisher_host,publisher_port,install_service,install_file)
-  configure_cdom(publisher_host)
+def configure_ldom_server(install_arch,publisherhost,publisherport,install_service,install_file)
+  configure_cdom(publisherhost)
   return
 end
 
-def configure_cdom_server(install_arch,publisher_host,publisher_port,install_service,install_file)
-  configure_cdom(publisher_host)
+def configure_cdom_server(install_arch,publisherhost,publisherport,install_service,install_file)
+  configure_cdom(publisherhost)
   return
 end
 

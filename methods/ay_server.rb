@@ -12,7 +12,7 @@ end
 
 # Configure AutoYast server
 
-def configure_ay_server(install_arch,publisher_host,publisher_port,install_service,install_file)
+def configure_ay_server(install_arch,publisherhost,publisherport,install_service,install_file)
   if install_service.match(/[a-z,A-Z]/)
     if install_service.downcase.match(/suse/)
       search_string = "SLE"
@@ -20,7 +20,7 @@ def configure_ay_server(install_arch,publisher_host,publisher_port,install_servi
   else
     search_string = "SLE"
   end
-  configure_linux_server(install_arch,publisher_host,publisher_port,install_service,install_file,search_string)
+  configure_linux_server(install_arch,publisherhost,publisherport,install_service,install_file,search_string)
   return
 end
 

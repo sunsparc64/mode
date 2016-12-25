@@ -107,7 +107,7 @@ end
 # Create finish script
 
 def create_js_finish_file(install_client,output_file)
-  passwd_crypt = get_password_crypt($default_admin_password) 
+  passwd_crypt = get_password_crypt($default_adminpassword) 
   file_array   = []
   file_array.push("#!/bin/sh")
   file_array.push("")
@@ -131,7 +131,7 @@ def create_js_finish_file(install_client,output_file)
   file_array.push("chroot /a /usr/sbin/useradd -m -d /export/home/${ADMINUSER} -s /usr/bin/bash -g ${ADMINUSER} ${ADMINUSER}")
   file_array.push("")
   file_array.push("# Create password")
-  file_array.push("PASSWD=`perl -e 'print crypt($ARGV[0], substr(rand(data),2));' #{$default_admin_password}`")
+  file_array.push("PASSWD=`perl -e 'print crypt($ARGV[0], substr(rand(data),2));' #{$default_adminpassword}`")
   file_array.push("cat /a/etc/shadow | sed -e 's#^'${ADMINUSER}':UP:#'${ADMINUSER}':'${PASSWD}'#g'  > /tmp/shadow.$$")
   file_array.push("cat /tmp/shadow.$$ > /a/etc/shadow")
   file_array.push("")
@@ -176,7 +176,7 @@ end
 
 # Configure client PXE boot
 
-def configure_js_pxe_client(install_client,install_mac,install_arch,install_service,repo_version_dir,publisher_host)
+def configure_js_pxe_client(install_client,install_mac,install_arch,install_service,repo_version_dir,publisherhost)
   if install_arch.match(/i386/)
     tftp_pxe_file = install_mac.gsub(/:/,"")
     tftp_pxe_file = tftp_pxe_file.upcase
@@ -193,8 +193,8 @@ def configure_js_pxe_client(install_client,install_mac,install_arch,install_serv
     pxe_cfg_file = "menu.lst."+pxe_cfg_file
     pxe_cfg_file = $tftp_dir+"/"+pxe_cfg_file
     sysid_dir    = $client_base_dir+"/"+install_service+"/"+install_client
-    install_url  = publisher_host+":"+repo_version_dir
-    sysid_url    = publisher_host+":"+sysid_dir
+    install_url  = publisherhost+":"+repo_version_dir
+    sysid_url    = publisherhost+":"+sysid_dir
     tmp_file     = "/tmp/pxe_"+install_client
     file         = File.open(tmp_file,"w")
     file.write("default 0\n")
@@ -267,7 +267,7 @@ end
 
 # Configure client
 
-def configure_js_client(install_client,install_arch,install_mac,install_ip,install_model,publisher_host,install_service,
+def configure_js_client(install_client,install_arch,install_mac,install_ip,install_model,publisherhost,install_service,
                         install_file,install_memory,install_cpu,install_network,install_license,install_mirror,install_type,install_vm)
   if !install_arch.match(/i386|sparc/)
     if install_file
@@ -342,14 +342,14 @@ def configure_js_client(install_client,install_arch,install_mac,install_ip,insta
   sysid_file = client_dir+"/sysidcfg"
   create_js_sysid_file(install_client,sysid_file)
   # Populate machine questions
-  populate_js_machine_questions(install_model,install_karch,publisher_host,install_service,os_version,os_update,install_file)
+  populate_js_machine_questions(install_model,install_karch,publisherhost,install_service,os_version,os_update,install_file)
   process_questions(install_service)
   machine_file = client_dir+"/machine."+install_client
   create_js_machine_file(install_client,machine_file)
   # Create rules file
   rules_file = client_dir+"/rules"
   create_js_rules_file(install_client,install_karch,rules_file)
-  configure_js_pxe_client(install_client,install_mac,install_arch,install_service,repo_version_dir,publisher_host)
+  configure_js_pxe_client(install_client,install_mac,install_arch,install_service,repo_version_dir,publisherhost)
   configure_js_dhcp_client(install_client,install_mac,install_ip,install_arch,install_service)
   check_js_config(install_client,client_dir,repo_version_dir,os_version)
   add_hosts_entry(install_client,install_ip)

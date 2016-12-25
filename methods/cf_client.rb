@@ -166,7 +166,7 @@ def configure_aws_cf_stack(install_name,install_ami,install_region,install_size,
   if !install_key.match(/[A-Z]|[a-z]|[0-9]/)
     install_group = install_name
   end
-  if $nosuffix == 0
+  if $nosuffix_mode == false
     install_name  = get_aws_uniq_name(install_name,install_region)
     install_key   = get_aws_uniq_name(install_key,install_region)
     install_group = get_aws_uniq_name(install_group,install_region)

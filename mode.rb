@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.3.7
+# Version:      4.3.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -160,6 +160,8 @@ begin
     [ "--locale",         REQUIRED ], # Locale (e.g. en_US)
     [ "--diskmode",       REQUIRED ], # Disk mode (e.g. thin)
     [ "--help",           BOOLEAN ],  # Display usage information
+    [ "--checksum",       BOOLEAN ],  # Do checksums
+    [ "--vnc",            BOOLEAN ],  # Enable VNC mode
     [ "--param",          REQUIRED ], # Set a parameter of a VM
     [ "--ip",             REQUIRED ], # IP Address of client
     [ "--ipfamily",       REQUIRED ], # IP family (e.g. IPv4 or IPv6)
@@ -248,6 +250,10 @@ rescue
   exit
 end
 
+# load global variables
+
+set_global_vars()
+
 flags     = []
 raw_flags = IO.readlines($script_file).grep(/BOOLEAN/).join.split(/\n/)
 raw_flags.each do |raw_flag|
@@ -276,6 +282,9 @@ flags.each do |flag|
       option[flag] = value
       eval("$#{flag}_mode = #{value}")
     end
+    if option['verbose'] == true
+      handle_output("Information:\tDisabling #{flag} mode")
+    end
   end
 end
 
@@ -289,6 +298,7 @@ raw_params.each do |raw_param|
 end
 
 params.each do |param|
+  value = $empty_value
   if !option[param]
     if option['vm']
       vm = option['vm']
@@ -306,7 +316,10 @@ params.each do |param|
           end
           option[param] = value
         else
-          option[param] = ""
+          if option['verbose']
+            handle_output("Information:\tSetting parameter '#{param}' to '#{value}'")
+          end
+          option[param] = value
         end
       end
     else
@@ -317,7 +330,10 @@ params.each do |param|
         end
         option[param] = value
       else
-        option[param] = ""
+        if option['verbose']
+          handle_output("Information:\tSetting parameter '#{param}' to '#{value}'")
+        end
+        option[param] = value
       end
     end
   else
@@ -349,20 +365,16 @@ if $output_format.match(/html/)
   $output_text.push("<body>")
 end
 
-# load global variables
-
-set_global_vars()
-
 # Handle from switch
 
-if !option['port'].empty?
+if !option['port'].match(/^#{$empty_value}$/)
   option['from'] = option['port']
   option['to']   = option['port']
 end
 
 # Handle keyfile switch
 
-if !option['keyfile'].empty?
+if !option['keyfile'].match(/^#{$empty_value}$/)
   if !File.exist?(option['keyfile'])
     handle_output("Warning:\tKey file #{option['keyfile']} does not exist")
     exit
@@ -371,7 +383,7 @@ end
 
 # Handle AWS credentials
 
-if !option['vm'].empty?
+if !option['vm'].match(/^#{$empty_value}$/)
   if option['vm'].match(/aws/)
     if option['suffix']
       $default_aws_suffix = option['suffix']
@@ -402,7 +414,7 @@ if !option['vm'].empty?
         end
       end
     end
-    if !option['access'].match(/[A-Z]/) or !option['secret'].match(/[A-Z]|[a-z]|[0-9]/)
+    if option['access'].match(/^#{$empty_value}$/) or option['secret'].match(/^#{$empty_value}$/)
       handle_output("Warning:\tAWS Access and Secret Keys not found")
       exit
     else
@@ -415,7 +427,7 @@ end
 
 # Handle client name switch
 
-if !option['client'].empty?
+if !option['client'].match(/^#{$empty_value}$/)
   check_hostname(option['client'])
   if $verbose_mode == true
     handle_output("Setting:\tClient name to #{option['client']}")
@@ -453,7 +465,7 @@ end
 
 # If given admin set admin user
 
-if !option['admin'].empty?
+if !option['admin'].match(/^#{$empty_value}$/)
   if option['action']
     if !option['action'].match(/connect|ssh/)
       $default_admin_user = option['admin']
@@ -486,7 +498,7 @@ end
 
 # Change VM disk size
 
-if !option['size'].empty?
+if !option['size'].match(/^#{$empty_value}$/)
   $default_vm_size = option['size']
   if !$default_vm_size.match(/G$/)
     $default_vm_size = $default_vm_size+"G"
@@ -495,7 +507,7 @@ end
 
 # Get MAC address if given
 
-if !option['mac'].empty?
+if !option['mac'].match(/^#{$empty_value}$/)
   if !option['vm']
     option['vm'] = "none"
   end
@@ -509,7 +521,7 @@ end
 
 # Handle architecture switch
 
- if !option['arch'].empty?
+ if !option['arch'].match(/^#{$empty_value}$/)
    option['arch'] = option['arch'].downcase
    if option['arch'].match(/sun4u|sun4v/)
      option['arch'] = "sparc"
@@ -524,7 +536,7 @@ end
 
 # Handle install shell
 
-if option['shell'].empty?
+if option['shell'].match(/^#{$empty_value}$/)
   if option['os'].match(/win/)
     $default_shell  = "winrm"
     option['shell'] = $default_shell
@@ -536,10 +548,10 @@ end
 
 # Handle vm switch
 
-if !option['vm'].empty?
+if !option['vm'].match(/^#{$empty_value}$/)
   option['vm'] = option['vm'].gsub(/virtualbox/,"vbox")
   if option['vm'].match(/aws/)
-    if option['service'].empty?
+    if option['service'].match(/^#{$empty_value}$/)
       option['service'] = $default_aws_type
     end
   end
@@ -547,12 +559,12 @@ end
 
 # Handle share switch
 
-if !option['share'].empty?
+if !option['share'].match(/^#{$empty_value}$/)
   if !File.directory?(option['share'])
     handle_output("Warning:\tShare point #{option['share']} doesn't exist")
     exit
   end
-  if option['mount'].empty?
+  if option['mount'].match(/^#{$empty_value}$/)
     option['mount'] = File.basename(option['share'])
   end
   if $verbose_mode == true
@@ -563,8 +575,8 @@ end
 
 # Get Timezone
 
-if option['timezone'].empty?
-  if !option['os'].empty?
+if option['timezone'].match(/^#{$empty_value}$/)
+  if !option['os'].match(/^#{$empty_value}$/)
     if option['os'].match(/win/)
      option['timezone'] = $default_windows_timezone
     else
@@ -585,7 +597,7 @@ end
 
 # Handle clone swith
 
-if option['clone'].empty?
+if option['clone'].match(/^#{$empty_value}$/)
   if option['action'] == "snapshot"
     clone_date      = %x[date].chomp.downcase.gsub(/ |:/,"_")
     option['clone'] = option['client']+"-"+clone_date
@@ -603,7 +615,7 @@ end
 
 # Handle option size
 
-if !option['size'].empty?
+if !option['size'].match(/^#{$empty_value}$/)
   if option['type'].match(/vcsa/)
     if !option['size'].match(/[0-9]/)
       option['size'] = $default_vcsa_size
@@ -621,7 +633,7 @@ end
 
 # Try to determine install method when give just an ISO
 
-if !option['file'].empty?
+if !option['file'].match(/^#{$empty_value}$/)
   if option['vm'] == "vbox" and option['file'] == "tools"
     option['file'] = $vbox_additions_iso
   end
@@ -632,15 +644,15 @@ if !option['file'].empty?
     end
   end
   if option['action'].match(/deploy/)
-    if option['type'].empty?
+    if option['type'].match(/^#{$empty_value}$/)
       option['type'] = get_install_type_from_file(option['file'])
     end
   end
-  if !option['file'].empty? and option['action'].match(/create|add/)
-    if option['method'].empty?
-      option['method'] = get_install_service_from_iso(option['file'])
+  if !option['file'].match(/^#{$empty_value}$/) and option['action'].match(/create|add/)
+    if option['method'].match(/^#{$empty_value}$/)
+      option['method'] = get_install_method_from_iso(option['file'])
     end
-    if option['type'].empty?
+    if option['type'].match(/^#{$empty_value}$/)
       option['type'] = get_install_type_from_file(option['file'])
       if $verbose_mode == true
         handle_output("Information:\tSetting install type to #{option['type']}")
@@ -651,7 +663,7 @@ end
 
 # Handle values and parameters
 
-if !option['param'].empty?
+if !option['param'].match(/^#{$empty_value}$/)
   if !option['action'].match(/get/)
     if !option['value']
       handle_output("Warning:\tSetting a parameter requires a value")
@@ -665,8 +677,8 @@ if !option['param'].empty?
   end
 end
 
-if !option['value'].empty?
-  if option['param'].empty?
+if !option['value'].match(/^#{$empty_value}$/)
+  if option['param'].match(/^#{$empty_value}$/)
     handle_output("Warning:\tSetting a value requires a parameter")
     exit
   end
@@ -674,7 +686,7 @@ end
 
 # Handle LDoms
 
-if !option['method'].empty?
+if !option['method'].match(/^#{$empty_value}$/)
   if option['method'].match(/dom/)
     if option['method'].match(/cdom/)
       option['mode'] = "server"
@@ -693,7 +705,7 @@ if !option['method'].empty?
         end
       else
         if option['method'].match(/ldom/)
-          if !option['client'].empty?
+          if !option['client'].match(/^#{$empty_value}$/)
             option['method'] = "gdom"
             option['vm']     = "gdom"
             option['mode']   = "client"
@@ -711,14 +723,14 @@ if !option['method'].empty?
     end
   else
     if option['mode'].match(/client/)
-      if !option['vm'].empty?
+      if !option['vm'].match(/^#{$empty_value}$/)
         if option['method'].match(/ldom|gdom/)
           option['vm'] = "gdom"
         end
       end
     else
       if option['mode'].match(/server/)
-        if !option['vm'].empty?
+        if !option['vm'].match(/^#{$empty_value}$/)
           if option['method'].match(/ldom|cdom/)
             option['vm'] = "cdom"
           end
@@ -727,7 +739,7 @@ if !option['method'].empty?
     end
   end
 else
-  if !option['mode'].empty?
+  if !option['mode'].match(/^#{$empty_value}$/)
     if option['vm'].match(/ldom/)
       if option['mode'].match(/client/)
         option['vm']     = "gdom"
@@ -762,18 +774,18 @@ end
 # Check action when set to build
 
 if option['action'].match(/build/)
-  if option['type'].empty?
+  if option['type'].match(/^#{$empty_value}$/)
     handle_output("Information:\tSetting Install Service to Packer")
     option['type'] = "packer"
   end
-  if option['vm'].empty?
-    if option['client'].empty?
+  if option['vm'].match(/^#{$empty_value}$/)
+    if option['client'].match(/^#{$empty_value}$/)
       handle_output("Warning:\tNo client name given")
       exit
     end
     option['vm'] = get_client_vm_type_from_packer(option['client'])
   end
-  if option['vm'].empty?
+  if option['vm'].match(/^#{$empty_value}$/)
     handle_output("Warning:\tVM type not specified")
     exit
   else
@@ -784,13 +796,13 @@ if option['action'].match(/build/)
   end
 end
 
-if !option['ssopassword'].empty?
+if !option['ssopassword'].match(/^#{$empty_value}$/)
   option['adminpassword'] = option['ssopassword']
 end
 
 # Get Netmask
 
-if option['netmask'].empty?
+if option['netmask'].match(/^#{$empty_value}$/)
   if option['type'].match(/vcsa/)
     option['netmask'] = $default_cidr
   end
@@ -799,16 +811,16 @@ end
 # # Handle deploy
 
 if option['action'].match(/deploy/)
-  if option['type'].empty?
+  if option['type'].match(/^#{$empty_value}$/)
     option['type'] = "esx"
   end
   if option['type'].match(/esx|vcsa/)
-    if option['serverpassword'].empty?
+    if option['serverpassword'].match(/^#{$empty_value}$/)
       option['serverpassword'] = option['rootpassword']
     end
     check_ovftool_exists()
     if option['type'].match(/vcsa/)
-      if option['file'].empty?
+      if option['file'].match(/^#{$empty_value}$/)
         handle_output("Warning:\tNo deployment image file specified")
         exit
       end
@@ -820,7 +832,7 @@ end
 
 # Handle console switch
 
-if !option['console'].empty?
+if !option['console'].match(/^#{$empty_value}$/)
   case option['console']
   when /x11/
     $text_mode = false
@@ -838,7 +850,7 @@ end
 # Handle list switch
 
 if option['action'].match(/list/)
-  if option['vm'].empty? and option['service'].empty? and option['method'].empty? and option['type'].empty? and option['mode'].empty?
+  if option['vm'].match(/^#{$empty_value}$/) and option['service'].match(/^#{$empty_value}$/) and option['method'].match(/^#{$empty_value}$/) and option['type'].match(/^#{$empty_value}$/) and option['mode'].match(/^#{$empty_value}$/)
     handle_output("Warning:\tNo type or service given")
     exit
   end
@@ -846,14 +858,14 @@ end
 
 # Handle action switch
 
-if !option['action'].empty?
-  if option['action'].match(/delete/) and option['service'].empty?
-    if option['vm'].empty? and !option['type'].empty?
+if !option['action'].match(/^#{$empty_value}$/)
+  if option['action'].match(/delete/) and option['service'].match(/^#{$empty_value}$/)
+    if option['vm'].match(/^#{$empty_value}$/) and !option['type'].match(/^#{$empty_value}$/)
       option['vm'] = get_client_vm_type_from_packer(option['client'])
     else
-      if !option['type'].empty? and option['vm'].empty?
+      if !option['type'].match(/^#{$empty_value}$/) and option['vm'].match(/^#{$empty_value}$/)
         if option['type'].match(/packer/)
-          if !option['client'].empty?
+          if !option['client'].match(/^#{$empty_value}$/)
             option['vm'] = get_client_vm_type_from_packer(option['client'])
           end
         end
@@ -871,11 +883,11 @@ if !option['action'].empty?
         end
       end
     end
-    if option['vm'].empty?
+    if option['vm'].match(/^#{$empty_value}$/)
       handle_output("Information:\tVirtualisation method not specified, setting virtualisation method to VMware")
       option['vm'] = "vm"
     end
-    if option['server'].empty? or option['ip'].empty?
+    if option['server'].match(/^#{$empty_value}$/) or option['ip'].match(/^#{$empty_value}$/)
       handle_output("Warning:\tRemote server hostname or IP not specified")
       exit
     end
@@ -884,7 +896,7 @@ end
 
 # Handle OS switch
 
-if !option['os'].empty?
+if !option['os'].match(/^#{$empty_value}$/)
   option['os'] = option['os'].downcase
   option['os'] = option['os'].gsub(/windows/,"win")
   option['os'] = option['os'].gsub(/scientificlinux|scientific/,"sl")
@@ -895,7 +907,7 @@ if !option['os'].empty?
   option['os'] = option['os'].gsub(/redhat/,"rhel")
 else
   if option['type'].match(/vcsa|packer/)
-    if option['service'].empty? or option['os'].empty? or option['method'].empty? or option['release'].empty? or option['arch'].empty? or option['label'].empty?
+    if option['service'].match(/^#{$empty_value}$/) or option['os'].match(/^#{$empty_value}$/) or option['method'].match(/^#{$empty_value}$/) or option['release'].match(/^#{$empty_value}$/) or option['arch'].match(/^#{$empty_value}$/) or option['label'].match(/^#{$empty_value}$/)
       (option['service'],option['os'],option['method'],option['release'],option['arch'],option['label']) = get_install_service_from_file(option['file'])
     end
   else
@@ -905,26 +917,26 @@ end
 
 # Handle install service switch
 
-if !option['service'].empty?
+if !option['service'].match(/^#{$empty_value}$/)
   if $verbose_mode == true
     handle_output("Information:\tSetting install service to #{option['service']}")
   end
   if option['type'].match(/^packer$/)
     check_packer_is_installed()
     option['mode']    = "client"
-    if option['method'].empty? and option['os'].empty? and !option['action'].match(/build|list|import|delete/) and !option['vm'].match(/aws/)
+    if option['method'].match(/^#{$empty_value}$/) and option['os'].match(/^#{$empty_value}$/) and !option['action'].match(/build|list|import|delete/) and !option['vm'].match(/aws/)
       handle_output("Warning:\tNo OS, or Install Method specified for build type #{option['service']}")
       exit
     end
-    if option['vm'].empty? and !option['action'].match(/list/)
+    if option['vm'].match(/^#{$empty_value}$/) and !option['action'].match(/list/)
       handle_output("Warning:\tNo VM type specified for build type #{option['service']}")
       exit
     end
-    if option['client'].empty? and !option['action'].match(/list/) and !option['vm'].match(/aws/)
+    if option['client'].match(/^#{$empty_value}$/) and !option['action'].match(/list/) and !option['vm'].match(/aws/)
       handle_output("Warning:\tNo Client name specified for build type #{option['service']}")
       exit
     end
-    if option['file'].empty? and !option['action'].match(/build|list|import|delete/) and !option['vm'].match(/aws/)
+    if option['file'].match(/^#{$empty_value}$/) and !option['action'].match(/build|list|import|delete/) and !option['vm'].match(/aws/)
       handle_output("Warning:\tNo ISO file specified for build type #{option['service']}")
       exit
     end
@@ -935,8 +947,8 @@ if !option['service'].empty?
     if !option['mac'].match(/[0-9]|[A-F]|[a-f]/) and !option['action'].match(/build|list|import|delete/)
       handle_output("Warning:\tNo MAC Address given")
       handle_output("Information:\tGenerating MAC Address")
-      if !option['vm'].empty?
-        if !option['vm'].empty?
+      if !option['vm'].match(/^#{$empty_value}$/)
+        if !option['vm'].match(/^#{$empty_value}$/)
           option['mac'] = generate_mac_address(option['vm'])
         else
           option['mac'] = generate_mac_address(option['client'])
@@ -948,25 +960,25 @@ if !option['service'].empty?
   end
 else
   if option['type'].match(/vcsa|packer/)
-    if option['service'].empty? or option['os'].empty? or option['method'].empty? or option['release'].empty? or option['arch'].empty? or option['file'].empty?
+    if option['service'].match(/^#{$empty_value}$/) or option['os'].match(/^#{$empty_value}$/) or option['method'].match(/^#{$empty_value}$/) or option['release'].match(/^#{$empty_value}$/) or option['arch'].match(/^#{$empty_value}$/) or option['file'].match(/^#{$empty_value}$/)
       (option['service'],option['os'],option['method'],option['release'],option['arch'],option['label']) = get_install_service_from_file(option['file'])
     end
     if option['type'].match(/^packer$/)
       check_packer_is_installed()
       option['mode'] = "client"
-      if option['method'].empty? and option['os'].empty? and !option['action'].match(/build|list|import|delete/)
+      if option['method'].match(/^#{$empty_value}$/) and option['os'].match(/^#{$empty_value}$/) and !option['action'].match(/build|list|import|delete/)
         handle_output("Warning:\tNo OS, or Install Method specified for build type #{option['service']}")
         exit
       end
-      if option['vm'].empty? and !option['action'].match(/list/)
+      if option['vm'].match(/^#{$empty_value}$/) and !option['action'].match(/list/)
         handle_output("Warning:\tNo VM type specified for build type #{option['service']}")
         exit
       end
-      if option['client'].empty? and !option['action'].match(/list/)
+      if option['client'].match(/^#{$empty_value}$/) and !option['action'].match(/list/)
         handle_output("Warning:\tNo Client name specified for build type #{option['service']}")
         exit
       end
-      if option['file'].empty? and !option['action'].match(/build|list|import|delete/)
+      if option['file'].match(/^#{$empty_value}$/) and !option['action'].match(/build|list|import|delete/)
         handle_output("Warning:\tNo ISO file specified for build type #{option['service']}")
         exit
       end
@@ -977,7 +989,7 @@ else
       if !option['mac'].match(/[0-9]|[A-F]|[a-f]/) and !option['action'].match(/build|list|import|delete/)
         handle_output("Warning:\tNo MAC Address given")
         handle_output("Information:\tGenerating MAC Address")
-        if option['vm'].empty?
+        if option['vm'].match(/^#{$empty_value}$/)
           option['vm'] = "none"
         end
         option['mac'] = generate_mac_address(option['vm'])
@@ -991,7 +1003,7 @@ end
 # Make sure a service (e.g. packer) or an install file (e.g. OVA) is specified for an import
 
 if option['action'].match(/import/)
-  if option['file'].empty? and option['service'].empty? and !option['type'].match(/packer/)
+  if option['file'].match(/^#{$empty_value}$/) and option['service'].match(/^#{$empty_value}$/) and !option['type'].match(/packer/)
     vm_types       = [ "fusion", "vbox" ]
     exists         = []
     vm_exists      = ""
@@ -1017,7 +1029,7 @@ if option['release'].match(/[0-9]/)
   if option['type'].match(/packer/) and option['action'].match(/build|delete|import/)
     option['release'] = ""
   else
-    if option['vm'].empty?
+    if option['vm'].match(/^#{$empty_value}$/)
       option['vm'] = "none"
     end
     if option['vm'].match(/zone/) and $os_rel.match(/10|11/) and !option['release'].match(/10|11/)
@@ -1042,10 +1054,10 @@ end
 
 # Handle empty OS option
 
-if option['os'].empty?
-  if !option['vm'].empty?
+if option['os'].match(/^#{$empty_value}$/)
+  if !option['vm'].match(/^#{$empty_value}$/)
     if option['action'].match(/add|create/)
-      if option['method'].empty?
+      if option['method'].match(/^#{$empty_value}$/)
         if !option['vm'].match(/ldom|cdom|gdom|aws/)
           handle_output("Warning:\tNo OS or install method specified when creating VM")
           exit
@@ -1057,12 +1069,12 @@ end
 
 # Handle memory switch
 
-if option['memory'].empty?
-  if !option['vm'].empty?
+if option['memory'].match(/^#{$empty_value}$/)
+  if !option['vm'].match(/^#{$empty_value}$/)
     if option['os'].match(/vs|esx|vmware|vsphere/) or option['method'].match(/vs|esx|vmware|vsphere/)
       option['memory'] = "4096"
     end
-    if !option['os'].empty?
+    if !option['os'].match(/^#{$empty_value}$/)
       if option['os'].match(/sol/)
         if option['release'].to_i > 9
           option['memory'] = "2048"
@@ -1099,7 +1111,7 @@ else
       end
     end
   else
-    if option['vm'].empty?
+    if option['vm'].match(/^#{$empty_value}$/)
       if option['action'].match(/create/)
         option['mode'] = "server"
         check_local_config(option['mode'])
@@ -1114,17 +1126,17 @@ end
 
 # If service is set, but method and os isn't given, try to set method from service name
 
-if !option['service'].empty? and option['method'].empty? and option['os'].empty?
+if !option['service'].match(/^#{$empty_value}$/) and option['method'].match(/^#{$empty_value}$/) and option['os'].match(/^#{$empty_value}$/)
   option['method'] = get_install_method_from_service(option['service'])
 else
-  if option['method'].empty? and option['os'].empty?
+  if option['method'].match(/^#{$empty_value}$/) and option['os'].match(/^#{$empty_value}$/)
     option['method'] = get_install_method_from_service(option['service'])
   end
 end
 
 # Handle VM switch
 
-if !option['vm'].empty?
+if !option['vm'].match(/^#{$empty_value}$/)
   option['mode'] = "client"
   case option['vm']
   when /parallels/
@@ -1163,7 +1175,7 @@ if !option['vm'].empty?
     end
   when /ldom|cdom|gdom/
     if $os_arch.downcase.match(/sparc/) and $os_name.match(/SunOS/)
-      if install.release.empty?
+      if install.release.match(/^#{$empty_value}$/)
         option['release']   = $os_rel
       end
       if $os_rel.match(/10|11/)
@@ -1191,8 +1203,8 @@ else
   option['vm'] = "none"
 end
 
-if !option['vm'].empty? or !option['method'].empty?
-  if !option['model'].empty?
+if !option['vm'].match(/^#{$empty_value}$/) or !option['method'].match(/^#{$empty_value}$/)
+  if !option['model'].match(/^#{$empty_value}$/)
     option['model'] = option['model'].downcase
   else
     if option['arch'].match(/i386|x86|x86_64|x64|amd64/)
@@ -1208,16 +1220,16 @@ end
 
 # Check OS switch
 
-if !option['os'].empty?
+if !option['os'].match(/^#{$empty_value}$/)
   if option['os'].match(/^Linux|^linux/)
-    if option['file'].empty?
+    if option['file'].match(/^#{$empty_value}$/)
       print_valid_list("Warning:\tInvalid OS specified",$valid_linux_os_list)
     else
       (option['service'],option['os']) = get_packer_install_service(option['file'])
     end
     exit
   else
-    if !option['file'].empty?
+    if !option['file'].match(/^#{$empty_value}$/)
       if option['file'].match(/purity/)
         option['os'] = "purity"
       else
@@ -1258,7 +1270,7 @@ end
 
 # Handle install method switch
 
-if !option['method'].empty?
+if !option['method'].match(/^#{$empty_value}$/)
   case option['method']
     when /autoinstall|ai/
     info_examples    = "ai"
@@ -1293,7 +1305,7 @@ end
 
 # Try to determine install method if only given OS
 
-if option['method'].empty? and !option['action'].match(/delete|running|reboot|restart|halt|boot|stop|deploy|migrate|show/)
+if option['method'].match(/^#{$empty_value}$/) and !option['action'].match(/delete|running|reboot|restart|halt|boot|stop|deploy|migrate|show/)
   case option['os']
   when /sol|sunos/
     if option['release'].match(/[0-9]/)
@@ -1326,7 +1338,7 @@ if option['method'].empty? and !option['action'].match(/delete|running|reboot|re
     option['method'] = "pe"
   else
     if !option['action'].match(/list|info|check/)
-      if !option['action'].match(/add|create/) and option['vm'].empty?
+      if !option['action'].match(/add|create/) and option['vm'].match(/^#{$empty_value}$/)
         print_valid_list("Warning:\tInvalid OS specified",$valid_os_list)
       end
     end
@@ -1335,7 +1347,7 @@ end
 
 # Handle action switch
 
-if !option['action'].empty?
+if !option['action'].match(/^#{$empty_value}$/)
   case option['action']
   when /execute/
     if option['type'].match(/docker/)
@@ -1350,17 +1362,17 @@ if !option['action'].empty?
       eval"[vnc_#{option['vm']}_vm(option['client'],option['ip'])]"
     end
   when /status/
-    if !option['vm'].empty?
+    if !option['vm'].match(/^#{$empty_value}$/)
       eval"[get_#{option['vm']}_vm_status(option['client'])]"
     end
   when /set|put/
     if option['type'].match(/acl/)
-      if option['bucket'].match(/[A-Z]|[a-z]|[0-9]/)
+      if !option['bucket'].match(/^#{$empty_value}$/)
         set_aws_s3_bucket_acl(option['access'],option['secret'],option['region'],option['bucket'],install_email,install_grant,install_perms)
       end
     end
   when /upload|download/
-    if option['bucket'].match(/[A-Z]|[a-z]|[0-9]/)
+    if !option['bucket'].match(/^#{$empty_value}$/)
       if option['action'].match(/upload/)
         upload_file_to_aws_bucket(option['access'],option['secret'],option['region'],option['file'],option['object'],option['bucket'])
       else
@@ -1369,7 +1381,7 @@ if !option['action'].empty?
     end
   when /display|view|show|prop|get|billing/
     if option['type'].match(/acl|url/) or option['action'].match(/acl|url/)
-      if option['bucket'].match(/[A-Z]|[a-z]|[0-9]/)
+      if !option['bucket'].match(/^#{$empty_value}$/)
         show_aws_s3_bucket_acl(option['access'],option['secret'],option['region'],option['bucket'])
       else
         if option['type'].match(/url/) or option['action'].match(/url/)
@@ -1379,8 +1391,8 @@ if !option['action'].empty?
         end
       end
     else
-      if !option['client'].empty?
-        if !option['vm'].empty? and !option['vm'].match(/none/)
+      if !option['client'].match(/^#{$empty_value}$/)
+        if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
           eval"[show_#{option['vm']}_vm_config(option['client'])]"
         else
           get_client_config(option['client'],option['service'],option['method'],option['type'],option['vm'])
@@ -1394,7 +1406,7 @@ if !option['action'].empty?
   when /info|usage|help/
     print_examples(option['method'],option['type'],option['vm'])
   when /show/
-    if !option['vm'].empty? and !option['vm'].match(/none/)
+    if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
       eval"[show_#{option['vm']}_vm(option['client'])]"
     end
   when /list/
@@ -1426,7 +1438,7 @@ if !option['action'].empty?
       list_aws_security_groups(option['access'],option['secret'],option['region'],option['group'])
     else
       if option['type'].match(/service/) or option['mode'].match(/server/)
-        if !option['method'].empty?
+        if !option['method'].match(/^#{$empty_value}$/)
           eval"[list_#{option['method']}_services]"
           handle_output("")
         else
@@ -1435,7 +1447,7 @@ if !option['action'].empty?
         quit()
       end
       if option['type'].match(/iso/)
-        if !option['method'].empty?
+        if !option['method'].match(/^#{$empty_value}$/)
           eval"[list_#{option['method']}_isos]"
         else
           list_os_isos(option['os'])
@@ -1449,7 +1461,7 @@ if !option['action'].empty?
         list_vms(option['vm'],option['type'])
         quit()
       end
-      if !option['method'].empty? and option['vm'].match(/none/)
+      if !option['method'].match(/^#{$empty_value}$/) and option['vm'].match(/none/)
         eval"[list_#{option['method']}_clients()]"
         qui()
       end
@@ -1457,7 +1469,7 @@ if !option['action'].empty?
         list_ovas()
         quit()
       end
-      if !option['vm'].empty? and !option['vm'].match(/none/)
+      if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
         if option['type'].match(/snapshot/)
           list_vm_snapshots(option['vm'],option['os'],option['method'],option['client'])
         else
@@ -1471,12 +1483,12 @@ if !option['action'].empty?
       delete_user_ssh_config(option['ip'],option['id'],option['client'])
       quit()
     end
-    if !option['client'].empty?
+    if !option['client'].match(/^#{$empty_value}$/)
       if option['type'].match(/docker/)
         unconfigure_docker_client(option['client'])
         quit()
       end
-      if option['service'].empty? and option['vm'].match(/none/)
+      if option['service'].match(/^#{$empty_value}$/) and option['vm'].match(/none/)
         if option['vm'].match(/none/)
           option['vm'] = get_client_vm_type(option['client'])
           if option['vm'].match(/vbox|fusion|parallels/)
@@ -1495,7 +1507,7 @@ if !option['action'].empty?
             eval"[unconfigure_#{option['type']}_client(option['client'],option['vm'])]"
           else
             if option['type'].match(/snapshot/)
-              if !option['client'].empty? and option['clone'].match(/[a-z,A-Z,0-9]|\*/)
+              if !option['client'].match(/^#{$empty_value}$/) and !option['clone'].match(/^#{$empty_value}$/)
                 delete_vm_snapshot(option['vm'],option['client'],option['clone'])
               else
                 handle_output("Warning:\tClient name or clone not specified")
@@ -1533,7 +1545,7 @@ if !option['action'].empty?
         when /iprule/
           remove_rule_from_aws_security_group(option['access'],option['secret'],option['region'],option['group'],option['proto'],option['to'],option['from'],option['cidr'],option['dir'])
         else
-          if option['ami'].match(/[A-Z]|[a-z]|[0-9]/)
+          if !option['ami'].match(/^#{$empty_value}$/)
             delete_aws_image(option['ami'],option['access'],option['secret'],option['region'])
           else
             handle_output("Warning:\tNo AWS instance or image specified")
@@ -1544,8 +1556,8 @@ if !option['action'].empty?
       if option['type'].match(/packer|docker/)
         eval"[unconfigure_#{option['type']}_client(option['client'])]"
       else
-        if !option['service'].empty?
-          if option['method'].empty?
+        if !option['service'].match(/^#{$empty_value}$/)
+          if option['method'].match(/^#{$empty_value}$/)
             unconfigure_server(option['service'])
           else
             eval"[unconfigure_#{option['method']}_server(option['service'])]"
@@ -1582,7 +1594,7 @@ if !option['action'].empty?
       when /packer/
         configure_packer_aws_client(option['client'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['keyfile'],option['group'])
       else
-        if !option['key'].match(/[A-Z]|[a-z]|[0-9]/)
+        if option['key'].match(/^#{$empty_value}$/)
           handle_output("Warning:\tKey Pair not given")
           quit()
         else
@@ -1595,19 +1607,19 @@ if !option['action'].empty?
       configure_docker_client(option['vm'],option['client'],option['ip'],option['network'])
       quit()
     end
-    if option['vm'].match(/none/) and option['method'].empty? and option['type'].empty? and !option['mode'].match(/server/)
+    if option['vm'].match(/none/) and option['method'].match(/^#{$empty_value}$/) and option['type'].match(/^#{$empty_value}$/) and !option['mode'].match(/server/)
       handle_output("Warning:\tNo VM, Method or given")
     end
-    if option['mode'].match(/server/) or !option['file'].empty? or option['type'].match(/service/) and option['vm'].match(/none/) and !option['type'].match(/packer/) and !option['service'].match(/packer/)
+    if option['mode'].match(/server/) or !option['file'].match(/^#{$empty_value}$/) or option['type'].match(/service/) and option['vm'].match(/none/) and !option['type'].match(/packer/) and !option['service'].match(/packer/)
       check_local_config("server")
       eval"[configure_server(option['method'],option['arch'],option['publisherhost'],option['publisherport'],option['service'],option['file'])]"
     else
       if option['vm'].match(/fusion|vbox/)
         check_vm_network(option['vm'],option['mode'],option['network'])
       end
-      if !option['client'].empty?
-        if !option['service'].empty? or option['type'].match(/packer/)
-          if option['method'].empty?
+      if !option['client'].match(/^#{$empty_value}$/)
+        if !option['service'].match(/^#{$empty_value}$/) or option['type'].match(/packer/)
+          if option['method'].match(/^#{$empty_value}$/)
             option['method'] = get_install_method(option['client'],option['service'])
           end
           if !option['type'].match(/packer/) and option['vm'].match(/none/)
@@ -1634,10 +1646,10 @@ if !option['action'].empty?
             end
             eval"[configure_#{option['type']}_client(option['method'],option['vm'],option['os'],option['client'],option['arch'],option['mac'],option['ip'],option['model'],
                               option['publisherhost'],option['service'],option['file'],option['memory'],option['cpu'],option['network'],option['license'],option['mirror'],
-                              option['size'],option['type'],install_locale,option['label'],option['timezone'],option['shell'])]"
+                              option['size'],option['type'],option['locale'],option['label'],option['timezone'],option['shell'])]"
           else
             if option['vm'].match(/none/)
-              if option['method'].empty?
+              if option['method'].match(/^#{$empty_value}$/)
                 if option['ip'].match(/[0-9]/)
                   check_local_config("client")
                   add_hosts_entry(option['client'],option['ip'])
@@ -1647,7 +1659,7 @@ if !option['action'].empty?
                   add_dhcp_client(option['client'],option['mac'],option['ip'],option['arch'],option['service'])
                 end
               else
-                if option['model'].empty?
+                if option['model'].match(/^#{$empty_value}$/)
                   option['model']       = "vmware"
                   $default_slice_size = "4192"
                 end
@@ -1713,20 +1725,20 @@ if !option['action'].empty?
       eval"[#{option['action']}_#{option['vm']}_vm(option['access'],option['secret'],option['region'],option['ami'],option['id'])]"
       quit()
     end
-    if !option['client'].empty? and !option['vm'].empty? and !option['vm'].match(/none/)
+    if !option['client'].match(/^#{$empty_value}$/) and !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
       if option['action'].match(/boot/)
         eval"[#{option['action']}_#{option['vm']}_vm(option['client'],option['type'])]"
       else
         eval"[#{option['action']}_#{option['vm']}_vm(option['client'])]"
       end
     else
-      if !option['client'].empty? and option['vm'].match(/none/)
+      if !option['client'].match(/^#{$empty_value}$/) and option['vm'].match(/none/)
         option['vm'] = get_client_vm_type(option['client'])
         check_local_config(option['mode'])
         if option['vm'].match(/vbox|fusion|parallels/)
           $use_sudo = false
         end
-        if !option['vm'].empty? and !option['vm'].match(/none/)
+        if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
           if option['action'].match(/boot/)
             eval"[#{option['action']}_#{option['vm']}_vm(option['client'],option['type'])]"
           else
@@ -1736,24 +1748,24 @@ if !option['action'].empty?
           print_valid_list("Warning:\tInvalid VM type",$valid_vm_list)
         end
       else
-        if option['client'].empty?
+        if option['client'].match(/^#{$empty_value}$/)
           handle_output("Warning:\tClient name not specified")
         end
       end
     end
   when /restart|reboot/
-    if !option['service'].empty?
+    if !option['service'].match(/^#{$empty_value}$/)
       eval"[restart_#{option['service']}()]"
     else
-      if option['vm'].match(/none/) and !option['client'].empty?
+      if option['vm'].match(/none/) and !option['client'].match(/^#{$empty_value}$/)
         option['vm'] = get_client_vm_type(option['client'])
       end
       if option['vm'].match(/aws/)
         reboot_aws_vm(option['access'],option['secret'],option['region'],option['ami'],option['id'])
         quit()
       end
-      if !option['vm'].empty? and !option['vm'].match(/none/)
-        if !option['client'].empty?
+      if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
+        if !option['client'].match(/^#{$empty_value}$/)
           eval"[stop_#{option['vm']}_vm(option['client'])]"
           eval"[boot_#{option['vm']}_vm(option['client'],option['type'])]"
         else
@@ -1764,7 +1776,7 @@ if !option['action'].empty?
       end
     end
   when /import/
-    if option['file'].empty?
+    if option['file'].match(/^#{$empty_value}$/)
       if option['type'].match(/packer/)
         eval"[import_packer_#{option['vm']}_vm(option['client'],option['vm'])]"
       end
@@ -1788,13 +1800,13 @@ if !option['action'].empty?
       export_aws_image(option['access'],option['secret'],option['region'],option['ami'],option['id'],option['prefix'],option['bucket'],option['container'],option['comment'],option['target'],install_format,install_acl)
     end
   when /clone|copy/
-    if !option['clone'].empty? and !option['client'].empty?
+    if !option['clone'].match(/^#{$empty_value}$/) and !option['client'].match(/^#{$empty_value}$/)
       eval"[clone_#{option['vm']}_vm(option['client'],option['clone'],option['mac'],option['ip'])]"
     else
       handle_output("Warning:\tClient name or clone name not specified")
     end
   when /running|stopped|suspended|paused/
-    if !option['vm'].empty? and !option['vm'].match(/none/)
+    if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
       eval"[list_#{option['action']}_#{option['vm']}_vms]"
     end
   when /crypt/
@@ -1803,7 +1815,7 @@ if !option['action'].empty?
   when /post/
     eval"[execute_#{option['vm']}_post(option['client'])]"
   when /change|modify/
-    if !option['client'].empty?
+    if !option['client'].match(/^#{$empty_value}$/)
       if option['memory'].match(/[0-9]/)
         eval"[change_#{option['vm']}_vm_mem(option['client'],option['memory'])]"
       end
@@ -1814,22 +1826,22 @@ if !option['action'].empty?
       handle_output("Warning:\tClient name not specified")
     end
   when /attach/
-    if !option['vm'].empty? and !option['vm'].match(/none/)
+    if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
       eval"[attach_file_to_#{option['vm']}_vm(option['client'],option['file'],option['type'])]"
     end
   when /detach/
-    if !option['vm'].empty? and !option['client'].empty? and !option['vm'].match(/none/)
+    if !option['vm'].match(/^#{$empty_value}$/) and !option['client'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
       eval"[detach_file_from_#{option['vm']}_vm(option['client'],option['file'],option['type'])]"
     else
       handle_output("Warning:\tClient name or virtualisation platform not specified")
     end
   when /share/
-    if !option['vm'].empty? and !option['vm'].match(/none/)
+    if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
       eval"[add_shared_folder_to_#{option['vm']}_vm(option['client'],option['share'],option['mount'])]"
     end
   when /^snapshot|clone/
-    if !option['vm'].empty? and !option['vm'].match(/none/)
-      if !option['client'].empty?
+    if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
+      if !option['client'].match(/^#{$empty_value}$/)
         eval"[snapshot_#{option['vm']}_vm(option['client'],option['clone'])]"
       else
         handle_output("Warning:\tClient name not specified")
@@ -1850,19 +1862,19 @@ if !option['action'].empty?
                                     option['ipfamily'],option['mode'],option['ip'],option['netmask'],option['gateway'],option['nameserver'],option['service'],option['file'])]"
     end
   when /restore|revert/
-    if !option['vm'].empty? and !option['vm'].match(/none/)
-      if !option['client'].empty?
+    if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
+      if !option['client'].match(/^#{$empty_value}$/)
         eval"[restore_#{option['vm']}_vm_snapshot(option['client'],option['clone'])]"
       else
         handle_output("Warning:\tClient name not specified")
       end
     end
   when /set/
-    if !option['vm'].empty?
+    if !option['vm'].match(/^#{$empty_value}$/)
       eval"[set_#{option['vm']}_value(option['client'],option['param'],option['value'])]"
     end
   when /get/
-    if !option['vm'].empty?
+    if !option['vm'].match(/^#{$empty_value}$/)
       eval"[get_#{option['vm']}_value(option['client'],option['param'])]"
     end
   when /console|serial|connect|ssh/
@@ -1873,8 +1885,8 @@ if !option['action'].empty?
     if option['type'].match(/docker/)
       connect_to_docker_client(option['client'])
     end
-    if !option['vm'].empty? and !option['vm'].match(/none/)
-      if !option['client'].empty?
+    if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
+      if !option['client'].match(/^#{$empty_value}$/)
         connect_to_virtual_serial(option['client'],option['vm'])
       else
         handle_output("Warning:\tClient name not specified")

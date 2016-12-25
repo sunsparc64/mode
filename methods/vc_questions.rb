@@ -3,7 +3,7 @@
 
 # Configuration questions for VCSA
 
-def populate_vcsa_questions(install_server,install_datastore,install_server_admin,install_server_password,install_server_network,install_client,
+def populate_vcsa_questions(install_server,install_datastore,install_serveradmin,install_serverpassword,install_server_network,install_client,
                             install_size,install_root_password,install_timeserver,install_admin_password,install_domainname,install_sitename,
                             install_ipfamily,install_mode,install_ip,install_netmask,install_gateway,install_nameserver,install_service,install_file)
 
@@ -42,7 +42,7 @@ def populate_vcsa_questions(install_server,install_datastore,install_server_admi
     question  = "ESX Username",
     ask       = "yes",
     parameter = "esx.username",
-    value     = install_server_admin,
+    value     = install_serveradmin,
     valid     = "",
     eval      = "no"
     )
@@ -55,7 +55,7 @@ def populate_vcsa_questions(install_server,install_datastore,install_server_admi
     question  = "ESX Password",
     ask       = "no",
     parameter = "esx.password",
-    value     = install_server_password,
+    value     = install_serverpassword,
     valid     = "",
     eval      = "no"
     )

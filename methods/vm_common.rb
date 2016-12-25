@@ -1,4 +1,5 @@
 
+
 # Code for creating client VMs for testing (e.g. VirtualBox)
 
 # Handle VM install status
@@ -45,9 +46,9 @@ def check_vm_network(install_vm,install_mode,install_network)
   message = "Information:\tChecking "+if_name+" is configured"
   command = "ifconfig #{if_name} |grep inet"
   output  = execute_command(message,command)
-  if !output.match(/#{$default_gateway_ip}/)
+  if !output.match(/#{$default_gateway}/)
     message = "Information:\tConfiguring "+if_name
-    command = "sudo sh -c 'ifconfig #{if_name} inet #{$default_gateway_ip} netmask #{$default_netmask} up'"
+    command = "sudo sh -c 'ifconfig #{if_name} inet #{$default_gateway} netmask #{$default_netmask} up'"
     execute_command(message,command)
   end
   return
@@ -74,8 +75,8 @@ def delete_vm_snapshot(install_vm,install_client,install_clone)
   return
 end
 
-#def create_vm(install_client,client_ip,install_mac,client_arch,install_os,client_rel,publisher_host,image_file,service_name)
-#  eval"[configure_#{vfunct}(install_client,client_ip,install_mac,client_arch,install_os,client_rel,publisher_host,image_file,service_name)]"
+#def create_vm(install_client,client_ip,install_mac,client_arch,install_os,client_rel,publisherhost,image_file,service_name)
+#  eval"[configure_#{vfunct}(install_client,client_ip,install_mac,client_arch,install_os,client_rel,publisherhost,image_file,service_name)]"
 #  return
 #end
 

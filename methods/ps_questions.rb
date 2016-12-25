@@ -685,7 +685,7 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
     question  = "Root password",
     ask       = "yes",
     parameter = "",
-    value     = $default_root_password,
+    value     = $default_rootpassword,
     valid     = "",
     eval      = "no"
     )
@@ -698,7 +698,7 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
     question  = "Root Password Crypt",
     ask       = "yes",
     parameter = "passwd/root-password-crypted",
-    value     = get_password_crypt($default_root_password),
+    value     = get_password_crypt($default_rootpassword),
     valid     = "",
     eval      = "get_password_crypt(answer)"
     )
@@ -737,7 +737,7 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
     question  = "User password",
     ask       = "yes",
     parameter = "",
-    value     = $default_admin_password,
+    value     = $default_adminpassword,
     valid     = "",
     eval      = "no"
     )
@@ -750,7 +750,7 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
     question  = "User Password Crypt",
     ask       = "yes",
     parameter = "passwd/user-password-crypted",
-    value     = get_password_crypt($default_admin_password),
+    value     = get_password_crypt($default_adminpassword),
     valid     = "",
     eval      = "get_password_crypt(answer)"
     )
@@ -810,7 +810,7 @@ def populate_ps_questions(install_service,install_client,install_ip,install_mirr
   $q_order.push(name)
 
   if install_type.match(/packer/)
-    script_url = "http://"+$default_gateway_ip+":"+$default_httpd_port+"/"+install_vm+"/"+install_client+"/"+install_client+"_post.sh"
+    script_url = "http://"+$default_gateway+":"+$default_httpd_port+"/"+install_vm+"/"+install_client+"/"+install_client+"_post.sh"
   else
     script_url = "http://"+$default_host+"/clients/"+install_service+"/"+install_client+"/"+install_client+"_post.sh"
   end

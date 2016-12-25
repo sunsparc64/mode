@@ -3,25 +3,25 @@
 
 # Configure NFS service
 
-def configure_js_nfs_service(install_service,publisher_host)
+def configure_js_nfs_service(install_service,publisherhost)
   repo_version_dir = $repo_base_dir+"/"+install_service
   if $os_name.match(/SunOS/)
     if $os_rel.match(/11/)
       check_fs_exists($client_base_dir)
-      add_nfs_export(install_service,repo_version_dir,publisher_host)
+      add_nfs_export(install_service,repo_version_dir,publisherhost)
       export_name = "client_configs"
-      add_nfs_export(export_name,$client_base_dir,publisher_host)
+      add_nfs_export(export_name,$client_base_dir,publisherhost)
     else
       check_dir_exists($client_base_dir)
-      add_nfs_export(install_service,repo_version_dir,publisher_host)
+      add_nfs_export(install_service,repo_version_dir,publisherhost)
       export_name = "client_configs"
-      add_nfs_export(export_name,$client_base_dir,publisher_host)
+      add_nfs_export(export_name,$client_base_dir,publisherhost)
     end
   else
     check_dir_exists($client_base_dir)
-    add_nfs_export(install_service,repo_version_dir,publisher_host)
+    add_nfs_export(install_service,repo_version_dir,publisherhost)
     export_name = "client_configs"
-    add_nfs_export(export_name,$client_base_dir,publisher_host)
+    add_nfs_export(export_name,$client_base_dir,publisherhost)
   end
   return
 end
@@ -275,8 +275,8 @@ end
 
 # Configure jumpstart server
 
-def configure_js_server(install_arch,publisher_host,publisher_port,install_service,iso_file)
-  check_dhcpd_config(publisher_host)
+def configure_js_server(install_arch,publisherhost,publisherport,install_service,iso_file)
+  check_dhcpd_config(publisherhost)
   iso_list      = []
   search_string = "\\-ga\\-"
   if iso_file.match(/[a-z,A-Z]/)
@@ -317,7 +317,7 @@ def configure_js_server(install_arch,publisher_host,publisher_port,install_servi
     add_apache_alias(install_service)
     configure_js_repo(iso_file_name,repo_version_dir,os_version,os_update)
     configure_js_tftp_service(install_arch,install_service,repo_version_dir,os_version)
-    configure_js_nfs_service(install_service,publisher_host)
+    configure_js_nfs_service(install_service,publisherhost)
     if os_arch.match(/sparc/)
       copy_js_sparc_boot_images(repo_version_dir,os_version,os_update)
     end

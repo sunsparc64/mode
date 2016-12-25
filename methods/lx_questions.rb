@@ -9,7 +9,7 @@ def populate_lxc_client_questions(client_ip)
   config = Lx.new(
     question  = "Root password",
     ask       = "yes",
-    value     = $default_root_password,
+    value     = $default_rootpassword,
     valid     = "",
     eval      = "no"
     )
@@ -108,7 +108,7 @@ def populate_lxc_client_questions(client_ip)
   config = Lx.new(
     question  = "User password",
     ask       = "yes",
-    value     = $default_admin_password,
+    value     = $default_adminpassword,
     valid     = "",
     eval      = "no"
     )
