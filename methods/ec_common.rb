@@ -105,8 +105,42 @@ def check_aws_vm_exists(install_name)
   return exists
 end
 
-# Get Prefix List ID
+# HAndle AWS values
 
+def handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region)
+   if install_name.match(/^#{$empty_value}$/)
+    handle_output("Warning:\tNo name specified for AWS image")
+    quit()
+  end
+  if install_key.match(/^#{$empty_value}$/)
+    handle_output("Warning:\tNo Key Name given")
+    if install_keyfile.match(/^#{$empty_value}$/)
+      install_key = install_name
+    else
+      install_key = File.basename(install_keyfile)
+      install_key = install_key.split(/\./)[0..-2].join
+    end
+    handle_output("Information:\tSetting Key Name to #{install_key}")
+  end
+  if $nosuffix_mode == false
+    install_name = get_aws_uniq_name(install_name,install_region)
+    install_key  = get_aws_uniq_name(install_key,install_region)
+  end
+  if install_keyfile.match(/^#{$empty_value}$/)
+    install_keyfile = $default_aws_ssh_key_dir+"/"+install_key+".pem"
+    handle_output("Information:\tSetting Key file to #{install_keyfile}")
+  end
+  if !File.exists?(install_keyfile)
+    create_aws_key_pair(install_access,install_secret,install_region,install_key)
+  end
+  if !File.exists?(install_keyfile)
+    handle_output("Warning:\tKey file '#{install_keyfile}' does not exist")
+    quit()
+  end
+  return install_name,install_key,install_keyfile
+end
+
+# Get Prefix List ID
 
 def get_aws_prefix_list_id(install_access,install_secret,install_region)
   ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
@@ -492,9 +526,6 @@ end
 # List AWS EC2 security groups
 
 def list_aws_security_groups(install_access,install_secret,install_region,install_group)
-  if !install_group.match(/[a-z]|[a-z]|[0-9]/)
-    install_group = "all"
-  end
   groups = get_aws_security_groups(install_access,install_secret,install_region)
   groups.each do |group|
     group_name = group.group_name
@@ -825,7 +856,7 @@ def list_aws_key_pairs(install_access,install_secret,install_region,install_key)
   key_pairs.each do |key_pair|
     key_name = key_pair.key_name
     if install_key.match(/[A-Z]|[a-z]|[0-9]/)
-      if key_name.match(/^#{install_key}$/)
+      if key_name.match(/^#{install_key}$/) or install_key.match(/^all$|^none$/)
         handle_output(key_name)
       end
     else

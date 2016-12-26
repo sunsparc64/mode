@@ -881,3 +881,5 @@
 # Updated Packer version and minor fixes
 # 4.4.1: Mon 26 Dec 2016 14:07:35 AEDT
 # Bug fixes
+# 4.4.2: Mon 26 Dec 2016 18:13:55 AEDT
+# Fixed AWS listing routines

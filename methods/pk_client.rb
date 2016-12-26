@@ -1390,14 +1390,7 @@ end
 # Create AWS client
 
 def create_packer_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
-  if !install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
-    handle_output("Warning:\tNo Key file specified")
-    exit
-  end
-  if !install_name.match(/[A-Z]|[a-z]|[0-9]/)
-    handle_output("Warning:\tNo AWS AMI name specified")
-    exit
-  end
+  install_name,install_key,install_keyfile = handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region)
   exists = check_if_aws_image_exists(install_name,install_access,install_secret,install_region)
   if exists == "yes"
     handle_output("Warning:\tAWS AMI already exists with name #{install_name}")

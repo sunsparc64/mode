@@ -126,43 +126,6 @@ def get_aws_buckets(install_access,install_secret,install_region)
   return buckets
 end
 
-# List AWS buckets
-
-def list_aws_buckets(install_bucket,install_access,install_secret,install_region)
-  if !install_bucket.match(/[A-Z]|[a-z]|[0-9]/)
-    install_bucket = "all"
-  end
-  buckets = get_aws_buckets(install_access,install_secret,install_region)
-  buckets.each do |bucket|
-    bucket_name = bucket.name
-    if install_bucket.match(/^all$|#{bucket_name}/)
-      bucket_date = bucket.creation_date
-      handle_output("#{bucket_name}\tcreated=#{bucket_date}")
-    end
-  end
-  return
-end
-
-# List AWS bucket objects
-
-def list_aws_bucket_objects(install_bucket,install_access,install_secret,install_region)
-  buckets = get_aws_buckets(install_access,install_secret,install_region)
-  buckets.each do |bucket|
-    bucket_name = bucket.name
-    if install_bucket.match(/^all$|#{bucket_name}/)
-      handle_output("")
-      handle_output("#{bucket_name}:")
-      s3 = initiate_aws_s3_client(install_access,install_secret,install_region)
-      objects = s3.list_objects_v2({ bucket: bucket_name })
-      objects.contents.each do |object|
-        object_key = object.key
-        handle_output(object_key)
-      end
-    end
-  end
-  return
-end
-
 # Check if AWS bucket exists
 
 def check_if_aws_bucket_exists(install_access,install_secret,install_region,install_bucket)

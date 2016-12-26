@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.4.1
+# Version:      4.4.2
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -149,7 +149,6 @@ begin
     [ "--timezone",       REQUIRED ], # Set timezone
     [ "--mem",            REQUIRED ], # VM memory size
     [ "--vcpu",           REQUIRED ], # Number of CPUs
-    [ "--client",         REQUIRED ], # Client name
     [ "--mode",           REQUIRED ], # Set mode to client or server
     [ "--datastore",      REQUIRED ], # Datastore to deploy to on remote server
     [ "--server",         REQUIRED ], # Server name/IP (allow execution of commands on a remote host, or deploy to)
@@ -216,7 +215,7 @@ begin
     [ "--search",         REQUIRED ], # Search string
     [ "--creds",          REQUIRED ], # Credentials file
     [ "--desc",           REQUIRED ], # Description
-    [ "--name",           REQUIRED ], # AWS Name
+    [ "--name",           REQUIRED ], # Client / AWS Name
     [ "--format",         REQUIRED ], # AWS disk format (e.g. VMDK, RAW, VHD)
     [ "--target",         REQUIRED ], # AWS target format (e.g. citrix, vmware, windows)
     [ "--access",         REQUIRED ], # AWS Access Key
@@ -309,9 +308,19 @@ end
 # Handle types and set VM if not set
 
 if option['type']
-  if option['type'].match(/bucket|ami|instance|object|snapshot|stack|cf|cloud|image|key/)
+  if option['type'].match(/bucket|ami|instance|object|snapshot|stack|cf|cloud|image|key|securitygroup/)
     if !option['vm']
       option['vm'] = "aws"
+    end
+    if option['action']
+      if option['action'].match(/list/)
+        $default_aws_securitygroup = "all"
+        $default_aws_group         = "all"
+        $default_aws_key           = "all"
+        $default_aws_keypair       = "all"
+        $default_aws_stack         = "all"
+        $default_aws_bucket        = "all"
+      end
     end
   end
 else
@@ -456,39 +465,10 @@ end
 
 # Handle client name switch
 
-if !option['client'].match(/^#{$empty_value}$/)
-  check_hostname(option['client'])
+if !option['name'].match(/^#{$empty_value}$/)
+  check_hostname(option['name'])
   if $verbose_mode == true
-    handle_output("Setting:\tClient name to #{option['client']}")
-  end
-else
-  if option['vm'] 
-    if option['vm'].match(/aws/)
-      if option['name']
-        option['client'] = option['name']
-        if $verbose_mode == true
-          handle_output("Setting:\tAWS AMI Name to #{option['client']}")
-        end
-      else
-        option['client'] = ""
-      end
-    else
-      option['client'] = ""
-    end
-  else
-    if option['type']
-      if option['type'].match(/ssh|ami|image|key|cloud|cf|stack/)
-        if option['name']
-          option['client'] = option['name']
-        else
-          option['client'] = ""
-        end
-      else
-        option['client'] = ""
-      end
-    else
-      option['client'] = ""
-    end
+    handle_output("Setting:\tClient name to #{option['name']}")
   end
 end
 
@@ -629,7 +609,7 @@ end
 if option['clone'].match(/^#{$empty_value}$/)
   if option['action'] == "snapshot"
     clone_date      = %x[date].chomp.downcase.gsub(/ |:/,"_")
-    option['clone'] = option['client']+"-"+clone_date
+    option['clone'] = option['name']+"-"+clone_date
   end
   if $verbose_mode == true and option['clone']
     handle_output("Information:\tSetting clone name to #{option['clone']}")
@@ -734,7 +714,7 @@ if !option['method'].match(/^#{$empty_value}$/)
         end
       else
         if option['method'].match(/ldom/)
-          if !option['client'].match(/^#{$empty_value}$/)
+          if !option['name'].match(/^#{$empty_value}$/)
             option['method'] = "gdom"
             option['vm']     = "gdom"
             option['mode']   = "client"
@@ -808,11 +788,11 @@ if option['action'].match(/build/)
     option['type'] = "packer"
   end
   if option['vm'].match(/^#{$empty_value}$/)
-    if option['client'].match(/^#{$empty_value}$/)
+    if option['name'].match(/^#{$empty_value}$/)
       handle_output("Warning:\tNo client name given")
       exit
     end
-    option['vm'] = get_client_vm_type_from_packer(option['client'])
+    option['vm'] = get_client_vm_type_from_packer(option['name'])
   end
   if option['vm'].match(/^#{$empty_value}$/)
     handle_output("Warning:\tVM type not specified")
@@ -890,12 +870,12 @@ end
 if !option['action'].match(/^#{$empty_value}$/)
   if option['action'].match(/delete/) and option['service'].match(/^#{$empty_value}$/)
     if option['vm'].match(/^#{$empty_value}$/) and !option['type'].match(/^#{$empty_value}$/)
-      option['vm'] = get_client_vm_type_from_packer(option['client'])
+      option['vm'] = get_client_vm_type_from_packer(option['name'])
     else
       if !option['type'].match(/^#{$empty_value}$/) and option['vm'].match(/^#{$empty_value}$/)
         if option['type'].match(/packer/)
-          if !option['client'].match(/^#{$empty_value}$/)
-            option['vm'] = get_client_vm_type_from_packer(option['client'])
+          if !option['name'].match(/^#{$empty_value}$/)
+            option['vm'] = get_client_vm_type_from_packer(option['name'])
           end
         end
       end
@@ -961,7 +941,7 @@ if !option['service'].match(/^#{$empty_value}$/)
       handle_output("Warning:\tNo VM type specified for build type #{option['service']}")
       exit
     end
-    if option['client'].match(/^#{$empty_value}$/) and !option['action'].match(/list/) and !option['vm'].match(/aws/)
+    if option['name'].match(/^#{$empty_value}$/) and !option['action'].match(/list/) and !option['vm'].match(/aws/)
       handle_output("Warning:\tNo Client name specified for build type #{option['service']}")
       exit
     end
@@ -980,7 +960,7 @@ if !option['service'].match(/^#{$empty_value}$/)
         if !option['vm'].match(/^#{$empty_value}$/)
           option['mac'] = generate_mac_address(option['vm'])
         else
-          option['mac'] = generate_mac_address(option['client'])
+          option['mac'] = generate_mac_address(option['name'])
         end
       else
         option['mac'] = generate_mac_address(option['method'])
@@ -1003,7 +983,7 @@ else
         handle_output("Warning:\tNo VM type specified for build type #{option['service']}")
         exit
       end
-      if option['client'].match(/^#{$empty_value}$/) and !option['action'].match(/list/)
+      if option['name'].match(/^#{$empty_value}$/) and !option['action'].match(/list/)
         handle_output("Warning:\tNo Client name specified for build type #{option['service']}")
         exit
       end
@@ -1038,7 +1018,7 @@ if option['action'].match(/import/)
     vm_exists      = ""
     vm_type        = ""
     vm_types.each do |vm_type|
-      exists = check_packer_vm_image_exists(option['client'],vm_type)
+      exists = check_packer_vm_image_exists(option['name'],vm_type)
       if exists[0].match(/yes/)
         option['type'] = "packer"
         option['vm']   = vm_type
@@ -1380,19 +1360,19 @@ if !option['action'].match(/^#{$empty_value}$/)
   case option['action']
   when /execute/
     if option['type'].match(/docker/)
-      execute_docker_command(option['client'],option['command'])
+      execute_docker_command(option['name'],option['command'])
     end
   when /screen/
     if option['vm']
-      eval"[get_#{option['vm']}_vm_screen(option['client'])]"
+      eval"[get_#{option['vm']}_vm_screen(option['name'])]"
     end
   when /vnc/
     if option['vm']
-      eval"[vnc_#{option['vm']}_vm(option['client'],option['ip'])]"
+      eval"[vnc_#{option['vm']}_vm(option['name'],option['ip'])]"
     end
   when /status/
     if !option['vm'].match(/^#{$empty_value}$/)
-      eval"[get_#{option['vm']}_vm_status(option['client'])]"
+      eval"[get_#{option['vm']}_vm_status(option['name'])]"
     end
   when /set|put/
     if option['type'].match(/acl/)
@@ -1420,11 +1400,11 @@ if !option['action'].match(/^#{$empty_value}$/)
         end
       end
     else
-      if !option['client'].match(/^#{$empty_value}$/)
+      if !option['name'].match(/^#{$empty_value}$/)
         if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
-          eval"[show_#{option['vm']}_vm_config(option['client'])]"
+          eval"[show_#{option['vm']}_vm_config(option['name'])]"
         else
-          get_client_config(option['client'],option['service'],option['method'],option['type'],option['vm'])
+          get_client_config(option['name'],option['service'],option['method'],option['type'],option['vm'])
         end
       end
     end
@@ -1436,12 +1416,12 @@ if !option['action'].match(/^#{$empty_value}$/)
     print_examples(option['method'],option['type'],option['vm'])
   when /show/
     if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
-      eval"[show_#{option['vm']}_vm(option['client'])]"
+      eval"[show_#{option['vm']}_vm(option['name'])]"
     end
   when /list/
     case option['type']
     when /ssh/
-      list_user_ssh_config(option['ip'],option['id'],option['client'])
+      list_user_ssh_config(option['ip'],option['id'],option['name'])
     when /image|ami/
       list_aws_images(option['access'],option['secret'],option['region'])
     when /packer|docker/
@@ -1462,7 +1442,7 @@ if !option['action'].match(/^#{$empty_value}$/)
     when /key/
       list_aws_key_pairs(option['access'],option['secret'],option['region'],option['key'])
     when /stack|cloud|cf/
-      list_aws_cf_stacks(option['client'],option['access'],option['secret'],option['region'])
+      list_aws_cf_stacks(option['name'],option['access'],option['secret'],option['region'])
     when /securitygroup/
       list_aws_security_groups(option['access'],option['secret'],option['region'],option['group'])
     else
@@ -1500,7 +1480,7 @@ if !option['action'].match(/^#{$empty_value}$/)
       end
       if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
         if option['type'].match(/snapshot/)
-          list_vm_snapshots(option['vm'],option['os'],option['method'],option['client'])
+          list_vm_snapshots(option['vm'],option['os'],option['method'],option['name'])
         else
           list_vm(option['vm'],option['os'],option['method'])
         end
@@ -1509,20 +1489,20 @@ if !option['action'].match(/^#{$empty_value}$/)
     end
   when /delete|remove|terminate/
     if option['type'].match(/ssh/)
-      delete_user_ssh_config(option['ip'],option['id'],option['client'])
+      delete_user_ssh_config(option['ip'],option['id'],option['name'])
       quit()
     end
-    if !option['client'].match(/^#{$empty_value}$/)
+    if !option['name'].match(/^#{$empty_value}$/)
       if option['type'].match(/docker/)
-        unconfigure_docker_client(option['client'])
+        unconfigure_docker_client(option['name'])
         quit()
       end
       if option['service'].match(/^#{$empty_value}$/) and option['vm'].match(/none/)
         if option['vm'].match(/none/)
-          option['vm'] = get_client_vm_type(option['client'])
+          option['vm'] = get_client_vm_type(option['name'])
           if option['vm'].match(/vbox|fusion|parallels/)
             $use_sudo = false
-            delete_vm(option['vm'],option['client'])
+            delete_vm(option['vm'],option['name'])
           else
             handle_output("Warning:\tNo VM, client or service specified")
             handle_output("")
@@ -1533,27 +1513,27 @@ if !option['action'].match(/^#{$empty_value}$/)
       else
         if option['vm'].match(/fusion|vbox|parallels/)
           if option['type'].match(/packer/)
-            eval"[unconfigure_#{option['type']}_client(option['client'],option['vm'])]"
+            eval"[unconfigure_#{option['type']}_client(option['name'],option['vm'])]"
           else
             if option['type'].match(/snapshot/)
-              if !option['client'].match(/^#{$empty_value}$/) and !option['clone'].match(/^#{$empty_value}$/)
-                delete_vm_snapshot(option['vm'],option['client'],option['clone'])
+              if !option['name'].match(/^#{$empty_value}$/) and !option['clone'].match(/^#{$empty_value}$/)
+                delete_vm_snapshot(option['vm'],option['name'],option['clone'])
               else
                 handle_output("Warning:\tClient name or clone not specified")
               end
             else
-              delete_vm(option['vm'],option['client'])
+              delete_vm(option['vm'],option['name'])
             end
           end
         else
           if option['vm'].match(/ldom|gdom/)
-            unconfigure_gdom(option['client'])
+            unconfigure_gdom(option['name'])
           else
             set_local_config()
-            remove_hosts_entry(option['client'],option['ip'])
-            remove_dhcp_client(option['client'])
+            remove_hosts_entry(option['name'],option['ip'])
+            remove_dhcp_client(option['name'])
             if option['yes'] == true
-              delete_client_dir(option['client'])
+              delete_client_dir(option['name'])
             end
           end
         end
@@ -1583,7 +1563,7 @@ if !option['action'].match(/^#{$empty_value}$/)
         quit()
       end
       if option['type'].match(/packer|docker/)
-        eval"[unconfigure_#{option['type']}_client(option['client'])]"
+        eval"[unconfigure_#{option['type']}_client(option['name'])]"
       else
         if !option['service'].match(/^#{$empty_value}$/)
           if option['method'].match(/^#{$empty_value}$/)
@@ -1597,20 +1577,20 @@ if !option['action'].match(/^#{$empty_value}$/)
   when /build/
     if option['type'].match(/packer/)
       if option['vm'].match(/aws/)
-        build_packer_aws_config(option['client'],option['access'],option['secret'],option['region'])
+        build_packer_aws_config(option['name'],option['access'],option['secret'],option['region'])
       else
-        build_packer_config(option['client'],option['vm'])
+        build_packer_config(option['name'],option['vm'])
       end
     end
   when /add|create/
     if option['type'].match(/ami|image|key|cloud|cf|stack|securitygroup|iprule|sg/)
       case option['type']
       when /ami|image/
-        create_aws_image(option['client'],option['access'],option['secret'],option['region'],option['id'])
+        create_aws_image(option['name'],option['access'],option['secret'],option['region'],option['id'])
       when /key/
         create_aws_key_pair(option['access'],option['secret'],option['region'],option['key'])
       when /cf|cloud|stack/
-        configure_aws_cf_stack(option['client'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['type'],option['number'],option['key'],option['keyfile'],option['file'],option['group'],option['bucket'],option['object'])
+        configure_aws_cf_stack(option['name'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['type'],option['number'],option['key'],option['keyfile'],option['file'],option['group'],option['bucket'],option['object'])
       when /securitygroup/
         create_aws_security_group(option['access'],option['secret'],option['region'],option['group'],option['desc'],option['dir'])
       when /iprule/
@@ -1621,19 +1601,19 @@ if !option['action'].match(/^#{$empty_value}$/)
     if option['vm'].match(/aws/)
       case option['type']
       when /packer/
-        configure_packer_aws_client(option['client'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['keyfile'],option['group'])
+        configure_packer_aws_client(option['name'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['keyfile'],option['group'])
       else
         if option['key'].match(/^#{$empty_value}$/)
           handle_output("Warning:\tKey Pair not given")
           quit()
         else
-          configure_aws_client(option['client'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['group'])
+          configure_aws_client(option['name'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['group'])
         end
       end
       quit()
     end
     if option['type'].match(/docker/)
-      configure_docker_client(option['vm'],option['client'],option['ip'],option['network'])
+      configure_docker_client(option['vm'],option['name'],option['ip'],option['network'])
       quit()
     end
     if option['vm'].match(/none/) and option['method'].match(/^#{$empty_value}$/) and option['type'].match(/^#{$empty_value}$/) and !option['mode'].match(/server/)
@@ -1646,10 +1626,10 @@ if !option['action'].match(/^#{$empty_value}$/)
       if option['vm'].match(/fusion|vbox/)
         check_vm_network(option['vm'],option['mode'],option['network'])
       end
-      if !option['client'].match(/^#{$empty_value}$/)
+      if !option['name'].match(/^#{$empty_value}$/)
         if !option['service'].match(/^#{$empty_value}$/) or option['type'].match(/packer/)
           if option['method'].match(/^#{$empty_value}$/)
-            option['method'] = get_install_method(option['client'],option['service'])
+            option['method'] = get_install_method(option['name'],option['service'])
           end
           if !option['type'].match(/packer/) and option['vm'].match(/none/)
             check_dhcpd_config(option['publisherhost'])
@@ -1661,19 +1641,19 @@ if !option['action'].match(/^#{$empty_value}$/)
           if option['type'].match(/packer/)
             if $yes_to_all == true
               if option['vm'].match(/none/)
-                option['vm'] = get_client_vm_type(option['client'])
+                option['vm'] = get_client_vm_type(option['name'])
                 if option['vm'].match(/vbox|fusion|parallels/)
                   $use_sudo = false
-                  delete_vm(option['vm'],option['client'])
-                  eval"[unconfigure_#{option['type']}_client(option['client'],option['vm'])]"
+                  delete_vm(option['vm'],option['name'])
+                  eval"[unconfigure_#{option['type']}_client(option['name'],option['vm'])]"
                 end
               else
                 $use_sudo = false
-                delete_vm(option['vm'],option['client'])
-                eval"[unconfigure_#{option['type']}_client(option['client'],option['vm'])]"
+                delete_vm(option['vm'],option['name'])
+                eval"[unconfigure_#{option['type']}_client(option['name'],option['vm'])]"
               end
             end
-            eval"[configure_#{option['type']}_client(option['method'],option['vm'],option['os'],option['client'],option['arch'],option['mac'],option['ip'],option['model'],
+            eval"[configure_#{option['type']}_client(option['method'],option['vm'],option['os'],option['name'],option['arch'],option['mac'],option['ip'],option['model'],
                               option['publisherhost'],option['service'],option['file'],option['mem'],option['vcpu'],option['network'],option['license'],option['mirror'],
                               option['size'],option['type'],option['locale'],option['label'],option['timezone'],option['shell'])]"
           else
@@ -1681,11 +1661,11 @@ if !option['action'].match(/^#{$empty_value}$/)
               if option['method'].match(/^#{$empty_value}$/)
                 if option['ip'].match(/[0-9]/)
                   check_local_config("client")
-                  add_hosts_entry(option['client'],option['ip'])
+                  add_hosts_entry(option['name'],option['ip'])
                 end
                 if option['mac'].match(/[0-9]|[a-f]|[A-F]/)
                   option['service'] = ""
-                  add_dhcp_client(option['client'],option['mac'],option['ip'],option['arch'],option['service'])
+                  add_dhcp_client(option['name'],option['mac'],option['ip'],option['arch'],option['service'])
                 end
               else
                 if option['model'].match(/^#{$empty_value}$/)
@@ -1696,15 +1676,15 @@ if !option['action'].match(/^#{$empty_value}$/)
                 if !option['mac'].match(/[0-9]/)
                   option['mac'] = generate_mac_address(option['vm'])
                 end
-                eval"[configure_#{option['method']}_client(option['client'],option['arch'],option['mac'],option['ip'],option['model'],option['publisherhost'],
+                eval"[configure_#{option['method']}_client(option['name'],option['arch'],option['mac'],option['ip'],option['model'],option['publisherhost'],
                                   option['service'],option['file'],option['mem'],option['vcpu'],option['network'],option['license'],option['mirror'],option['type'],option['vm'])]"
               end
             else
               if option['vm'].match(/fusion|vbox|parallels/)
-                create_vm(option['method'],option['vm'],option['client'],option['mac'],option['os'],option['arch'],option['release'],option['size'],option['file'],option['mem'],option['vcpu'],option['network'],option['share'],option['mount'],option['ip'])
+                create_vm(option['method'],option['vm'],option['name'],option['mac'],option['os'],option['arch'],option['release'],option['size'],option['file'],option['mem'],option['vcpu'],option['network'],option['share'],option['mount'],option['ip'])
               end
               if option['vm'].match(/zone|lxc|gdom/)
-                eval"[configure_#{option['vm']}(option['client'],option['ip'],option['mac'],option['arch'],option['os'],option['release'],option['publisherhost'],
+                eval"[configure_#{option['vm']}(option['name'],option['ip'],option['mac'],option['arch'],option['os'],option['release'],option['publisherhost'],
                                               option['file'],option['service'])]"
               end
               if option['vm'].match(/cdom/)
@@ -1714,10 +1694,10 @@ if !option['action'].match(/^#{$empty_value}$/)
           end
         else
           if option['vm'].match(/fusion|vbox|parallels/)
-            create_vm(option['method'],option['vm'],option['client'],option['mac'],option['os'],option['arch'],option['release'],option['size'],option['file'],option['mem'],option['vcpu'],option['network'],option['share'],option['mount'],option['ip'])
+            create_vm(option['method'],option['vm'],option['name'],option['mac'],option['os'],option['arch'],option['release'],option['size'],option['file'],option['mem'],option['vcpu'],option['network'],option['share'],option['mount'],option['ip'])
           end
           if option['vm'].match(/zone|lxc|gdom/)
-            eval"[configure_#{option['vm']}(option['client'],option['ip'],option['mac'],option['arch'],option['os'],option['release'],option['publisherhost'],
+            eval"[configure_#{option['vm']}(option['name'],option['ip'],option['mac'],option['arch'],option['os'],option['release'],option['publisherhost'],
                                           option['file'],option['service'])]"
           end
           if option['vm'].match(/cdom/)
@@ -1726,11 +1706,11 @@ if !option['action'].match(/^#{$empty_value}$/)
           if option['vm'].match(/none/)
             if option['ip'].match(/[0-9]/)
               check_local_config("client")
-              add_hosts_entry(option['client'],option['ip'])
+              add_hosts_entry(option['name'],option['ip'])
             end
             if option['mac'].match(/[0-9]|[a-f]|[A-F]/)
               option['service'] = ""
-              add_dhcp_client(option['client'],option['mac'],option['ip'],option['arch'],option['service'])
+              add_dhcp_client(option['name'],option['mac'],option['ip'],option['arch'],option['service'])
             end
           end
         end
@@ -1754,30 +1734,30 @@ if !option['action'].match(/^#{$empty_value}$/)
       eval"[#{option['action']}_#{option['vm']}_vm(option['access'],option['secret'],option['region'],option['ami'],option['id'])]"
       quit()
     end
-    if !option['client'].match(/^#{$empty_value}$/) and !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
+    if !option['name'].match(/^#{$empty_value}$/) and !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
       if option['action'].match(/boot/)
-        eval"[#{option['action']}_#{option['vm']}_vm(option['client'],option['type'])]"
+        eval"[#{option['action']}_#{option['vm']}_vm(option['name'],option['type'])]"
       else
-        eval"[#{option['action']}_#{option['vm']}_vm(option['client'])]"
+        eval"[#{option['action']}_#{option['vm']}_vm(option['name'])]"
       end
     else
-      if !option['client'].match(/^#{$empty_value}$/) and option['vm'].match(/none/)
-        option['vm'] = get_client_vm_type(option['client'])
+      if !option['name'].match(/^#{$empty_value}$/) and option['vm'].match(/none/)
+        option['vm'] = get_client_vm_type(option['name'])
         check_local_config(option['mode'])
         if option['vm'].match(/vbox|fusion|parallels/)
           $use_sudo = false
         end
         if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
           if option['action'].match(/boot/)
-            eval"[#{option['action']}_#{option['vm']}_vm(option['client'],option['type'])]"
+            eval"[#{option['action']}_#{option['vm']}_vm(option['name'],option['type'])]"
           else
-            eval"[#{option['action']}_#{option['vm']}_vm(option['client'])]"
+            eval"[#{option['action']}_#{option['vm']}_vm(option['name'])]"
           end
         else
           print_valid_list("Warning:\tInvalid VM type",$valid_vm_list)
         end
       else
-        if option['client'].match(/^#{$empty_value}$/)
+        if option['name'].match(/^#{$empty_value}$/)
           handle_output("Warning:\tClient name not specified")
         end
       end
@@ -1786,17 +1766,17 @@ if !option['action'].match(/^#{$empty_value}$/)
     if !option['service'].match(/^#{$empty_value}$/)
       eval"[restart_#{option['service']}()]"
     else
-      if option['vm'].match(/none/) and !option['client'].match(/^#{$empty_value}$/)
-        option['vm'] = get_client_vm_type(option['client'])
+      if option['vm'].match(/none/) and !option['name'].match(/^#{$empty_value}$/)
+        option['vm'] = get_client_vm_type(option['name'])
       end
       if option['vm'].match(/aws/)
         reboot_aws_vm(option['access'],option['secret'],option['region'],option['ami'],option['id'])
         quit()
       end
       if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
-        if !option['client'].match(/^#{$empty_value}$/)
-          eval"[stop_#{option['vm']}_vm(option['client'])]"
-          eval"[boot_#{option['vm']}_vm(option['client'],option['type'])]"
+        if !option['name'].match(/^#{$empty_value}$/)
+          eval"[stop_#{option['vm']}_vm(option['name'])]"
+          eval"[boot_#{option['vm']}_vm(option['name'],option['type'])]"
         else
           handle_output("Warning:\tClient name not specified")
         end
@@ -1807,30 +1787,30 @@ if !option['action'].match(/^#{$empty_value}$/)
   when /import/
     if option['file'].match(/^#{$empty_value}$/)
       if option['type'].match(/packer/)
-        eval"[import_packer_#{option['vm']}_vm(option['client'],option['vm'])]"
+        eval"[import_packer_#{option['vm']}_vm(option['name'],option['vm'])]"
       end
     else
       if option['vm'].match(/fusion|vbox/)
         if option['file'].match(/ova/)
           set_ovftool_bin()
-          eval"[import_#{option['vm']}_ova(option['client'],option['mac'],option['ip'],option['file'])]"
+          eval"[import_#{option['vm']}_ova(option['name'],option['mac'],option['ip'],option['file'])]"
         else
           if option['file'].match(/vmdk/)
-            eval"[import_#{option['vm']}_vmdk(option['method'],option['vm'],option['client'],option['mac'],option['os'],option['arch'],option['release'],option['size'],option['file'],option['mem'],option['vcpu'],option['network'],option['share'],option['mount'],option['ip'])]"
+            eval"[import_#{option['vm']}_vmdk(option['method'],option['vm'],option['name'],option['mac'],option['os'],option['arch'],option['release'],option['size'],option['file'],option['mem'],option['vcpu'],option['network'],option['share'],option['mount'],option['ip'])]"
           end
         end
       end
     end
   when /export/
     if option['vm'].match(/fusion|vbox/)
-      eval"[export_#{option['vm']}_ova(option['client'],option['file'])]"
+      eval"[export_#{option['vm']}_ova(option['name'],option['file'])]"
     end
     if option['vm'].match(/aws/)
       export_aws_image(option['access'],option['secret'],option['region'],option['ami'],option['id'],option['prefix'],option['bucket'],option['container'],option['comment'],option['target'],install_format,install_acl)
     end
   when /clone|copy/
-    if !option['clone'].match(/^#{$empty_value}$/) and !option['client'].match(/^#{$empty_value}$/)
-      eval"[clone_#{option['vm']}_vm(option['client'],option['clone'],option['mac'],option['ip'])]"
+    if !option['clone'].match(/^#{$empty_value}$/) and !option['name'].match(/^#{$empty_value}$/)
+      eval"[clone_#{option['vm']}_vm(option['name'],option['clone'],option['mac'],option['ip'])]"
     else
       handle_output("Warning:\tClient name or clone name not specified")
     end
@@ -1842,81 +1822,81 @@ if !option['action'].match(/^#{$empty_value}$/)
     option['crypt'] = get_password_crypt(option['rootpassword'])
     handle_output(option['crypt'])
   when /post/
-    eval"[execute_#{option['vm']}_post(option['client'])]"
+    eval"[execute_#{option['vm']}_post(option['name'])]"
   when /change|modify/
-    if !option['client'].match(/^#{$empty_value}$/)
+    if !option['name'].match(/^#{$empty_value}$/)
       if option['mem'].match(/[0-9]/)
-        eval"[change_#{option['vm']}_vm_mem(option['client'],option['mem'])]"
+        eval"[change_#{option['vm']}_vm_mem(option['name'],option['mem'])]"
       end
       if option['mac'].match(/[0-9]|[a-f]|[A-F]/)
-        eval"[change_#{option['vm']}_vm_mac(option['client'],client_mac)]"
+        eval"[change_#{option['vm']}_vm_mac(option['name'],client_mac)]"
       end
     else
       handle_output("Warning:\tClient name not specified")
     end
   when /attach/
     if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
-      eval"[attach_file_to_#{option['vm']}_vm(option['client'],option['file'],option['type'])]"
+      eval"[attach_file_to_#{option['vm']}_vm(option['name'],option['file'],option['type'])]"
     end
   when /detach/
-    if !option['vm'].match(/^#{$empty_value}$/) and !option['client'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
-      eval"[detach_file_from_#{option['vm']}_vm(option['client'],option['file'],option['type'])]"
+    if !option['vm'].match(/^#{$empty_value}$/) and !option['name'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
+      eval"[detach_file_from_#{option['vm']}_vm(option['name'],option['file'],option['type'])]"
     else
       handle_output("Warning:\tClient name or virtualisation platform not specified")
     end
   when /share/
     if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
-      eval"[add_shared_folder_to_#{option['vm']}_vm(option['client'],option['share'],option['mount'])]"
+      eval"[add_shared_folder_to_#{option['vm']}_vm(option['name'],option['share'],option['mount'])]"
     end
   when /^snapshot|clone/
     if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
-      if !option['client'].match(/^#{$empty_value}$/)
-        eval"[snapshot_#{option['vm']}_vm(option['client'],option['clone'])]"
+      if !option['name'].match(/^#{$empty_value}$/)
+        eval"[snapshot_#{option['vm']}_vm(option['name'],option['clone'])]"
       else
         handle_output("Warning:\tClient name not specified")
       end
     end
   when /migrate/
-    eval"[migrate_#{option['vm']}_vm(option['client'],option['server'],option['serveradmin'],option['serverpassword'],option['servernetwork'],option['datastore'])]"
+    eval"[migrate_#{option['vm']}_vm(option['name'],option['server'],option['serveradmin'],option['serverpassword'],option['servernetwork'],option['datastore'])]"
   when /deploy/
     if option['type'].match(/vcsa/)
       set_ovftool_bin()
       option['file'] = handle_vcsa_ova(option['file'],option['service'])
-      deploy_vcsa_vm(option['server'],option['datastore'],option['serveradmin'],option['serverpassword'],option['servernetwork'],option['client'],
+      deploy_vcsa_vm(option['server'],option['datastore'],option['serveradmin'],option['serverpassword'],option['servernetwork'],option['name'],
                      option['size'],option['rootpassword'],option['timeserver'],option['adminpassword'],option['domainname'],option['sitename'],
                      option['ipfamily'],option['mode'],option['ip'],option['netmask'],option['gateway'],option['nameserver'],option['service'],option['file'])
     else
-      eval"[deploy_#{option['vm']}_vm(option['server'],option['datastore'],option['serveradmin'],option['serverpassword'],option['servernetwork'],option['client'],
+      eval"[deploy_#{option['vm']}_vm(option['server'],option['datastore'],option['serveradmin'],option['serverpassword'],option['servernetwork'],option['name'],
                                     option['size'],option['rootpassword'],option['timeserver'],option['adminpassword'],option['domainname'],option['sitename'],
                                     option['ipfamily'],option['mode'],option['ip'],option['netmask'],option['gateway'],option['nameserver'],option['service'],option['file'])]"
     end
   when /restore|revert/
     if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
-      if !option['client'].match(/^#{$empty_value}$/)
-        eval"[restore_#{option['vm']}_vm_snapshot(option['client'],option['clone'])]"
+      if !option['name'].match(/^#{$empty_value}$/)
+        eval"[restore_#{option['vm']}_vm_snapshot(option['name'],option['clone'])]"
       else
         handle_output("Warning:\tClient name not specified")
       end
     end
   when /set/
     if !option['vm'].match(/^#{$empty_value}$/)
-      eval"[set_#{option['vm']}_value(option['client'],option['param'],option['value'])]"
+      eval"[set_#{option['vm']}_value(option['name'],option['param'],option['value'])]"
     end
   when /get/
     if !option['vm'].match(/^#{$empty_value}$/)
-      eval"[get_#{option['vm']}_value(option['client'],option['param'])]"
+      eval"[get_#{option['vm']}_value(option['name'],option['param'])]"
     end
   when /console|serial|connect|ssh/
     if option['vm'].match(/aws/) or option['id'].match(/[0-9]/)
-      connect_to_aws_vm(option['access'],option['secret'],option['region'],option['client'],option['id'],option['ip'],option['key'],option['keyfile'],option['admin'])
+      connect_to_aws_vm(option['access'],option['secret'],option['region'],option['name'],option['id'],option['ip'],option['key'],option['keyfile'],option['admin'])
       quit()
     end
     if option['type'].match(/docker/)
-      connect_to_docker_client(option['client'])
+      connect_to_docker_client(option['name'])
     end
     if !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)
-      if !option['client'].match(/^#{$empty_value}$/)
-        connect_to_virtual_serial(option['client'],option['vm'])
+      if !option['name'].match(/^#{$empty_value}$/)
+        connect_to_virtual_serial(option['name'],option['vm'])
       else
         handle_output("Warning:\tClient name not specified")
       end

@@ -105,7 +105,7 @@ def populate_aws_questions(install_client,install_ami,install_region,install_siz
       question  = "AMI Name",
       ask       = "yes",
       parameter = "",
-      value     = get_aws_ami_name(install_client,install_region),
+      value     = install_ami,
       valid     = "",
       eval      = "no"
     )

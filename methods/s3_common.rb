@@ -55,7 +55,6 @@ def initiate_aws_s3_presigner(install_access,install_secret,install_region)
   return s3
 end 
 
-
 # Get private URL for S3 bucket item
 
 def get_s3_bucket_private_url(install_access,install_secret,install_region,install_bucket,install_object)
@@ -81,5 +80,39 @@ def show_s3_bucket_url(install_access,install_secret,install_region,install_buck
     url = get_s3_bucket_private_url(install_access,install_secret,install_region,install_bucket,install_object)
   end
   handle_output(url)
+  return
+end
+
+# List AWS buckets
+
+def list_aws_buckets(install_bucket,install_access,install_secret,install_region)
+  buckets = get_aws_buckets(install_access,install_secret,install_region)
+  buckets.each do |bucket|
+    bucket_name = bucket.name
+    if install_bucket.match(/^all$|#{bucket_name}|^none$/)
+      bucket_date = bucket.creation_date
+      handle_output("#{bucket_name}\tcreated=#{bucket_date}")
+    end
+  end
+  return
+end
+
+# List AWS bucket objects
+
+def list_aws_bucket_objects(install_bucket,install_access,install_secret,install_region)
+  buckets = get_aws_buckets(install_access,install_secret,install_region)
+  buckets.each do |bucket|
+    bucket_name = bucket.name
+    if install_bucket.match(/^all$|#{bucket_name}/)
+      handle_output("")
+      handle_output("#{bucket_name}:")
+      s3 = initiate_aws_s3_client(install_access,install_secret,install_region)
+      objects = s3.list_objects_v2({ bucket: bucket_name })
+      objects.contents.each do |object|
+        object_key = object.key
+        handle_output(object_key)
+      end
+    end
+  end
   return
 end

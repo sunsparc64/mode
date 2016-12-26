@@ -58,15 +58,15 @@ def connect_to_aws_vm(install_access,install_secret,install_region,install_clien
   else
     ssh_command = "ssh -o StrictHostKeyChecking=no"
   end 
-  if !install_id.match(/[0-9]/) and !install_id.match(/[A-Z]|[a-z]|[0-9]/)
+  if !install_ip.match(/[0-9]/) and !install_id.match(/[0-9]/)
     handle_output("Warning:\tNo IP or Instance ID given")
     quit()
   end
-  if !install_admin.match(/[A-Z]|[a-z]|[0-9]/)
+  if install_admin.match(/^#{$empty_key}$/)
     handle_output("Warning:\tNo user given")
     quit()
   end
-  if !install_key.match(/[A-Z]|[a-z]|[0-9]/) and !install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
+  if !install_key.match(/^#{$empty_key}$/) and !install_keyfile.match(/^#{$empty_key}$/)
     if install_id.match(/[0-9]/)
       install_key = get_aws_instance_key_name(install_access,install_secret,install_region,install_id)
       handle_output("Information:\tFound key '#{install_key}' from Instance ID '#{install_id}'")
@@ -78,7 +78,7 @@ def connect_to_aws_vm(install_access,install_secret,install_region,install_clien
   if !install_ip.match(/[0-9]/)
     install_ip = get_aws_instance_ip(install_access,install_secret,install_region,install_id)
   end
-  if !install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
+  if !install_keyfile.match(/^#{$empty_key}$/)
     install_keyfile = $default_aws_ssh_key_dir+"/"+install_key+".pem"
   end
   if !File.exist?(install_keyfile)
@@ -222,7 +222,7 @@ def create_aws_image(install_name,install_access,install_secret,install_region,i
     handle_output("Warning:\tNo Instance ID specified")
     quit()
   end
-  if install_name.match(/[A-Z]|[a-z]|[0-9]/)
+  if install_name.match(/^#{$empty_value}$/)
     ec2,images = get_aws_images(install_access,install_secret,install_region)
     images.each do |image|
       image_name = image.name
@@ -254,7 +254,7 @@ def create_aws_instance(install_access,install_secret,install_region)
   else
     security_groups = [ security_groups ]
   end
-  if !key_name.match(/[A-Z]|[a-z]|[0-9]/)
+  if key_name.match(/^#{$empty_value}$/)
     handle_output("Warning:\tNo key specified")
     quit()
   end
@@ -300,28 +300,7 @@ end
 # Configure Packer AWS client
 
 def configure_aws_client(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
-  if !install_name.match(/[A-Z]|[a-z]|[0-9]/) or install_name.match(/^none$/)
-    handle_output("Warning:\tNo name specified for AWS image")
-    quit()
-  end
-  if !install_key.match(/[A-Z]|[a-z]|[0-9]/)
-    handle_output("Warning:\tNo Key Name given")
-    if !install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
-      install_key = install_name
-    else
-      install_key = File.basename(install_keyfile)
-      install_key = install_key.split(/\./)[0..-2].join
-    end
-    handle_output("Information:\tSetting Key Name to #{install_key}")
-  end
-  if $nosuffix_mode == false
-    install_name = get_aws_uniq_name(install_name,install_region)
-    install_key  = get_aws_uniq_name(install_key,install_region)
-  end
-  if !install_keyfile.match(/[A-Z]|[a-z]|[0-9]/)
-    install_keyfile = $default_aws_ssh_key_dir+"/"+install_key+".pem"
-    handle_output("Information:\tSetting Key file to #{install_keyfile}")
-  end
+  install_name,install_key,install_keyfile = handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region)
   create_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
   return
 end
