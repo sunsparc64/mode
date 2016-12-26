@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.4.5
+# Version:      4.4.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -311,19 +311,29 @@ end
 
 # Handle types and set VM if not set
 
-if option['type']
-  if option['type'].match(/bucket|ami|instance|object|snapshot|stack|cf|cloud|image|key|securitygroup/)
-    if !option['vm']
-      option['vm'] = "aws"
+if option['type'] or option['action']
+  if option['type']
+    if option['type'].match(/bucket|ami|instance|object|snapshot|stack|cf|cloud|image|key|securitygroup|id/)
+      if !option['vm']
+        option['vm'] = "aws"
+      end
+      if option['action']
+        if option['action'].match(/list/)
+          $default_aws_securitygroup = "all"
+          $default_aws_group         = "all"
+          $default_aws_key           = "all"
+          $default_aws_keypair       = "all"
+          $default_aws_stack         = "all"
+          $default_aws_bucket        = "all"
+        end
+      end
     end
-    if option['action']
-      if option['action'].match(/list/)
-        $default_aws_securitygroup = "all"
-        $default_aws_group         = "all"
-        $default_aws_key           = "all"
-        $default_aws_keypair       = "all"
-        $default_aws_stack         = "all"
-        $default_aws_bucket        = "all"
+  else
+    if option['action'].match(/connect/)
+      if option['id']
+        if !option['vm']
+          option['vm'] = "aws"
+        end
       end
     end
   end
@@ -1338,7 +1348,7 @@ end
 
 # Try to determine install method if only specified OS
 
-if option['method'].match(/^#{$empty_value}$/) and !option['action'].match(/delete|running|reboot|restart|halt|boot|stop|deploy|migrate|show/)
+if option['method'].match(/^#{$empty_value}$/) and !option['action'].match(/delete|running|reboot|restart|halt|boot|stop|deploy|migrate|show|connect/)
   case option['os']
   when /sol|sunos/
     if option['release'].match(/[0-9]/)
