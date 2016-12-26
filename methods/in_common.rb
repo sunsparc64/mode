@@ -203,7 +203,7 @@ def set_global_vars()
 
   $empty_value            = "none"
 
-  $default_ami            = $default_aws_linux_ami
+  $default_aws_ami        = $default_aws_linux_ami
   $default_format         = "text"
   $default_proto          = "tcp"
   $default_serveradmin    = "root"
@@ -2567,6 +2567,10 @@ end
 # Does not execute cerver/client import/create operations in test mode
 
 def execute_command(message,command)
+  if !command
+    handle_output("Warning:\tEmpty command")
+    return
+  end
   if command.match(/prlctl/) and !$os_name.match(/Darwin/)
     return
   else

@@ -107,12 +107,12 @@ end
 
 # HAndle AWS values
 
-def handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region)
-   if install_name.match(/^#{$empty_value}$/)
+def handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region,install_group,install_desc)
+  if install_name.match(/^#{$empty_value}$/)
     handle_output("Warning:\tNo name specified for AWS image")
     quit()
   end
-  if install_key.match(/^#{$empty_value}$/)
+  if install_key.match(/^#{$empty_value}$|^none$/)
     handle_output("Warning:\tNo Key Name given")
     if install_keyfile.match(/^#{$empty_value}$/)
       install_key = install_name
@@ -121,6 +121,10 @@ def handle_aws_values(install_name,install_key,install_keyfile,install_access,in
       install_key = install_key.split(/\./)[0..-2].join
     end
     handle_output("Information:\tSetting Key Name to #{install_key}")
+  end
+  if install_group.match(/^default$/)
+    install_group = install_key
+    handle_output("Information:\tSetting Security Group Name to #{install_group}")
   end
   if $nosuffix_mode == false
     install_name = get_aws_uniq_name(install_name,install_region)
@@ -137,6 +141,11 @@ def handle_aws_values(install_name,install_key,install_keyfile,install_access,in
     handle_output("Warning:\tKey file '#{install_keyfile}' does not exist")
     quit()
   end
+  exists = check_if_aws_security_group_exists(install_access,install_secret,install_region,install_group)
+  if exists == "no"
+    create_aws_security_group(install_access,install_secret,install_region,install_group,install_desc)
+  end
+  add_ssh_to_aws_security_group(install_access,install_secret,install_region,install_group)
   return install_name,install_key,install_keyfile
 end
 
@@ -437,6 +446,42 @@ def add_egress_rule_to_aws_security_group(install_access,install_secret,install_
   return
 end
 
+# Add SSH to AWS EC2 security group
+
+def add_ssh_to_aws_security_group(install_access,install_secret,install_region,install_group)
+  install_dir   = "ingress"
+  install_proto = "tcp"
+  install_from  = "22"
+  install_to    = "22"
+  install_cidr  = "0.0.0.0/0"
+  add_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir)
+  return
+end
+
+# Add HTTP to AWS EC2 security group
+
+def add_http_to_aws_security_group(install_access,install_secret,install_region,install_group)
+  install_dir   = "ingress"
+  install_proto = "tcp"
+  install_from  = "80"
+  install_to    = "80"
+  install_cidr  = "0.0.0.0/0"
+  add_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir)
+  return
+end
+
+# Add HTTPS to AWS EC2 security group
+
+def add_https_to_aws_security_group(install_access,install_secret,install_region,install_group)
+  install_dir   = "ingress"
+  install_proto = "tcp"
+  install_from  = "80"
+  install_to    = "80"
+  install_cidr  = "0.0.0.0/0"
+  add_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir)
+  return
+end
+
 # Add rule to AWS EC2 security group
 
 def add_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir)
@@ -622,7 +667,7 @@ def get_aws_image(install_client,install_access,install_secret,install_region)
   ec2,images = get_aws_images(install_access,install_secret,install_region)
   images.each do |image|
     image_name = image.image_location.split(/\//)[1]
-    if image_name.match(/^#{install_client}/)
+    if image_name.match(/^#{install_client}$/)
       image_id = image.image_id
       return ec2,image_id
     end

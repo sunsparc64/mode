@@ -1027,8 +1027,8 @@ def create_packer_aws_json()
   install_region  = $q_struct["region"].value
   install_size    = $q_struct["instance_type"].value
   install_admin   = $q_struct["ssh_username"].value
+  install_keyfile = File.basename($q_struct["keyfile"].value,".pem")+".key.pub"
   install_client  = $q_struct["ami_name"].value
-  install_keyfile = install_client+".key.pub"
   tmp_keyfile     = "/tmp/"+install_keyfile
   user_data_file  = $q_struct["user_data_file"].value
   packer_dir      = $client_base_dir+"/packer"
@@ -1389,8 +1389,8 @@ end
 
 # Create AWS client
 
-def create_packer_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
-  install_name,install_key,install_keyfile = handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region)
+def create_packer_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group,install_desc)
+  install_name,install_key,install_keyfile = handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region,install_group,install_desc)
   exists = check_if_aws_image_exists(install_name,install_access,install_secret,install_region)
   if exists == "yes"
     handle_output("Warning:\tAWS AMI already exists with name #{install_name}")
@@ -1399,7 +1399,13 @@ def create_packer_aws_install_files(install_name,install_type,install_ami,instal
   if !install_ami.match(/^ami/)
     old_install_ami = install_ami
     ec2,install_ami = get_aws_image(old_install_ami,install_access,install_secret,install_region)
-    handle_output("Information:\tFound AWS AMI ID #{install_ami} for #{old_install_ami}")
+    if install_ami.match(/^none$/)
+      handle_output("Warning:\tNo AWS AMI ID found for #{old_install_ami}")
+      install_ami = $default_aws_ami
+      handle_output("Information:\tSetting AWS AMI ID to #{install_ami}")
+    else
+      handle_output("Information:\tFound AWS AMI ID #{install_ami} for #{old_install_ami}")
+    end
   end
   client_dir     = $client_base_dir+"/packer/aws/"+install_name
   script_dir     = client_dir+"/scripts"
@@ -1417,9 +1423,11 @@ def create_packer_aws_install_files(install_name,install_type,install_ami,instal
   file_name = script_dir+"/vagrant.sh"
   create_packer_vagrant_sh(install_name,file_name)
   key_file = client_dir+"/"+install_name+".key.pub"
-  message  = "Copying Key file '#{install_keyfile}' to '#{key_file}' ; chmod 400 #{key_file}"
-  command  = "cp #{install_keyfile} #{key_file}"
-  execute_command(message,command)
+  if !File.exist?(key_file)
+    message  = "Copying Key file '#{install_keyfile}' to '#{key_file}' ; chmod 400 #{key_file}"
+    command  = "cp #{install_keyfile} #{key_file}"
+    execute_command(message,command)
+  end
   return
 end
 
@@ -1472,8 +1480,8 @@ end
 
 # Configure Packer AWS client
 
-def configure_packer_aws_client(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
-  create_packer_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
+def configure_packer_aws_client(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group,install_desc)
+  create_packer_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group,install_desc)
   return
 end
 

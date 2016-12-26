@@ -299,8 +299,8 @@ end
 
 # Configure Packer AWS client
 
-def configure_aws_client(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
-  install_name,install_key,install_keyfile = handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region)
+def configure_aws_client(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group,install_desc)
+  install_name,install_key,install_keyfile = handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region,install_group,install_desc)
   create_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
   return
 end

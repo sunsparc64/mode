@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.4.2
+# Version:      4.4.3
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -325,6 +325,19 @@ if option['type']
   end
 else
   type = "none"
+end
+
+# Handle some AWS defaults
+
+if option['vm']
+  if option['vm'].match(/aws/)
+    if option['os'] 
+      if option['os'].match(/centos/)
+        $default_aws_ami    = "ami-fedafc9d"
+        $default_admin_user = "centos"
+      end
+    end
+  end
 end
 
 # Handle command line parameters
@@ -1601,13 +1614,13 @@ if !option['action'].match(/^#{$empty_value}$/)
     if option['vm'].match(/aws/)
       case option['type']
       when /packer/
-        configure_packer_aws_client(option['name'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['keyfile'],option['group'])
+        configure_packer_aws_client(option['name'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['keyfile'],option['group'],option['desc'])
       else
         if option['key'].match(/^#{$empty_value}$/)
           handle_output("Warning:\tKey Pair not given")
           quit()
         else
-          configure_aws_client(option['name'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['group'])
+          configure_aws_client(option['name'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['group'],option['desc'])
         end
       end
       quit()
