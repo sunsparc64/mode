@@ -3,55 +3,75 @@
 # Initiates AWS EC2 Image connection
 
 def initiate_aws_ec2_image(install_access,install_secret,install_region)
-  ec2 = Aws::EC2::Image.new(
-    :region             =>  install_region, 
-    :access_key_id      =>  install_access,
-    :secret_access_key  =>  install_secret
-  )
+  begin
+    ec2 = Aws::EC2::Image.new(
+      :region             =>  install_region, 
+      :access_key_id      =>  install_access,
+      :secret_access_key  =>  install_secret
+    )
+  rescue Aws::Errors::NoSuchEndpointError
+    handle_output("Warning:\tInvalid region, or keys")
+  end
   return ec2
 end
 
 # Initiate AWS EC2 Instance connection
 
 def initiate_aws_ec2_instance(install_access,install_secret,install_region)
-  ec2 = Aws::EC2::Instance.new(
-    :region             =>  install_region, 
-    :access_key_id      =>  install_access,
-    :secret_access_key  =>  install_secret
-  )
+  begin
+    ec2 = Aws::EC2::Instance.new(
+      :region             =>  install_region, 
+      :access_key_id      =>  install_access,
+      :secret_access_key  =>  install_secret
+    )
+  rescue Aws::Errors::NoSuchEndpointError
+    handle_output("Warning:\tInvalid region, or keys")
+  end
   return ec2
 end
 
 # Initiate AWS EC2 Client connection
 
 def initiate_aws_ec2_client(install_access,install_secret,install_region)
-  ec2 = Aws::EC2::Client.new(
-    :region             =>  install_region, 
-    :access_key_id      =>  install_access,
-    :secret_access_key  =>  install_secret
-  )
+  begin
+    ec2 = Aws::EC2::Client.new(
+      :region             =>  install_region, 
+      :access_key_id      =>  install_access,
+      :secret_access_key  =>  install_secret
+    )
+  rescue Aws::Errors::NoSuchEndpointError
+    handle_output("Warning:\tInvalid region, or keys")
+  end
   return ec2
 end
 
 # Initiate an AWS EC2 Resource connection
 
 def initiate_aws_ec2_resource(install_access,install_secret,install_region)
-  ec2 = Aws::EC2::Resource.new(
-    :region             =>  install_region, 
-    :access_key_id      =>  install_access,
-    :secret_access_key  =>  install_secret
-  )
+  begin
+    ec2 = Aws::EC2::Resource.new(
+      :region             =>  install_region, 
+      :access_key_id      =>  install_access,
+      :secret_access_key  =>  install_secret
+    )
+  rescue Aws::Errors::NoSuchEndpointError
+    handle_output("Warning:\tInvalid region, or keys")
+  end
   return ec2
 end 
 
 # Initiate an EWS EC2 KeyPair connection
 
 def initiate_aws_ec2_resource(install_access,install_secret,install_region)
-  ec2 = Aws::EC2::KeyPair.new(
-    :region             =>  install_region, 
-    :access_key_id      =>  install_access,
-    :secret_access_key  =>  install_secret
-  )
+  begin
+    ec2 = Aws::EC2::KeyPair.new(
+      :region             =>  install_region, 
+      :access_key_id      =>  install_access,
+      :secret_access_key  =>  install_secret
+    )
+  rescue Aws::Errors::NoSuchEndpointError
+    handle_output("Warning:\tInvalid region, or keys")
+  end
   return ec2
 end 
 

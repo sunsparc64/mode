@@ -812,9 +812,9 @@
 # 4.0.5: Thu  8 Dec 2016 17:24:48 AEDT
 # Added code to list and delete AMIs
 # 4.0.6: Thu  8 Dec 2016 17:53:43 AEDT
-# Added code to list Packer AWS clients
+# Added code to list Packer AWS cliGents
 # 4.0.7: Fri  9 Dec 2016 17:33:44 AEDT
-# Added code to list, stop and start AWS instances
+# Added code to list, stop and starto AWS instances
 # 4.0.8: Fri  9 Dec 2016 19:27:55 AEDT
 # Added code to delete AWS instances
 # 4.0.9: Fri  9 Dec 2016 19:56:27 AEDT
@@ -879,3 +879,5 @@
 # Minor bug fixes
 # 4.4.0: Mon 26 Dec 2016 12:27:22 AEDT
 # Updated Packer version and minor fixes
+# 4.4.1: Mon 26 Dec 2016 14:07:35 AEDT
+# Bug fixes

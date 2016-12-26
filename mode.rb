@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.4.0
+# Version:      4.4.1
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -255,6 +255,8 @@ end
 
 set_global_vars()
 
+# Get flags (BOOLEANs)
+
 flags     = []
 raw_flags = IO.readlines($script_file).grep(/BOOLEAN/).join.split(/\n/)
 raw_flags.each do |raw_flag|
@@ -263,6 +265,8 @@ raw_flags.each do |raw_flag|
     flags.push(raw_flag)
   end
 end
+
+# Handle command line flags
 
 flags.each do |flag|
   if option[flag]
@@ -291,6 +295,8 @@ flags.each do |flag|
   end
 end
 
+# Get params (REQUIREDs)
+
 params     = []
 raw_params = IO.readlines($script_file).grep(/REQUIRED/).join.split(/\n/)
 raw_params.each do |raw_param|
@@ -299,6 +305,20 @@ raw_params.each do |raw_param|
     params.push(raw_param)
   end
 end
+
+# Handle types and set VM if not set
+
+if option['type']
+  if option['type'].match(/bucket|ami|instance|object|snapshot|stack|cf|cloud|image|key/)
+    if !option['vm']
+      option['vm'] = "aws"
+    end
+  end
+else
+  type = "none"
+end
+
+# Handle command line parameters
 
 params.each do |param|
   value = $empty_value
