@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.3.8
+# Version:      4.3.9
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -353,6 +353,12 @@ params.each do |param|
       end
     end
   end
+end
+
+# Check packer is installed and is latest version
+
+if option["type"].match(/packer/)
+  check_packer_is_installed
 end
 
 # Prime HTML

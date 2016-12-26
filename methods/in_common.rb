@@ -240,7 +240,7 @@ def set_global_vars()
   $facter_version  = "1.7.4"
   $hiera_version   = "1.3.1"
   $puppet_version  = "3.4.2"
-  $packer_version  = "0.12.0"
+  $packer_version  = "0.12.1"
   $vagrant_version = "1.8.1"
 
   # Set some global OS types

@@ -875,3 +875,5 @@
 # Initial rewrite of command line argument handling
 # 4.3.8: Mon 26 Dec 2016 10:56:52 AEDT
 # Further cleanup of command line argument handling
+# 4.3.9: Mon 26 Dec 2016 11:05:07 AEDT
+# Minor bug fixes

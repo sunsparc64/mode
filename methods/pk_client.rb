@@ -1451,7 +1451,6 @@ end
 # Build AWS client
 
 def build_packer_aws_config(install_name,install_access,install_secret,install_region)
-  check_packer_is_installed()
   exists = check_if_aws_image_exists(install_name,install_access,install_secret,install_region)
   if exists == "yes"
     handle_output("Warning:\tAWS image already exists for '#{install_name}'")
