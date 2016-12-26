@@ -887,4 +887,6 @@
 # Fixed and improved AWS Packer client creation
 # 4.4.4: Mon 26 Dec 2016 22:47:45 AEDT
 # Bug fixes
+# 4.4.5: Tue 27 Dec 2016 10:36:02 AEDT
+# Various bug fixes and improvements for AWS instance creation
 

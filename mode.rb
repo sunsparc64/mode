@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.4.4
+# Version:      4.4.5
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -122,7 +122,7 @@ check_dir_exists($work_dir)
 end
 
 # Get command line arguments
-# Print help if given none
+# Print help if specified none
 
 if !ARGV[0]
   print_usage()
@@ -293,6 +293,10 @@ flags.each do |flag|
     end
   end
 end
+
+# Convert some flags to stings to keep processing happy
+
+$default_dryrun = $default_dryrun.to_s
 
 # Get params (REQUIREDs)
 
@@ -492,7 +496,7 @@ if !option['name'].match(/^#{$empty_value}$/)
   end
 end
 
-# If given admin set admin user
+# If specified admin set admin user
 
 if !option['admin'].match(/^#{$empty_value}$/)
   if option['action']
@@ -534,7 +538,7 @@ if !option['size'].match(/^#{$empty_value}$/)
   end
 end
 
-# Get MAC address if given
+# Get MAC address if specified
 
 if !option['mac'].match(/^#{$empty_value}$/)
   if !option['vm']
@@ -809,7 +813,7 @@ if option['action'].match(/build/)
   end
   if option['vm'].match(/^#{$empty_value}$/)
     if option['name'].match(/^#{$empty_value}$/)
-      handle_output("Warning:\tNo client name given")
+      handle_output("Warning:\tNo client name specified")
       exit
     end
     option['vm'] = get_client_vm_type_from_packer(option['name'])
@@ -880,7 +884,7 @@ end
 
 if option['action'].match(/list/)
   if option['vm'].match(/^#{$empty_value}$/) and option['service'].match(/^#{$empty_value}$/) and option['method'].match(/^#{$empty_value}$/) and option['type'].match(/^#{$empty_value}$/) and option['mode'].match(/^#{$empty_value}$/)
-    handle_output("Warning:\tNo type or service given")
+    handle_output("Warning:\tNo type or service specified")
     exit
   end
 end
@@ -970,11 +974,11 @@ if !option['service'].match(/^#{$empty_value}$/)
       exit
     end
     if !option['ip'].match(/[0-9]/) and !option['action'].match(/build|list|import|delete/) and !option['vm'].match(/aws/)
-      handle_output("Warning:\tNo IP Address given ")
+      handle_output("Warning:\tNo IP Address specified ")
       exit
     end
     if !option['mac'].match(/[0-9]|[A-F]|[a-f]/) and !option['action'].match(/build|list|import|delete/)
-      handle_output("Warning:\tNo MAC Address given")
+      handle_output("Warning:\tNo MAC Address specified")
       handle_output("Information:\tGenerating MAC Address")
       if !option['vm'].match(/^#{$empty_value}$/)
         if !option['vm'].match(/^#{$empty_value}$/)
@@ -1012,11 +1016,11 @@ else
         exit
       end
       if !option['ip'].match(/[0-9]/) and !option['action'].match(/build|list|import|delete/)
-        handle_output("Warning:\tNo IP Address given")
+        handle_output("Warning:\tNo IP Address specified")
         exit
       end
       if !option['mac'].match(/[0-9]|[A-F]|[a-f]/) and !option['action'].match(/build|list|import|delete/)
-        handle_output("Warning:\tNo MAC Address given")
+        handle_output("Warning:\tNo MAC Address specified")
         handle_output("Information:\tGenerating MAC Address")
         if option['vm'].match(/^#{$empty_value}$/)
           option['vm'] = "none"
@@ -1153,7 +1157,7 @@ else
   end
 end
 
-# If service is set, but method and os isn't given, try to set method from service name
+# If service is set, but method and os isn't specified, try to set method from service name
 
 if !option['service'].match(/^#{$empty_value}$/) and option['method'].match(/^#{$empty_value}$/) and option['os'].match(/^#{$empty_value}$/)
   option['method'] = get_install_method_from_service(option['service'])
@@ -1332,7 +1336,7 @@ if !option['method'].match(/^#{$empty_value}$/)
   end
 end
 
-# Try to determine install method if only given OS
+# Try to determine install method if only specified OS
 
 if option['method'].match(/^#{$empty_value}$/) and !option['action'].match(/delete|running|reboot|restart|halt|boot|stop|deploy|migrate|show/)
   case option['os']
@@ -1625,11 +1629,11 @@ if !option['action'].match(/^#{$empty_value}$/)
       when /packer/
         configure_packer_aws_client(option['name'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['keyfile'],option['group'],option['desc'])
       else
-        if option['key'].match(/^#{$empty_value}$/)
-          handle_output("Warning:\tKey Pair not given")
+        if option['key'].match(/^#{$empty_value}$/) and option['group'].match(/^#{$empty_value}$/)
+          handle_output("Warning:\tNo Key Pair or Security Group specified")
           quit()
         else
-          configure_aws_client(option['name'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['group'],option['desc'])
+          configure_aws_client(option['name'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['keyfile'],option['group'],option['desc'])
         end
       end
       quit()
@@ -1639,7 +1643,7 @@ if !option['action'].match(/^#{$empty_value}$/)
       quit()
     end
     if option['vm'].match(/none/) and option['method'].match(/^#{$empty_value}$/) and option['type'].match(/^#{$empty_value}$/) and !option['mode'].match(/server/)
-      handle_output("Warning:\tNo VM, Method or given")
+      handle_output("Warning:\tNo VM, Method or specified")
     end
     if option['mode'].match(/server/) or !option['file'].match(/^#{$empty_value}$/) or option['type'].match(/service/) and option['vm'].match(/none/) and !option['type'].match(/packer/) and !option['service'].match(/packer/)
       check_local_config("server")

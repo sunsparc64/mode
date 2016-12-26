@@ -106,24 +106,33 @@ end
 
 # HAndle AWS values
 
-def handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region,install_group,install_desc)
-  if install_name.match(/^#{$empty_value}$/)
+def handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region,install_group,install_desc,install_type)
+  if install_name.match(/^#{$empty_value}$/) and install_type.match(/packer/)
     handle_output("Warning:\tNo name specified for AWS image")
     quit()
   end
   if install_key.match(/^#{$empty_value}$|^none$/)
-    handle_output("Warning:\tNo Key Name given")
+    handle_output("Warning:\tNo key pair specified")
     if install_keyfile.match(/^#{$empty_value}$/)
-      install_key = install_name
+      if install_name.match(/^#{$empty_value}/)
+        if install_group.match(/^#{}$empty_value/)
+          handle_output("Warning:\tCould not determine key pair")
+          quit()
+        else
+          install_key = install_group
+        end
+      else
+        install_key = install_name
+      end
     else
       install_key = File.basename(install_keyfile)
       install_key = install_key.split(/\./)[0..-2].join
     end
-    handle_output("Information:\tSetting Key Name to #{install_key}")
+    handle_output("Information:\tSetting key pair to #{install_key}")
   end
   if install_group.match(/^default$/)
     install_group = install_key
-    handle_output("Information:\tSetting Security Group Name to #{install_group}")
+    handle_output("Information:\tSetting security group to #{install_group}")
   end
   if $nosuffix_mode == false
     install_name = get_aws_uniq_name(install_name,install_region)
@@ -131,7 +140,7 @@ def handle_aws_values(install_name,install_key,install_keyfile,install_access,in
   end
   if install_keyfile.match(/^#{$empty_value}$/)
     install_keyfile = $default_aws_ssh_key_dir+"/"+install_key+".pem"
-    handle_output("Information:\tSetting Key file to #{install_keyfile}")
+    handle_output("Information:\tSetting key file to #{install_keyfile}")
   end
   if !File.exists?(install_keyfile)
     create_aws_key_pair(install_access,install_secret,install_region,install_key)
@@ -180,7 +189,7 @@ def get_aws_snapshots(install_access,install_secret,install_region)
   begin
     snapshots = ec2.describe_snapshots.snapshots
   rescue Aws::EC2::Errors::AccessDenied
-    handle_output("Warning:\tUser needs to be given appropriate rights in AWS IAM")
+    handle_output("Warning:\tUser needs to be specified appropriate rights in AWS IAM")
     quit()
   end
   return snapshots
@@ -252,7 +261,7 @@ def get_aws_reservations(install_access,install_secret,install_region)
   begin
     reservations = ec2.describe_instances({ }).reservations
   rescue Aws::EC2::Errors::AccessDenied
-    handle_output("Warning:\tUser needs to be given appropriate rights in AWS IAM")
+    handle_output("Warning:\tUser needs to be specified appropriate rights in AWS IAM")
     quit()
   end
   return ec2,reservations
@@ -265,7 +274,7 @@ def get_aws_key_pairs(install_access,install_secret,install_region)
   begin
     key_pairs = ec2.describe_key_pairs({ }).key_pairs
   rescue Aws::EC2::Errors::AccessDenied
-    handle_output("Warning:\tUser needs to be given appropriate rights in AWS IAM")
+    handle_output("Warning:\tUser needs to be specified appropriate rights in AWS IAM")
     quit()
   end
   return ec2,key_pairs
@@ -499,7 +508,7 @@ end
 
 def create_aws_security_group(install_access,install_secret,install_region,install_group,install_desc)
   if !install_desc.match(/[A-Z]|[a-z]|[0-9]/)
-    handle_output("Information:\tNo description given, using group name '#{install_group}'")
+    handle_output("Information:\tNo description specified, using group name '#{install_group}'")
     install_desc = install_group
   end
   exists = check_if_aws_security_group_exists(install_access,install_secret,install_region,install_group)
@@ -627,7 +636,7 @@ def get_aws_owner_id(install_access,install_secret,install_region)
   begin
     user = iam.get_user()
   rescue Aws::EC2::Errors::AccessDenied
-    handle_output("Warning:\tUser needs to be given appropriate rights in AWS IAM")
+    handle_output("Warning:\tUser needs to be specified appropriate rights in AWS IAM")
     quit()
   end
   owner_id = user[0].arn.split(/:/)[4]
@@ -641,7 +650,7 @@ def get_aws_images(install_access,install_secret,install_region)
   begin
     images = ec2.describe_images({ owners: ["self"] }).images
   rescue Aws::EC2::Errors::AccessDenied
-    handle_output("Warning:\tUser needs to be given appropriate rights in AWS IAM")
+    handle_output("Warning:\tUser needs to be specified appropriate rights in AWS IAM")
     quit()
   end
   return ec2,images

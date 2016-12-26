@@ -59,11 +59,11 @@ def connect_to_aws_vm(install_access,install_secret,install_region,install_clien
     ssh_command = "ssh -o StrictHostKeyChecking=no"
   end 
   if !install_ip.match(/[0-9]/) and !install_id.match(/[0-9]/)
-    handle_output("Warning:\tNo IP or Instance ID given")
+    handle_output("Warning:\tNo IP or Instance ID specified")
     quit()
   end
   if install_admin.match(/^#{$empty_key}$/)
-    handle_output("Warning:\tNo user given")
+    handle_output("Warning:\tNo user specified")
     quit()
   end
   if !install_key.match(/^#{$empty_key}$/) and !install_keyfile.match(/^#{$empty_key}$/)
@@ -71,7 +71,7 @@ def connect_to_aws_vm(install_access,install_secret,install_region,install_clien
       install_key = get_aws_instance_key_name(install_access,install_secret,install_region,install_id)
       handle_output("Information:\tFound key '#{install_key}' from Instance ID '#{install_id}'")
     else
-      handle_output("Warning:\tNo key given")
+      handle_output("Warning:\tNo key specified")
       quit()
     end
   end
@@ -272,7 +272,7 @@ def create_aws_instance(install_access,install_secret,install_region)
   begin
     reservations = ec2.run_instances(image_id: image_id, min_count: min_count, max_count: max_count, instance_type: instance_type, dry_run: dry_run, key_name: key_name, security_groups: security_groups,)
   rescue Aws::EC2::Errors::AccessDenied
-    handle_output("Warning:\tUser needs to be given appropriate rights in AWS IAM")
+    handle_output("Warning:\tUser needs to be specified appropriate rights in AWS IAM")
     quit()
   end
   reservations["instances"].each do |instance|
@@ -304,7 +304,11 @@ end
 # Configure Packer AWS client
 
 def configure_aws_client(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group,install_desc)
-  install_name,install_key,install_keyfile = handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region,install_group,install_desc)
+  if !install_number.match(/[0,9]/)
+    handle_output("Warning:\tIncorrect number of instances specified: '#{install_number}'")
+    quit()
+  end
+  install_name,install_key,install_keyfile = handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region,install_group,install_desc,install_type)
   create_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
   return
 end
@@ -317,7 +321,7 @@ def create_aws_install_files(install_name,install_type,install_ami,install_regio
   if !install_ami.match(/^ami/)
     ec2,install_ami = get_aws_image(install_ami,install_access,install_secret,install_region)
   end
-  populate_aws_questions(install_name,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key,install_keyfile,install_keyfile,install_group)
+  populate_aws_questions(install_name,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key,install_keyfile,install_group)
   install_service = "aws"
   process_questions(install_service)
   exists = check_if_aws_key_pair_exists(install_access,install_secret,install_region,install_key)

@@ -220,6 +220,7 @@ def set_global_vars()
   $default_sitename       = $default_domainname.split(".")[0]
   $default_rootpassword   = "P455w0rd"
   $default_adminpassword  = "P455w0rd"
+  $default_aws_number     = "1,1"
 
   $verbose_mode           = false
   $test_mode              = false
