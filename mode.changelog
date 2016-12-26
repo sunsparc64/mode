@@ -883,3 +883,8 @@
 # Bug fixes
 # 4.4.2: Mon 26 Dec 2016 18:13:55 AEDT
 # Fixed AWS listing routines
+# 4.4.3: Mon 26 Dec 2016 21:34:59 AEDT
+# Fixed and improved AWS Packer client creation
+# 4.4.4: Mon 26 Dec 2016 22:47:45 AEDT
+# Bug fixes
+

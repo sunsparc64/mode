@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.4.3
+# Version:      4.4.4
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -332,9 +332,16 @@ end
 if option['vm']
   if option['vm'].match(/aws/)
     if option['os'] 
-      if option['os'].match(/centos/)
+      case option['os'].downcase
+      when /centos/
         $default_aws_ami    = "ami-fedafc9d"
         $default_admin_user = "centos"
+      when /amznl/
+        $default_aws_ami    = "ami-28cff44b"
+        $default_admin_user = "ec2-user"
+      else
+        $default_aws_ami    = "ami-28cff44b"
+        $default_admin_user = "ec2-user"
       end
     end
   end
@@ -1552,10 +1559,12 @@ if !option['action'].match(/^#{$empty_value}$/)
         end
       end
     else
-      if option['type'].match(/instance|snapshot|key|stack|cf|cloud|securitygroup|iprule|sg/) or option['id'].match(/[0-9]|all/)
+      if option['type'].match(/instance|snapshot|key|stack|cf|cloud|securitygroup|iprule|sg|ami|image/) or option['id'].match(/[0-9]|all/)
         case option['type']
         when /instance/
           delete_aws_vm(option['access'],option['secret'],option['region'],option['ami'],option['id'])
+        when /ami|image/
+          delete_aws_image(option['access'],option['secret'],option['region'],option['ami'])
         when /snapshot/
           delete_aws_snapshot(option['access'],option['secret'],option['region'],option['snapshot'])
         when /key/

@@ -173,6 +173,10 @@ def delete_aws_vm(install_access,install_secret,install_region,install_ami,insta
       install_ids = [install_id]
     end
     install_ids.each do |install_id|
+      if !install_id.match(/^i/)
+        handle_output("Warning:\tInvalid Instance ID '#{install_id}'")
+        quit()
+      end
       ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
       handle_output("Information:\tTerminating Instance ID #{install_id}")
       ec2.terminate_instances(instance_ids:[install_id])
@@ -184,7 +188,7 @@ def delete_aws_vm(install_access,install_secret,install_region,install_ami,insta
         reservation["instances"].each do |instance|
           install_id = instance.instance_id
           status = instance.state.name
-          if !status.match(/terminated/)  
+          if !status.match(/terminated/)
             handle_output("Information:\tTerminating Instance ID #{install_id}")
             ec2.terminate_instances(instance_ids:[install_id])
           else

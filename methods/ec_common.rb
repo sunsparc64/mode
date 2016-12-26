@@ -97,7 +97,6 @@ def initiate_aws_cw_client(install_access,install_secret,install_region)
   return cw
 end
 
-
 # Check AWS VM exists - Dummy function for packer
 
 def check_aws_vm_exists(install_name)
@@ -677,7 +676,7 @@ end
 
 # Delete AWS image
 
-def delete_aws_image(install_client,install_access,install_secret,install_region)
+def delete_aws_image(install_access,install_secret,install_region,install_client)
   ec2,image_id = get_aws_image(install_client,install_access,install_secret,install_region)
   if image_id == "none"
     handle_output("Warning:\tNo AWS Image exists for '#{install_client}'")

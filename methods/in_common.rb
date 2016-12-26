@@ -138,8 +138,8 @@ def set_global_vars()
   $centos_rpm_base_url       = "http://"+$local_centos_mirror+"/centos"
   $default_vm_utc            = "off"
   $valid_os_list             = [ 'Solaris', 'VMware-VMvisor', 'CentOS', 'OracleLinux', 'SLES', 'openSUSE',
-                                 'Ubuntu', 'Debian', 'Fedora', 'RHEL', 'SL', 'Purity', 'Windows', 'JeOS' ]
-  $valid_linux_os_list       = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'Ubuntu', 'Debian', 'Fedora', 'RHEL', 'SL', 'Purity' ]
+                                 'Ubuntu', 'Debian', 'Fedora', 'RHEL', 'SL', 'Purity', 'Windows', 'JeOS', 'AMZNL' ]
+  $valid_linux_os_list       = [ 'CentOS', 'OracleLinux', 'SLES', 'openSUSE', 'Ubuntu', 'Debian', 'Fedora', 'RHEL', 'SL', 'Purity', 'AMZNL' ]
   $valid_arch_list           = [ 'x86_64', 'i386', 'sparc' ]
   $valid_console_list        = [ 'text', 'console', 'x11', 'headless' ]
   $valid_method_list         = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image', 'ldom', 'cdom', 'gdom' ]
