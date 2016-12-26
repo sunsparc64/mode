@@ -877,3 +877,5 @@
 # Further cleanup of command line argument handling
 # 4.3.9: Mon 26 Dec 2016 11:05:07 AEDT
 # Minor bug fixes
+# 4.4.0: Mon 26 Dec 2016 12:27:22 AEDT
+# Updated Packer version and minor fixes

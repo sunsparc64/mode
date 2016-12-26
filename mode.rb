@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.3.9
+# Version:      4.4.0
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -147,7 +147,8 @@ begin
     [ "--arch",           REQUIRED ], # Architecture of client or VM (e.g. x86_64)
     [ "--domainname",     REQUIRED ], # Set domain (Used with deploy for VCSA)
     [ "--timezone",       REQUIRED ], # Set timezone
-    [ "--memory",         REQUIRED ], # VM memory size
+    [ "--mem",            REQUIRED ], # VM memory size
+    [ "--vcpu",           REQUIRED ], # Number of CPUs
     [ "--client",         REQUIRED ], # Client name
     [ "--mode",           REQUIRED ], # Set mode to client or server
     [ "--datastore",      REQUIRED ], # Datastore to deploy to on remote server
@@ -270,9 +271,9 @@ flags.each do |flag|
       eval("print_#{flag}")
       quit()
     else
-      eval("$#{flag}_mode = #{value}")
+      value = eval("$#{flag}_mode = #{value}")
       if option['verbose'] == true
-        handle_output("Information:\tEnabling #{flag} mode")
+        handle_output("Information:\tSetting flag '#{flag}' to '#{value}'")
       end
     end
   end
@@ -281,9 +282,11 @@ flags.each do |flag|
       value        = eval("$default_#{flag}")
       option[flag] = value
       eval("$#{flag}_mode = #{value}")
+    else
+      value = false
     end
     if option['verbose'] == true
-      handle_output("Information:\tDisabling #{flag} mode")
+      handle_output("Information:\tSetting flag '#{flag}' to '#{value}'")
     end
   end
 end
@@ -309,8 +312,8 @@ params.each do |param|
         end
         option[param] = value
       else
-        if eval("$default_#{param}")
-          value = eval("$default_#{param}")
+        if eval("$default_vm_#{param}")
+          value = eval("$default_vm_#{param}")
           if option['verbose']
             handle_output("Information:\tSetting parameter '#{param}' to '#{value}'")
           end
@@ -1075,20 +1078,20 @@ end
 
 # Handle memory switch
 
-if option['memory'].match(/^#{$empty_value}$/)
+if option['mem'].match(/^#{$empty_value}$/)
   if !option['vm'].match(/^#{$empty_value}$/)
     if option['os'].match(/vs|esx|vmware|vsphere/) or option['method'].match(/vs|esx|vmware|vsphere/)
-      option['memory'] = "4096"
+      option['mem'] = "4096"
     end
     if !option['os'].match(/^#{$empty_value}$/)
       if option['os'].match(/sol/)
         if option['release'].to_i > 9
-          option['memory'] = "2048"
+          option['mem'] = "2048"
         end
       end
     else
       if option['method'] == "ai"
-        option['memory'] = "2048"
+        option['mem'] = "2048"
       end
     end
   end
@@ -1256,11 +1259,11 @@ if !option['os'].match(/^#{$empty_value}$/)
       option['method'] = "ps"
     when /purity/
       option['method'] = "ps"
-      if option['memory'].match(/#{$default_vm_mem}/)
+      if option['mem'].match(/#{$default_vm_mem}/)
         $default_vm_mem  = "8192"
-        option['memory']   = $default_vm_mem
+        option['mem']   = $default_vm_mem
         $default_vm_vcpu = "2"
-        option['cpu']      = $default_vm_vcpu
+        option['vcpu']      = $default_vm_vcpu
       end
     when /suse|sles/
       option['method'] = "ay"
@@ -1293,11 +1296,11 @@ if !option['method'].match(/^#{$empty_value}$/)
   when /vsphere|esx|vmware|vs/
     info_examples    = "vs"
     option['method'] = "vs"
-    if option['memory'] == $default_vm_mem
-      option['memory'] = "4096"
+    if option['mem'] == $default_vm_mem
+      option['mem'] = "4096"
     end
-    if option['cpu'] == $default_vm_vcpu
-      option['cpu'] = "2"
+    if option['vcpu'] == $default_vm_vcpu
+      option['vcpu'] = "2"
     end
     $vbox_disk_type = "ide"
   when /bsd|xb/
@@ -1651,7 +1654,7 @@ if !option['action'].match(/^#{$empty_value}$/)
               end
             end
             eval"[configure_#{option['type']}_client(option['method'],option['vm'],option['os'],option['client'],option['arch'],option['mac'],option['ip'],option['model'],
-                              option['publisherhost'],option['service'],option['file'],option['memory'],option['cpu'],option['network'],option['license'],option['mirror'],
+                              option['publisherhost'],option['service'],option['file'],option['mem'],option['vcpu'],option['network'],option['license'],option['mirror'],
                               option['size'],option['type'],option['locale'],option['label'],option['timezone'],option['shell'])]"
           else
             if option['vm'].match(/none/)
@@ -1674,11 +1677,11 @@ if !option['action'].match(/^#{$empty_value}$/)
                   option['mac'] = generate_mac_address(option['vm'])
                 end
                 eval"[configure_#{option['method']}_client(option['client'],option['arch'],option['mac'],option['ip'],option['model'],option['publisherhost'],
-                                  option['service'],option['file'],option['memory'],option['cpu'],option['network'],option['license'],option['mirror'],option['type'],option['vm'])]"
+                                  option['service'],option['file'],option['mem'],option['vcpu'],option['network'],option['license'],option['mirror'],option['type'],option['vm'])]"
               end
             else
               if option['vm'].match(/fusion|vbox|parallels/)
-                create_vm(option['method'],option['vm'],option['client'],option['mac'],option['os'],option['arch'],option['release'],option['size'],option['file'],option['memory'],option['cpu'],option['network'],option['share'],option['mount'],option['ip'])
+                create_vm(option['method'],option['vm'],option['client'],option['mac'],option['os'],option['arch'],option['release'],option['size'],option['file'],option['mem'],option['vcpu'],option['network'],option['share'],option['mount'],option['ip'])
               end
               if option['vm'].match(/zone|lxc|gdom/)
                 eval"[configure_#{option['vm']}(option['client'],option['ip'],option['mac'],option['arch'],option['os'],option['release'],option['publisherhost'],
@@ -1691,7 +1694,7 @@ if !option['action'].match(/^#{$empty_value}$/)
           end
         else
           if option['vm'].match(/fusion|vbox|parallels/)
-            create_vm(option['method'],option['vm'],option['client'],option['mac'],option['os'],option['arch'],option['release'],option['size'],option['file'],option['memory'],option['cpu'],option['network'],option['share'],option['mount'],option['ip'])
+            create_vm(option['method'],option['vm'],option['client'],option['mac'],option['os'],option['arch'],option['release'],option['size'],option['file'],option['mem'],option['vcpu'],option['network'],option['share'],option['mount'],option['ip'])
           end
           if option['vm'].match(/zone|lxc|gdom/)
             eval"[configure_#{option['vm']}(option['client'],option['ip'],option['mac'],option['arch'],option['os'],option['release'],option['publisherhost'],
@@ -1793,7 +1796,7 @@ if !option['action'].match(/^#{$empty_value}$/)
           eval"[import_#{option['vm']}_ova(option['client'],option['mac'],option['ip'],option['file'])]"
         else
           if option['file'].match(/vmdk/)
-            eval"[import_#{option['vm']}_vmdk(option['method'],option['vm'],option['client'],option['mac'],option['os'],option['arch'],option['release'],option['size'],option['file'],option['memory'],option['cpu'],option['network'],option['share'],option['mount'],option['ip'])]"
+            eval"[import_#{option['vm']}_vmdk(option['method'],option['vm'],option['client'],option['mac'],option['os'],option['arch'],option['release'],option['size'],option['file'],option['mem'],option['vcpu'],option['network'],option['share'],option['mount'],option['ip'])]"
           end
         end
       end
@@ -1822,8 +1825,8 @@ if !option['action'].match(/^#{$empty_value}$/)
     eval"[execute_#{option['vm']}_post(option['client'])]"
   when /change|modify/
     if !option['client'].match(/^#{$empty_value}$/)
-      if option['memory'].match(/[0-9]/)
-        eval"[change_#{option['vm']}_vm_mem(option['client'],option['memory'])]"
+      if option['mem'].match(/[0-9]/)
+        eval"[change_#{option['vm']}_vm_mem(option['client'],option['mem'])]"
       end
       if option['mac'].match(/[0-9]|[a-f]|[A-F]/)
         eval"[change_#{option['vm']}_vm_mac(option['client'],client_mac)]"

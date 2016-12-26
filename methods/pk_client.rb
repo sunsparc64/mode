@@ -419,6 +419,10 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     ks_file          = install_vm+"/"+install_client+"/"+install_client+".cfg"
     ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     boot_command     = "<tab><wait><bs><bs><bs><bs><bs><bs>=0 inst.text inst.method=cdrom inst.repo=cdrom:/dev/sr0 inst.sshd inst.ks="+ks_url+" ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway+"<enter><wait>"
+#  when /rhel_7/
+#    ks_file       = install_vm+"/"+install_client+"/"+install_client+".cfg"
+#    ks_url        = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
+#    boot_command  = "<esc><wait> linux text install ks="+ks_url+" ksdevice=eno16777736 "+"ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway+"<enter><wait>"
   else
     ks_file       = install_vm+"/"+install_client+"/"+install_client+".cfg"
     ks_url        = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
