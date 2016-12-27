@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.4.6
+# Version:      4.4.7
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1588,7 +1588,7 @@ if !option['action'].match(/^#{$empty_value}$/)
         when /securitygroup/
           delete_aws_security_group(option['access'],option['secret'],option['region'],option['group'])
         when /iprule/
-          remove_rule_from_aws_security_group(option['access'],option['secret'],option['region'],option['group'],option['proto'],option['to'],option['from'],option['cidr'],option['dir'])
+          remove_rule_from_aws_security_group(option['access'],option['secret'],option['region'],option['group'],option['proto'],option['to'],option['from'],option['cidr'],option['dir'],option['service'])
         else
           if !option['ami'].match(/^#{$empty_value}$/)
             delete_aws_image(option['ami'],option['access'],option['secret'],option['region'])
@@ -1630,7 +1630,7 @@ if !option['action'].match(/^#{$empty_value}$/)
       when /securitygroup/
         create_aws_security_group(option['access'],option['secret'],option['region'],option['group'],option['desc'],option['dir'])
       when /iprule/
-        add_rule_to_aws_security_group(option['access'],option['secret'],option['region'],option['group'],option['proto'],option['to'],option['from'],option['cidr'],option['dir'])
+        add_rule_to_aws_security_group(option['access'],option['secret'],option['region'],option['group'],option['proto'],option['to'],option['from'],option['cidr'],option['dir'],option['service'])
       end
       quit()
     end

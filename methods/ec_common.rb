@@ -104,7 +104,29 @@ def check_aws_vm_exists(install_name)
   return exists
 end
 
-# HAndle AWS values
+def get_aws_ip_service_info(install_service,install_proto,install_to,install_from)
+  case install_service
+  when /ssh/
+    install_proto = "tcp"
+    install_to    = "22"
+    install_to    = "22"
+  when /ping|icmp/
+    install_proto = "icmp"
+    install_to    = "-1"
+    install_to    = "-1"
+  when /https/
+    install_proto = "tcp"
+    install_to    = "443"
+    install_to    = "443"
+  when /http/
+    install_proto = "tcp"
+    install_to    = "80"
+    install_to    = "80"
+  end
+  return install_proto,install_to,install_from
+end
+
+# Handle AWS values
 
 def handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region,install_group,install_desc,install_type)
   if install_name.match(/^#{$empty_value}$/) and install_type.match(/packer/)
@@ -386,7 +408,10 @@ end
 
 # Add rule to AWS EC2 security group
 
-def remove_rule_from_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir)
+def remove_rule_from_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir,install_service)
+  if !install_service.match(/^#{empty_value}$/)
+    (install_proto,install_to,install_from) = get_aws_ip_service_info(install_service,install_proto,install_to,install_from)
+  end
   if !install_group.match(/^sg/)
     install_group = get_aws_security_group_id(install_access,install_secret,install_region,install_group)
   end
@@ -457,42 +482,61 @@ end
 # Add SSH to AWS EC2 security group
 
 def add_ssh_to_aws_security_group(install_access,install_secret,install_region,install_group)
-  install_dir   = "ingress"
-  install_proto = "tcp"
-  install_from  = "22"
-  install_to    = "22"
-  install_cidr  = "0.0.0.0/0"
-  add_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir)
+  install_service = "none"
+  install_dir     = "ingress"
+  install_proto   = "tcp"
+  install_from    = "22"
+  install_to      = "22"
+  install_cidr    = "0.0.0.0/0"
+  add_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir,install_service)
   return
 end
 
 # Add HTTP to AWS EC2 security group
 
 def add_http_to_aws_security_group(install_access,install_secret,install_region,install_group)
-  install_dir   = "ingress"
-  install_proto = "tcp"
-  install_from  = "80"
-  install_to    = "80"
-  install_cidr  = "0.0.0.0/0"
-  add_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir)
+  install_service = "none"
+  install_dir     = "ingress"
+  install_proto   = "tcp"
+  install_from    = "80"
+  install_to      = "80"
+  install_cidr    = "0.0.0.0/0"
+  add_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir,install_service)
   return
 end
 
 # Add HTTPS to AWS EC2 security group
 
 def add_https_to_aws_security_group(install_access,install_secret,install_region,install_group)
-  install_dir   = "ingress"
-  install_proto = "tcp"
-  install_from  = "80"
-  install_to    = "80"
-  install_cidr  = "0.0.0.0/0"
-  add_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir)
+  install_service = "none"
+  install_dir     = "ingress"
+  install_proto   = "tcp"
+  install_from    = "80"
+  install_to      = "80"
+  install_cidr    = "0.0.0.0/0"
+  add_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir,install_service)
+  return
+end
+
+# Add HTTPS to AWS EC2 security group
+
+def add_icmp_to_aws_security_group(install_access,install_secret,install_region,install_group)
+  install_service = "none"
+  install_dir     = "ingress"
+  install_proto   = "icmp"
+  install_from    = "-1"
+  install_to      = "-1"
+  install_cidr    = "0.0.0.0/0"
+  add_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir,install_service)
   return
 end
 
 # Add rule to AWS EC2 security group
 
-def add_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir)
+def add_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir,install_service)
+  if !install_service.match(/^#{empty_value}$/)
+    (install_proto,install_to,install_from) = get_aws_ip_service_info(install_service,install_proto,install_to,install_from)
+  end
   if !install_group.match(/^sg/)
     install_group = get_aws_security_group_id(install_access,install_secret,install_region,install_group)
   end

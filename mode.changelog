@@ -889,4 +889,6 @@
 # Bug fixes
 # 4.4.5: Tue 27 Dec 2016 10:36:02 AEDT
 # Various bug fixes and improvements for AWS instance creation
-
+# 4.4.6: Tue 27 Dec 2016 10:49:27 AEDT
+# Improved AWS instance SSH connection code
+# 4.4.7: Tue 27 Dec 2016 11:43:15 AEDT
