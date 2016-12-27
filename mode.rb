@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.4.9
+# Version:      4.5.0
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -417,6 +417,19 @@ params.each do |param|
         handle_output("Information:\tValid values include #{list.join(", ")}")
         quit()
       end
+    end
+  end
+end
+
+# If boot, halt, or delete are given and VM type is unknown try to determine it
+
+if option['action'].match(/boot|start|halt|stop|delete/)
+  if !option['name'].match(/^#{$empty_value}$/)
+    if option['vm'].match(/^#{$empty_value}$/)
+      if $verbose_mode == true
+        handle_output("Warning:\tNo VM type specified")
+      end
+      option['vm'] = get_client_vm_type(option['name'])
     end
   end
 end

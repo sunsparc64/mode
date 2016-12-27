@@ -897,3 +897,5 @@
 # More AWS IP rule handling improvements
 # 4.4.9: Tue 27 Dec 2016 20:49:36 AEDT
 # Fixed bug with packer import
+# 4.5.0: Tue 27 Dec 2016 21:45:53 AEDT
+# Fixed code to determine VM type for client if not given

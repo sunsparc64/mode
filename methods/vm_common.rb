@@ -1,5 +1,3 @@
-
-
 # Code for creating client VMs for testing (e.g. VirtualBox)
 
 # Handle VM install status
@@ -12,11 +10,21 @@ def handle_vm_install_status(install_vm,install_status)
   return
 end
 
+# AWS check
+
+def check_aws_is_installed()
+  check_if_aws_cli_is_installed()
+  return
+end
+
 # Try to get client VM type
 
 def get_client_vm_type(install_client)
   install_vm = ""
   $valid_vm_list.each do |test_vm|
+    if $verbose_mode == true
+      handle_output("Information:\tChecking if '#{install_client}' is a '#{test_vm}' VM")
+    end
     exists = eval"[check_#{test_vm}_is_installed]"
     if exists.to_s.match(/yes/)
       exists = eval"[check_#{test_vm}_vm_exists(install_client)]"
