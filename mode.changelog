@@ -892,3 +892,8 @@
 # 4.4.6: Tue 27 Dec 2016 10:49:27 AEDT
 # Improved AWS instance SSH connection code
 # 4.4.7: Tue 27 Dec 2016 11:43:15 AEDT
+# AWS IP rule handling improvement
+# 4.4.8: Tue 27 Dec 2016 12:26:01 AEDT
+# More AWS IP rule handling improvements
+# 4.4.9: Tue 27 Dec 2016 20:49:36 AEDT
+# Fixed bug with packer import

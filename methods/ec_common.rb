@@ -108,19 +108,19 @@ def get_aws_ip_service_info(install_service,install_proto,install_to,install_fro
   case install_service
   when /ssh/
     install_proto = "tcp"
-    install_to    = "22"
+    install_from  = "22"
     install_to    = "22"
   when /ping|icmp/
     install_proto = "icmp"
-    install_to    = "-1"
+    install_from  = "-1"
     install_to    = "-1"
   when /https/
     install_proto = "tcp"
-    install_to    = "443"
+    install_from  = "443"
     install_to    = "443"
   when /http/
     install_proto = "tcp"
-    install_to    = "80"
+    install_from  = "80"
     install_to    = "80"
   end
   if !install_cidr

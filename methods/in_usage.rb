@@ -40,7 +40,7 @@ def print_client_types(option)
   handle_output("")
   handle_output("Example:")
   handle_output("")
-  handle_output("--client=hostname")
+  handle_output("--name=hostname")
   handle_output("")
   return
 end

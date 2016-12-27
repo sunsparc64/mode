@@ -1457,7 +1457,7 @@ def connect_to_virtual_serial(install_client,install_vm)
     handle_output("If you wish to re-connect to the serial console of this machine,")
     handle_output("run the following command:")
     handle_output("")
-    handle_output("#{$script} --action=console --vm=#{install_vm} --client=#{install_client}")
+    handle_output("#{$script} --action=console --vm=#{install_vm} --name=#{install_client}")
     handle_output("")
     handle_output("or:")
     handle_output("")
@@ -1648,7 +1648,7 @@ def check_dir_owner(dir_name,uid)
   test_uid = File.stat(dir_name).uid
   if test_uid != uid.to_i
     message = "Information:\tChanging ownership of "+dir_name+" to "+uid.to_s
-    command = "sudo sh -c 'chown -R #{uid.to_s} #{dir_name}'"
+    command = "chown -R #{uid.to_s} \"#{dir_name}\""
     execute_command(message,command)
   end
   return
@@ -2472,9 +2472,9 @@ end
 def check_dir_exists(dir_name)
   output  = ""
   if !File.directory?(dir_name) and !File.symlink?(dir_name)
-    if dir_name.match(/[a-z,A-Z]/)
+    if dir_name.match(/[a-z]|[A-Z]/)
       message = "Information:\tCreating: "+dir_name
-      command = "mkdir -p '#{dir_name}'"
+      command = "mkdir -p \"#{dir_name}\""
       output  = execute_command(message,command)
     end
   end

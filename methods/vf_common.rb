@@ -138,8 +138,10 @@ def import_packer_fusion_vm(install_client,install_vm)
   end
   fusion_vm_dir,fusion_vmx_file,fusion_disk_file = check_fusion_vm_doesnt_exist(install_client)
   check_dir_exists(fusion_vm_dir)
+  uid = %x[id -u].chomp
+  check_dir_owner(fusion_vm_dir,uid)
   message = "Information:\tCopying Packer VM images from \""+images_dir+"\" to \""+fusion_vm_dir+"\""
-  command = "cp '#{images_dir}'/* '#{fusion_vm_dir}'"
+  command = "cd '#{images_dir}' ; cp * '#{fusion_vm_dir}'"
   execute_command(message,command)
   return
 end

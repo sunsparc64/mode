@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.4.8
+# Version:      4.4.9
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -125,7 +125,7 @@ end
 # Print help if specified none
 
 if !ARGV[0]
-  print_usage()
+  print_help()
 end
 
 # Try to make sure we have valid long switches
@@ -246,7 +246,7 @@ begin
     [ "--ami",            REQUIRED ]  # AWS AMI ID
   )
 rescue
-  print_usage()
+  print_help()
   exit
 end
 
