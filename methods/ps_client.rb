@@ -56,11 +56,13 @@ def populate_ps_first_boot_list(install_service)
   else
     client_nic = $q_struct["nic"].value
   end
-  client_gateway   = $q_struct["gateway"].value
-  client_netmask   = $q_struct["netmask"].value
-  client_network   = $q_struct["network_address"].value
-  client_broadcast = $q_struct["broadcast"].value
-  admin_user       = $q_struct["admin_username"].value
+  client_gateway    = $q_struct["gateway"].value
+  client_netmask    = $q_struct["netmask"].value
+  client_network    = $q_struct["network_address"].value
+  client_broadcast  = $q_struct["broadcast"].value
+  admin_user        = $q_struct["admin_username"].value
+  client_nameserver = $q_struct["nameserver"].value
+  client_domain     = $q_struct["domain"].value
   post_list.push("")
   post_list.push("echo 'GRUB_CMDLINE_LINUX=\"net.ifnames=0\"' >>/etc/default/grub")
   post_list.push("update-grub")
@@ -105,6 +107,8 @@ def populate_ps_first_boot_list(install_service)
   post_list.push("echo 'netmask #{client_netmask}' >> #{net_config}")
   post_list.push("echo 'network #{client_network}' >> #{net_config}")
   post_list.push("echo 'broadcast #{client_broadcast}' >> #{net_config}")
+  post_list.push("echo 'dns-search #{client_domain}' >> #{net_config}")
+  post_list.push("echo 'dns-nameservers #{client_nameserver}' >> #{net_config}")
   post_list.push("")
   resolv_conf = "/etc/resolvconf/resolv.conf.d/base"
   post_list.push("# Configure hosts file")
