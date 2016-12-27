@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.4.7
+# Version:      4.4.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -313,7 +313,7 @@ end
 
 if option['type'] or option['action']
   if option['type']
-    if option['type'].match(/bucket|ami|instance|object|snapshot|stack|cf|cloud|image|key|securitygroup|id/)
+    if option['type'].match(/bucket|ami|instance|object|snapshot|stack|cf|cloud|image|key|securitygroup|id|iprule/)
       if !option['vm']
         option['vm'] = "aws"
       end
@@ -437,7 +437,7 @@ if $output_format.match(/html/)
   $output_text.push("<body>")
 end
 
-# Handle from switch
+# Handle port switch
 
 if !option['port'].match(/^#{$empty_value}$/)
   option['from'] = option['port']

@@ -104,7 +104,7 @@ def check_aws_vm_exists(install_name)
   return exists
 end
 
-def get_aws_ip_service_info(install_service,install_proto,install_to,install_from)
+def get_aws_ip_service_info(install_service,install_proto,install_to,install_from,install_cidr)
   case install_service
   when /ssh/
     install_proto = "tcp"
@@ -123,7 +123,14 @@ def get_aws_ip_service_info(install_service,install_proto,install_to,install_fro
     install_to    = "80"
     install_to    = "80"
   end
-  return install_proto,install_to,install_from
+  if !install_cidr
+    install_cidr = "0.0.0.0/0"
+  else
+    if install_cidr.match(/^#{$empty_value}/)
+      install_cidr = "0.0.0.0/0"
+    end
+  end
+  return install_proto,install_to,install_from,install_cidr
 end
 
 # Handle AWS values
@@ -410,7 +417,7 @@ end
 
 def remove_rule_from_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir,install_service)
   if !install_service.match(/^#{empty_value}$/)
-    (install_proto,install_to,install_from) = get_aws_ip_service_info(install_service,install_proto,install_to,install_from)
+    (install_proto,install_to,install_from,install_cidr) = get_aws_ip_service_info(install_service,install_proto,install_to,install_from,install_cidr)
   end
   if !install_group.match(/^sg/)
     install_group = get_aws_security_group_id(install_access,install_secret,install_region,install_group)
@@ -534,8 +541,8 @@ end
 # Add rule to AWS EC2 security group
 
 def add_rule_to_aws_security_group(install_access,install_secret,install_region,install_group,install_proto,install_to,install_from,install_cidr,install_dir,install_service)
-  if !install_service.match(/^#{empty_value}$/)
-    (install_proto,install_to,install_from) = get_aws_ip_service_info(install_service,install_proto,install_to,install_from)
+  if !install_service.match(/^#{$empty_value}$/)
+    (install_proto,install_to,install_from,install_cidr) = get_aws_ip_service_info(install_service,install_proto,install_to,install_from,install_cidr)
   end
   if !install_group.match(/^sg/)
     install_group = get_aws_security_group_id(install_access,install_secret,install_region,install_group)
