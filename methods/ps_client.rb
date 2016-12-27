@@ -50,6 +50,8 @@ def populate_ps_first_boot_list(install_service)
   if install_service.match(/ubuntu/)
     if install_service.match(/16_10/)
       client_nic = "eth0"
+    else
+      client_nic = $q_struct["nic"].value
     end
   else
     client_nic = $q_struct["nic"].value
