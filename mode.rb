@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.5.1
+# Version:      4.5.2
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -408,7 +408,7 @@ params.each do |param|
       value = option[param]
       valid = false
       list.each do |item|
-        if item.downcase == value.downcase
+        if item.downcase.match(/#{value.downcase}/)
           valid = true
         end
       end
@@ -1470,8 +1470,12 @@ if !option['action'].match(/^#{$empty_value}$/)
     when /ssh/
       list_user_ssh_config(option['ip'],option['id'],option['name'])
     when /image|ami/
-      list_aws_images(option['access'],option['secret'],option['region'])
-    when /packer|docker/
+      if option['vm'].match(/docker/)
+        list_docker_images(option['name'],option['id'])
+      else
+        list_aws_images(option['access'],option['secret'],option['region'])
+      end 
+    when /packer/
       if option['vm'].match(/aws/)
         list_packer_aws_clients()
       else
@@ -1479,7 +1483,11 @@ if !option['action'].match(/^#{$empty_value}$/)
         quit()
       end
     when /inst/
-      list_aws_instances(option['access'],option['secret'],option['region'],option['id'])
+      if option['vm'].match(/docker/)
+        list_docker_instances(option['name'],option['id'])
+      else
+        list_aws_instances(option['access'],option['secret'],option['region'],option['id'])
+      end
     when /bucket/
       list_aws_buckets(option['bucket'],option['access'],option['secret'],option['region'])
     when /object/
@@ -1540,8 +1548,8 @@ if !option['action'].match(/^#{$empty_value}$/)
       quit()
     end
     if !option['name'].match(/^#{$empty_value}$/)
-      if option['type'].match(/docker/)
-        unconfigure_docker_client(option['name'])
+      if option['vm'].match(/docker/)
+        delete_docker_image(option['name'],option['id'])
         quit()
       end
       if option['service'].match(/^#{$empty_value}$/) and option['vm'].match(/none/)
@@ -1591,7 +1599,11 @@ if !option['action'].match(/^#{$empty_value}$/)
         when /instance/
           delete_aws_vm(option['access'],option['secret'],option['region'],option['ami'],option['id'])
         when /ami|image/
-          delete_aws_image(option['access'],option['secret'],option['region'],option['ami'])
+          if option['vm'].match(/docker/)
+            delete_docker_image(option['name'],option['id'])
+          else
+            delete_aws_image(option['access'],option['secret'],option['region'],option['ami'])
+          end
         when /snapshot/
           delete_aws_snapshot(option['access'],option['secret'],option['region'],option['snapshot'])
         when /key/
@@ -1606,7 +1618,7 @@ if !option['action'].match(/^#{$empty_value}$/)
           if !option['ami'].match(/^#{$empty_value}$/)
             delete_aws_image(option['ami'],option['access'],option['secret'],option['region'])
           else
-            handle_output("Warning:\tNo AWS instance or image specified")
+            handle_output("Warning:\tNo #{option['vm']} type, instance or image specified")
           end
         end
         quit()

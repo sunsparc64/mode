@@ -899,3 +899,7 @@
 # Fixed bug with packer import
 # 4.5.0: Tue 27 Dec 2016 21:45:53 AEDT
 # Fixed code to determine VM type for client if not given
+# 4.5.1: Wed 28 Dec 2016 09:17:57 AEDT
+# Fixed network determination for Packer and Ubuntu
+# 4.5.2: Thu 29 Dec 2016 09:15:14 AEDT
+# Minor improvements to docker support

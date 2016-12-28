@@ -147,7 +147,7 @@ def set_global_vars()
                                  'vcsa', 'packer', 'docker', 'amazon-ebs', 'image', 'ami', 'instance', 'bucket', 'acl', 'snapshot', 'key',
                                  'keypair', 'ssh', 'stack', 'object', 'cf', 'cloudformation', 'public', 'private', 'securitygroup', 'iprule' ]
   $valid_mode_list           = [ 'client', 'server', 'osx' ]
-  $valid_vm_list             = [ 'vbox', 'fusion', 'zone', 'lxc', 'cdom', 'ldom', 'gdom', 'parallels' ]
+  $valid_vm_list             = []
   $valid_aws_format_list     = [ 'VMDK', 'RAW', 'VHD' ]
   $valid_aws_target_list     = [ 'citrix', 'vmware', 'windows' ]
   $valid_aws_acl_list        = [ 'private', 'public-read', 'public-read-write', 'authenticated-read' ]
@@ -276,15 +276,15 @@ def set_global_vars()
   
   if $os_arch.match(/sparc/)
     if $os_test = %x[uname -r].split(/\./)[1].to_i > 9
-      $valid_vm_list = [ 'zone', 'cdom', 'gdom' ]
+      $valid_vm_list = [ 'zone', 'cdom', 'gdom', 'aws' ]
     end
   else
     case $os_name
     when /SunOS/
-      $valid_vm_list = [ 'vbox', 'zone' ]
+      $valid_vm_list = [ 'vbox', 'zone', 'aws' ]
       platform = %x[prtdiag |grep 'System Configuration'].chomp
     when /Linux/
-      $valid_vm_list = [ 'vbox', 'lxc' ]
+      $valid_vm_list = [ 'vbox', 'lxc', 'docker', 'aws' ]
       if File.exist?("/sbin/dmidecode")
         dmidecode_bin = "/sbin/dmidecode"
       else
@@ -299,7 +299,7 @@ def set_global_vars()
       $os_info = %x[#{lsb_bin} -i -s].chomp
       $os_rel  = %x[#{lsb_bin} -r -s].chomp
     when /Darwin/
-      $valid_vm_list = [ 'vbox', 'fusion', 'parallels', 'aws' ]
+      $valid_vm_list = [ 'vbox', 'fusion', 'parallels', 'aws', 'docker' ]
     end
     case platform
     when /VMware/
