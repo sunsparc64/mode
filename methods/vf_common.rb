@@ -840,7 +840,7 @@ def boot_fusion_vm(install_client,install_type)
     fusion_vm_dir    = $fusion_dir+"/"+install_client+".vmwarevm"
     fusion_vmx_file  = fusion_vm_dir+"/"+install_client+".vmx"
     message          = "Starting:\tVM "+install_client
-    if $text_mode == true
+    if $text_mode == true or $headless_mode == true
       command = "\"#{$vmrun_bin}\" -T fusion start \"#{fusion_vmx_file}\" nogui &"
     else
       command = "\"#{$vmrun_bin}\" -T fusion start \"#{fusion_vmx_file}\" &"

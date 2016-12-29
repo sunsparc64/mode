@@ -1213,8 +1213,11 @@ def build_packer_config(install_client,install_vm)
   end
 	message = "Information:\tBuilding Packer Image "+json_file
 	command = "packer build "+json_file
-	output  = execute_command(message,command)
-  handle_output(output)
+  if $verbose_mode == true
+    handle_output(message)
+    handle_output("Executing:\t"+command)
+  end
+  exec(command)
 	return
 end
 
