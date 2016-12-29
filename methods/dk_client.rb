@@ -25,17 +25,6 @@ def connect_to_docker_client(install_client)
 	return
 end
 
-# List docker VMs
-
-def list_docker_clients()
-	message = "Information:\tListing docker instances"
-	command = "docker-machine ls"
-	output  = execute_command(message,command)
-	puts output
-	return
-end
-
-
 # Check docker VM exists
 
 def check_docker_exists(install_client)

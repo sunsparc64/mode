@@ -28,8 +28,12 @@ end
 
 def check_osx_ip_forwarding(gw_if_name)
   message = "Information:\tChecking IP forwarding is enabled"
-  command = "sudo sh -c \"sysctl -a net.inet.ip.forwarding |awk '{print \\\$2}'\""
-  output  = execute_command(message,command)
+  command = "sudo sh -c \"sysctl -a net.inet.ip.forwarding |awk '{print $2}'\""
+  if $verbose_mode == true
+    handle_output(message)
+    handle_output("Executing:\t"+command)
+  end
+  output  = %x[#{command}]
   output  = output.chomp.to_i
   if output == 0
     message = "Information:\tEnabling IP forwarding"
@@ -42,7 +46,11 @@ def check_osx_ip_forwarding(gw_if_name)
   else
     command = "sudo sh -c \"ipfw list |grep 'any to any via #{gw_if_name}'\""
   end
-  output  = execute_command(message,command)
+  if $verbose_mode == true
+    handle_output(message)
+    handle_output("Executing:\t"+command)
+  end
+  output  = %x[#{command}]
   return output
 end
 

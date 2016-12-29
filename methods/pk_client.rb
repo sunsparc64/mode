@@ -131,6 +131,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
   mouse             = "ps2"
   ssh_pty           = "true"
   winrm_port        = "5985"
+  headless_mode     = $q_struct["headless_mode"].value
   if install_ip.match(/[0-9]/)
     port_no = install_ip.split(/\./)[-1]
     if port_no.to_i < 100
@@ -480,6 +481,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :name                 => install_client,
             :vm_name              => install_client,
             :type                 => install_type,
+            :headless             => headless_mode,
             :guest_os_type        => install_guest,
             :output_directory     => image_dir,
             :disk_size            => install_size,
@@ -527,6 +529,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :name                 => install_client,
             :vm_name              => install_client,
             :type                 => install_type,
+            :headless             => headless_mode,
             :guest_os_type        => install_guest,
             :hard_drive_interface => $vbox_disk_type,
             :output_directory     => image_dir,
@@ -573,6 +576,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :name                 => install_client,
             :vm_name              => install_client,
             :type                 => install_type,
+            :headless             => headless_mode,
             :guest_os_type        => install_guest,
             :output_directory     => image_dir,
             :disk_size            => install_size,
@@ -617,6 +621,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :name                 => install_client,
             :vm_name              => install_client,
             :type                 => install_type,
+            :headless             => headless_mode,
             :guest_os_type        => install_guest,
             :output_directory     => image_dir,
             :disk_size            => install_size,
@@ -662,6 +667,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
           },
           :builders => [
             :type                 => install_type,
+            :headless             => headless_mode,
             :vm_name              => install_client,
             :output_directory     => image_dir,
             :disk_size            => install_size,
@@ -704,6 +710,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :name                 => install_client,
             :vm_name              => install_client,
             :type                 => install_type,
+            :headless             => headless_mode,
             :guest_os_type        => install_guest,
             :output_directory     => image_dir,
             :disk_size            => install_size,
@@ -744,6 +751,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
           },
           :builders => [
               :type                 => install_type,
+              :headless             => headless_mode,
               :vm_name              => install_client,
               :output_directory     => image_dir,
               :disk_size            => install_size,
@@ -782,6 +790,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :name                 => install_client,
             :vm_name              => install_client,
             :type                 => install_type,
+            :headless             => headless_mode,
             :guest_os_type        => install_guest,
             :hard_drive_interface => $vbox_disk_type,
             :output_directory     => image_dir,
@@ -823,6 +832,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :name                 => install_client,
             :vm_name              => install_client,
             :type                 => install_type,
+            :headless             => headless_mode,
             :guest_os_type        => install_guest,
             :output_directory     => image_dir,
             :disk_size            => install_size,
@@ -882,6 +892,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :name                 => install_client,
             :vm_name              => install_client,
             :type                 => install_type,
+            :headless             => headless_mode,
             :guest_os_type        => install_guest,
             :output_directory     => image_dir,
             :disk_size            => install_size,
@@ -926,6 +937,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
           },
           :builders => [
             :type                 => install_type,
+            :headless             => headless_mode,
             :vm_name              => install_client,
             :output_directory     => image_dir,
             :disk_size            => install_size,
@@ -974,6 +986,7 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
             :name                 => install_client,
             :vm_name              => install_client,
             :type                 => install_type,
+            :headless             => headless_mode,
             :guest_os_type        => install_guest,
             :output_directory     => image_dir,
             :disk_size            => install_size,
@@ -1198,9 +1211,10 @@ def build_packer_config(install_client,install_vm)
     handle_output("Warning:\tJSON configuration file \"#{json_file}\" for #{install_client} does not exist")
     exit
   end
-	message    = "Information:\tBuilding Packer Image "+json_file
-	command    = "packer build "+json_file
-	execute_command(message,command)
+	message = "Information:\tBuilding Packer Image "+json_file
+	command = "packer build "+json_file
+	output  = execute_command(message,command)
+  handle_output(output)
 	return
 end
 

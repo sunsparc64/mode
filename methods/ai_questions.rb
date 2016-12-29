@@ -16,6 +16,17 @@ def populate_ai_manifest_questions(publisherhost,publisherport)
   $q_struct[name]=config
   $q_order.push(name)
 
+  name="headless_mode"
+  config=Ai.new(
+    question  = "Headless mode",
+    ask       = "yes",
+    value     = $headless_mode.to_s.downcase,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name]=config
+  $q_order.push(name)
+
   name="publisher_url"
   publisher_url=get_ai_publisher_url(publisherhost,publisherport)
   config=Ai.new(

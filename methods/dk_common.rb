@@ -113,3 +113,11 @@ def list_docker_images(install_client,install_id)
   return
 end
 
+# List docker VMs
+
+def list_docker_vms(search_string)
+  install_id     = "none"
+  list_docker_images(search_string,install_id)
+  return
+end
+

@@ -10,6 +10,19 @@ def populate_vcsa_questions(install_server,install_datastore,install_serveradmin
   $q_struct = {}
   $q_order  = []
 
+  name = "headless_mode"
+  config = Js.new(
+    type      = "",
+    question  = "Headless mode",
+    ask       = "yes",
+    parameter = "",
+    value     = $headless_mode.to_s.downcase,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
   name = "esx.hostname"
   config = Ks.new(
     type      = "string",

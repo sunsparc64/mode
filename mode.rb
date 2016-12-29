@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.5.2
+# Version:      4.5.3
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -200,7 +200,8 @@ begin
     [ "--rootpassword",   REQUIRED ], # Client root password
     [ "--locale",         REQUIRED ], # Select language/language (e.g. en_US)
     [ "--console",        REQUIRED ], # Select console type (e.g. text, serial, x11) (default is text)
-    [ "--yes",            BOOLEAN ],  # Answer yes to all questions (accept defaults)
+    [ "--headless",       BOOLEAN ],  # Headless mode for builds
+    [ "--defaults",       BOOLEAN ],  # Answer yes to all questions (accept defaults)
     [ "--vncpassword",    REQUIRED ], # VNC password
     [ "--shell",          REQUIRED ], # Install shell (used for packer, e.g. winrm, ssh)
     [ "--enable",         REQUIRED ], # Mount point
@@ -1501,6 +1502,14 @@ if !option['action'].match(/^#{$empty_value}$/)
     when /securitygroup/
       list_aws_security_groups(option['access'],option['secret'],option['region'],option['group'])
     else
+      if option['vm'].match(/docker/)
+        if option['type'].match(/instance/)
+          list_docker_instances(option['name'],option['id'])
+        else
+          list_docker_images(option['name'],option['id'])
+        end
+        quit()
+      end
       if option['type'].match(/service/) or option['mode'].match(/server/)
         if !option['method'].match(/^#{$empty_value}$/)
           eval"[list_#{option['method']}_services]"

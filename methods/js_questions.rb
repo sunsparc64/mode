@@ -269,6 +269,19 @@ def populate_js_machine_questions(client_model,client_karch,publisherhost,instal
 
   # Store system model information from previous set of questions
 
+  name = "headless_mode"
+  config = Js.new(
+    type      = "",
+    question  = "Headless mode",
+    ask       = "yes",
+    parameter = "",
+    value     = $headless_mode.to_s.downcase,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
   name = "system_model"
   config = Js.new(
     type      = "",

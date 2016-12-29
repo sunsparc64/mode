@@ -79,8 +79,6 @@ def set_global_vars()
   $default_serveradmin       = "root"
   $default_serverpassword    = "P455w0rd"
   $default_vnc_password      = "P455w0rd"
-  $use_alt_repo              = 0
-  $use_defaults              = 0
   $default_apache_allow      = ""
   $default_admin_name        = "Sys Admin"
   $default_admin_user        = "sysadmin"
@@ -223,6 +221,7 @@ def set_global_vars()
   $default_aws_number     = "1,1"
 
   $verbose_mode           = false
+  $defaults_mode          = false
   $test_mode              = false
   $download_mode          = false
   $nosuffix_mode          = false
@@ -231,6 +230,7 @@ def set_global_vars()
   $serial_mode            = false
   $text_mode              = false
   $sudo_mode              = true
+  $headless_mode          = false
 
   # VMware Fusion Global variables
   

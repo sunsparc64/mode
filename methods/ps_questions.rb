@@ -2,8 +2,22 @@
 # Preseed configuration questions for Ubuntu
 
 def populate_ps_questions(install_service,install_client,install_ip,install_mirror,install_type,install_vm)
+  
   $q_struct = {}
   $q_order  = []
+
+  name = "headless_mode"
+  config = Js.new(
+    type      = "",
+    question  = "Headless mode",
+    ask       = "yes",
+    parameter = "",
+    value     = $headless_mode.to_s.downcase,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
 
   name = "language"
   config = Ks.new(
