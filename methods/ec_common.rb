@@ -135,8 +135,11 @@ end
 
 # Handle AWS values
 
-def handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region,install_group,install_desc,install_type)
-  if install_name.match(/^#{$empty_value}$/) and install_type.match(/packer/)
+def handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region,install_group,install_desc,install_type,install_ports)
+  if install_ports.match(/^#{$empty_value}$/)
+    install_ports = "22"
+  end
+  if install_name.match(/^#{$empty_value}$/)
     handle_output("Warning:\tNo name specified for AWS image")
     quit()
   end
@@ -183,7 +186,7 @@ def handle_aws_values(install_name,install_key,install_keyfile,install_access,in
     create_aws_security_group(install_access,install_secret,install_region,install_group,install_desc)
   end
   add_ssh_to_aws_security_group(install_access,install_secret,install_region,install_group)
-  return install_name,install_key,install_keyfile
+  return install_name,install_key,install_keyfile,install_group,install_ports
 end
 
 # Get Prefix List ID

@@ -141,8 +141,8 @@ def set_global_vars()
   $valid_arch_list           = [ 'x86_64', 'i386', 'sparc' ]
   $valid_console_list        = [ 'text', 'console', 'x11', 'headless' ]
   $valid_method_list         = [ 'ks', 'xb', 'vs', 'ai', 'js', 'ps', 'lxc', 'ay', 'image', 'ldom', 'cdom', 'gdom' ]
-  $valid_type_list           = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'sg',
-                                 'vcsa', 'packer', 'docker', 'amazon-ebs', 'image', 'ami', 'instance', 'bucket', 'acl', 'snapshot', 'key',
+  $valid_type_list           = [ 'iso', 'flar', 'ova', 'snapshot', 'service', 'boot', 'cdrom', 'net', 'disk', 'client', 'dvd', 'server', 'ansible',
+                                 'vcsa', 'packer', 'docker', 'amazon-ebs', 'image', 'ami', 'instance', 'bucket', 'acl', 'snapshot', 'key', 'sg',
                                  'keypair', 'ssh', 'stack', 'object', 'cf', 'cloudformation', 'public', 'private', 'securitygroup', 'iprule' ]
   $valid_mode_list           = [ 'client', 'server', 'osx' ]
   $valid_vm_list             = []
@@ -219,6 +219,7 @@ def set_global_vars()
   $default_rootpassword   = "P455w0rd"
   $default_adminpassword  = "P455w0rd"
   $default_aws_number     = "1,1"
+  $default_aws_cidr       = "0.0.0.0/0"
 
   $verbose_mode           = false
   $defaults_mode          = false
@@ -441,6 +442,15 @@ end
 def print_version()
   (version,packager,name) = get_version()
   handle_output("#{name} v. #{version} #{packager}")
+  return
+end
+
+# Set file perms
+
+def set_file_perms(file_name,file_perms)
+  message = "Information:\tSetting permissions on file '#{file_name}' to '#{file_perms}'"
+  command = "chmod #{file_perms} \"#{file_name}\""
+  execute_command(message,command)
   return
 end
 
@@ -1654,6 +1664,36 @@ def check_dir_owner(dir_name,uid)
   return
 end
 
+# Check file ownership
+
+def check_file_owner(file_name,uid)
+  test_uid = File.stat(file_name).uid
+  if test_uid != uid.to_i
+    message = "Information:\tChanging ownership of "+file_name+" to "+uid.to_s
+    command = "chown #{uid.to_s} \"#{file_name}\""
+    execute_command(message,command)
+  end
+  return
+end
+
+# Check Python module is installed
+
+def check_python_module_is_installed(install_module)
+  exists = "no"
+  module_list = %x[pip listi | awk '{print $1}'].split(/\n/)
+  module_list.each do |module_name|
+    if module_name.match(/^#{install_model}$/)
+      exists = "yes"
+    end
+  end
+  if exists == "no"
+    message = "Information:\tInstalling python model '#{install_module}'"
+    command = "pip install #{install_module}"
+    execute_command(message,command)
+  end
+  return
+end
+
 # Print contents of file
 
 def print_contents_of_file(message,file_name)
@@ -2598,7 +2638,7 @@ def execute_command(message,command)
   end
   if execute == true
     if $id != 0
-      if !command.match(/brew |hg|pip|VBoxManage|netstat|df|vmrun|noVNC|docker|packer/)
+      if !command.match(/brew |hg|pip|VBoxManage|netstat|df|vmrun|noVNC|docker|packer|ansible-playbook/)
         if $sudo_mode == true
           command = "sudo sh -c '"+command+"'"
         end

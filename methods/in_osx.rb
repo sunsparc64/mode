@@ -545,6 +545,13 @@ def check_brew_pkg(pkg_name)
   return output
 end
 
+# Install software package
+
+def install_osx_package(pkg_name)
+  install_brew_pkg(pkg_name)
+  return
+end
+
 # Install package with brew
 
 def install_brew_pkg(pkg_name)

@@ -2,17 +2,17 @@
 
 # Populate AWS questions
 
-def populate_aws_questions(install_client,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key,install_keyfile,install_group)
+def populate_aws_questions(install_client,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key,install_keyfile,install_group,install_ports)
   $q_struct = {}
   $q_order  = []
 
-  if install_type.match(/packer/)
+  if install_type.match(/packer|ansible/)
 
     name   = "name"
     config = Ks.new(
       type      = "",
       question  = "AMI Name",
-      ask       = "yes",
+      ask       = "no",
       parameter = "",
       value     = "aws",
       valid     = "",
@@ -112,6 +112,10 @@ def populate_aws_questions(install_client,install_ami,install_region,install_siz
     $q_struct[name] = config
     $q_order.push(name)
 
+  end
+
+  if install_type.match(/packer/)
+
     name   = "user_data_file"
     config = Ks.new(
       type      = "",
@@ -124,7 +128,7 @@ def populate_aws_questions(install_client,install_ami,install_region,install_siz
     )
     $q_struct[name] = config
     $q_order.push(name)
-
+    
   else
 
     name   = "min_count"
@@ -166,7 +170,7 @@ def populate_aws_questions(install_client,install_ami,install_region,install_siz
     $q_struct[name] = config
     $q_order.push(name)  
 
-    name   = "security_groups"
+    name   = "security_group"
     config = Ks.new(
       type      = "",
       question  = "Security Groups",
@@ -220,5 +224,32 @@ def populate_aws_questions(install_client,install_ami,install_region,install_siz
   $q_struct[name] = config
   $q_order.push(name)
 
+  name   = "open_ports"
+  config = Ks.new(
+    type      = "",
+    question  = "Open ports",
+    ask       = "yes",
+    parameter = "",
+    value     = install_ports,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
+  name   = "default_cidr"
+  config = Ks.new(
+    type      = "",
+    question  = "Default CIDR",
+    ask       = "yes",
+    parameter = "",
+    value     = $default_aws_cidr,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
   return
 end
+

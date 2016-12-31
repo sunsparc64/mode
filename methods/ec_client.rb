@@ -252,7 +252,7 @@ def create_aws_instance(install_access,install_secret,install_region)
   dry_run         = $q_struct["dry_run"].value
   instance_type   = $q_struct["instance_type"].value
   key_name        = $q_struct["key_name"].value
-  security_groups = $q_struct["security_groups"].value
+  security_groups = $q_struct["security_group"].value
   if security_groups.match(/,/)
     security_groups = security_groups.split(/,/)
   else
@@ -303,25 +303,25 @@ end
 
 # Configure Packer AWS client
 
-def configure_aws_client(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group,install_desc)
+def configure_aws_client(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group,install_desc,install_ports)
   if !install_number.match(/[0,9]/)
     handle_output("Warning:\tIncorrect number of instances specified: '#{install_number}'")
     quit()
   end
   install_name,install_key,install_keyfile = handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region,install_group,install_desc,install_type)
-  create_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
+  create_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group,install_group)
   return
 end
 
 # Create AWS client
 
-def create_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group)
+def create_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group,install_ports)
   install_keyfile = ""
   user_data_file  = ""
   if !install_ami.match(/^ami/)
     ec2,install_ami = get_aws_image(install_ami,install_access,install_secret,install_region)
   end
-  populate_aws_questions(install_name,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key,install_keyfile,install_group)
+  populate_aws_questions(install_name,install_ami,install_region,install_size,install_access,install_secret,user_data_file,install_type,install_number,install_key,install_keyfile,install_group,install_ports)
   install_service = "aws"
   process_questions(install_service)
   exists = check_if_aws_key_pair_exists(install_access,install_secret,install_region,install_key)

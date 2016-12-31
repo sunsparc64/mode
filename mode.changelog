@@ -905,3 +905,6 @@
 # Minor improvements to docker support
 # 4.5.3: Thu 29 Dec 2016 13:14:19 AEDT
 # Added headless mode for Packer config and fixed bugs
+# 4.5.4: Sat 31 Dec 2016 16:12:14 AEDT
+# Added code to create simple Ansible based AWS instances
+

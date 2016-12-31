@@ -47,6 +47,8 @@ and HTTP based install services, eg:
   - List, create, and delete CloudFormation stacks
   - List, create and delete EC2 security groups and rules
 - Initial Docker support
+- Initial Ansible support
+  - Create AWS EC2 instances
 
 Introduction
 ------------

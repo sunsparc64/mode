@@ -42,6 +42,15 @@ def install_pkg(p_struct,pkg_name,pkg_repo_dir)
   return
 end
 
+# Install local package
+
+def install_package(pkg_name)
+  if $os_name.match(/Darwin/)
+    install_osx_package(pkg_name)
+  end
+  return
+end
+
 # Handle a package
 
 def handle_pkg(p_struct,pkg_name,build_type,pkg_repo_dir)

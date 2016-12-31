@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.5.3
+# Version:      4.5.4
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -28,6 +28,7 @@ require 'socket'
 require 'net/http'
 require 'pp'
 require 'open-uri'
+require 'yaml'
 
 def install_gem(load_name,install_name)
   puts "Information:\tInstalling #{install_name}"
@@ -242,7 +243,7 @@ begin
     [ "--proto",          REQUIRED ], # Protocol
     [ "--from",           REQUIRED ], # From
     [ "--to",             REQUIRED ], # To
-    [ "--port",           REQUIRED ], # Port (makes to and from the same in the case of and IP rule)
+    [ "--ports",          REQUIRED ], # Port (makes to and from the same in the case of and IP rule)
     [ "--dir",            REQUIRED ], # Directory / Direction 
     [ "--ami",            REQUIRED ]  # AWS AMI ID
   )
@@ -422,6 +423,15 @@ params.each do |param|
   end
 end
 
+# Make sure a VM type is set for ansible and packer
+
+if option['type'].match(/ansible|packer/)
+  if option['vm'].match(/^#{$empty_value}$/)
+    handle_output("Warning:\tNo VM type specified")
+    quit()
+  end
+end
+
 # If boot, halt, or delete are given and VM type is unknown try to determine it
 
 if option['action'].match(/boot|start|halt|stop|delete/)
@@ -453,9 +463,9 @@ end
 
 # Handle port switch
 
-if !option['port'].match(/^#{$empty_value}$/)
-  option['from'] = option['port']
-  option['to']   = option['port']
+if !option['ports'].match(/^#{$empty_value}$/)
+  option['from'] = option['ports']
+  option['to']   = option['ports']
 end
 
 # Handle keyfile switch
@@ -1476,13 +1486,9 @@ if !option['action'].match(/^#{$empty_value}$/)
       else
         list_aws_images(option['access'],option['secret'],option['region'])
       end 
-    when /packer/
-      if option['vm'].match(/aws/)
-        list_packer_aws_clients()
-      else
-        eval"[list_#{option['type']}_clients(option['vm'])]"
-        quit()
-      end
+    when /packer|ansible/
+      eval"[list_#{option['type']}_clients(option['vm'])]"
+      quit()
     when /inst/
       if option['vm'].match(/docker/)
         list_docker_instances(option['name'],option['id'])
@@ -1575,8 +1581,8 @@ if !option['action'].match(/^#{$empty_value}$/)
           end
         end
       else
-        if option['vm'].match(/fusion|vbox|parallels/)
-          if option['type'].match(/packer/)
+        if option['vm'].match(/fusion|vbox|parallels|aws/)
+          if option['type'].match(/packer|ansible/)
             eval"[unconfigure_#{option['type']}_client(option['name'],option['vm'])]"
           else
             if option['type'].match(/snapshot/)
@@ -1622,7 +1628,25 @@ if !option['action'].match(/^#{$empty_value}$/)
         when /securitygroup/
           delete_aws_security_group(option['access'],option['secret'],option['region'],option['group'])
         when /iprule/
-          remove_rule_from_aws_security_group(option['access'],option['secret'],option['region'],option['group'],option['proto'],option['to'],option['from'],option['cidr'],option['dir'],option['service'])
+          if option['ports'].match(/[0-9]/)
+            if option['ports'].match(/\./)
+              ports = []
+              option['ports'].split(/\./).each do |port|
+                ports.push(port)
+              end
+              ports = ports.uniq
+            else
+              port  = option['ports']
+              ports = [ port ]
+            end
+            ports.each do |port|
+              option['from'] = port
+              option['to']   = port
+              remove_rule_from_aws_security_group(option['access'],option['secret'],option['region'],option['group'],option['proto'],option['to'],option['from'],option['cidr'],option['dir'],option['service'])
+            end
+          else
+            remove_rule_from_aws_security_group(option['access'],option['secret'],option['region'],option['group'],option['proto'],option['to'],option['from'],option['cidr'],option['dir'],option['service'])
+          end
         else
           if !option['ami'].match(/^#{$empty_value}$/)
             delete_aws_image(option['ami'],option['access'],option['secret'],option['region'])
@@ -1652,6 +1676,13 @@ if !option['action'].match(/^#{$empty_value}$/)
         build_packer_config(option['name'],option['vm'])
       end
     end
+    if option['type'].match(/ansible/)
+      if option['vm'].match(/aws/)
+        build_ansible_aws_config(option['name'],option['access'],option['secret'],option['region'])
+      else
+        build_ansible_config(option['name'],option['vm'])
+      end
+    end
   when /add|create/
     if option['type'].match(/ami|image|key|cloud|cf|stack|securitygroup|iprule|sg/)
       case option['type']
@@ -1664,20 +1695,40 @@ if !option['action'].match(/^#{$empty_value}$/)
       when /securitygroup/
         create_aws_security_group(option['access'],option['secret'],option['region'],option['group'],option['desc'],option['dir'])
       when /iprule/
-        add_rule_to_aws_security_group(option['access'],option['secret'],option['region'],option['group'],option['proto'],option['to'],option['from'],option['cidr'],option['dir'],option['service'])
+        if option['ports'].match(/[0-9]/)
+          if option['ports'].match(/\./)
+            ports = []
+            option['ports'].split(/\./).each do |port|
+              ports.push(port)
+            end
+            ports = ports.uniq
+          else
+            port  = option['ports']
+            ports = [ port ]
+          end
+          ports.each do |port|
+            option['from'] = port
+            option['to']   = port
+            add_rule_to_aws_security_group(option['access'],option['secret'],option['region'],option['group'],option['proto'],option['to'],option['from'],option['cidr'],option['dir'],option['service'])
+          end
+        else
+          add_rule_to_aws_security_group(option['access'],option['secret'],option['region'],option['group'],option['proto'],option['to'],option['from'],option['cidr'],option['dir'],option['service'])
+        end
       end
       quit()
     end
     if option['vm'].match(/aws/)
       case option['type']
       when /packer/
-        configure_packer_aws_client(option['name'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['keyfile'],option['group'],option['desc'])
+        configure_packer_aws_client(option['name'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['keyfile'],option['group'],option['desc'],option['ports'])
+      when /ansible/
+        configure_ansible_aws_client(option['name'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['keyfile'],option['group'],option['desc'],option['ports'])
       else
         if option['key'].match(/^#{$empty_value}$/) and option['group'].match(/^#{$empty_value}$/)
           handle_output("Warning:\tNo Key Pair or Security Group specified")
           quit()
         else
-          configure_aws_client(option['name'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['keyfile'],option['group'],option['desc'])
+          configure_aws_client(option['name'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['keyfile'],option['group'],option['desc'],option['ports'])
         end
       end
       quit()
