@@ -112,9 +112,9 @@ def get_ansible_instance_info(install_name)
           public_ip  = "NA"
           public_dns = "NA"
         end
-        string = instance_id+" image="+image_id+" ip="+public_ip+" dns="+public_dns+" status="+status
+        string = "id="+instance_id+" image="+image_id+" ip="+public_ip+" dns="+public_dns+" status="+status
       else
-        string = instance_id+" image="+image_id+" status="+status
+        string = "id="+instance_id+" image="+image_id+" status="+status
       end
       handle_output(string)
     end

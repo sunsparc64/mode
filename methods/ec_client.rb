@@ -360,9 +360,9 @@ def list_aws_instances(install_access,install_secret,install_region,install_id)
             public_ip  = "NA"
             public_dns = "NA"
           end
-          string = instance_id+" image="+image_id+" group="+group+" ip="+public_ip+" dns="+public_dns+" status="+status
+          string = "id="+instance_id+" image="+image_id+" group="+group+" ip="+public_ip+" dns="+public_dns+" status="+status
         else
-          string = instance_id+" image="+image_id+" status="+status
+          string = "id="+instance_id+" image="+image_id+" status="+status
         end
         handle_output(string)
       end
