@@ -263,6 +263,7 @@ def create_packer_vs_install_files(install_client,install_service,install_ip,pub
   # Output post list
   post_list = populate_vs_post_list(install_service)
   output_vs_post_list(post_list,output_file)
+  print_contents_of_file("",output_file)
   return
 end
 
@@ -461,7 +462,7 @@ def create_packer_aws_install_files(install_name,install_type,install_ami,instal
   create_packer_vagrant_sh(install_name,file_name)
   key_file = client_dir+"/"+install_name+".key.pub"
   if !File.exist?(key_file)
-    message  = "Copying Key file '#{install_keyfile}' to '#{key_file}' ; chmod 400 #{key_file}"
+    message  = "Copying Key file '#{install_keyfile}' to '#{key_file}' ; chmod 600 #{key_file}"
     command  = "cp #{install_keyfile} #{key_file}"
     execute_command(message,command)
   end
@@ -509,8 +510,11 @@ def build_packer_aws_config(install_name,install_access,install_secret,install_r
     handle_output("Warning:\tPacker AWS key file '#{key_file}' does not exist")
     exit
   end
+  message    = "Information:\tCodesigning /usr/local/bin/packer"
+  command    = "/usr/bin/codesign --verify /usr/local/bin/packer"
+  execute_command(message,command)
   message    = "Information:\tBuilding Packer AWS instance using AMI name '#{install_name}' using '#{json_file}'"
-  command    = "cd #{client_dir} ; packer build #{json_file}"
+  command    = "cd #{client_dir} ; /usr/local/bin/packer build #{json_file}"
   execute_command(message,command)
   return
 end

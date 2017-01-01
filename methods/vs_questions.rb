@@ -176,7 +176,7 @@ def populate_vs_questions(install_service,install_client,install_ip)
 
   name   = "datastore"
   config = Vs.new(
-    type      = "output",
+    type      = "",
     question  = "Local datastore name",
     ask       = "yes",
     parameter = "",
@@ -189,7 +189,7 @@ def populate_vs_questions(install_service,install_client,install_ip)
 
   name   = "vm_network_name"
   config = Vs.new(
-    type      = "output",
+    type      = "",
     question  = "VM network name",
     ask       = "yes",
     parameter = "",
@@ -202,7 +202,7 @@ def populate_vs_questions(install_service,install_client,install_ip)
 
   name   = "vm_network_vlanid"
   config = Vs.new(
-    type      = "output",
+    type      = "",
     question  = "VM network VLAN ID",
     ask       = "yes",
     parameter = "",
@@ -215,7 +215,7 @@ def populate_vs_questions(install_service,install_client,install_ip)
 
   name   = "vm_network_vswitch"
   config = Vs.new(
-    type      = "output",
+    type      = "",
     question  = "VM network vSwitch",
     ask       = "yes",
     parameter = "",

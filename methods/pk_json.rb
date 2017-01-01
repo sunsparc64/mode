@@ -308,8 +308,8 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
     ks_url           = "http://#{ks_ip}:#{$default_httpd_port}/"+ks_file
     boot_command     = "<enter><wait>O<wait> ks="+ks_url+" ksdevice=vmnic0 netdevice=vmnic0 ip="+install_ip+" netmask="+$default_netmask+" gateway="+$default_gateway+"<wait><enter><wait>"
     ssh_username     = "root"
-    shutdown_command = "/bin/halt"
-    ssh_wait_timeout = "1200s"
+    shutdown_command = ""
+    ssh_wait_timeout = "30m"
   when /fedora/
     tools_upload_flavor = "linux"
     tools_upload_path   = "/home/"+$q_struct["admin_username"].value
@@ -983,7 +983,7 @@ def create_packer_aws_json()
   json_output = JSON.pretty_generate(json_data)
   delete_file(json_file)
   File.write(json_file,json_output)
-  set_file_perms(json_file,"400")
+  set_file_perms(json_file,"600")
   print_contents_of_file("",json_file)
   return
 end

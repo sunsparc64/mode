@@ -925,8 +925,8 @@ def create_aws_key_pair(install_access,install_secret,install_region,install_key
     file = File.open(key_file,"w")
     file.write(key_pair)
     file.close
-    message = "Information:\tSetting permissions on '#{key_file}' to 400"
-    command = "chmod 400 #{key_file}"
+    message = "Information:\tSetting permissions on '#{key_file}' to 600"
+    command = "chmod 600 #{key_file}"
     execute_command(message,command)
   end
   return

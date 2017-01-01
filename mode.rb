@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.5.5
+# Version:      4.5.6
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -28,7 +28,6 @@ require 'socket'
 require 'net/http'
 require 'pp'
 require 'open-uri'
-require 'yaml'
 
 def install_gem(load_name,install_name)
   puts "Information:\tInstalling #{install_name}"
@@ -81,6 +80,11 @@ begin
   require 'ssh-config'
 rescue LoadError
   install_gem("ssh-config","ssh-config")
+end
+begin
+  require 'yaml'
+rescue LoadError
+  install_gem("yaml","yaml")
 end
 
 begin
