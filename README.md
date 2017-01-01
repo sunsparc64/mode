@@ -269,6 +269,8 @@ All:
   - Version 1.8 or greater
     - Although it's been coded with 2.x I've avoided using 2.x features
 - Packer (if using Packer)
+- Ansible (if using ansible)
+  - boto python module
 - Docker (if using Docker)
   - docker
   - docker-machine
@@ -284,7 +286,11 @@ All:
   - netaddr
   - ipaddr
   - json
-Optional Gems (required for some additional functionality)
+  - yaml
+  - pp
+  - aws-sdk
+  - ssh-config
+  - open-uri
   - net/ssh
   - nokogiri
   - mechanize
