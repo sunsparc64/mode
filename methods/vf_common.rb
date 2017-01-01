@@ -1475,7 +1475,7 @@ def populate_fusion_vm_vmx_info(install_client,install_mac,install_os,install_me
     vmx_info.push("RemoteDisplay.vnc.enabled,TRUE")
     vmx_info.push("RemoteDisplay.vnc.port,5900")
     vmx_info.push("RemoteDisplay.vnc.password,#{$default_vnc_password}")
-    vmx_info.push("signal.suspendOnHUP=TRUE")
+    vmx_info.push("signal.suspendOnHUP=TRUE"  )
     vmx_info.push("signal.powerOffOnTERM,TRUE")
   end
   return vmx_info
