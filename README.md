@@ -1,5 +1,5 @@
 
-![alt tag](https://raw.githubusercontent.com/lateralblast/mode/master/mode.png)
+![alt tag](https://raw.githubusercontent.com/lateralblast/mode/master/images/mode.png)
 
 MODE
 ====
@@ -49,6 +49,13 @@ and HTTP based install services, eg:
 - Initial Docker support
 - Initial Ansible support
   - Create AWS EC2 instances
+
+Screenshots
+-----------
+
+Some example screen captures:
+
+[vSphere Client Example](https://github.com/lateralblast/mode/wiki/vSphere-Client-Screen-Capture)
 
 Introduction
 ------------
