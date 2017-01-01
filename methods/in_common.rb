@@ -221,6 +221,8 @@ def set_global_vars()
   $default_aws_number     = "1,1"
   $default_aws_cidr       = "0.0.0.0/0"
 
+  $masked_mode            = false
+  $unmasked_mode          = false
   $verbose_mode           = false
   $defaults_mode          = false
   $test_mode              = false
@@ -1694,12 +1696,32 @@ def check_python_module_is_installed(install_module)
   return
 end
 
+# Mask contents of file
+
+def mask_contents_of_file(file_name)
+  input  = File.readlines(file_name)
+  output = []
+  input.each do |line|
+    if line.match(/secret_key|access_key/) and !line.match(/\{\{/)
+      (param,value) = line.split(/:/)
+      value = value.gsub(/[A-Z]|[a-z]|[0-9]/,"X")
+      line  = param+":"+value 
+    end
+    output.push(line)
+  end
+  return output
+end
+
 # Print contents of file
 
 def print_contents_of_file(message,file_name)
   if $verbose_mode == true or $output_format.match(/html/)
     if File.exist?(file_name)
-      output = %x[cat '#{file_name}']
+      if $unmasked_mode == false
+        output = mask_contents_of_file(file_name)
+      else
+        output = File.readlines(file_name)
+      end
       if $output_format.match(/html/)
         handle_output("<table border=\"1\">")
         handle_output("<tr>")
@@ -1711,7 +1733,9 @@ def print_contents_of_file(message,file_name)
         handle_output("<tr>")
         handle_output("<td>")
         handle_output("<pre>")
-        handle_output("#{output}")
+        output.each do |line|
+          handle_output("#{line}")
+        end
         handle_output("</pre>")
         handle_output("</td>")
         handle_output("</tr>")
@@ -1725,7 +1749,9 @@ def print_contents_of_file(message,file_name)
             handle_output("Information:\tContents of file #{file_name}")
           end
           handle_output("")
-          handle_output(output)
+          output.each do |line|
+            handle_output(line)
+          end
           handle_output("")
         end
       end

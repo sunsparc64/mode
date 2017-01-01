@@ -33,32 +33,64 @@ def populate_aws_questions(install_client,install_ami,install_region,install_siz
       )
     $q_struct[name] = config
     $q_order.push(name)
-  
-    name   = "secret_key"
-    config = Ks.new(
-      type      = "",
-      question  = "Secret Key",
-      ask       = "yes",
-      parameter = "",
-      value     = install_secret,
-      valid     = "",
-      eval      = "no"
-      )
-    $q_struct[name] = config
-    $q_order.push(name)
+    
+    if $unmasked_mode == true
 
-    name   = "keyfile"
-    config = Ks.new(
-      type      = "",
-      question  = "AWS Key file",
-      ask       = "yes",
-      parameter = "",
-      value     = install_keyfile,
-      valid     = "",
-      eval      = "no"
-      )
-    $q_struct[name] = config
-    $q_order.push(name)
+      name   = "secret_key"
+      config = Ks.new(
+        type      = "",
+        question  = "Secret Key",
+        ask       = "yes",
+        parameter = "",
+        value     = install_secret,
+        valid     = "",
+        eval      = "no"
+        )
+      $q_struct[name] = config
+      $q_order.push(name)
+
+      name   = "keyfile"
+      config = Ks.new(
+        type      = "",
+        question  = "AWS Key file",
+        ask       = "yes",
+        parameter = "",
+        value     = install_keyfile,
+        valid     = "",
+        eval      = "no"
+        )
+      $q_struct[name] = config
+      $q_order.push(name)
+
+    else
+
+      name   = "secret_key"
+      config = Ks.new(
+        type      = "",
+        question  = "Secret Key",
+        ask       = "no",
+        parameter = "",
+        value     = install_secret,
+        valid     = "",
+        eval      = "no"
+        )
+      $q_struct[name] = config
+      $q_order.push(name)
+
+      name   = "keyfile"
+      config = Ks.new(
+        type      = "",
+        question  = "AWS Key file",
+        ask       = "no",
+        parameter = "",
+        value     = install_keyfile,
+        valid     = "",
+        eval      = "no"
+        )
+      $q_struct[name] = config
+      $q_order.push(name)
+
+    end
 
     name   = "type"
     config = Ks.new(

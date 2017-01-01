@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.5.4
+# Version:      4.5.5
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -162,6 +162,8 @@ begin
     [ "--diskmode",       REQUIRED ], # Disk mode (e.g. thin)
     [ "--help",           BOOLEAN ],  # Display usage information
     [ "--checksum",       BOOLEAN ],  # Do checksums
+    [ "--masked",         BOOLEAN ],  # Mask passwords in output (WIP)
+    [ "--unmasked",       BOOLEAN ],  # Unmask passwords in output (WIP)
     [ "--vnc",            BOOLEAN ],  # Enable VNC mode
     [ "--param",          REQUIRED ], # Set a parameter of a VM
     [ "--ip",             REQUIRED ], # IP Address of client
