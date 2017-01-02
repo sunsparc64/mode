@@ -234,6 +234,7 @@ def set_global_vars()
   $text_mode              = false
   $sudo_mode              = true
   $headless_mode          = false
+  $vmtools_mode           = false
 
   # VMware Fusion Global variables
   
@@ -1250,7 +1251,7 @@ def get_install_method_from_iso(install_file)
     install_method = "js"
   when /sol-11/
     install_method = "ai"
-  when /Win|WIN|srv/
+  when /Win|WIN|srv|EVAL|eval/
     install_method = "pe"
   end
   return install_method

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.5.6
+# Version:      4.5.7
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -168,6 +168,7 @@ begin
     [ "--checksum",       BOOLEAN ],  # Do checksums
     [ "--masked",         BOOLEAN ],  # Mask passwords in output (WIP)
     [ "--unmasked",       BOOLEAN ],  # Unmask passwords in output (WIP)
+    [ "--vmtools",        BOOLEAN ],  # Unmask passwords in output (WIP)
     [ "--vnc",            BOOLEAN ],  # Enable VNC mode
     [ "--param",          REQUIRED ], # Set a parameter of a VM
     [ "--ip",             REQUIRED ], # IP Address of client
@@ -369,6 +370,16 @@ if option['vm']
   end
 end
 
+# Handle OS option
+
+if option['os']
+  option['os'] = option['os'].downcase
+  option['os'] = option['os'].gsub(/^win$/,"windows")
+  if !$valid_os_list.to_s.downcase.match(/#{option['os'].downcase}/)
+    print_valid_list("Warning:\tInvalid OS",$valid_os_list)
+  end
+end
+
 # Handle command line parameters
 
 params.each do |param|
@@ -390,10 +401,41 @@ params.each do |param|
           end
           option[param] = value
         else
-          if option['verbose']
-            handle_output("Information:\tSetting parameter '#{param}' to '#{value}'")
+          if option['os']
+            if eval("$default_#{option['os']}_#{param}")
+              value = eval("$default_#{option['os']}_#{param}")
+              if option['verbose']
+                handle_output("Information:\tSetting parameter '#{param}' to '#{value}'")
+              end
+              option[param] = value
+            else
+              if eval("$default_#{param}")
+                value = eval("$default_#{param}")
+                if option['verbose']
+                  handle_output("Information:\tSetting parameter '#{param}' to '#{value}'")
+                end
+                option[param] = value
+              else
+                if option['verbose']
+                  handle_output("Information:\tSetting parameter '#{param}' to '#{value}'")
+                end
+                option[param] = value
+              end
+            end
+          else
+            if eval("$default_#{param}")
+              value = eval("$default_#{param}")
+              if option['verbose']
+                handle_output("Information:\tSetting parameter '#{param}' to '#{value}'")
+              end
+              option[param] = value
+            else
+              if option['verbose']
+                handle_output("Information:\tSetting parameter '#{param}' to '#{value}'")
+              end
+              option[param] = value
+            end
           end
-          option[param] = value
         end
       end
     else

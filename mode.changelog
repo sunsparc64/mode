@@ -911,4 +911,6 @@
 # Added code to mask secret and access keys in verbose output for AWS
 # 4.5.6: Sun  1 Jan 2017 19:03:22 AEDT
 # Fixes for Packer ESXi builds
+# 4.5.7: Mon  2 Jan 2017 14:34:57 AEDT
+# Disabled VMware Tools install on Windows as part of Packer due to failed installation (looks like Packer issue)
 
