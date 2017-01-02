@@ -56,6 +56,7 @@ Screenshots
 Some example screen captures:
 
 [vSphere Client Example](https://github.com/lateralblast/mode/wiki/vSphere-Client-Screen-Capture)
+
 [Windows Client Example](https://github.com/lateralblast/mode/wiki/Windows-Client-Screen-Capture)
 
 Introduction
