@@ -913,4 +913,6 @@
 # Fixes for Packer ESXi builds
 # 4.5.7: Mon  2 Jan 2017 14:34:57 AEDT
 # Disabled VMware Tools install on Windows as part of Packer due to failed installation (looks like Packer issue)
+# 4.5.8: Wed  4 Jan 2017 10:56:46 AEDT
+# Fixes and improvements for Solaris 11 Packer Builds
 

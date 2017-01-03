@@ -236,6 +236,10 @@ def set_global_vars()
   $headless_mode          = false
   $vmtools_mode           = false
 
+  # OS specific defaults
+
+  $default_solaris_11_nic = "net0"
+
   # VMware Fusion Global variables
   
   $vmrun_bin = ""

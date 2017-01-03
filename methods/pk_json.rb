@@ -131,13 +131,13 @@ def create_packer_json(install_method,install_client,install_vm,install_arch,ins
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait10><wait10><wait10><wait10>"+
                    "<wait>1<enter><wait10><wait10>"+
-                   "<wait><f2><wait10>"+
-                   "<wait><f2><wait10>"+
-                   "<wait><f2><wait10>"+
-                   "<wait><f2><wait10>"+
-                   "<wait><bs><bs><bs><bs><bs><bs><bs>"+install_client+"<wait>"+
-                   "<wait><f2><wait10>"+
-                   "<wait><tab><f2><wait>"+
+                   "<wait><wait><f2><wait10>"+
+                   "<wait><wait><f2><wait10>"+
+                   "<wait><wait><f2><wait10>"+
+                   "<wait><wait><f2><wait10>"+
+                   "<wait><wait><bs><bs><bs><bs><bs><bs><bs>"+install_client+"<wait>"+
+                   "<wait><wait><f2><wait10>"+
+                   "<wait><wait><tab><f2><wait>"+
                    install_ip+"<wait><tab><wait><tab>"+
                    $default_gateway+"<wait><f2><wait>"+
                    "<wait><f2><wait>"+

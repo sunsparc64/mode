@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.5.7
+# Version:      4.5.8
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -177,6 +177,8 @@ begin
     [ "--value",          REQUIRED ], # Set the value of a parameter
     [ "--network",        REQUIRED ], # Set network type (e.g. hostonly, bridged, nat)
     [ "--netmask",        REQUIRED ], # Set netmask
+    [ "--hosts",          REQUIRED ], # Set default hosts resolution entry, eg "files"
+    [ "--files",          REQUIRED ], # Set default files resolution entry, eg "dns, files"
     [ "--servernetwork",  REQUIRED ], # Server network (used when deploying to a remote server)
     [ "--publisherhost",  REQUIRED ], # Publisher host
     [ "--publisherport",  REQUIRED ], # Publisher port
@@ -225,6 +227,7 @@ begin
     [ "--creds",          REQUIRED ], # Credentials file
     [ "--desc",           REQUIRED ], # Description
     [ "--name",           REQUIRED ], # Client / AWS Name
+    [ "--client",           REQUIRED ], # Client / AWS Name
     [ "--format",         REQUIRED ], # AWS disk format (e.g. VMDK, RAW, VHD)
     [ "--target",         REQUIRED ], # AWS target format (e.g. citrix, vmware, windows)
     [ "--access",         REQUIRED ], # AWS Access Key
@@ -262,6 +265,12 @@ end
 # load global variables
 
 set_global_vars()
+
+# Backward compatibility for old --client switch
+
+if option["client"]
+  option["name"] = option["client"]
+end
 
 # Get flags (BOOLEANs)
 
@@ -375,6 +384,7 @@ end
 if option['os']
   option['os'] = option['os'].downcase
   option['os'] = option['os'].gsub(/^win$/,"windows")
+  option['os'] = option['os'].gsub(/^sol$/,"solaris")
   if !$valid_os_list.to_s.downcase.match(/#{option['os'].downcase}/)
     print_valid_list("Warning:\tInvalid OS",$valid_os_list)
   end

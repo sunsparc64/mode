@@ -95,6 +95,19 @@ def populate_ai_client_profile_questions(client_ip,client_name)
   $q_struct={}
   $q_order=[]
 
+  name = "headless_mode"
+  config = Js.new(
+    type      = "",
+    question  = "Headless mode",
+    ask       = "yes",
+    parameter = "",
+    value     = $headless_mode.to_s.downcase,
+    valid     = "",
+    eval      = "no"
+    )
+  $q_struct[name] = config
+  $q_order.push(name)
+
   name="root_password"
   config=Ai.new(
     question  = "Root Password",
@@ -327,7 +340,7 @@ def populate_ai_client_profile_questions(client_ip,client_name)
   $q_struct[name]=config
   $q_order.push(name)
 
-name="system_environment"
+  name="system_environment"
   config=Ai.new(
     question  = "System Environment",
     ask       = "yes",
@@ -342,14 +355,14 @@ name="system_environment"
   config=Ai.new(
     question  = "IPv4 interface name",
     ask       = "yes",
-    value     = "#{$default_net}/v4",
+    value     = "#{$default_solaris_11_nic}/v4",
     valid     = "",
     eval      = "no"
     )
   $q_struct[name]=config
   $q_order.push(name)
 
-  ipv4_address = client_ip+$default_cidr
+  ipv4_address = client_ip+"/"+$default_cidr
 
   name="ipv4_static_address"
   config=Ai.new(
@@ -378,7 +391,7 @@ name="system_environment"
     config=Ai.new(
     question  = "IPv6 Interface Name",
     ask       = "yes",
-    value     = "#{$default_net}/v6",
+    value     = "#{$default_solaris_11_nic}/v6",
     valid     = "",
     eval      = "no"
     )

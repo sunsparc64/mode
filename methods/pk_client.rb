@@ -387,7 +387,8 @@ def create_packer_ai_install_files(install_client,install_service,install_ip,ins
   delete_file(output_file)
   publisherhost = ""
   publisherport = ""
-  populate_ai_client_profile_questions(publisherhost,publisherport)
+  populate_ai_manifest_questions(publisherhost,publisherport)
+  populate_ai_client_profile_questions(install_ip,install_client)
   process_questions(install_service)
   return
 end
