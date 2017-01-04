@@ -59,7 +59,9 @@ Some example screen captures:
 
 [Windows Client Example](https://github.com/lateralblast/mode/wiki/Windows-Client-Screen-Capture)
 
-[Linux Kickstart Client Example](https://github.com/lateralblast/mode/wiki/Kickstart-Client-Screen-Capture)
+[RedHat Linux Kickstart Client Examples](Kickstart-Client-Screen-Capture)
+
+[Ubuntu Linux Preseed Client Examples](Preseed-Client-Screen-Capture)
 
 Introduction
 ------------
