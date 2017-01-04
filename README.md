@@ -55,13 +55,15 @@ Screenshots
 
 Some example screen captures:
 
-[vSphere Client Example](https://github.com/lateralblast/mode/wiki/vSphere-Client-Screen-Capture)
+[vSphere/ESXi Client Example](https://github.com/lateralblast/mode/wiki/vSphere-Client-Screen-Capture)
 
 [Windows Client Example](https://github.com/lateralblast/mode/wiki/Windows-Client-Screen-Capture)
 
 [RedHat Linux Kickstart Client Examples](https://github.com/lateralblast/mode/wiki/Kickstart-Client-Screen-Capture)
 
 [Ubuntu Linux Preseed Client Examples](https://github.com/lateralblast/mode/wiki/Preseed-Client-Screen-Capture)
+
+[Solaris 11 Client Examples](https://github.com/lateralblast/mode/wiki/AI-Client-Screen-Capture)
 
 Introduction
 ------------
