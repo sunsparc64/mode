@@ -308,7 +308,7 @@ def configure_aws_client(install_name,install_type,install_ami,install_region,in
     handle_output("Warning:\tIncorrect number of instances specified: '#{install_number}'")
     quit()
   end
-  install_name,install_key,install_keyfile = handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region,install_group,install_desc,install_type)
+  install_name,install_key,install_keyfile,install_ports = handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region,install_group,install_desc,install_type,install_ports,install_ami)
   create_aws_install_files(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group,install_group)
   return
 end

@@ -135,13 +135,17 @@ end
 
 # Handle AWS values
 
-def handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region,install_group,install_desc,install_type,install_ports)
+def handle_aws_values(install_name,install_key,install_keyfile,install_access,install_secret,install_region,install_group,install_desc,install_type,install_ports,install_ami)
   if install_ports.match(/^#{$empty_value}$/)
     install_ports = "22"
   end
   if install_name.match(/^#{$empty_value}$/)
-    handle_output("Warning:\tNo name specified for AWS image")
-    quit()
+    if !install_ami.match(/^#{$empty_value}/)
+      install_name = install_ami
+    else
+      handle_output("Warning:\tNo name specified for AWS image")
+      quit()
+    end
   end
   if install_key.match(/^#{$empty_value}$|^none$/)
     handle_output("Warning:\tNo key pair specified")

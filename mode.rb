@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.5.8
+# Version:      4.5.9
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -270,6 +270,14 @@ set_global_vars()
 
 if option["client"]
   option["name"] = option["client"]
+end
+
+# Check based on switches - try guess if we are not given full information
+
+if option["ami"]
+  if !option["vm"]
+    option["vm"] = "aws"
+  end
 end
 
 # Get flags (BOOLEANs)
