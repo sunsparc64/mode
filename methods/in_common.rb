@@ -206,6 +206,7 @@ def set_global_vars()
   $default_proto          = "tcp"
   $default_serveradmin    = "root"
   $default_serverpassword = "root"
+  $default_aws_admin      = "ec2-user"
   $default_nosuffix       = false
   $default_dryrun         = false
   $default_strict         = false

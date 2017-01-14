@@ -62,11 +62,11 @@ def connect_to_aws_vm(install_access,install_secret,install_region,install_clien
     handle_output("Warning:\tNo IP or Instance ID specified")
     quit()
   end
-  if install_admin.match(/^#{$empty_key}$/)
+  if install_admin.match(/^#{$empty_value}$/)
     handle_output("Warning:\tNo user specified")
     quit()
   end
-  if !install_key.match(/^#{$empty_key}$/) and !install_keyfile.match(/^#{$empty_key}$/)
+  if install_key.match(/^#{$empty_value}$/) and install_keyfile.match(/^#{$empty_value}$/)
     if install_id.match(/[0-9]/)
       install_key = get_aws_instance_key_name(install_access,install_secret,install_region,install_id)
       handle_output("Information:\tFound key '#{install_key}' from Instance ID '#{install_id}'")
@@ -78,7 +78,7 @@ def connect_to_aws_vm(install_access,install_secret,install_region,install_clien
   if !install_ip.match(/[0-9]/)
     install_ip = get_aws_instance_ip(install_access,install_secret,install_region,install_id)
   end
-  if !install_keyfile.match(/^#{$empty_key}$/)
+  if install_keyfile.match(/^#{$empty_value}$/)
     install_keyfile = $default_aws_ssh_key_dir+"/"+install_key+".pem"
   end
   if !File.exist?(install_keyfile)
@@ -87,10 +87,7 @@ def connect_to_aws_vm(install_access,install_secret,install_region,install_clien
   end
   command = "#{ssh_command} -i #{install_keyfile} #{install_admin}@#{install_ip}" 
   update_user_ssh_config(install_ip,install_id,install_client,install_keyfile,install_admin)
-  if $verbos_mode == true
-    handle_output("Information:\tExecuting '#{command}'")
-  end
-  if $verbos_mode == true
+  if $verbose_mode == true
     handle_output("Information:\tExecuting '#{command}'")
   end
   exec "#{command}"
