@@ -129,7 +129,7 @@ end
 
 # Start AWS instance
 
-def boot_aws_vm(install_access,install_secret,install_region,install_ami,install_id)
+def boot_aws_vm(install_id,install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group,install_desc,install_ports)
   if install_id == "all"
     ec2,reservations = get_aws_reservations(install_access,install_secret,install_region)
     reservations.each do |reservation|
@@ -154,6 +154,10 @@ def boot_aws_vm(install_access,install_secret,install_region,install_ami,install
         handle_output("Information:\tStarting Instance ID #{install_id}")
         ec2 = initiate_aws_ec2_client(install_access,install_secret,install_region)
         ec2.start_instances(instance_ids:[install_id])
+      end
+    else
+      if !install_ami.match(/^#{$empty_value}$/)
+        configure_aws_client(install_name,install_type,install_ami,install_region,install_size,install_access,install_secret,install_number,install_key,install_keyfile,install_group,install_desc,install_ports)
       end
     end
   end

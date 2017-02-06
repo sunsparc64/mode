@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Name:         mode (Multi OS Deployment Engine)
-# Version:      4.5.9
+# Version:      4.6.0
 # Release:      1
 # License:      CC-BA (Creative Commons By Attribution)
 #               http://creativecommons.org/licenses/by/4.0/legalcode
@@ -1918,7 +1918,7 @@ if !option['action'].match(/^#{$empty_value}$/)
     option['action'] = option['action'].gsub(/start/,"boot")
     option['action'] = option['action'].gsub(/halt/,"stop")
     if option['vm'].match(/aws/)
-      eval"[#{option['action']}_#{option['vm']}_vm(option['access'],option['secret'],option['region'],option['ami'],option['id'])]"
+      boot_aws_vm(option['id'],option['name'],option['type'],option['ami'],option['region'],option['size'],option['access'],option['secret'],option['number'],option['key'],option['keyfile'],option['group'],option['desc'],option['ports'])
       quit()
     end
     if !option['name'].match(/^#{$empty_value}$/) and !option['vm'].match(/^#{$empty_value}$/) and !option['vm'].match(/none/)

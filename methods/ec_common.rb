@@ -721,7 +721,7 @@ def list_aws_images(install_access,install_secret,install_region)
   images.each do |image|
     image_name = image.name
     image_id   = image.image_id
-    handle_output("#{image_name}\tid=#{image_id}")
+    handle_output("#{image_name} id=#{image_id}")
   end
   return
 end
